@@ -20,3 +20,5 @@ Suggests:
     testthat,
     spelling
 Language: en-US
+Imports: 
+    arrow

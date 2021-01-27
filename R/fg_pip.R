@@ -17,29 +17,32 @@ fg_pip <- function(country   = "all",
                                year = year,
                                welfare_type = welfare_type,
                                svy_coverage = svy_coverage,
-                               fill_gaps = fill_gaps,
                                lkup = lkup[["ref_lkup"]])
   # return empty dataframe if no metadata is found
   if (is.na(metadata)) {
     return(create_empty_response())
   }
+  # Extract unique combinations of country-year
+  ctry_years = unique(metadata[, c("country_code", "reference_year")])
 
-  out <- vector(mode = "list", length = nrow(metadata))
+  out <- vector(mode = "list", length = nrow(ctry_years))
 
   for (i in seq_along(out)) {
 
-    tmp_metadata <- metadata[i, ]
+    ctry_year <- ctry_years[i, , drop = FALSE]
 
-    svy_data <- get_svy_data(metadata$survey_id[[i]],
+    tmp_metadata <- dplyr::left_join(ctry_year, metadata)
+
+    svy_data <- get_svy_data(tmp_metadata$survey_id,
                              paths = paths)
 
     tmp_stats <- wbpip:::fg_compute_pip_stats(request_year = year,
                                               data = svy_data,
-                                              predicted_request_mean = metadata[["predicted_mean_ppp"]],
-                                              survey_year = metadata[["survey_year"]],
-                                              default_ppp = metadata[["ppp"]],
+                                              predicted_request_mean = tmp_metadata[["predicted_mean_ppp"]],
+                                              survey_year = tmp_metadata[["survey_year"]],
+                                              default_ppp = tmp_metadata[["ppp"]],
                                               ppp = ppp,
-                                              distribution_type = metadata[["distribution_type"]],
+                                              distribution_type = tmp_metadata[["distribution_type"]],
                                               poverty_line = povline)
 
     tmp_deciles <- tmp_stats$deciles

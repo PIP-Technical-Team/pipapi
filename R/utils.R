@@ -2,7 +2,6 @@ get_svy_metadata <- function(country,
                              year,
                              welfare_type,
                              svy_coverage,
-                             fill_gaps,
                              lkup) {
 
   svy_n <- nrow(lkup)
@@ -14,7 +13,7 @@ get_svy_metadata <- function(country,
   }
   # Select years
   if (year[1] != "all") {
-    if (fill_gaps == TRUE) {
+    if ("reference_year" %in% names(lkup)) {
       keep <- keep & lkup$reference_year %in% year
     } else {
       keep <- keep & lkup$reporting_year %in% year
@@ -45,7 +44,7 @@ get_svy_data <- function(svy_id,
 
   out <- purrr::map(svy_id, function(id) {
     path <- paths[stringr::str_detect(paths, id)]
-    tmp <- fst::read_fst(path)
+    tmp <- arrow::read_parquet(path)
     tmp <- tmp[, c("welfare", "weight")]
 
     return(tmp)

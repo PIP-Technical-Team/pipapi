@@ -14,7 +14,6 @@ rg_pip <- function(country   = "all",
                                year = year,
                                welfare_type = welfare_type,
                                svy_coverage = svy_coverage,
-                               fill_gaps = fill_gaps,
                                lkup = lkup[["svy_lkup"]])
 
   # return empty dataframe if no metadata is found
@@ -34,9 +33,9 @@ rg_pip <- function(country   = "all",
     tmp_stats <- wbpip::compute_pip_stats(welfare = svy_data$df0$welfare,
                                           povline = povline,
                                           population = svy_data$df0$weight,
-                                          requested_mean = metadata$dsm_mean[[i]],
-                                          default_ppp = metadata$ppp[[i]],
-                                          distribution_type = metadata$distribution_type[[i]])
+                                          requested_mean = tmp_metadata$survey_mean_ppp,
+                                          default_ppp = tmp_metadata$ppp,
+                                          distribution_type = tmp_metadata$distribution_type)
 
     tmp_deciles <- tmp_stats$deciles
     tmp_stats$deciles <- NULL
