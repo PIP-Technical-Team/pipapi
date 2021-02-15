@@ -5,3 +5,4 @@ TEMP/
 TEMP.R
 renv/
 .Rprofile
+inst/doc

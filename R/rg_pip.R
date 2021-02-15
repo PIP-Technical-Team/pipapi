@@ -17,8 +17,8 @@ rg_pip <- function(country   = "all",
                                lkup = lkup[["svy_lkup"]])
 
   # return empty dataframe if no metadata is found
-  if (is.na(metadata)) {
-    return(create_empty_response())
+  if (nrow(metadata) == 0) {
+    return(pipapi::empty_response)
   }
 
   out <- vector(mode = "list", length = nrow(metadata))
@@ -35,23 +35,22 @@ rg_pip <- function(country   = "all",
                                           population = svy_data$df0$weight,
                                           requested_mean = tmp_metadata$survey_mean_ppp,
                                           default_ppp = tmp_metadata$ppp,
+                                          ppp = ppp,
                                           distribution_type = tmp_metadata$distribution_type)
 
     tmp_deciles <- tmp_stats$deciles
     tmp_stats$deciles <- NULL
-    tmp_out <- cbind(tmp_metadata, tmp_stats)
-
+    # Add stats columns to data frame
+    for (j in seq_along(tmp_stats)) {
+      tmp_metadata[[names(tmp_stats)[j]]] <- tmp_stats[[j]]
+    }
+    # Add deciles columns to data frame
       names_deciles <- paste0("decile", seq_along(tmp_deciles))
-      for (j in seq_along(names_deciles)) {
-        tmp_out[[names_deciles[j]]] <- tmp_deciles[j]
+      for (k in seq_along(names_deciles)) {
+        tmp_metadata[[names_deciles[k]]] <- tmp_deciles[k]
       }
 
-    # tmp_out$pop_in_poverty <- tmp_out$headcount * tmp_out$survey_pop
-
-    tmp_out <- dplyr::rename(tmp_out, poverty_rate = headcount)
-    # tmp_out <- dplyr::relocate(tmp_out, pop_in_poverty, .after = poverty_rate)
-
-    out[[i]] <- tmp_out
+    out[[i]] <- tmp_metadata
   }
   out <- dplyr::bind_rows(out)
   return(out)

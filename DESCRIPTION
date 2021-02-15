@@ -18,7 +18,12 @@ BugReports: https://github.com/PIP-Technical-Team/pipapi/issues
 Suggests: 
     covr,
     testthat,
-    spelling
+    spelling,
+    knitr,
+    rmarkdown
 Language: en-US
 Imports: 
     arrow
+Depends: 
+    R (>= 2.10)
+VignetteBuilder: knitr

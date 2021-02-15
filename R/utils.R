@@ -13,29 +13,20 @@ get_svy_metadata <- function(country,
   }
   # Select years
   if (year[1] != "all") {
-    if ("reference_year" %in% names(lkup)) {
-      keep <- keep & lkup$reference_year %in% year
-    } else {
       keep <- keep & lkup$reporting_year %in% year
     }
-  }
   # Select welfare_type
   if (welfare_type[1] != "all") {
     keep <- keep & lkup$welfare_type == welfare_type
   }
   # Select survey coverage
   if (svy_coverage[1] != "all") {
-    keep <- keep & lkup$svy_coverage == svy_coverage
+    keep <- keep & lkup$survey_coverage == survey_coverage
   }
 
   lkup <- lkup[keep, ]
-  # Handle cases when no survey is found
-  if (nrow(lkup) == 0) {
-    return(NA)
-  } else {
-    return(lkup)
-  }
 
+    return(lkup)
 }
 
 get_svy_data <- function(svy_id,
