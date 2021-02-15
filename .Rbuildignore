@@ -1,5 +1,8 @@
+^renv$
+^renv\.lock$
 ^pipapi\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^README\.Rmd$
 ^codecov\.yml$
+^data-raw$
