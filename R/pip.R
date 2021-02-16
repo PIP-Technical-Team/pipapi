@@ -39,7 +39,25 @@ pip <- function(country   = "all",
                   lkup         = lkup,
                   paths        = paths)
   }
-  # out$is_interpolated <- fill_gaps
+
+  # Handle aggregated distributions
+  if (svy_coverage %in% c("national", "all")) {
+    aggregated <- out[out$is_aggregated == TRUE, ]
+    if (nrow(aggregated) > 0) {
+      aggregated <- out[out$is_aggregated == TRUE, ]
+      aggregated_list <- split(aggregated,
+                               interaction(aggregated$country_code,
+                                           aggregated$reporting_year),
+                               drop = TRUE)
+      aggregated <- lapply(aggregated_list, ag_average_poverty_stats)
+      aggregated <- dplyr::bind_rows(aggregated)
+
+      out <- dplyr::bind_rows(out, aggregated)
+    }
+    if (svy_coverage == "national") {
+      out <- out[out$pop_data_level == "national", ]
+    }
+  }
 
   return(out)
 }
