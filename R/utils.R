@@ -41,7 +41,7 @@ get_svy_data <- function(svy_id,
 
   out <- purrr::map(svy_id, function(id) {
     path <- paths[stringr::str_detect(paths, id)]
-    tmp <- arrow::read_parquet(path)
+    tmp <- fst::read_fst(path)
     if (svy_coverage %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
       tmp <- tmp[tmp$area == svy_coverage, ]
     }
