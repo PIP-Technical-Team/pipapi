@@ -13,11 +13,11 @@ fg_pip <- function(country   = "all",
 
   # Handle interpolation
 
-  metadata <- get_svy_metadata(country = country,
-                               year = year,
-                               welfare_type = welfare_type,
-                               svy_coverage = svy_coverage,
-                               lkup = lkup[["ref_lkup"]])
+  metadata <- subet_lkup(country = country,
+                         year = year,
+                         welfare_type = welfare_type,
+                         svy_coverage = svy_coverage,
+                         lkup = lkup[["ref_lkup"]])
   # return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
     return(pipapi::empty_response)

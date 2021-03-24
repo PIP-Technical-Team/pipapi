@@ -1,8 +1,8 @@
-get_svy_metadata <- function(country,
-                             year,
-                             welfare_type,
-                             svy_coverage,
-                             lkup) {
+subset_lkup <- function(country,
+                        year,
+                        welfare_type,
+                        svy_coverage,
+                        lkup) {
 
   svy_n <- nrow(lkup)
   keep <- rep(TRUE, svy_n)
@@ -13,22 +13,27 @@ get_svy_metadata <- function(country,
   }
   # Select years
   if (year[1] != "all") {
-      keep <- keep & lkup$reporting_year %in% year
-    }
+    keep <- keep & lkup$reporting_year %in% year
+  }
   # Select welfare_type
   if (welfare_type[1] != "all") {
     keep <- keep & lkup$welfare_type == welfare_type
   }
   # Select survey coverage
+  # To be updated: Fix the coverage variable names in aux data (reporting_coverage?)
   if (svy_coverage[1] != "all") {
-    keep <- keep &
-      (lkup$survey_coverage == svy_coverage |
-         lkup$pop_data_level  == svy_coverage)
+    if ("survey_coverage" %in% names(lkup)) {
+      keep <- keep &
+        (lkup$survey_coverage == svy_coverage |
+           lkup$pop_data_level  == svy_coverage)
+    } else {
+      keep <- keep & lkup$pop_data_level  == svy_coverage
+    }
   }
 
   lkup <- lkup[keep, ]
 
-    return(lkup)
+  return(lkup)
 }
 
 get_svy_data <- function(svy_id,
@@ -185,3 +190,5 @@ ag_average_poverty_stats <- function(df) {
 
   return(out)
 }
+
+
