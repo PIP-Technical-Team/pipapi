@@ -59,6 +59,26 @@ pip <- function(country   = "all",
     }
   }
 
+  # Add pre-computed distributional statistics
+  dist_stats <- dplyr::select(lkup$dist_stats,
+                              survey_id,
+                              country_code,
+                              reporting_year,
+                              welfare_type,
+                              pop_data_level,
+                              median = survey_median_ppp,
+                              gini,
+                              polarization,
+                              mld,
+                              dplyr::starts_with("decile"))
+
+  out <- dplyr::left_join(out, dist_stats,
+                          by = c("survey_id",
+                                 "country_code",
+                                 "reporting_year",
+                                 "welfare_type",
+                                 "pop_data_level"))
+
   return(out)
 }
 

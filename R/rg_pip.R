@@ -41,6 +41,7 @@ rg_pip <- function(country   = "all",
                                                 povline = povline,
                                                 population = svy_data$df0$weight,
                                                 requested_mean = tmp_metadata$survey_mean_ppp,
+                                                svy_mean_lcu = tmp_metadata$survey_mean_lcu,
                                                 default_ppp = tmp_metadata$ppp,
                                                 ppp = ppp,
                                                 distribution_type = tmp_metadata$distribution_type)
