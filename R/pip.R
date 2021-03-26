@@ -79,6 +79,9 @@ pip <- function(country   = "all",
                                  "welfare_type",
                                  "pop_data_level"))
 
+  # ADD FIX FOR MEDIAN WHEN INTERPOLATING
+  # median <- dist_stats[["median"]]/(data_mean/requested_mean)
+
   return(out)
 }
 

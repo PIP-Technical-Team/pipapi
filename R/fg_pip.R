@@ -13,7 +13,7 @@ fg_pip <- function(country   = "all",
 
   # Handle interpolation
 
-  metadata <- subet_lkup(country = country,
+  metadata <- subset_lkup(country = country,
                          year = year,
                          welfare_type = welfare_type,
                          svy_coverage = svy_coverage,
