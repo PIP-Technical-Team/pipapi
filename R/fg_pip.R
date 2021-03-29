@@ -39,19 +39,20 @@ fg_pip <- function(country   = "all",
                              svy_coverage = tmp_metadata[["pop_data_level"]],
                              paths = paths)
 
-    tmp_stats <- wbpip:::fg_compute_pip_stats(request_year = tmp_year,
-                                              data = svy_data,
-                                              predicted_request_mean = tmp_metadata[["predicted_mean_ppp"]],
-                                              survey_year = tmp_metadata[["survey_year"]],
-                                              default_ppp = tmp_metadata[["ppp"]],
-                                              ppp = ppp,
-                                              distribution_type = tmp_metadata[["distribution_type"]],
-                                              poverty_line = povline)
+    tmp_stats <- wbpip:::prod_fg_compute_pip_stats(request_year = tmp_year,
+                                                   data = svy_data,
+                                                   predicted_request_mean = tmp_metadata[["predicted_mean_ppp"]],
+                                                   svy_mean_lcu = tmp_metadata[["survey_mean_lcu"]],
+                                                   survey_year = tmp_metadata[["survey_year"]],
+                                                   default_ppp = tmp_metadata[["ppp"]],
+                                                   ppp = ppp,
+                                                   distribution_type = tmp_metadata[["distribution_type"]],
+                                                   poverty_line = povline)
 
     # Ensure that tmp_metadata has a single row
     var_to_collapse <- c("survey_id", "surveyid_year", "survey_year",
                          "survey_acronym", "survey_coverage", "survey_comparability",
-                         "welfare_type", "distribution_type", "gd_type")
+                         "welfare_type", "distribution_type", "gd_type", "predicted_mean_ppp", "survey_mean_lcu")
     tmp_vars <- lapply(tmp_metadata[, var_to_collapse], unique, collapse = "|")
     tmp_vars <- lapply(tmp_vars, paste, collapse = "|")
     tmp_var_names <- names(tmp_metadata[, var_to_collapse])
@@ -61,25 +62,22 @@ fg_pip <- function(country   = "all",
     }
     tmp_metadata <- unique(tmp_metadata)
 
-
-    tmp_deciles <- tmp_stats$deciles
-    tmp_stats$deciles <- NULL
     # Add stats columns to data frame
     for (j in seq_along(tmp_stats)) {
       tmp_metadata[[names(tmp_stats)[j]]] <- tmp_stats[[j]]
     }
 
-    if (length(tmp_deciles) < 10) {
-      names_deciles <- paste0("decile", 1:10)
-      for (k in seq_along(names_deciles)) {
-        tmp_metadata[[names_deciles[k]]] <- NA
-      }
-    } else {
-      names_deciles <- paste0("decile", seq_along(tmp_deciles))
-      for (k in seq_along(names_deciles)) {
-        tmp_metadata[[names_deciles[k]]] <- tmp_deciles[k]
-      }
-    }
+#     if (length(tmp_deciles) < 10) {
+#       names_deciles <- paste0("decile", 1:10)
+#       for (k in seq_along(names_deciles)) {
+#         tmp_metadata[[names_deciles[k]]] <- NA
+#       }
+#     } else {
+#       names_deciles <- paste0("decile", seq_along(tmp_deciles))
+#       for (k in seq_along(names_deciles)) {
+#         tmp_metadata[[names_deciles[k]]] <- tmp_deciles[k]
+#       }
+#     }
 
     out[[i]] <- tmp_metadata
   }
