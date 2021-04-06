@@ -50,7 +50,7 @@ fg_pip <- function(country   = "all",
                                                    poverty_line = povline)
 
     # Ensure that tmp_metadata has a single row
-    var_to_collapse <- c("survey_id", "surveyid_year", "survey_year",
+    var_to_collapse <- c("survey_id", "cache_id", "surveyid_year", "survey_year",
                          "survey_acronym", "survey_coverage", "survey_comparability",
                          "welfare_type", "distribution_type", "gd_type", "predicted_mean_ppp", "survey_mean_lcu")
     tmp_vars <- lapply(tmp_metadata[, var_to_collapse], unique, collapse = "|")

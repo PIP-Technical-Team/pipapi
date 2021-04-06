@@ -40,6 +40,7 @@ get_svy_data <- function(svy_id,
                          svy_coverage,
                          paths)
 {
+  # Each call should be made at a unique pop_data_level (equivalent to reporting_data_level: national, urban, rural)
   svy_coverage <- unique(svy_coverage)
   assertthat::assert_that(length(svy_coverage) == 1,
                           msg = "Problem with input data: Multiple pop_data_levels")
