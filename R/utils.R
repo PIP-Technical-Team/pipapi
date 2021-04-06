@@ -1,8 +1,8 @@
-get_svy_metadata <- function(country,
-                             year,
-                             welfare_type,
-                             svy_coverage,
-                             lkup) {
+subset_lkup <- function(country,
+                        year,
+                        welfare_type,
+                        svy_coverage,
+                        lkup) {
 
   svy_n <- nrow(lkup)
   keep <- rep(TRUE, svy_n)
@@ -13,29 +13,44 @@ get_svy_metadata <- function(country,
   }
   # Select years
   if (year[1] != "all") {
-      keep <- keep & lkup$reporting_year %in% year
-    }
+    keep <- keep & lkup$reporting_year %in% year
+  }
   # Select welfare_type
   if (welfare_type[1] != "all") {
     keep <- keep & lkup$welfare_type == welfare_type
   }
   # Select survey coverage
+  # To be updated: Fix the coverage variable names in aux data (reporting_coverage?)
   if (svy_coverage[1] != "all") {
-    keep <- keep & lkup$survey_coverage == survey_coverage
+    if ("survey_coverage" %in% names(lkup)) {
+      keep <- keep &
+        (lkup$survey_coverage == svy_coverage |
+           lkup$pop_data_level  == svy_coverage)
+    } else {
+      keep <- keep & lkup$pop_data_level  == svy_coverage
+    }
   }
 
   lkup <- lkup[keep, ]
 
-    return(lkup)
+  return(lkup)
 }
 
 get_svy_data <- function(svy_id,
+                         svy_coverage,
                          paths)
 {
+  # Each call should be made at a unique pop_data_level (equivalent to reporting_data_level: national, urban, rural)
+  svy_coverage <- unique(svy_coverage)
+  assertthat::assert_that(length(svy_coverage) == 1,
+                          msg = "Problem with input data: Multiple pop_data_levels")
 
   out <- purrr::map(svy_id, function(id) {
     path <- paths[stringr::str_detect(paths, id)]
-    tmp <- arrow::read_parquet(path)
+    tmp <- fst::read_fst(path)
+    if (svy_coverage %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
+      tmp <- tmp[tmp$area == svy_coverage, ]
+    }
     tmp <- tmp[, c("welfare", "weight")]
 
     return(tmp)
@@ -98,3 +113,83 @@ create_empty_response <- function() {
 
   return(out)
 }
+
+#' Computes poverty statistics (aggregated)
+#'
+#' Compute poverty statistics for aggregated data distribution.
+#'
+#' @inheritParams gd_compute_pip_stats
+#' @param area character: Area (Urban or Rural)
+#' @param area_pop numeric: Total population per area.
+#' @return list
+#' @keywords internal
+ag_average_poverty_stats <- function(df) {
+
+  assertthat::assert_that(assertthat::are_equal(length(df$pop_data_level), 2))
+  dfu <- df[df$pop_data_level == "urban", ]
+  dfr <- df[df$pop_data_level == "rural", ]
+
+  # Compute stats for each sub-group
+  out <- dfr
+
+  # Set distributional stats to NA is not based on microdata
+  if (dfu$distribution_type != "micro" | dfr$distribution_type != "micro") {
+    # Column to be set to NA
+    # Cannot be computed through weighted average because   # these measures are
+    # not additive
+    na_cols <- c("survey_mean_lcu", "ppp", "cpi","gini", "mld", "polarization",
+                 "decile1", "decile2", "decile3", "decile4", "decile5", "decile6",
+                 "decile7", "decile8", "decile9", "decile10")
+    out[, na_cols] <- NA
+  }
+
+  # Compute population weighted average
+  wgt_urban <- dfu$reporting_pop / sum(df$reporting_pop)
+  wgt_rural <- 1 - wgt_urban
+
+  out$survey_mean_ppp = wgt_urban * dfu$mean +
+    wgt_rural * dfr$mean
+
+  if (dfr$poverty_severity < 0) {# Check if rural poverty severity < 0
+
+    if (dfu$poverty_severity < 0) # Same for urban
+    {
+      out[, c("headcount", "poverty_gap", "poverty_severity")] <- NA
+    } else {
+      out$headcount        <- dfu$headcount
+      out$poverty_gap      <- dfu$poverty_gap
+      out$poverty_severity <- dfu$poverty_severity
+    }
+  } else {
+    if (dfu$poverty_severity < 0) {
+      out$headcount        <- dfr$headcount
+      out$poverty_gap      <- dfr$poverty_gap
+      out$poverty_severity <- dfr$poverty_severity
+    } else {
+      out$headcount <- wgt_rural * dfr$headcount +
+        wgt_urban * dfu$headcount
+
+      out_poverty_gap <- wgt_rural * dfr$poverty_gap +
+        wgt_urban * dfu$poverty_gap
+
+      out_poverty_severity <- wgt_rural * dfr$poverty_severity +
+        wgt_urban * dfu$poverty_severity
+    }
+  }
+
+  if (dfu$watts > 0 & dfr$watts > 0) {
+    out_watts <- wgt_rural * dfr$watts +
+      wgt_urban * dfu$watts
+  } else {
+    out$watts <- NA
+  }
+
+  # Update other variables
+  out$reporting_pop <- sum(df$reporting_pop)
+  out[, c("pop_data_level", "gdp_data_level",
+          "pce_data_level", "cpi_data_level", "ppp_data_level")] <- "national"
+
+  return(out)
+}
+
+
