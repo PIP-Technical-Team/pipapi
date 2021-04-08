@@ -137,9 +137,7 @@ ag_average_poverty_stats <- function(df) {
     # Column to be set to NA
     # Cannot be computed through weighted average because   # these measures are
     # not additive
-    na_cols <- c("survey_mean_lcu", "ppp", "cpi","gini", "mld", "polarization",
-                 "decile1", "decile2", "decile3", "decile4", "decile5", "decile6",
-                 "decile7", "decile8", "decile9", "decile10")
+    na_cols <- c("survey_mean_lcu", "ppp", "cpi")
     out[, na_cols] <- NA
   }
 

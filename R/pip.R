@@ -54,9 +54,6 @@ pip <- function(country   = "all",
 
       out <- dplyr::bind_rows(out, aggregated)
     }
-    if (svy_coverage == "national") {
-      out <- out[out$pop_data_level == "national", ]
-    }
   }
 
   # Add pre-computed distributional statistics
@@ -78,6 +75,11 @@ pip <- function(country   = "all",
                                  "reporting_year",
                                  "welfare_type",
                                  "pop_data_level"))
+
+  # Handle survey coverage
+  if (svy_coverage != "all") {
+    out <- out[out$pop_data_level == svy_coverage, ]
+  }
 
   # ADD FIX FOR MEDIAN WHEN INTERPOLATING
   # median <- dist_stats[["median"]]/(data_mean/requested_mean)
