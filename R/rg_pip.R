@@ -33,7 +33,7 @@ rg_pip <- function(country   = "all",
 
     tmp_metadata <- metadata[i, ]
 
-    svy_data <- get_svy_data(tmp_metadata$survey_id,
+    svy_data <- get_svy_data(tmp_metadata$cache_id,
                              svy_coverage = tmp_metadata$pop_data_level,
                              paths = paths)
 
