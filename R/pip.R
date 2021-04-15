@@ -43,18 +43,7 @@ pip <- function(country   = "all",
 
   # Handle aggregated distributions
   if (svy_coverage %in% c("national", "all")) {
-    aggregated <- out[out$is_aggregated == TRUE, ]
-    if (nrow(aggregated) > 0) {
-      aggregated <- out[out$is_aggregated == TRUE, ]
-      aggregated_list <- split(aggregated,
-                               interaction(aggregated$country_code,
-                                           aggregated$reporting_year),
-                               drop = TRUE)
-      aggregated <- lapply(aggregated_list, ag_average_poverty_stats)
-      aggregated <- dplyr::bind_rows(aggregated)
-
-      out <- dplyr::bind_rows(out, aggregated)
-    }
+    out <- add_agg_stats(out)
   }
 
 
