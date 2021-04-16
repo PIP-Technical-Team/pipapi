@@ -114,8 +114,36 @@ create_empty_response <- function() {
   return(out)
 }
 
-#' Computes poverty statistics (aggregated)
-#'
+collapse_rows <- function(df, vars, na_var) {
+  tmp_vars <- lapply(df[, ..vars], unique, collapse = "|")
+  tmp_vars <- lapply(tmp_vars, paste, collapse = "|")
+  tmp_var_names <- names(df[, ..vars])
+  df[[na_var]] <- NA_real_
+  for (tmp_var in seq_along(tmp_vars)) {
+    df[[tmp_var_names[tmp_var]]] <- tmp_vars[[tmp_var]]
+  }
+  df <- unique(df)
+}
 
+add_dist_stats <- function(df, dist_stats) {
+  cols <- c("survey_id",
+            "country_code",
+            "reporting_year",
+            "welfare_type",
+            "pop_data_level",
+            "survey_median_ppp",
+            "gini",
+            "polarization",
+            "mld",
+            paste0("decile", 1:10))
+  dist_stats <- dist_stats[, ..cols]
 
+  data.table::setnames(dist_stats, "survey_median_ppp", "median")
+
+  df <- dist_stats[df,
+                    on = .(survey_id, country_code, reporting_year, welfare_type, pop_data_level),
+                    allow.cartesian = TRUE]
+
+  return(df)
+}
 

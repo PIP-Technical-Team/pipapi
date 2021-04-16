@@ -16,12 +16,6 @@ rg_pip <- function(country   = "all",
                           svy_coverage = svy_coverage,
                           lkup = lkup[["svy_lkup"]])
 
-  # dist_stats <- subset_lkup(country      = country,
-  #                           year         = year,
-  #                           welfare_type = welfare_type,
-  #                           svy_coverage = svy_coverage,
-  #                           lkup         = lkup[["dist_stats"]])
-
   # return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
     return(pipapi::empty_response)
@@ -46,20 +40,15 @@ rg_pip <- function(country   = "all",
                                                 ppp = ppp,
                                                 distribution_type = tmp_metadata$distribution_type)
 
-    # tmp_deciles <- tmp_stats$deciles
-    # tmp_stats$deciles <- NULL
     # Add stats columns to data frame
     for (j in seq_along(tmp_stats)) {
       tmp_metadata[[names(tmp_stats)[j]]] <- tmp_stats[[j]]
     }
-    # # Add deciles columns to data frame
-    #   names_deciles <- paste0("decile", seq_along(tmp_deciles))
-    #   for (k in seq_along(names_deciles)) {
-    #     tmp_metadata[[names_deciles[k]]] <- tmp_deciles[k]
-    #   }
 
     out[[i]] <- tmp_metadata
   }
-  out <- dplyr::bind_rows(out)
+
+  out <- data.table::rbindlist(out)
+
   return(out)
 }
