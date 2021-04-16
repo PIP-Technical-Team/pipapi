@@ -45,7 +45,7 @@ get_svy_data <- function(svy_id,
   assertthat::assert_that(length(svy_coverage) == 1,
                           msg = "Problem with input data: Multiple pop_data_levels")
 
-  out <- purrr::map(svy_id, function(id) {
+  out <- lapply(svy_id, function(id) {
     path <- paths[stringr::str_detect(paths, id)]
     tmp <- fst::read_fst(path)
     if (svy_coverage %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
