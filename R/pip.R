@@ -12,6 +12,10 @@ pip <- function(country   = "all",
                 lkup,
                 paths) {
 
+  # Forces fill_gaps to TRUE when using group_by option
+  if (!is.null(group_by)) {
+    fill_gaps <- TRUE
+  }
 
   # Handle interpolation
   if (fill_gaps == TRUE) {
@@ -39,6 +43,11 @@ pip <- function(country   = "all",
                   server       = server,
                   lkup         = lkup,
                   paths        = paths)
+  }
+
+  # return empty dataframe if no metadata is found
+  if (nrow(out) == 0) {
+    return(out)
   }
 
   # Handle aggregated distributions
