@@ -23,7 +23,8 @@ Suggests:
     rmarkdown
 Language: en-US
 Imports: 
-    arrow
+    data.table,
+    fst
 Depends: 
     R (>= 2.10)
 VignetteBuilder: knitr

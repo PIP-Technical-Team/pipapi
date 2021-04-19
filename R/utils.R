@@ -45,7 +45,7 @@ get_svy_data <- function(svy_id,
   assertthat::assert_that(length(svy_coverage) == 1,
                           msg = "Problem with input data: Multiple pop_data_levels")
 
-  out <- purrr::map(svy_id, function(id) {
+  out <- lapply(svy_id, function(id) {
     path <- paths[stringr::str_detect(paths, id)]
     tmp <- fst::read_fst(path)
     if (svy_coverage %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
@@ -65,129 +65,85 @@ get_svy_data <- function(svy_id,
 
 create_empty_response <- function() {
   out <- data.frame(
-           survey_id = c(NA),
-         region_code = c(NA),
-        country_code = c(NA),
-      reference_year = c(NA),
-       surveyid_year = c(NA),
-      reporting_year = c(NA),
-      survey_acronym = c(NA),
-     survey_coverage = c(NA),
-         survey_year = c(NA),
-        welfare_type = c(NA),
-     survey_mean_ppp = c(NA),
-  predicted_mean_ppp = c(NA),
-                 ppp = c(NA),
-       reference_pop = c(NA),
-       reference_gdp = c(NA),
-       reference_pce = c(NA),
-      pop_data_level = c(NA),
-      gdp_data_level = c(NA),
-      pce_data_level = c(NA),
-      cpi_data_level = c(NA),
-      ppp_data_level = c(NA),
-   distribution_type = c(NA),
-             gd_type = c(NA),
-        poverty_line = c(NA),
-                mean = c(NA),
-              median = c(NA),
-        poverty_rate = c(NA),
-         poverty_gap = c(NA),
-    poverty_severity = c(NA),
-               watts = c(NA),
-                gini = c(NA),
-                 mld = c(NA),
-        polarization = c(NA),
-             decile1 = c(NA),
-             decile2 = c(NA),
-             decile3 = c(NA),
-             decile4 = c(NA),
-             decile5 = c(NA),
-             decile6 = c(NA),
-             decile7 = c(NA),
-             decile8 = c(NA),
-             decile9 = c(NA),
-            decile10 = c(NA),
-     is_interpolated = c(NA)
+           survey_id = character(0),
+         region_code = character(0),
+        country_code = character(0),
+      reference_year = numeric(0),
+       surveyid_year = numeric(0),
+      reporting_year = numeric(0),
+      survey_acronym = character(0),
+     survey_coverage = character(0),
+         survey_year = numeric(0),
+        welfare_type = character(0),
+     survey_mean_ppp = numeric(0),
+  predicted_mean_ppp = numeric(0),
+                 ppp = numeric(0),
+       reference_pop = character(0),
+       reference_gdp = character(0),
+       reference_pce = character(0),
+      pop_data_level = character(0),
+      gdp_data_level = character(0),
+      pce_data_level = character(0),
+      cpi_data_level = character(0),
+      ppp_data_level = character(0),
+   distribution_type = character(0),
+             gd_type = character(0),
+        poverty_line = numeric(0),
+                mean = numeric(0),
+              median = numeric(0),
+        poverty_rate = numeric(0),
+         poverty_gap = numeric(0),
+    poverty_severity = numeric(0),
+               watts = numeric(0),
+                gini = numeric(0),
+                 mld = numeric(0),
+        polarization = numeric(0),
+             decile1 = numeric(0),
+             decile2 = numeric(0),
+             decile3 = numeric(0),
+             decile4 = numeric(0),
+             decile5 = numeric(0),
+             decile6 = numeric(0),
+             decile7 = numeric(0),
+             decile8 = numeric(0),
+             decile9 = numeric(0),
+            decile10 = numeric(0),
+     is_interpolated = numeric(0)
   )
 
   return(out)
 }
 
-#' Computes poverty statistics (aggregated)
-#'
-#' Compute poverty statistics for aggregated data distribution.
-#'
-#' @inheritParams gd_compute_pip_stats
-#' @param area character: Area (Urban or Rural)
-#' @param area_pop numeric: Total population per area.
-#' @return list
-#' @keywords internal
-ag_average_poverty_stats <- function(df) {
-
-  assertthat::assert_that(assertthat::are_equal(length(df$pop_data_level), 2))
-  dfu <- df[df$pop_data_level == "urban", ]
-  dfr <- df[df$pop_data_level == "rural", ]
-
-  # Compute stats for each sub-group
-  out <- dfr
-
-  # Set distributional stats to NA is not based on microdata
-  if (dfu$distribution_type != "micro" | dfr$distribution_type != "micro") {
-    # Column to be set to NA
-    # Cannot be computed through weighted average because   # these measures are
-    # not additive
-    na_cols <- c("survey_mean_lcu", "ppp", "cpi")
-    out[, na_cols] <- NA
+collapse_rows <- function(df, vars, na_var) {
+  tmp_vars <- lapply(df[, ..vars], unique, collapse = "|")
+  tmp_vars <- lapply(tmp_vars, paste, collapse = "|")
+  tmp_var_names <- names(df[, ..vars])
+  df[[na_var]] <- NA_real_
+  for (tmp_var in seq_along(tmp_vars)) {
+    df[[tmp_var_names[tmp_var]]] <- tmp_vars[[tmp_var]]
   }
-
-  # Compute population weighted average
-  wgt_urban <- dfu$reporting_pop / sum(df$reporting_pop)
-  wgt_rural <- 1 - wgt_urban
-
-  out$survey_mean_ppp = wgt_urban * dfu$mean +
-    wgt_rural * dfr$mean
-
-  if (dfr$poverty_severity < 0) {# Check if rural poverty severity < 0
-
-    if (dfu$poverty_severity < 0) # Same for urban
-    {
-      out[, c("headcount", "poverty_gap", "poverty_severity")] <- NA
-    } else {
-      out$headcount        <- dfu$headcount
-      out$poverty_gap      <- dfu$poverty_gap
-      out$poverty_severity <- dfu$poverty_severity
-    }
-  } else {
-    if (dfu$poverty_severity < 0) {
-      out$headcount        <- dfr$headcount
-      out$poverty_gap      <- dfr$poverty_gap
-      out$poverty_severity <- dfr$poverty_severity
-    } else {
-      out$headcount <- wgt_rural * dfr$headcount +
-        wgt_urban * dfu$headcount
-
-      out_poverty_gap <- wgt_rural * dfr$poverty_gap +
-        wgt_urban * dfu$poverty_gap
-
-      out_poverty_severity <- wgt_rural * dfr$poverty_severity +
-        wgt_urban * dfu$poverty_severity
-    }
-  }
-
-  if (dfu$watts > 0 & dfr$watts > 0) {
-    out_watts <- wgt_rural * dfr$watts +
-      wgt_urban * dfu$watts
-  } else {
-    out$watts <- NA
-  }
-
-  # Update other variables
-  out$reporting_pop <- sum(df$reporting_pop)
-  out[, c("pop_data_level", "gdp_data_level",
-          "pce_data_level", "cpi_data_level", "ppp_data_level")] <- "national"
-
-  return(out)
+  df <- unique(df)
 }
 
+add_dist_stats <- function(df, dist_stats) {
+  cols <- c("survey_id",
+            "country_code",
+            "reporting_year",
+            "welfare_type",
+            "pop_data_level",
+            "survey_median_ppp",
+            "gini",
+            "polarization",
+            "mld",
+            paste0("decile", 1:10))
+  dist_stats <- dist_stats[, ..cols]
+
+  data.table::setnames(dist_stats, "survey_median_ppp", "median")
+
+  df <- dist_stats[df,
+                    on = .(survey_id, country_code, reporting_year, welfare_type, pop_data_level),
+                    allow.cartesian = TRUE]
+
+  return(df)
+}
 

@@ -4,6 +4,7 @@ pip <- function(country   = "all",
                 year      = "all",
                 fill_gaps = FALSE,
                 aggregate = FALSE,
+                group_by  = NULL,
                 welfare_type = "all",
                 svy_coverage = "all",
                 ppp       = NULL,
@@ -11,6 +12,10 @@ pip <- function(country   = "all",
                 lkup,
                 paths) {
 
+  # Forces fill_gaps to TRUE when using group_by option
+  if (!is.null(group_by)) {
+    fill_gaps <- TRUE
+  }
 
   # Handle interpolation
   if (fill_gaps == TRUE) {
@@ -40,41 +45,33 @@ pip <- function(country   = "all",
                   paths        = paths)
   }
 
-  # Handle aggregated distributions
-  if (svy_coverage %in% c("national", "all")) {
-    aggregated <- out[out$is_aggregated == TRUE, ]
-    if (nrow(aggregated) > 0) {
-      aggregated <- out[out$is_aggregated == TRUE, ]
-      aggregated_list <- split(aggregated,
-                               interaction(aggregated$country_code,
-                                           aggregated$reporting_year),
-                               drop = TRUE)
-      aggregated <- lapply(aggregated_list, ag_average_poverty_stats)
-      aggregated <- dplyr::bind_rows(aggregated)
-
-      out <- dplyr::bind_rows(out, aggregated)
-    }
+  # return empty dataframe if no metadata is found
+  if (nrow(out) == 0) {
+    return(out)
   }
 
-  # Add pre-computed distributional statistics
-  dist_stats <- dplyr::select(lkup$dist_stats,
-                              survey_id,
-                              country_code,
-                              reporting_year,
-                              welfare_type,
-                              pop_data_level,
-                              median = survey_median_ppp,
-                              gini,
-                              polarization,
-                              mld,
-                              dplyr::starts_with("decile"))
+  # Handle aggregated distributions
+  if (svy_coverage %in% c("national", "all")) {
+    out <- add_agg_stats(out)
+  }
 
-  out <- dplyr::left_join(out, dist_stats,
-                          by = c("survey_id",
-                                 "country_code",
-                                 "reporting_year",
-                                 "welfare_type",
-                                 "pop_data_level"))
+
+  # Handle grouped aggregations
+  if (!is.null(group_by)) {
+    # Handle potential (insignificant) difference in poverty_line values  that
+    # may mess-up the grouping
+    out$poverty_line <- povline
+
+    out <- aggregate_by_group(df = out,
+                              group_lkup = lkups[["pop_region"]])
+
+    return(out)
+  }
+
+
+  # Add pre-computed distributional statistics
+  out <- add_dist_stats(df = out,
+                        dist_stats = lkup[["dist_stats"]])
 
   # Handle survey coverage
   if (svy_coverage != "all") {

@@ -23,7 +23,7 @@ fg_pip <- function(country   = "all",
     return(pipapi::empty_response)
   }
   # Extract unique combinations of country-year
-  ctry_years = unique(metadata[, c("country_code", "reporting_year", "pop_data_level")])
+  ctry_years = unique(metadata[, .(country_code, reporting_year, pop_data_level)])
 
   out <- vector(mode = "list", length = nrow(ctry_years))
 
@@ -32,10 +32,11 @@ fg_pip <- function(country   = "all",
     ctry_year <- ctry_years[i, , drop = FALSE]
     tmp_year  <- ctry_year[["reporting_year"]]
 
-    tmp_metadata <- dplyr::left_join(ctry_year, metadata,
-                                     by = c("country_code", "reporting_year", "pop_data_level"))
+    tmp_metadata <- metadata[ctry_year,
+                             on = .(country_code, reporting_year, pop_data_level),
+                             allow.cartesian = TRUE]
 
-    svy_data <- get_svy_data(tmp_metadata$cache_id,
+    svy_data <- get_svy_data(tmp_metadata[["cache_id"]],
                              svy_coverage = tmp_metadata[["pop_data_level"]],
                              paths = paths)
 
@@ -50,38 +51,21 @@ fg_pip <- function(country   = "all",
                                                    poverty_line = povline)
 
     # Ensure that tmp_metadata has a single row
-    var_to_collapse <- c("survey_id", "cache_id", "surveyid_year", "survey_year",
+    vars_to_collapse <- c("survey_id", "cache_id", "surveyid_year", "survey_year",
                          "survey_acronym", "survey_coverage", "survey_comparability",
                          "welfare_type", "distribution_type", "gd_type", "predicted_mean_ppp", "survey_mean_lcu")
-    tmp_vars <- lapply(tmp_metadata[, var_to_collapse], unique, collapse = "|")
-    tmp_vars <- lapply(tmp_vars, paste, collapse = "|")
-    tmp_var_names <- names(tmp_metadata[, var_to_collapse])
-    tmp_metadata$survey_mean_ppp <- NA_real_
-    for (tmp_var in seq_along(tmp_vars)) {
-      tmp_metadata[[tmp_var_names[tmp_var]]] <- tmp_vars[[tmp_var]]
-    }
-    tmp_metadata <- unique(tmp_metadata)
+    tmp_metadata <- collapse_rows(df = tmp_metadata,
+                                  vars = vars_to_collapse,
+                                  na_var = "survey_mean_ppp")
 
     # Add stats columns to data frame
     for (j in seq_along(tmp_stats)) {
       tmp_metadata[[names(tmp_stats)[j]]] <- tmp_stats[[j]]
     }
 
-#     if (length(tmp_deciles) < 10) {
-#       names_deciles <- paste0("decile", 1:10)
-#       for (k in seq_along(names_deciles)) {
-#         tmp_metadata[[names_deciles[k]]] <- NA
-#       }
-#     } else {
-#       names_deciles <- paste0("decile", seq_along(tmp_deciles))
-#       for (k in seq_along(names_deciles)) {
-#         tmp_metadata[[names_deciles[k]]] <- tmp_deciles[k]
-#       }
-#     }
-
     out[[i]] <- tmp_metadata
   }
-  out <- dplyr::bind_rows(out)
+  out <- data.table::rbindlist(out)
 
   return(out)
 }
