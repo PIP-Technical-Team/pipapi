@@ -24,7 +24,9 @@ Suggests:
 Language: en-US
 Imports: 
     data.table,
-    fst
+    fst,
+    plumber,
+    urltools
 Depends: 
     R (>= 2.10)
 VignetteBuilder: knitr
