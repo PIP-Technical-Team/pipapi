@@ -22,7 +22,15 @@ function(){
 #* @get /version
 function() {
   pipapi::get_pip_version()
+}
 
+#* Return CPI table
+#* @get /get_cpi
+#* @serializer csv
+function() {
+  out <- pipapi::get_aux_table(data_dir = data_folder_root,
+                               table = "cpi")
+  plumber::as_attachment(out, "cpi.csv")
 }
 
 #* Parse query parameters of incoming request

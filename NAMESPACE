@@ -2,6 +2,7 @@
 
 export(check_parameters)
 export(format_error)
+export(get_aux_table)
 export(get_pip_version)
 export(main)
 export(parse_parameters_chr)
