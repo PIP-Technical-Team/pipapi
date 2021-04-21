@@ -13,6 +13,13 @@ function() {
   "PIP API is running"
 }
 
+#* Return PIP version
+#* @get /version
+function() {
+  pipapi::get_pip_version()
+
+}
+
 #* Parse query parameters of incoming request
 #* @filter parse_parameters
 function(req, res) {
