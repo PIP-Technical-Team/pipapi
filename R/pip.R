@@ -1,3 +1,21 @@
+#' Compute the main PIP poverty and inequality statistics
+#'
+#' @param country character: Country ISO 3 codes
+#' @param year integer: Reporting year
+#' @param povline numeric: Poverty line
+#' @param popshare numeric: Proportion of the population living below the poverty line
+#' @param fill_gaps logical: If set to TRUE, will interpolate / extrapolate values for missing years
+#' @param aggregate logical: If set to TRUE, will return aggregate results
+#' @param group_by character: Will return aggregated values for pre-defined sub-groups
+#' @param welfare_type character: Welfare type.
+#' @param svy_coverage character: Survey coverage.
+#' @param ppp numeric: Custom Purchase Power Parity value
+#' @param lkup
+#' @param paths
+#'
+#' @return data.frame
+#' @export
+#'
 pip <- function(country   = "all",
                 year      = "all",
                 povline   = NULL,
@@ -5,10 +23,9 @@ pip <- function(country   = "all",
                 fill_gaps = FALSE,
                 aggregate = FALSE,
                 group_by  = NULL,
-                welfare_type = "all",
-                svy_coverage = "all",
+                welfare_type = c("all", "consumption", "income"),
+                svy_coverage = c("all", "rural", "urban"),
                 ppp       = NULL,
-                server    = NULL,
                 lkup,
                 paths) {
 

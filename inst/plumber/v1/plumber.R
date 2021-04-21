@@ -13,6 +13,11 @@ function() {
   "PIP API is running"
 }
 
+#* @get /system-info
+function(){
+  Sys.info()
+}
+
 #* Return PIP version
 #* @get /version
 function() {
@@ -98,3 +103,23 @@ function(req) {
               lkup         = lkups,
               paths        = paths)
 }
+
+
+
+#* @plumber
+# function(pr) {
+#   pr %>%
+#     pr_set_api_spec(function(spec) {
+#       spec$paths[["/sum"]]$get$summary <- "Sum numbers"
+#       spec$paths[["/sum"]]$get$parameters <- list(list(
+#         "description" = "numbers",
+#         "required" = TRUE,
+#         "in" = "query",
+#         "name" = "num",
+#         "schema" = list("type" = "array", "items" = list("type" = "integer"), "minItems" = 1),
+#         "style" = "form",
+#         "explode" = FALSE
+#       ))
+#       spec
+#     })
+# }
