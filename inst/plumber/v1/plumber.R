@@ -5,7 +5,7 @@
 
 library(pipapi)
 
-source("../TEMP/TEMP_clean_data.R")
+source("../../../TEMP/TEMP_clean_data.R")
 
 #* Check status of API
 #* @get /health-check
