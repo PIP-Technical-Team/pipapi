@@ -1,0 +1,37 @@
+openapi: 3.0.0
+info:
+  description: This API computes all poverty and statistics available at pip.worldbank.org
+  title: Poverty and Inequality Platform API
+  version: 0.0.1
+paths:
+  /health-check:
+    get:
+      summary: ' Determine if the API is running and listening as expected'
+      responses:
+        default:
+          description: Default response.
+      parameters: []
+  /pip:
+    get:
+      summary: ' Return main poverty and inequality statistics' 
+      description: Main function to compute poverty and inequality statistics
+      parameters:
+           - in: query
+             name: country
+             required: true
+             schema:
+              type: string
+              enum: [AGO, ALB, COL]
+              example: AGO 
+             description: The countries for which statistics are to be computed, specified as ISO3 codes.
+           - in: query
+             name: year
+             required: true
+             schema:
+              type: integer
+              enum: [2002, 2008, 2018]
+              example: 2008 
+             description: Year(s) for which statistics are to be computed, specified as YYYY.
+      responses:
+       '200':
+         description: successful message

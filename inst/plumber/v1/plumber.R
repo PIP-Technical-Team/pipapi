@@ -26,7 +26,7 @@ function() {
 
 #* Return CPI table
 #* @get /get_cpi
-#* @serializer csv
+#* @serializer json
 function() {
   out <- pipapi::get_aux_table(data_dir = data_folder_root,
                                table = "cpi")
@@ -113,21 +113,9 @@ function(req) {
 }
 
 
-
+# Update UI
 #* @plumber
-# function(pr) {
-#   pr %>%
-#     pr_set_api_spec(function(spec) {
-#       spec$paths[["/sum"]]$get$summary <- "Sum numbers"
-#       spec$paths[["/sum"]]$get$parameters <- list(list(
-#         "description" = "numbers",
-#         "required" = TRUE,
-#         "in" = "query",
-#         "name" = "num",
-#         "schema" = list("type" = "array", "items" = list("type" = "integer"), "minItems" = 1),
-#         "style" = "form",
-#         "explode" = FALSE
-#       ))
-#       spec
-#     })
-# }
+function(pr) {
+  pr %>%
+    pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
+}
