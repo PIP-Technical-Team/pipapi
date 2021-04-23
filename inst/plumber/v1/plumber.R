@@ -7,48 +7,24 @@ library(pipapi)
 
 source("../../../TEMP/TEMP_clean_data.R")
 
-#* Check status of API
-#* @get /health-check
-function() {
-  "PIP API is running"
-}
 
-#* @get /system-info
-function(){
-  Sys.info()
-}
+# API filters -------------------------------------------------------------
 
-#* Return PIP version
-#* @get /version
-function() {
-  pipapi::get_pip_version()
-}
-
-#* Return CPI table
-#* @get /get_cpi
-#* @serializer json
-function() {
-  out <- pipapi::get_aux_table(data_dir = data_folder_root,
-                               table = "cpi")
-  plumber::as_attachment(out, "cpi.csv")
+#* Ensure that only valid parameters are being forwarded
+#* @filter validate query parameters
+function(req, res, valid_countries, valid_years) {
+  if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
+    req$argsQuery <- validate_query_parameters(req)
+    plumber::forward()
+  }
 }
 
 #* Parse query parameters of incoming request
 #* @filter parse_parameters
 function(req, res) {
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
-    req$args$country       <- pipapi:::parse_parameters_chr(req$args$country)
-    req$args$year          <- pipapi:::parse_parameters_chr(req$args$year)
-    req$args$povline       <- pipapi:::parse_parameters_dbl(req$args$povline)
-    req$args$popshare      <- pipapi:::parse_parameters_dbl(req$args$popshare)
-    req$args$fill_gaps     <- pipapi:::parse_parameters_lgl(req$args$fill_gaps)
-    req$args$aggregate     <- pipapi:::parse_parameters_lgl(req$args$aggregate)
-    req$args$group_by      <- pipapi:::parse_parameters_chr(req$args$group_by)
-    req$args$welfare_type  <- pipapi:::parse_parameters_chr(req$args$welfare_type)
-    req$args$svy_coverage  <- pipapi:::parse_parameters_chr(req$args$svy_coverage)
-    req$args$ppp           <- pipapi:::parse_parameters_dbl(req$args$ppp)
+    req$argsQuery <- pipapi:::parse_parameters(req$argsQuery)
   }
-
   plumber::forward()
 }
 
@@ -57,20 +33,20 @@ function(req, res) {
 # function(req, res, valid_countries, valid_years) {
 #   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
 #     if (
-#       pipapi::check_parameters(req, res, param = "country",
-#                                    valid_values = pipapi:::valid_countries)
+#       pipapi:::check_parameters(req, res, param = "country",
+#                                 valid_values = pipapi:::valid_countries)
 #     ) {
 #       return(
-#         pipapi::format_error(param = "country",
-#                                  valid_values = pipapi:::valid_countries)
+#         pipapi:::format_error(param = "country",
+#                               valid_values = pipapi:::valid_countries)
 #       )
 #     } else if (
-#       pipapi::check_parameters(req, res, param = "year",
-#                                    valid_values = pipapi:::valid_years)
+#       pipapi:::check_parameters(req, res, param = "year",
+#                                 valid_values = pipapi:::valid_years)
 #     ) {
 #       return(
-#         pipapi::format_error(param = "year",
-#                                  valid_values = pipapi:::valid_years)
+#         pipapi:::format_error(param = "year",
+#                               valid_values = pipapi:::valid_years)
 #       )
 #     } else {
 #       plumber::forward()
@@ -81,8 +57,41 @@ function(req, res) {
 # }
 
 
+# Endpoints definition ----------------------------------------------------
 
-#* @get /pip
+
+
+#* Check status of API
+#* @get /api/v1/health-check
+function() {
+  "PIP API is running"
+}
+
+#* @get /api/v1/system-info
+function(){
+  Sys.info()
+}
+
+#* Return PIP version
+#* @get /api/v1/version
+function() {
+  pipapi::get_pip_version()
+}
+
+#* Return CPI table
+#* @get /api/v1/get_cpi
+#* @serializer json
+function() {
+  out <- pipapi::get_aux_table(data_dir = data_folder_root,
+                               table = "cpi")
+  plumber::as_attachment(out, "cpi.csv")
+}
+
+
+
+
+
+#* @get /api/v1/pip
 #* @param country:[chr] country iso3 code
 #* @param year:[chr] year
 #* @param povline:[dbl] Poverty Line
@@ -98,16 +107,16 @@ function(req, res) {
 function(req) {
   # Process request
   #browser()
-  pipapi::pip(country      = req$args$country,
-              year         = req$args$year,
-              povline      = req$args$povline,
-              popshare     = req$args$popshare,
-              fill_gaps    = req$args$fill_gaps,
-              aggregate    = req$args$aggregate,
-              group_by     = req$args$group_by,
-              welfare_type = req$args$welfare_type,
-              svy_coverage = req$args$svy_coverage,
-              ppp          = req$args$ppp,
+  pipapi::pip(country      = req$argsQuery$country,
+              year         = req$argsQuery$year,
+              povline      = req$argsQuery$povline,
+              popshare     = req$argsQuery$popshare,
+              fill_gaps    = req$argsQuery$fill_gaps,
+              aggregate    = req$argsQuery$aggregate,
+              group_by     = req$argsQuery$group_by,
+              welfare_type = req$argsQuery$welfare_type,
+              svy_coverage = req$argsQuery$svy_coverage,
+              ppp          = req$argsQuery$ppp,
               lkup         = lkups,
               paths        = paths)
 }
@@ -117,5 +126,5 @@ function(req) {
 #* @plumber
 function(pr) {
   pr %>%
-    pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
+    plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
 }

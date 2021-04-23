@@ -16,56 +16,56 @@ parse_parameters_chr <- function(param) {
   return(param)
 }
 
-#' parse_parameters_int
+#' #' parse_parameters_int
+#' #'
+#' #' @param param character: Query parameter to be parsed
+#' #'
+#' #' @return integer
+#' #' @export
+#' #'
+#' parse_parameters_int <- function(param) {
 #'
-#' @param param character: Query parameter to be parsed
+#'   if (!is.null(param)) {
+#'     param <- parse_parameters_chr(param)
+#'     param <- as.integer(param)
+#'   }
 #'
-#' @return integer
-#' @export
-#'
-parse_parameters_int <- function(param) {
+#'   return(param)
+#' }
 
-  if (!is.null(param)) {
-    param <- parse_parameters_chr(param)
-    param <- as.integer(param)
-  }
-
-  return(param)
-}
-
-#' parse_parameters_dbl
+#' #' parse_parameters_dbl
+#' #'
+#' #' @param param character: Query parameter to be parsed
+#' #'
+#' #' @return integer
+#' #' @export
+#' #'
+#' parse_parameters_dbl <- function(param) {
 #'
-#' @param param character: Query parameter to be parsed
+#'   if (!is.null(param)) {
+#'     param <- parse_parameters_chr(param)
+#'     param <- as.numeric(param)
+#'   }
 #'
-#' @return integer
-#' @export
+#'   return(param)
+#' }
 #'
-parse_parameters_dbl <- function(param) {
-
-  if (!is.null(param)) {
-    param <- parse_parameters_chr(param)
-    param <- as.numeric(param)
-  }
-
-  return(param)
-}
-
-#' parse_parameters_lgl
+#' #' parse_parameters_lgl
+#' #'
+#' #' @param param character: Query parameter to be parsed
+#' #'
+#' #' @return integer
+#' #' @export
+#' #'
+#' parse_parameters_lgl <- function(param) {
 #'
-#' @param param character: Query parameter to be parsed
+#'   if (!is.null(param)) {
+#'     param <- parse_parameters_chr(param)
+#'     param <- as.logical(param)
+#'   }
 #'
-#' @return integer
-#' @export
-#'
-parse_parameters_lgl <- function(param) {
-
-  if (!is.null(param)) {
-    param <- parse_parameters_chr(param)
-    param <- as.logical(param)
-  }
-
-  return(param)
-}
+#'   return(param)
+#' }
 
 #' check_parameters
 #' Check whether a parsed parameter is valid or not
@@ -104,4 +104,59 @@ format_error <- function(param, valid_values) {
       )
     )
   )
+}
+
+validate_query_parameters <- function(params, valid_params = c("country",
+                                                               "year",
+                                                               "povline",
+                                                               "popshare",
+                                                               "fill_gaps",
+                                                               "aggregate",
+                                                               "group_by",
+                                                               "welfare_type",
+                                                               "svy_coverage",
+                                                               "ppp")) {
+
+  params$argsQuery <- params$argsQuery[names(params$argsQuery) %in% valid_params]
+
+  return(params$argsQuery)
+}
+
+
+#' parse_parameters
+#'
+#' @param param character: Query parameter to be parsed
+#'
+#' @return character
+#' @export
+#'
+parse_parameters <- function(params) {
+
+  for (i in seq_along(params)) {
+    params[[i]] <- parse_parameter(param = params[[i]],
+                                   param_name = names(params)[i])
+  }
+
+  # params <- lapply(seq_along(params), function(i) {
+  #   parse_parameter(param = params[[i]],
+  #                   param_name = names(params)[i])
+  # })
+  return(params)
+}
+
+# CREATE GLOBALS TO AVOID HARD CODED VALUES HERE
+parse_parameter <- function(param, param_name) {
+  param <- urltools::url_decode(param)
+  param <- strsplit(param, ",")
+  param <- unlist(param)
+
+  if (param_name %in% c("country", "year", "group_by", "welfare_type", "svy_coverage")) {
+    param <- as.character(param)
+  } else if (param_name %in% c("povline", "popshare", "ppp")) {
+    param <- as.numeric(param)
+  } else if (param_name %in% c("fill_gaps", "aggregate")) {
+    param <- as.logical(param)
+  }
+
+  return(param)
 }
