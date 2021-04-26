@@ -2,8 +2,14 @@
 % Please edit documentation in R/utils-plumber.R
 \name{check_parameters}
 \alias{check_parameters}
-\title{check_parameters
-Check whether a parsed parameter is valid or not}
+\title{#' parse_parameters_int
+#'
+#' @param param character: Query parameter to be parsed
+#'
+#' @return integer
+#' @export
+#'
+parse_parameters_int <- function(param) {}
 \usage{
 check_parameters(req, res, param, valid_values)
 }
@@ -20,6 +26,11 @@ check_parameters(req, res, param, valid_values)
 logical
 }
 \description{
-check_parameters
-Check whether a parsed parameter is valid or not
+if (!is.null(param)) {
+param <- parse_parameters_chr(param)
+param <- as.integer(param)
+}
+}
+\details{
+
 }

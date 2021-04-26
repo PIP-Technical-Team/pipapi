@@ -11,12 +11,12 @@ source("../../../TEMP/TEMP_clean_data.R")
 # API filters -------------------------------------------------------------
 
 #* Ensure that only valid parameters are being forwarded
-#* @filter validate query parameters
-function(req, res, valid_countries, valid_years) {
+#* @filter validate_query_parameters
+function(req, res) {
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     req$argsQuery <- validate_query_parameters(req)
-    plumber::forward()
   }
+  plumber::forward()
 }
 
 #* Parse query parameters of incoming request
@@ -122,9 +122,9 @@ function(req) {
 }
 
 
-# Update UI
-#* @plumber
-function(pr) {
-  pr %>%
-    plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
-}
+# # Update UI
+# #* @plumber
+# function(pr) {
+#   pr %>%
+#     plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
+# }
