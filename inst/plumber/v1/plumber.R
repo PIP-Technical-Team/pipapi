@@ -69,7 +69,12 @@ function() {
   plumber::as_attachment(out, "cpi.csv")
 }
 
-
+#* Return custom plot
+#* @get /api/v1/get-plot
+#* @serializer htmlwidget
+function() {
+  custom_plot(lkups)
+}
 
 
 

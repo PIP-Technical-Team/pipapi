@@ -28,7 +28,9 @@ Imports:
     plumber,
     urltools,
     yaml,
-    magrittr
+    magrittr,
+    ggplot2,
+    plotly
 Depends: 
     R (>= 2.10)
 VignetteBuilder: knitr

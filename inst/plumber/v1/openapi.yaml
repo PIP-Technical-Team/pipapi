@@ -25,6 +25,13 @@ paths:
         default:
           description: Default response.
       parameters: []
+  /api/v1/get-plot:
+    get:
+      summary: ' Returns a custom plot'
+      responses:
+        default:
+          description: Default response.
+      parameters: []
   /api/v1/pip:
     get:
       summary: ' Return main poverty and inequality statistics' 
