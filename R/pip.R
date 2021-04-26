@@ -29,6 +29,9 @@ pip <- function(country   = "all",
                 lkup,
                 paths) {
 
+  welfare_type <- match.arg(welfare_type)
+  svy_coverage <- match.arg(svy_coverage)
+
   # Forces fill_gaps to TRUE when using group_by option
   if (!is.null(group_by)) {
     fill_gaps <- TRUE
