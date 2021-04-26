@@ -54,15 +54,15 @@ function(){
   Sys.info()
 }
 
-#* Return PIP version
-#* @get /api/v1/version
-function() {
-  pipapi::get_pip_version()
-}
+# #* Return PIP version
+# #* @get /api/v1/version
+# function() {
+#   pipapi::get_pip_version()
+# }
 
 #* Return CPI table
-#* @get /api/v1/get_cpi
-#* @serializer json
+#* @get /api/v1/get-cpi
+#* @serializer csv
 function() {
   out <- pipapi::get_aux_table(data_dir = data_folder_root,
                                table = "cpi")
