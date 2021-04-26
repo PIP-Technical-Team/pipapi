@@ -67,23 +67,89 @@ parse_parameters_chr <- function(param) {
 #'   return(param)
 #' }
 
-#' check_parameters
-#' Check whether a parsed parameter is valid or not
+#' Check validity of query parameters
 #' @param req env: plumber request environment
-#' @param res evn: plumber response environment
-#' @param param character or numeric: Parsed parameters
-#' @param valid_values character or numeric: Accepted values for this parameter
+#' @param query_controls list: List of valid values
 #'
 #' @return logical
 #' @export
 #'
-check_parameters <- function(req, res, param, valid_values) {
-  if (!is.null(req$args[[param]]) && !any(req$args[[param]] %in% valid_values)) {
-    res$status <- 400
-    return(TRUE)
-  } else {
-    return(FALSE)
+check_parameters <- function(req, query_controls) {
+
+  out <- lapply(seq_along(req$argsQuery), function(i) {
+    param_name <- names(req$argsQuery)[i]
+    check_parameter(values       = req$argsQuery[[i]],
+                    valid_values = query_controls[[param_name]][["values"]],
+                    type         = query_controls[[param_name]][["type"]])
+  })
+
+  return(unlist(out))
+
+  # if (!is.null(req$args[[param]]) && !any(req$args[[param]] %in% valid_values)) {
+  #   res$status <- 400
+  #   return(TRUE)
+  # } else {
+  #   return(FALSE)
+  # }
+}
+
+#' Check validity of a single query parameter
+#' @param req env: plumber request environment
+#' @param valid_values list: List of valid values
+#'
+#' @return logical
+#' @export
+#'
+check_parameter <- function(values, valid_values, type) {
+
+  if (type == "character") {
+    check_param_chr(values, valid_values)
+  } else if (type == "numeric") {
+    check_param_num(values, valid_values)
+  } else if (type == "logical") {
+    check_param_lgl(values)
   }
+}
+
+#' Check validity of a single query parameter
+#' @param values character: query values
+#' @param valid_values character: valid values
+#'
+#' @return logical
+#' @export
+#'
+check_param_chr <- function(values, valid_values) {
+
+    out <- all(values %in% valid_values)
+
+    return(out)
+}
+
+#' Check validity of a single query parameter
+#' @param values numeric: query values
+#' @param valid_values list: List of valid bounded values
+#'
+#' @return logical
+#' @export
+#'
+check_param_num <- function(value, valid_values) {
+
+  out <- all(value > valid_values[["min"]], value < valid_values[["max"]])
+
+  return(out)
+}
+
+#' Check validity of a single query parameter
+#' @param values logical: query values
+#'
+#' @return logical
+#' @export
+#'
+check_param_lgl <- function(value) {
+
+  out <- is.logical(value)
+
+  return(out)
 }
 
 #' format_error

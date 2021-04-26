@@ -14,7 +14,7 @@ source("../../../TEMP/TEMP_clean_data.R")
 #* @filter validate_query_parameters
 function(req, res) {
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
-    req$argsQuery <- validate_query_parameters(req)
+    req$argsQuery <- pipapi:::validate_query_parameters(req)
   }
   plumber::forward()
 }
@@ -28,38 +28,20 @@ function(req, res) {
   plumber::forward()
 }
 
-# #* Protect against invalid country code and year
-# #* @filter check_parameters
-# function(req, res, valid_countries, valid_years) {
-#   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
-#     if (
-#       pipapi:::check_parameters(req, res, param = "country",
-#                                 valid_values = pipapi:::valid_countries)
-#     ) {
-#       return(
-#         pipapi:::format_error(param = "country",
-#                               valid_values = pipapi:::valid_countries)
-#       )
-#     } else if (
-#       pipapi:::check_parameters(req, res, param = "year",
-#                                 valid_values = pipapi:::valid_years)
-#     ) {
-#       return(
-#         pipapi:::format_error(param = "year",
-#                               valid_values = pipapi:::valid_years)
-#       )
-#     } else {
-#       plumber::forward()
-#     }
-#   } else {
-#     plumber::forward()
-#   }
-# }
+#* Protect against invalid country code and year
+#* @filter check_parameters
+function(req, res, query_controls = lkups$query_controls) {
+  if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
+    are_valid <- pipapi:::check_parameters(req, query_controls)
+    if (any(are_valid == FALSE)) {
+      return("Invalid query parameters have been submitted")
+    }
+  }
+  plumber::forward()
+}
 
 
 # Endpoints definition ----------------------------------------------------
-
-
 
 #* Check status of API
 #* @get /api/v1/health-check
@@ -106,25 +88,31 @@ function() {
 #* @serializer json
 function(req) {
   # Process request
-  #browser()
-  pipapi::pip(country      = req$argsQuery$country,
-              year         = req$argsQuery$year,
-              povline      = req$argsQuery$povline,
-              popshare     = req$argsQuery$popshare,
-              fill_gaps    = req$argsQuery$fill_gaps,
-              aggregate    = req$argsQuery$aggregate,
-              group_by     = req$argsQuery$group_by,
-              welfare_type = req$argsQuery$welfare_type,
-              svy_coverage = req$argsQuery$svy_coverage,
-              ppp          = req$argsQuery$ppp,
-              lkup         = lkups,
-              paths        = paths)
+  # browser()
+  params <- req$argsQuery
+  params$lkup <- lkups
+  params$paths <- paths
+
+  do.call(pipapi::pip, params)
+
+  # pipapi::pip(country      = req$argsQuery$country,
+  #             year         = req$argsQuery$year,
+  #             povline      = req$argsQuery$povline,
+  #             popshare     = req$argsQuery$popshare,
+  #             fill_gaps    = req$argsQuery$fill_gaps,
+  #             aggregate    = req$argsQuery$aggregate,
+  #             group_by     = req$argsQuery$group_by,
+  #             welfare_type = req$argsQuery$welfare_type,
+  #             svy_coverage = req$argsQuery$svy_coverage,
+  #             ppp          = req$argsQuery$ppp,
+  #             lkup         = lkups,
+  #             paths        = paths)
 }
 
 
-# # Update UI
-# #* @plumber
-# function(pr) {
-#   pr %>%
-#     plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
-# }
+# Update UI
+#* @plumber
+function(pr) {
+  pr %>%
+    plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
+}

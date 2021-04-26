@@ -11,16 +11,12 @@
 #'
 parse_parameters_int <- function(param) {}
 \usage{
-check_parameters(req, res, param, valid_values)
+check_parameters(req, query_controls)
 }
 \arguments{
 \item{req}{env: plumber request environment}
 
-\item{res}{evn: plumber response environment}
-
-\item{param}{character or numeric: Parsed parameters}
-
-\item{valid_values}{character or numeric: Accepted values for this parameter}
+\item{query_controls}{list: Liast of valid values}
 }
 \value{
 logical
