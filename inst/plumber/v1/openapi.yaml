@@ -11,6 +11,20 @@ paths:
         default:
           description: Default response.
       parameters: []
+  /api/v1/version:
+    get:
+      summary: ' Returns the version to the code and data that powers the API'
+      responses:
+        default:
+          description: Default response.
+      parameters: []
+  /api/v1/get-cpi:
+    get:
+      summary: ' Download CPI table as .csv'
+      responses:
+        default:
+          description: Default response.
+      parameters: []
   /api/v1/pip:
     get:
       summary: ' Return main poverty and inequality statistics' 
