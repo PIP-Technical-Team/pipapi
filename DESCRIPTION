@@ -30,7 +30,8 @@ Imports:
     yaml,
     magrittr,
     ggplot2,
-    plotly
+    plotly,
+    readr
 Depends: 
     R (>= 2.10)
 VignetteBuilder: knitr
