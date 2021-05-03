@@ -56,7 +56,8 @@ get_svy_data <- function(svy_id,
     return(tmp)
   })
 
-  names_out <- paste0("df", (seq_along(svy_id) - 1))
+  names_out <- sprintf("df%s",
+                       seq_along(svy_id) - 1)
   names(out) <- names_out
 
   return(out)
@@ -135,7 +136,7 @@ add_dist_stats <- function(df, dist_stats) {
             "gini",
             "polarization",
             "mld",
-            paste0("decile", 1:10))
+            sprintf("decile%s", 1:10))
   dist_stats <- dist_stats[, ..cols]
 
   data.table::setnames(dist_stats, "survey_median_ppp", "median")
