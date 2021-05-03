@@ -34,7 +34,7 @@ paths:
       parameters: []
   /api/v1/pip:
     get:
-      summary: ' Return main poverty and inequality statistics' 
+      summary: ' Return main poverty and inequality statistics'
       description: Main function to compute poverty and inequality statistics
       parameters:
            - in: query
@@ -45,7 +45,7 @@ paths:
               items:
                type: string
                enum: [AGO, ALB, COL]
-               example: AGO 
+               example: AGO
              description: The countries for which statistics are to be computed, specified as ISO3 codes.
            - in: query
              name: year
@@ -55,7 +55,7 @@ paths:
               items:
                type: integer
                enum: [2002, 2008, 2018]
-               example: 2008 
+               example: 2008
              description: Year(s) for which statistics are to be computed, specified as YYYY.
            - in: query
              name: povline
@@ -63,7 +63,7 @@ paths:
               type: number
               minimum: 0
               maximum: 100
-              example: 1.90 
+              example: 1.90
              description: Poverty line to be used to compute poverty mesures.
            - in: query
              name: popshare
@@ -77,7 +77,7 @@ paths:
              schema:
               type: boolean
               example: FALSE
-             description: Whether to Interpolate / extrapolate statistics for years without available survey data.
+             description: Whether to interpolate / extrapolate statistics for years without available survey data.
            - in: query
              name: aggregate
              schema:
