@@ -116,9 +116,9 @@ create_empty_response <- function() {
 }
 
 collapse_rows <- function(df, vars, na_var) {
-  tmp_vars <- lapply(df[, ..vars], unique, collapse = "|")
+  tmp_vars <- lapply(df[, .SD, .SDcols = vars], unique, collapse = "|")
   tmp_vars <- lapply(tmp_vars, paste, collapse = "|")
-  tmp_var_names <- names(df[, ..vars])
+  tmp_var_names <- names(df[, .SD, .SDcols = vars])
   df[[na_var]] <- NA_real_
   for (tmp_var in seq_along(tmp_vars)) {
     df[[tmp_var_names[tmp_var]]] <- tmp_vars[[tmp_var]]

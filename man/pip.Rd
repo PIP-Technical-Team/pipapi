@@ -13,7 +13,7 @@ pip(
   aggregate = FALSE,
   group_by = NULL,
   welfare_type = c("all", "consumption", "income"),
-  svy_coverage = c("all", "rural", "urban"),
+  svy_coverage = c("all", "national", "rural", "urban"),
   ppp = NULL,
   lkup,
   paths

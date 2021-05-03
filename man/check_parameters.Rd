@@ -16,7 +16,7 @@ check_parameters(req, query_controls)
 \arguments{
 \item{req}{env: plumber request environment}
 
-\item{query_controls}{list: Liast of valid values}
+\item{query_controls}{list: List of valid values}
 }
 \value{
 logical
