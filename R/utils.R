@@ -56,7 +56,8 @@ get_svy_data <- function(svy_id,
     return(tmp)
   })
 
-  names_out <- paste0("df", (seq_along(svy_id) - 1))
+  names_out <- sprintf("df%s",
+                       seq_along(svy_id) - 1)
   names(out) <- names_out
 
   return(out)
@@ -115,9 +116,9 @@ create_empty_response <- function() {
 }
 
 collapse_rows <- function(df, vars, na_var) {
-  tmp_vars <- lapply(df[, ..vars], unique, collapse = "|")
+  tmp_vars <- lapply(df[, .SD, .SDcols = vars], unique, collapse = "|")
   tmp_vars <- lapply(tmp_vars, paste, collapse = "|")
-  tmp_var_names <- names(df[, ..vars])
+  tmp_var_names <- names(df[, .SD, .SDcols = vars])
   df[[na_var]] <- NA_real_
   for (tmp_var in seq_along(tmp_vars)) {
     df[[tmp_var_names[tmp_var]]] <- tmp_vars[[tmp_var]]
@@ -135,7 +136,7 @@ add_dist_stats <- function(df, dist_stats) {
             "gini",
             "polarization",
             "mld",
-            paste0("decile", 1:10))
+            sprintf("decile%s", 1:10))
   dist_stats <- dist_stats[, ..cols]
 
   data.table::setnames(dist_stats, "survey_median_ppp", "median")

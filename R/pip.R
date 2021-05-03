@@ -1,16 +1,36 @@
+#' Compute the main PIP poverty and inequality statistics
+#'
+#' @param country character: Country ISO 3 codes
+#' @param year integer: Reporting year
+#' @param povline numeric: Poverty line
+#' @param popshare numeric: Proportion of the population living below the poverty line
+#' @param fill_gaps logical: If set to TRUE, will interpolate / extrapolate values for missing years
+#' @param aggregate logical: If set to TRUE, will return aggregate results
+#' @param group_by character: Will return aggregated values for pre-defined sub-groups
+#' @param welfare_type character: Welfare type.
+#' @param svy_coverage character: Survey coverage.
+#' @param ppp numeric: Custom Purchase Power Parity value
+#' @param lkup
+#' @param paths
+#'
+#' @return data.frame
+#' @export
+#'
 pip <- function(country   = "all",
+                year      = "all",
                 povline   = NULL,
                 popshare  = NULL,
-                year      = "all",
                 fill_gaps = FALSE,
                 aggregate = FALSE,
                 group_by  = NULL,
-                welfare_type = "all",
-                svy_coverage = "all",
+                welfare_type = c("all", "consumption", "income"),
+                svy_coverage = c("all", "national", "rural", "urban"),
                 ppp       = NULL,
-                server    = NULL,
                 lkup,
                 paths) {
+
+  welfare_type <- match.arg(welfare_type)
+  svy_coverage <- match.arg(svy_coverage)
 
   # Forces fill_gaps to TRUE when using group_by option
   if (!is.null(group_by)) {
@@ -21,9 +41,9 @@ pip <- function(country   = "all",
   if (fill_gaps == TRUE) {
 
     out <- fg_pip(country      = country,
+                  year         = year,
                   povline      = povline,
                   popshare     = popshare,
-                  year         = year,
                   aggregate    = aggregate,
                   welfare_type = welfare_type,
                   svy_coverage = svy_coverage,
@@ -33,9 +53,9 @@ pip <- function(country   = "all",
                   paths        = paths)
   } else {
     out <- rg_pip(country      = country,
+                  year         = year,
                   povline      = povline,
                   popshare     = popshare,
-                  year         = year,
                   aggregate    = aggregate,
                   welfare_type = welfare_type,
                   svy_coverage = svy_coverage,

@@ -24,7 +24,14 @@ Suggests:
 Language: en-US
 Imports: 
     data.table,
-    fst
+    fst,
+    plumber,
+    urltools,
+    yaml,
+    magrittr,
+    ggplot2,
+    plotly,
+    readr
 Depends: 
     R (>= 2.10)
 VignetteBuilder: knitr

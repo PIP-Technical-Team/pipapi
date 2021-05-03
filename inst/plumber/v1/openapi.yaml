@@ -1,0 +1,107 @@
+openapi: 3.0.0
+info:
+  description: This API computes all poverty and statistics available at pip.worldbank.org
+  title: Poverty and Inequality Platform API
+  version: 0.0.1
+paths:
+  /api/v1/health-check:
+    get:
+      summary: ' Determine if the API is running and listening as expected'
+      responses:
+        default:
+          description: Default response.
+      parameters: []
+  /api/v1/version:
+    get:
+      summary: ' Returns the version to the code and data that powers the API'
+      responses:
+        default:
+          description: Default response.
+      parameters: []
+  /api/v1/get-cpi:
+    get:
+      summary: ' Download CPI table as .csv'
+      responses:
+        default:
+          description: Default response.
+      parameters: []
+  /api/v1/get-plot:
+    get:
+      summary: ' Returns a custom plot'
+      responses:
+        default:
+          description: Default response.
+      parameters: []
+  /api/v1/pip:
+    get:
+      summary: ' Return main poverty and inequality statistics'
+      description: Main function to compute poverty and inequality statistics
+      parameters:
+           - in: query
+             name: country
+             required: true
+             schema:
+              type: array
+              items:
+               type: string
+               enum: [AGO, ALB, COL]
+               example: AGO
+             description: The countries for which statistics are to be computed, specified as ISO3 codes.
+           - in: query
+             name: year
+             required: true
+             schema:
+              type: array
+              items:
+               type: integer
+               enum: [2002, 2008, 2018]
+               example: 2008
+             description: Year(s) for which statistics are to be computed, specified as YYYY.
+           - in: query
+             name: povline
+             schema:
+              type: number
+              minimum: 0
+              maximum: 100
+              example: 1.90
+             description: Poverty line to be used to compute poverty mesures.
+           - in: query
+             name: popshare
+             schema:
+              type: number
+              minimum: 0
+              maximum: 1
+             description: Proportion of the population living below the poverty line. Will be ignored if povline is specified.
+           - in: query
+             name: fill_gaps
+             schema:
+              type: boolean
+              example: FALSE
+             description: Whether to interpolate / extrapolate statistics for years without available survey data.
+           - in: query
+             name: aggregate
+             schema:
+              type: boolean
+              example: FALSE
+             description: Whether to aggregate results (Population weighted average)
+           - in: query
+             name: group_by
+             schema:
+              type: string
+              enum: [wb, inc]
+             description: Aggregate results by pre-defined sub-groups
+           - in: query
+             name: welfare_type
+             schema:
+              type: string
+              enum: [all, consumption, income]
+             description: Welfare measure
+           - in: query
+             name: svy_coverage
+             schema:
+              type: string
+              enum: [all, rural, urban]
+             description: Survey coverage
+      responses:
+       '200':
+         description: successful message
