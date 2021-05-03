@@ -99,19 +99,6 @@ function(req) {
   params$paths <- paths
 
   do.call(pipapi::pip, params)
-
-  # pipapi::pip(country      = req$argsQuery$country,
-  #             year         = req$argsQuery$year,
-  #             povline      = req$argsQuery$povline,
-  #             popshare     = req$argsQuery$popshare,
-  #             fill_gaps    = req$argsQuery$fill_gaps,
-  #             aggregate    = req$argsQuery$aggregate,
-  #             group_by     = req$argsQuery$group_by,
-  #             welfare_type = req$argsQuery$welfare_type,
-  #             svy_coverage = req$argsQuery$svy_coverage,
-  #             ppp          = req$argsQuery$ppp,
-  #             lkup         = lkups,
-  #             paths        = paths)
 }
 
 
