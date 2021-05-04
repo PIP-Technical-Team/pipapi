@@ -33,6 +33,7 @@ rg_pip <- function(country   = "all",
 
     tmp_stats <- wbpip:::prod_compute_pip_stats(welfare = svy_data$df0$welfare,
                                                 povline = povline,
+                                                popshare = popshare,
                                                 population = svy_data$df0$weight,
                                                 requested_mean = tmp_metadata$survey_mean_ppp,
                                                 svy_mean_lcu = tmp_metadata$survey_mean_lcu,
