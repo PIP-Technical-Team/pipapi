@@ -148,3 +148,29 @@ add_dist_stats <- function(df, dist_stats) {
   return(df)
 }
 
+#' Censor rows
+#' Censor statistics based on a pre-defined censor table.
+#' @param df data.table: Table to censor, e.g output from `pip()`.
+#' @param censored_table data.table: Censor table.
+#' @return data.table
+#' @noRd
+censor_rows <- function(df, censored_table) {
+
+  df$tmp_id <-
+    sprintf('%s_%s_%s',
+            df$country_code, df$reporting_year,
+            df$welfare_type)
+
+  if (any(df$tmp_id %in% censored_table$id)) {
+    for (i in seq_len(nrow(df))) {
+      for (y in seq_len(nrow(censored_table))) {
+        if (df$tmp_id[i] == censored_table$id[y]) {
+          df[[censored_table$statistic[y]]][i] <- NA
+        }
+      }
+    }
+  }
+  df$tmp_id <- NULL
+
+  return(df)
+}

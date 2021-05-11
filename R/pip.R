@@ -98,6 +98,9 @@ pip <- function(country   = "all",
     out <- out[out$pop_data_level == svy_coverage, ]
   }
 
+  # Censor values
+  out <- censor_rows(out, lkup[["censored"]])
+
   # ADD FIX FOR MEDIAN WHEN INTERPOLATING
   # median <- dist_stats[["median"]]/(data_mean/requested_mean)
 
