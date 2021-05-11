@@ -48,7 +48,8 @@ fg_pip <- function(country   = "all",
                                                    default_ppp = tmp_metadata[["ppp"]],
                                                    ppp = ppp,
                                                    distribution_type = tmp_metadata[["distribution_type"]],
-                                                   poverty_line = povline)
+                                                   poverty_line = povline,
+                                                   popshare = popshare)
 
     # Ensure that tmp_metadata has a single row
     vars_to_collapse <- c("survey_id", "cache_id", "surveyid_year", "survey_year",
