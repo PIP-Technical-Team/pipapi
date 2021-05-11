@@ -83,7 +83,7 @@ pip <- function(country   = "all",
     out$poverty_line <- povline
 
     out <- aggregate_by_group(df = out,
-                              group_lkup = lkups[["pop_region"]])
+                              group_lkup = lkup[["pop_region"]])
 
     return(out)
   }
