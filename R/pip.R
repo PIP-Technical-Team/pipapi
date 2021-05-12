@@ -83,7 +83,7 @@ pip <- function(country   = "all",
     out$poverty_line <- povline
 
     out <- aggregate_by_group(df = out,
-                              group_lkup = lkups[["pop_region"]])
+                              group_lkup = lkup[["pop_region"]])
 
     return(out)
   }
@@ -97,6 +97,9 @@ pip <- function(country   = "all",
   if (svy_coverage != "all") {
     out <- out[out$pop_data_level == svy_coverage, ]
   }
+
+  # Censor values
+  out <- censor_rows(out, lkup[["censored"]])
 
   # ADD FIX FOR MEDIAN WHEN INTERPOLATING
   # median <- dist_stats[["median"]]/(data_mean/requested_mean)
