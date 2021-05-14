@@ -18,7 +18,7 @@
 #'
 pip <- function(country   = "all",
                 year      = "all",
-                povline   = NULL,
+                povline   = 1.9,
                 popshare  = NULL,
                 fill_gaps = FALSE,
                 aggregate = FALSE,
