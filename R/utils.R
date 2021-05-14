@@ -38,15 +38,16 @@ subset_lkup <- function(country,
 
 get_svy_data <- function(svy_id,
                          svy_coverage,
-                         paths)
+                         path)
 {
   # Each call should be made at a unique pop_data_level (equivalent to reporting_data_level: national, urban, rural)
+  # This check should be conducted at the data validation stage
   svy_coverage <- unique(svy_coverage)
   assertthat::assert_that(length(svy_coverage) == 1,
                           msg = "Problem with input data: Multiple pop_data_levels")
 
   out <- lapply(svy_id, function(id) {
-    path <- paths[stringr::str_detect(paths, id)]
+    # path <- paths[stringr::str_detect(paths, id)]
     tmp <- fst::read_fst(path)
     if (svy_coverage %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
       tmp <- tmp[tmp$area == svy_coverage, ]
@@ -127,7 +128,8 @@ collapse_rows <- function(df, vars, na_var) {
 }
 
 add_dist_stats <- function(df, dist_stats) {
-  cols <- c("survey_id",
+  # Keep only relevant columns
+  cols <- c("cache_id",
             "country_code",
             "reporting_year",
             "welfare_type",
@@ -137,12 +139,13 @@ add_dist_stats <- function(df, dist_stats) {
             "polarization",
             "mld",
             sprintf("decile%s", 1:10))
-  dist_stats <- dist_stats[, ..cols]
+  dist_stats <- dist_stats[, .SD, .SDcols = cols]
 
+  # merge dist stats with main table
   data.table::setnames(dist_stats, "survey_median_ppp", "median")
 
   df <- dist_stats[df,
-                    on = .(survey_id, country_code, reporting_year, welfare_type, pop_data_level),
+                    on = .(cache_id, country_code, reporting_year, welfare_type, pop_data_level),
                     allow.cartesian = TRUE]
 
   return(df)
