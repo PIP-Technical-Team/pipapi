@@ -19,11 +19,10 @@ add_agg_stats <- function(df) {
 
 #' Compute poverty statistics for aggregated data distribution.
 #'
-#' @inheritParams gd_compute_pip_stats
-#' @param area character: Area (Urban or Rural)
-#' @param area_pop numeric: Total population per area.
-#' @return list
-#' @keywords internal
+#' @param df data.frame: Survey data
+#' @return data.frame
+#' @export
+
 ag_average_poverty_stats <- function(df) {
 
   assertthat::assert_that(assertthat::are_equal(length(df$pop_data_level), 2))

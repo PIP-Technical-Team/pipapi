@@ -1,8 +1,8 @@
 #' Provides numbers that will populate the home page main chart
 #'
 #' @param povline numeric: Poverty line
-#' @param lkup
-#' @param paths
+#' @param lkup list: A list of lkup tables
+#' @param paths character: Path to input data
 #'
 #' @return data.frame
 #' @export

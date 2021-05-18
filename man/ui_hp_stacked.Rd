@@ -9,7 +9,9 @@ ui_hp_stacked(povline = 1.9, lkup, paths)
 \arguments{
 \item{povline}{numeric: Poverty line}
 
-\item{paths}{}
+\item{lkup}{list: A list of lkup tables}
+
+\item{paths}{character: Path to input data}
 }
 \value{
 data.frame

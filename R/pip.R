@@ -10,8 +10,8 @@
 #' @param welfare_type character: Welfare type.
 #' @param svy_coverage character: Survey coverage.
 #' @param ppp numeric: Custom Purchase Power Parity value
-#' @param lkup
-#' @param paths
+#' @param lkup list: A list of lkup tables
+#' @param paths character: Path to input data
 #'
 #' @return data.frame
 #' @export
@@ -74,7 +74,6 @@ pip <- function(country   = "all",
   if (svy_coverage %in% c("national", "all")) {
     out <- add_agg_stats(out)
   }
-
 
   # Handle grouped aggregations
   if (!is.null(group_by)) {
