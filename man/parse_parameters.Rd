@@ -7,7 +7,7 @@
 parse_parameters(params)
 }
 \arguments{
-\item{param}{character: Query parameter to be parsed}
+\item{params}{character: Query parameter to be parsed}
 }
 \value{
 character

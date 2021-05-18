@@ -1,74 +1,6 @@
-#' parse_parameters_chr
-#'
-#' @param param character: Query parameter to be parsed
-#'
-#' @return character
-#' @export
-#'
-parse_parameters_chr <- function(param) {
-
-  if (!is.null(param)) {
-    param <- urltools::url_decode(param)
-    param <- strsplit(param, ",")
-    param <- unlist(param)
-  }
-
-  return(param)
-}
-
-#' #' parse_parameters_int
-#' #'
-#' #' @param param character: Query parameter to be parsed
-#' #'
-#' #' @return integer
-#' #' @export
-#' #'
-#' parse_parameters_int <- function(param) {
-#'
-#'   if (!is.null(param)) {
-#'     param <- parse_parameters_chr(param)
-#'     param <- as.integer(param)
-#'   }
-#'
-#'   return(param)
-#' }
-
-#' #' parse_parameters_dbl
-#' #'
-#' #' @param param character: Query parameter to be parsed
-#' #'
-#' #' @return integer
-#' #' @export
-#' #'
-#' parse_parameters_dbl <- function(param) {
-#'
-#'   if (!is.null(param)) {
-#'     param <- parse_parameters_chr(param)
-#'     param <- as.numeric(param)
-#'   }
-#'
-#'   return(param)
-#' }
-#'
-#' #' parse_parameters_lgl
-#' #'
-#' #' @param param character: Query parameter to be parsed
-#' #'
-#' #' @return integer
-#' #' @export
-#' #'
-#' parse_parameters_lgl <- function(param) {
-#'
-#'   if (!is.null(param)) {
-#'     param <- parse_parameters_chr(param)
-#'     param <- as.logical(param)
-#'   }
-#'
-#'   return(param)
-#' }
-
 #' Check validity of query parameters
-#' @param req env: plumber request environment
+#'
+#' @param req req: plumber request environment
 #' @param query_controls list: List of valid values
 #'
 #' @return logical
@@ -94,8 +26,9 @@ check_parameters <- function(req, query_controls) {
 }
 
 #' Check validity of a single query parameter
-#' @param req env: plumber request environment
-#' @param valid_values list: List of valid values
+#' @param values vector: vector of values
+#' @param valid_values vector: vector of valid values
+#' @param type character: Type of value
 #'
 #' @return logical
 #' @export
@@ -126,7 +59,7 @@ check_param_chr <- function(values, valid_values) {
 }
 
 #' Check validity of a single query parameter
-#' @param values numeric: query values
+#' @param value numeric: query value
 #' @param valid_values list: List of valid bounded values
 #'
 #' @return logical
@@ -140,7 +73,7 @@ check_param_num <- function(value, valid_values) {
 }
 
 #' Check validity of a single query parameter
-#' @param values logical: query values
+#' @param value logical: query values
 #'
 #' @return logical
 #' @export
@@ -191,7 +124,7 @@ validate_query_parameters <- function(params, valid_params = c("country",
 
 #' parse_parameters
 #'
-#' @param param character: Query parameter to be parsed
+#' @param params character: Query parameter to be parsed
 #'
 #' @return character
 #' @export
