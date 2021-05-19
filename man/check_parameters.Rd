@@ -2,19 +2,12 @@
 % Please edit documentation in R/utils-plumber.R
 \name{check_parameters}
 \alias{check_parameters}
-\title{#' parse_parameters_int
-#'
-#' @param param character: Query parameter to be parsed
-#'
-#' @return integer
-#' @export
-#'
-parse_parameters_int <- function(param) {}
+\title{Check validity of query parameters}
 \usage{
 check_parameters(req, query_controls)
 }
 \arguments{
-\item{req}{env: plumber request environment}
+\item{req}{req: plumber request environment}
 
 \item{query_controls}{list: List of valid values}
 }
@@ -22,11 +15,5 @@ check_parameters(req, query_controls)
 logical
 }
 \description{
-if (!is.null(param)) {
-param <- parse_parameters_chr(param)
-param <- as.integer(param)
-}
-}
-\details{
-
+Check validity of query parameters
 }

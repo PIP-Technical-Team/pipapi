@@ -7,7 +7,7 @@
 pip(
   country = "all",
   year = "all",
-  povline = NULL,
+  povline = 1.9,
   popshare = NULL,
   fill_gaps = FALSE,
   aggregate = FALSE,
@@ -40,7 +40,9 @@ pip(
 
 \item{ppp}{numeric: Custom Purchase Power Parity value}
 
-\item{paths}{}
+\item{lkup}{list: A list of lkup tables}
+
+\item{paths}{character: Path to input data}
 }
 \value{
 data.frame

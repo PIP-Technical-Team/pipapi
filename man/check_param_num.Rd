@@ -7,9 +7,9 @@
 check_param_num(value, valid_values)
 }
 \arguments{
-\item{valid_values}{list: List of valid bounded values}
+\item{value}{numeric: query value}
 
-\item{values}{numeric: query values}
+\item{valid_values}{list: List of valid bounded values}
 }
 \value{
 logical

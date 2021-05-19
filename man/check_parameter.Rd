@@ -7,9 +7,11 @@
 check_parameter(values, valid_values, type)
 }
 \arguments{
-\item{valid_values}{list: List of valid values}
+\item{values}{vector: vector of values}
 
-\item{req}{env: plumber request environment}
+\item{valid_values}{vector: vector of valid values}
+
+\item{type}{character: Type of value}
 }
 \value{
 logical

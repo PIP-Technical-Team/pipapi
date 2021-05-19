@@ -101,6 +101,20 @@ function(req) {
   do.call(pipapi::pip, params)
 }
 
+#* @get /api/v1/hp_stacked
+#* @param povline:[dbl] Poverty Line
+#* @param
+#* @serializer json
+function(req) {
+  # Process request
+  # browser()
+  params <- req$argsQuery
+  params$lkup <- lkups
+  params$paths <- paths
+
+  do.call(pipapi:::ui_hp_stacked, params)
+}
+
 
 # Update UI
 #* @plumber
