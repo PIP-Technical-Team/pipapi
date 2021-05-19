@@ -52,6 +52,7 @@ function(){
   Sys.info()
 }
 
+<<<<<<< HEAD
 #* Return PIP information
 #* @get /api/v1/get-root
 function() {
@@ -74,6 +75,11 @@ function() {
 function() {
   pipapi::get_pip_version(data_folder_root = lkups$data_root,
                           valid_params     = lkups$query_controls)
+}
+#* Check status of API
+#* @get /api/v1/data-releases
+function() {
+  pipapi::list_data_releases(root = root)
 }
 
 #* Return CPI table
