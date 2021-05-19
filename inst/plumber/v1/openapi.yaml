@@ -11,6 +11,13 @@ paths:
         default:
           description: Default response.
       parameters: []
+  /api/v1/data-releases:
+    get:
+      summary: ' Return the list of data releases that can be used to specify the "version" query parameter'
+      responses:
+        default:
+          description: Default response.
+      parameters: []
   /api/v1/version:
     get:
       summary: ' Returns the version to the code and data that powers the API'

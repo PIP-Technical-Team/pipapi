@@ -54,6 +54,17 @@ function(){
   Sys.info()
 }
 
+#* Check status of API
+#* @get /api/v1/data-releases
+function() {
+  pipapi::list_data_releases(root = root)
+}
+
+#* @get /api/v1/system-info
+function(){
+  Sys.info()
+}
+
 # #* Return PIP version
 # #* @get /api/v1/version
 # function() {
