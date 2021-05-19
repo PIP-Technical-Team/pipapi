@@ -29,7 +29,7 @@ rg_pip <- function(country   = "all",
 
     svy_data <- get_svy_data(tmp_metadata$cache_id,
                              svy_coverage = tmp_metadata$pop_data_level,
-                             paths = paths)
+                             path = tmp_metadata$path)
 
     tmp_stats <- wbpip:::prod_compute_pip_stats(welfare = svy_data$df0$welfare,
                                                 povline = povline,

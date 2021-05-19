@@ -7,7 +7,7 @@
 check_param_lgl(value)
 }
 \arguments{
-\item{values}{logical: query values}
+\item{value}{logical: query values}
 }
 \value{
 logical

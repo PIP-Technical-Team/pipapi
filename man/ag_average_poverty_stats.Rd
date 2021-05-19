@@ -7,14 +7,11 @@
 ag_average_poverty_stats(df)
 }
 \arguments{
-\item{area}{character: Area (Urban or Rural)}
-
-\item{area_pop}{numeric: Total population per area.}
+\item{df}{data.frame: Survey data}
 }
 \value{
-list
+data.frame
 }
 \description{
 Compute poverty statistics for aggregated data distribution.
 }
-\keyword{internal}

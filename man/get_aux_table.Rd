@@ -12,7 +12,7 @@ get_aux_table(data_dir, table)
 \item{table}{character: Name of auxiliary table}
 }
 \value{
-
+data.frame
 }
 \description{
 Return specified auxiliary data
