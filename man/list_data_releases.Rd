@@ -4,10 +4,10 @@
 \alias{list_data_releases}
 \title{Return the list of PIP data releases}
 \usage{
-list_data_releases(root)
+list_data_releases(data_dir)
 }
 \arguments{
-\item{root}{character: Path to root data folder}
+\item{data_dir}{character: Path to root data folder}
 }
 \value{
 character

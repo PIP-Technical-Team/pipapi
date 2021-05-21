@@ -114,7 +114,8 @@ validate_query_parameters <- function(params, valid_params = c("country",
                                                                "group_by",
                                                                "welfare_type",
                                                                "svy_coverage",
-                                                               "ppp")) {
+                                                               "ppp",
+                                                               "version")) {
 
   params$argsQuery <- params$argsQuery[names(params$argsQuery) %in% valid_params]
 

@@ -52,7 +52,6 @@ function(){
   Sys.info()
 }
 
-<<<<<<< HEAD
 #* Return PIP information
 #* @get /api/v1/get-root
 function() {
@@ -86,8 +85,9 @@ function() {
 #* @get /api/v1/get-cpi
 #* @serializer csv
 function() {
-  out <- pipapi::get_aux_table(data_dir = data_folder_root,
-                               table = "cpi")
+  out <- pipapi::get_aux_table(data_dir     = data_dir,
+                               data_version = version_dir,
+                               table        = "cpi")
   plumber::as_attachment(out, "cpi.csv")
 }
 
