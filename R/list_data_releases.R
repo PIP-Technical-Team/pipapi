@@ -1,13 +1,14 @@
 #' Return the list of PIP data releases
 #'
-#' @param root character: Path to root data folder
+#' @param data_dir character: Path to root data folder
 #'
 #' @return character
 #' @export
 #'
 
-list_data_releases <- function(root) {
-  out <- dir(root)
+list_data_releases <- function(data_dir) {
+  out <- dir(data_dir)
+  out <- sort(out, decreasing = TRUE)
 
   return(out)
 }

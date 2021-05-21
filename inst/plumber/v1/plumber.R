@@ -49,15 +49,10 @@ function() {
   "PIP API is running"
 }
 
-#* @get /api/v1/system-info
-function(){
-  Sys.info()
-}
-
 #* Check status of API
 #* @get /api/v1/data-releases
 function() {
-  pipapi::list_data_releases(root = root)
+  pipapi::list_data_releases(data_dir = data_dir)
 }
 
 #* @get /api/v1/system-info
@@ -75,8 +70,9 @@ function(){
 #* @get /api/v1/get-cpi
 #* @serializer csv
 function() {
-  out <- pipapi::get_aux_table(data_dir = data_folder_root,
-                               table = "cpi")
+  out <- pipapi::get_aux_table(data_dir     = data_dir,
+                               data_version = version_dir,
+                               table        = "cpi")
   plumber::as_attachment(out, "cpi.csv")
 }
 
