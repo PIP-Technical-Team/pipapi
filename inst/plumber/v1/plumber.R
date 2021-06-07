@@ -5,7 +5,7 @@
 
 library(pipapi)
 
-lkups <- clean_api_data(data_folder_root = "../../../TEMP/output/20210401/")
+lkups <- pipapi:::clean_api_data(data_folder_root = "../../../TEMP/output/20210401/")
 
 
 # API filters -------------------------------------------------------------
