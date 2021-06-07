@@ -5,7 +5,7 @@
 
 library(pipapi)
 
-source("../../../TEMP/TEMP_clean_data.R")
+lkups <- clean_api_data(data_folder_root = "../../../TEMP/output/20210401/")
 
 
 # API filters -------------------------------------------------------------
@@ -54,11 +54,12 @@ function(){
   Sys.info()
 }
 
-# #* Return PIP version
-# #* @get /api/v1/version
-# function() {
-#   pipapi::get_pip_version()
-# }
+#* Return PIP information
+#* @get /api/v1/info
+function() {
+  pipapi::get_pip_version(data_folder_root = lkups$data_root,
+                          valid_params     = lkups$query_controls)
+}
 
 #* Return CPI table
 #* @get /api/v1/get-cpi
@@ -96,7 +97,6 @@ function(req) {
   # browser()
   params <- req$argsQuery
   params$lkup <- lkups
-  params$paths <- paths
 
   do.call(pipapi::pip, params)
 }
