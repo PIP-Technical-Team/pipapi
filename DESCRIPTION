@@ -31,7 +31,8 @@ Imports:
     magrittr,
     ggplot2,
     plotly,
-    readr
+    readr,
+    dplyr
 Depends: 
     R (>= 2.10)
 VignetteBuilder: knitr

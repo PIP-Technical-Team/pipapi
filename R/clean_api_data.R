@@ -57,7 +57,7 @@ clean_api_data <- function(data_folder_root) {
 
   versions <- fs::dir_ls(path = data_folder_root,
                          type = "directory",
-                         recursive = FALSE)
+                         recurse = FALSE)
 
   query_controls <- list(
     country = country,
