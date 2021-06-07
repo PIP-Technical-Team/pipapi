@@ -8,15 +8,15 @@
 #'
 ui_hp_stacked <- function(povline = 1.9,
                           lkup) {
-  out <- pip(country = "all",
-             year    = "all",
-             povline = povline,
-             lkup = lkups,
-             fill_gaps = TRUE,
-             aggregate = TRUE,
-             group_by = TRUE,
+  out <- pip(country      = "all",
+             year         = "all",
+             povline      = povline,
+             lkup         = lkup,
+             fill_gaps    = TRUE,
+             aggregate    = TRUE,
+             group_by     = TRUE,
              svy_coverage = "national",
-             paths = paths)
+             paths        = paths)
 
   out <- out[, .(region_code, reporting_year, poverty_line, pop_in_poverty)]
   return(out)

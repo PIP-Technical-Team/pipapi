@@ -11,9 +11,9 @@ paths:
         default:
           description: Default response.
       parameters: []
-  /api/v1/version:
+  /api/v1/info:
     get:
-      summary: ' Returns the version to the code and data that powers the API'
+      summary: ' Returns information about the API and the available data versions'
       responses:
         default:
           description: Default response.

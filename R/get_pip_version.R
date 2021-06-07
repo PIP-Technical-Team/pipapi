@@ -1,23 +1,40 @@
 #' Return the versions of the pip packages used for computations
 #'
+#' @param pip_packages character: Custom packages powering the API
+#' @param data_folder_root character: Root path of data folder
+#' @param valid_params list: Valid API query parameters
 #'
 #' @return list
 #' @export
 #'
-get_pip_version <- function() {
+get_pip_version <- function(pip_packages = c("pipapi", "wbpip"),
+                            data_folder_root,
+                            valid_params) {
 
-  pip_packages <- c("pipapi", "wbpip")
-  resp <- lapply(pip_packages, retrieve_version)
-  names(resp) <- pip_packages
+  # Package versions
+  pkg <- lapply(pip_packages, retrieve_pkg_version)
+  names(pkg) <- pip_packages
 
-  return(resp)
+  # Data version
+  data <- fs::dir_ls(path = data_folder_root,
+                     type = "directory",
+                     recurse = TRUE)
+
+  return(
+    list(
+      valid_query_parameters = valid_params,
+      packages_version = pkg,
+      data_versions    = data
+    )
+  )
 }
 
-retrieve_version <- function(package) {
+retrieve_pkg_version <- function(package) {
   desc <- read.dcf(system.file("DESCRIPTION", package = package))
-  resp <- list(
+  pkg <- list(
       version = unname(desc[1,"Version"])#,
       # built = unname(desc[1,"Built"])
     )
-  return(resp)
+
+  return(pkg)
 }
