@@ -20,7 +20,9 @@ Suggests:
     testthat,
     spelling,
     knitr,
-    rmarkdown
+    rmarkdown,
+    fs,
+    assertthat
 Language: en-US
 Imports: 
     data.table,
@@ -32,7 +34,8 @@ Imports:
     ggplot2,
     plotly,
     readr,
-    dplyr
+    dplyr,
+    wbpip
 Depends: 
     R (>= 2.10)
 VignetteBuilder: knitr

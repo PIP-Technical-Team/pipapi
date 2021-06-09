@@ -14,7 +14,7 @@ start_api(api_version = "v1", port = 80, host = "0.0.0.0")
 \item{host}{character: Host}
 }
 \value{
-
+plumber API
 }
 \description{
 Main function to launch the API

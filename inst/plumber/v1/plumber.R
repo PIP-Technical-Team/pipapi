@@ -5,8 +5,6 @@
 
 library(pipapi)
 
-lkups <- pipapi:::clean_api_data(data_folder_root = "../../../TEMP/output/20210401/")
-
 
 # API filters -------------------------------------------------------------
 
@@ -55,6 +53,23 @@ function(){
 }
 
 #* Return PIP information
+#* @get /api/v1/get-root
+function() {
+  getwd()
+}
+
+#* Return PIP information
+#* @get /api/v1/get-available-objects
+function() {
+  list(
+    search_list = search(),
+    global    = ls(pos = 1),
+    parent    = ls(pos = 2),
+    gd_parent = ls(pos = 3)
+  )
+}
+
+#* Return PIP information
 #* @get /api/v1/info
 function() {
   pipapi::get_pip_version(data_folder_root = lkups$data_root,
@@ -70,14 +85,12 @@ function() {
   plumber::as_attachment(out, "cpi.csv")
 }
 
-#* Return custom plot
-#* @get /api/v1/get-plot
-#* @serializer htmlwidget
-function() {
-  pipapi:::custom_plot(lkups)
-}
-
-
+# #* Return custom plot
+# #* @get /api/v1/get-plot
+# #* @serializer htmlwidget
+# function() {
+#   pipapi:::custom_plot(lkups)
+# }
 
 #* @get /api/v1/pip
 #* @param country:[chr] country iso3 code

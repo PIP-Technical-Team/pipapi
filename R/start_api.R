@@ -4,7 +4,7 @@
 #' @param port integer: Port
 #' @param host character: Host
 #'
-#' @return
+#' @return plumber API
 #' @export
 #'
 start_api <- function(api_version = "v1",
