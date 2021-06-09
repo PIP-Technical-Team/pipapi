@@ -25,13 +25,6 @@ paths:
         default:
           description: Default response.
       parameters: []
-  /api/v1/get-plot:
-    get:
-      summary: ' Returns a custom plot'
-      responses:
-        default:
-          description: Default response.
-      parameters: []
   /api/v1/pip:
     get:
       summary: ' Return main poverty and inequality statistics'
@@ -105,3 +98,18 @@ paths:
       responses:
        '200':
          description: successful message
+  /api/v1/hp-stacked:
+    get:
+      summary: ' Return data for PIP homepage main chart'
+      description: Return data for PIP homepage main chart. Stacked line chart.
+      parameters:
+           - in: query
+             name: povline
+             schema:
+              type: number
+              minimum: 0
+              maximum: 100
+              example: 1.90
+             description: Poverty line to be used to compute poverty mesures.
+
+
