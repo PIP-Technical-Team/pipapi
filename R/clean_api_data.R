@@ -1,4 +1,13 @@
+#' Temporary function that takes care of basic data cleaning and validation
+#'
+#' @param data_folder_root character: Path to data folder relative to the location
+#' of the plumber.R file
+#'
+#' @return list
+#'
+
 clean_api_data <- function(data_folder_root) {
+
   paths <- fs::dir_ls(paste0(data_folder_root, "/survey_data"), recurse = FALSE, type = "file")
   paths_ids <- basename(paths)
   paths_ids <- tools::file_path_sans_ext(paths_ids)
@@ -83,5 +92,6 @@ clean_api_data <- function(data_folder_root) {
                 data_root      = data_folder_root)
 
   return(lkups)
+
 
 }
