@@ -15,8 +15,8 @@ pip(
   welfare_type = c("all", "consumption", "income"),
   svy_coverage = c("all", "national", "rural", "urban"),
   ppp = NULL,
-  lkup,
-  paths
+  version = NULL,
+  lkup
 )
 }
 \arguments{
@@ -41,8 +41,6 @@ pip(
 \item{ppp}{numeric: Custom Purchase Power Parity value}
 
 \item{lkup}{list: A list of lkup tables}
-
-\item{paths}{character: Path to input data}
 }
 \value{
 data.frame
