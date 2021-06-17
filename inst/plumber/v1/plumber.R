@@ -47,6 +47,12 @@ function() {
   "PIP API is running"
 }
 
+#* Check status of API
+#* @get /api/v1/data-releases
+function() {
+  pipapi::list_data_releases(data_dir = data_dir)
+}
+
 #* @get /api/v1/system-info
 function(){
   Sys.info()
