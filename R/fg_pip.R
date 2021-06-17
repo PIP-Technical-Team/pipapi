@@ -8,8 +8,7 @@ fg_pip <- function(country   = "all",
                    ppp       = NULL,
                    server    = NULL,
                    format    = "csv",
-                   lkup,
-                   paths) {
+                   lkup) {
 
   # Handle interpolation
 

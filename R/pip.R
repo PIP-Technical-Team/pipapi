@@ -11,7 +11,6 @@
 #' @param svy_coverage character: Survey coverage.
 #' @param ppp numeric: Custom Purchase Power Parity value
 #' @param lkup list: A list of lkup tables
-#' @param paths character: Path to input data
 #'
 #' @return data.frame
 #' @export
@@ -26,8 +25,8 @@ pip <- function(country   = "all",
                 welfare_type = c("all", "consumption", "income"),
                 svy_coverage = c("all", "national", "rural", "urban"),
                 ppp       = NULL,
-                lkup,
-                paths) {
+                version   = NULL,
+                lkup) {
 
   welfare_type <- match.arg(welfare_type)
   svy_coverage <- match.arg(svy_coverage)
@@ -49,8 +48,7 @@ pip <- function(country   = "all",
                   svy_coverage = svy_coverage,
                   ppp          = ppp,
                   server       = server,
-                  lkup         = lkup,
-                  paths        = paths)
+                  lkup         = lkup)
   } else {
     out <- rg_pip(country      = country,
                   year         = year,
@@ -61,8 +59,7 @@ pip <- function(country   = "all",
                   svy_coverage = svy_coverage,
                   ppp          = ppp,
                   server       = server,
-                  lkup         = lkup,
-                  paths        = paths)
+                  lkup         = lkup)
   }
 
   # return empty dataframe if no metadata is found

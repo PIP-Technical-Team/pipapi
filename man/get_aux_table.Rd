@@ -4,10 +4,12 @@
 \alias{get_aux_table}
 \title{Return specified auxiliary data}
 \usage{
-get_aux_table(data_dir, table)
+get_aux_table(data_dir, data_version, table)
 }
 \arguments{
 \item{data_dir}{character: Data directory}
+
+\item{data_version}{character: Release version of the data in the format yyyymmdd}
 
 \item{table}{character: Name of auxiliary table}
 }
