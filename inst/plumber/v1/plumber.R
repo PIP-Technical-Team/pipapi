@@ -85,6 +85,22 @@ function() {
   plumber::as_attachment(out, "cpi.csv")
 }
 
+#* Return poverty lines for home page display
+#* @get /api/v1/poverty-lines
+#* @serializer json
+function() {
+  pipapi::get_aux_table(data_dir = lkups$data_root,
+                        table = "poverty_lines")
+}
+
+#* Return indicators master table
+#* @get /api/v1/indicators
+#* @serializer json
+function() {
+  pipapi::get_aux_table(data_dir = lkups$data_root,
+                        table = "indicators_master")
+}
+
 # #* Return custom plot
 # #* @get /api/v1/get-plot
 # #* @serializer htmlwidget
@@ -129,9 +145,9 @@ function(req) {
 }
 
 
-# Update UI
-#* @plumber
-function(pr) {
-  pr %>%
-    plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
-}
+# # Update UI
+# #* @plumber
+# function(pr) {
+#   pr %>%
+#     plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
+# }
