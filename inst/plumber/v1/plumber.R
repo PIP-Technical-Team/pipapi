@@ -146,9 +146,18 @@ function(req) {
   # browser()
   params <- req$argsQuery
   params$lkup <- lkups
-  # params$paths <- paths
 
   do.call(pipapi:::ui_hp_stacked, params)
+}
+
+#* Return data for home page country charts
+#* @get /api/v1/hp-countries
+#* @serializer json
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups
+
+  do.call(pipapi:::ui_hp_countries, params)
 }
 
 

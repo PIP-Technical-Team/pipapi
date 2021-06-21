@@ -7,8 +7,7 @@ rg_pip <- function(country   = "all",
                    svy_coverage = "all",
                    ppp       = NULL,
                    server    = NULL,
-                   lkup,
-                   paths) {
+                   lkup) {
 
   metadata <- subset_lkup(country = country,
                           year = year,
