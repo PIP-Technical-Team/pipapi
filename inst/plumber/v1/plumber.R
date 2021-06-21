@@ -77,12 +77,35 @@ function() {
 }
 
 #* Return CPI table
-#* @get /api/v1/get-cpi
-#* @serializer csv
+#* @get /api/v1/cpi
+#* @serializer json
 function() {
-  out <- pipapi::get_aux_table(data_dir = data_folder_root,
-                               table = "cpi")
-  plumber::as_attachment(out, "cpi.csv")
+  pipapi::get_aux_table(data_dir = lkups$data_root,
+                        table = "cpi")
+}
+
+#* Return poverty lines for home page display
+#* @get /api/v1/poverty-lines
+#* @serializer json
+function() {
+  pipapi::get_aux_table(data_dir = lkups$data_root,
+                        table = "poverty_lines")
+}
+
+#* Return indicators master table
+#* @get /api/v1/indicators
+#* @serializer json
+function() {
+  pipapi::get_aux_table(data_dir = lkups$data_root,
+                        table = "indicators_master")
+}
+
+#* Return list of countries
+#* @get /api/v1/countries
+#* @serializer json
+function() {
+  pipapi::get_aux_table(data_dir = lkups$data_root,
+                        table = "countries")
 }
 
 # #* Return custom plot
@@ -123,15 +146,24 @@ function(req) {
   # browser()
   params <- req$argsQuery
   params$lkup <- lkups
-  # params$paths <- paths
 
   do.call(pipapi:::ui_hp_stacked, params)
 }
 
+#* Return data for home page country charts
+#* @get /api/v1/hp-countries
+#* @serializer json
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups
 
-# Update UI
-#* @plumber
-function(pr) {
-  pr %>%
-    plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
+  do.call(pipapi:::ui_hp_countries, params)
 }
+
+
+# # Update UI
+# #* @plumber
+# function(pr) {
+#   pr %>%
+#     plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
+# }

@@ -8,6 +8,8 @@
 
 clean_api_data <- function(data_folder_root) {
 
+  # poverty_lines <- fst::read_fst(paste0(data_folder_root, "/_aux/poverty_lines.fst"))
+
   paths <- fs::dir_ls(paste0(data_folder_root, "/survey_data"), recurse = FALSE, type = "file")
   paths_ids <- basename(paths)
   paths_ids <- tools::file_path_sans_ext(paths_ids)

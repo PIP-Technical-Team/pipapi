@@ -47,7 +47,6 @@ get_svy_data <- function(svy_id,
                           msg = "Problem with input data: Multiple pop_data_levels")
 
   out <- lapply(path, function(x) {
-    # path <- paths[stringr::str_detect(paths, id)]
     tmp <- fst::read_fst(x)
     if (svy_coverage %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
       tmp <- tmp[tmp$area == svy_coverage, ]
