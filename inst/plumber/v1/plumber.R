@@ -77,12 +77,11 @@ function() {
 }
 
 #* Return CPI table
-#* @get /api/v1/get-cpi
-#* @serializer csv
+#* @get /api/v1/cpi
+#* @serializer json
 function() {
-  out <- pipapi::get_aux_table(data_dir = data_folder_root,
-                               table = "cpi")
-  plumber::as_attachment(out, "cpi.csv")
+  pipapi::get_aux_table(data_dir = lkups$data_root,
+                        table = "cpi")
 }
 
 #* Return poverty lines for home page display
@@ -99,6 +98,14 @@ function() {
 function() {
   pipapi::get_aux_table(data_dir = lkups$data_root,
                         table = "indicators_master")
+}
+
+#* Return list of countries
+#* @get /api/v1/countries
+#* @serializer json
+function() {
+  pipapi::get_aux_table(data_dir = lkups$data_root,
+                        table = "countries")
 }
 
 # #* Return custom plot
