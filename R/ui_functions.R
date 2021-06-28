@@ -15,7 +15,7 @@ ui_hp_stacked <- function(povline = 1.9,
              fill_gaps    = TRUE,
              aggregate    = TRUE,
              group_by     = TRUE,
-             svy_coverage = "national")
+             reporting_level = "national")
 
   out <- out[, .(region_code, reporting_year, poverty_line, pop_in_poverty)]
   return(out)
@@ -42,13 +42,66 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
              fill_gaps    = FALSE,
              aggregate    = FALSE,
              group_by     = NULL,
-             svy_coverage = "national")
+             reporting_level = "national")
 
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
   out$reporting_pop  <- out$reporting_pop / pop_units
 
   out <- out[, .(country_code, reporting_year, poverty_line, reporting_pop,
                  pop_in_poverty)]
+  return(out)
+}
+
+#' Provides numbers that will populate the poverty calculator main chart
+#'
+#' @param country character: Country code
+#' @param year numeric: reporting year
+#' @param povline numeric: Poverty line
+#' @param fill_gaps logical: Whether to impute missing values (TRUE) or not (FALSE)
+#' @param aggregate logical: Whether to aggregate results (TRUE) or not (FALSE)
+#' @param group_by character: Subgroups to aggregate by
+#' @param welfare_type character: Welfare type
+#' @param reporting_level character: Reporting level
+#' @param lkup list: A list of lkup tables
+#'
+#' @return data.frame
+#' @export
+#'
+ui_pc_charts <- function(country = c("AGO"),
+                       year    = "all",
+                       povline = 1.9,
+                       fill_gaps = FALSE,
+                       aggregate = FALSE,
+                       group_by = NULL,
+                       welfare_type = c("all", "consumption", "income"),
+                       reporting_level = c("all", "national", "rural", "urban"),
+                       lkup) {
+
+  out <- pip(country      = country,
+             year         = year,
+             povline      = povline,
+             fill_gaps    = fill_gaps,
+             aggregate    = aggregate,
+             group_by     = group_by,
+             reporting_level = reporting_level,
+             lkup         = lkup,)
+
+  if (fill_gaps == FALSE) {
+  out <- out[, .(country_code, reporting_year, welfare_type,
+                 pop_data_level, median, gini, polarization,
+                 mld, decile1, decile2, decile3, decile4, decile5,
+                 decile6, decile7, decile8, decile9, decile10,
+                 wb_region_code, survey_coverage, survey_comparability,
+                 survey_year, survey_mean_lcu, survey_mean_ppp,
+                 reporting_pop, ppp, cpi, distribution_type,
+                 is_interpolated, poverty_line, mean, headcount,
+                 poverty_gap, poverty_severity, watts)]
+  } else {
+    out <- out[, .(country_code, reporting_year, poverty_line, mean,
+                   headcount, poverty_gap, poverty_severity, watts,
+                   wb_region_code, reporting_pop, is_interpolated)]
+  }
+
   return(out)
 }
 

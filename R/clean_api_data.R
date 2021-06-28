@@ -61,7 +61,7 @@ clean_api_data <- function(data_folder_root) {
                    type = "character")
   welfare_type <- list(values = c("all", sort(unique(c(svy_lkup$welfare_type, ref_lkup$welfare_type)))),
                        type = "character")
-  svy_coverage <- list(values = c("all", sort(unique(c(svy_lkup$pop_data_level, ref_lkup$pop_data_level)))),
+  reporting_level <- list(values = c("all", sort(unique(c(svy_lkup$pop_data_level, ref_lkup$pop_data_level)))),
                        type = "character")
   ppp <- list(values = c(min = 0, max = 1000000), # CHECK THE VALUE OF MAX
               type = "numeric")
@@ -79,7 +79,7 @@ clean_api_data <- function(data_folder_root) {
     aggregate = aggregate,
     group_by = group_by,
     welfare_type = welfare_type,
-    svy_coverage = svy_coverage,
+    reporting_level = reporting_level,
     ppp = ppp,
     version = versions
   )

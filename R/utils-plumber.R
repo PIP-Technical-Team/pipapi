@@ -113,7 +113,7 @@ validate_query_parameters <- function(params, valid_params = c("country",
                                                                "aggregate",
                                                                "group_by",
                                                                "welfare_type",
-                                                               "svy_coverage",
+                                                               "reporting_level",
                                                                "ppp")) {
 
   params$argsQuery <- params$argsQuery[names(params$argsQuery) %in% valid_params]
@@ -149,7 +149,7 @@ parse_parameter <- function(param, param_name) {
   param <- strsplit(param, ",")
   param <- unlist(param)
 
-  if (param_name %in% c("country", "year", "group_by", "welfare_type", "svy_coverage")) {
+  if (param_name %in% c("country", "year", "group_by", "welfare_type", "reporting_level")) {
     param <- as.character(param)
   } else if (param_name %in% c("povline", "popshare", "ppp")) {
     param <- as.numeric(param)

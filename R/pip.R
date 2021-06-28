@@ -8,7 +8,7 @@
 #' @param aggregate logical: If set to TRUE, will return aggregate results
 #' @param group_by character: Will return aggregated values for pre-defined sub-groups
 #' @param welfare_type character: Welfare type.
-#' @param svy_coverage character: Survey coverage.
+#' @param reporting_level character: Geographical reporting level
 #' @param ppp numeric: Custom Purchase Power Parity value
 #' @param lkup list: A list of lkup tables
 #'
@@ -23,12 +23,12 @@ pip <- function(country   = "all",
                 aggregate = FALSE,
                 group_by  = NULL,
                 welfare_type = c("all", "consumption", "income"),
-                svy_coverage = c("all", "national", "rural", "urban"),
+                reporting_level = c("all", "national", "rural", "urban"),
                 ppp       = NULL,
                 lkup) {
 
   welfare_type <- match.arg(welfare_type)
-  svy_coverage <- match.arg(svy_coverage)
+  reporting_level <- match.arg(reporting_level)
 
   # Forces fill_gaps to TRUE when using group_by option
   if (!is.null(group_by)) {
@@ -44,7 +44,7 @@ pip <- function(country   = "all",
                   popshare     = popshare,
                   aggregate    = aggregate,
                   welfare_type = welfare_type,
-                  svy_coverage = svy_coverage,
+                  reporting_level = reporting_level,
                   ppp          = ppp,
                   server       = server,
                   lkup         = lkup)
@@ -55,7 +55,7 @@ pip <- function(country   = "all",
                   popshare     = popshare,
                   aggregate    = aggregate,
                   welfare_type = welfare_type,
-                  svy_coverage = svy_coverage,
+                  reporting_level = reporting_level,
                   ppp          = ppp,
                   server       = server,
                   lkup         = lkup)
@@ -67,7 +67,7 @@ pip <- function(country   = "all",
   }
 
   # Handle aggregated distributions
-  if (svy_coverage %in% c("national", "all")) {
+  if (reporting_level %in% c("national", "all")) {
     out <- add_agg_stats(out)
   }
 
@@ -89,8 +89,8 @@ pip <- function(country   = "all",
                         dist_stats = lkup[["dist_stats"]])
 
   # Handle survey coverage
-  if (svy_coverage != "all") {
-    out <- out[out$pop_data_level == svy_coverage, ]
+  if (reporting_level != "all") {
+    out <- out[out$pop_data_level == reporting_level, ]
   }
 
   # Censor values

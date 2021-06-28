@@ -84,6 +84,46 @@ function() {
                         table = "cpi")
 }
 
+# #* Return custom plot
+# #* @get /api/v1/get-plot
+# #* @serializer htmlwidget
+# function() {
+#   pipapi:::custom_plot(lkups)
+# }
+
+#* @get /api/v1/pip
+#* @param country:[chr] country iso3 code
+#* @param year:[chr] year
+#* @param povline:[dbl] Poverty Line
+#* @param popshare:[dbl] numeric Share of the population living below the poverty Line
+#* @param fill_gaps:[bool] Fill gaps for years with no available surveys
+#* @param aggregate:[bool] Whether to aggregate results or not
+#* @param group_by:[chr] Triggers sub-groups aggregation
+#* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
+#* @param reporting_level:[chr] Survey coverage. Options are "national", "urban", "rural".
+#* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value
+#* @param
+#* @serializer json
+function(req) {
+  # Process request
+  # browser()
+  params <- req$argsQuery
+  params$lkup <- lkups
+
+  do.call(pipapi::pip, params)
+}
+
+
+# # Update UI
+# #* @plumber
+# function(pr) {
+#   pr %>%
+#     plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
+# }
+
+
+# UI endpoints: Homepage --------------------------------------------------
+
 #* Return poverty lines for home page display
 #* @get /api/v1/poverty-lines
 #* @serializer json
@@ -106,35 +146,6 @@ function() {
 function() {
   pipapi::get_aux_table(data_dir = lkups$data_root,
                         table = "countries")
-}
-
-# #* Return custom plot
-# #* @get /api/v1/get-plot
-# #* @serializer htmlwidget
-# function() {
-#   pipapi:::custom_plot(lkups)
-# }
-
-#* @get /api/v1/pip
-#* @param country:[chr] country iso3 code
-#* @param year:[chr] year
-#* @param povline:[dbl] Poverty Line
-#* @param popshare:[dbl] numeric Share of the population living below the poverty Line
-#* @param fill_gaps:[bool] Fill gaps for years with no available surveys
-#* @param aggregate:[bool] Whether to aggregate results or not
-#* @param group_by:[chr] Triggers sub-groups aggregation
-#* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
-#* @param svy_coverage:[chr] Survey coverage. Options are "national", "urban", "rural".
-#* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value
-#* @param
-#* @serializer json
-function(req) {
-  # Process request
-  # browser()
-  params <- req$argsQuery
-  params$lkup <- lkups
-
-  do.call(pipapi::pip, params)
 }
 
 #* @get /api/v1/hp-stacked
@@ -161,9 +172,42 @@ function(req) {
 }
 
 
-# # Update UI
-# #* @plumber
-# function(pr) {
-#   pr %>%
-#     plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
-# }
+
+# UI Endpoints: Poverty calculator ----------------------------------------
+
+#* Return data for Poverty Calculator main chart
+#* @get /api/v1/pc-charts
+#* @param country:[chr] country iso3 code
+#* @param year:[chr] year
+#* @param povline:[dbl] Poverty Line
+#* @param fill_gaps:[bool] Fill gaps for years with no available surveys
+#* @param aggregate:[bool] Whether to aggregate results or not
+#* @param group_by:[chr] Triggers sub-groups aggregation
+#* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
+#* @param reporting_level:[chr] Survey coverage. Options are "all", national", "urban", "rural".
+#* @serializer json
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups
+
+  do.call(pipapi::ui_pc_charts, params)
+}
+
+#* Return data for Poverty Calculator download
+#* @get /api/v1/pc-download
+#* @param country:[chr] country iso3 code
+#* @param year:[chr] year
+#* @param povline:[dbl] Poverty Line
+#* @param fill_gaps:[bool] Fill gaps for years with no available surveys
+#* @param aggregate:[bool] Whether to aggregate results or not
+#* @param group_by:[chr] Triggers sub-groups aggregation
+#* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
+#* @param reporting_level:[chr] Survey coverage. Options are "all", national", "urban", "rural".
+#* @serializer csv
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups
+  # browser()
+
+  do.call(pipapi::ui_pc_charts, params)
+}

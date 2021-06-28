@@ -7,4 +7,4 @@
 #' List of valid coverage values
 #'
 #'
-"svy_coverage_list"
+"reporting_level_list"

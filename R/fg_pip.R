@@ -4,7 +4,7 @@ fg_pip <- function(country   = "all",
                    year      = "all",
                    aggregate = FALSE,
                    welfare_type = "all",
-                   svy_coverage = "all",
+                   reporting_level = "all",
                    ppp       = NULL,
                    server    = NULL,
                    format    = "csv",
@@ -15,7 +15,7 @@ fg_pip <- function(country   = "all",
   metadata <- subset_lkup(country = country,
                          year = year,
                          welfare_type = welfare_type,
-                         svy_coverage = svy_coverage,
+                         reporting_level = reporting_level,
                          lkup = lkup[["ref_lkup"]])
   # return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
@@ -32,7 +32,7 @@ fg_pip <- function(country   = "all",
     tmp_metadata <- metadata[interpolation_id == ctry_years[["interpolation_id"]][i],]
 
     svy_data <- get_svy_data(tmp_metadata[["cache_id"]],
-                             svy_coverage = tmp_metadata[["pop_data_level"]],
+                             reporting_level = tmp_metadata[["pop_data_level"]],
                              path = tmp_metadata$path)
 
     # Compute estimated statistics using the fill_gap method
@@ -53,17 +53,21 @@ fg_pip <- function(country   = "all",
       tmp_metadata[[names(tmp_stats)[j]]] <- tmp_stats[[j]]
     }
 
+    # Ensure that tmp_metadata has a single row
+    vars_to_collapse <- c("survey_id", "cache_id", "surveyid_year", "survey_year",
+                          "survey_acronym", "survey_coverage", "survey_comparability",
+                          "welfare_type", "distribution_type", "gd_type", "predicted_mean_ppp",
+                          "survey_mean_lcu", "interpolation_id", "path")
+    tmp_metadata <- collapse_rows(df = tmp_metadata,
+                                  vars = vars_to_collapse,
+                                  na_var = "survey_mean_ppp")
+
     out[[i]] <- tmp_metadata
+
+
   }
+
   out <- data.table::rbindlist(out)
-  # Ensure that tmp_metadata has a single row
-  vars_to_collapse <- c("survey_id", "cache_id", "surveyid_year", "survey_year",
-                        "survey_acronym", "survey_coverage", "survey_comparability",
-                        "welfare_type", "distribution_type", "gd_type", "predicted_mean_ppp",
-                        "survey_mean_lcu", "interpolation_id", "path")
-  out <- collapse_rows(df = out,
-                       vars = vars_to_collapse,
-                       na_var = "survey_mean_ppp")
 
   return(out)
 }

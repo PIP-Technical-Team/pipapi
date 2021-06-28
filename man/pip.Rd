@@ -13,7 +13,7 @@ pip(
   aggregate = FALSE,
   group_by = NULL,
   welfare_type = c("all", "consumption", "income"),
-  svy_coverage = c("all", "national", "rural", "urban"),
+  reporting_level = c("all", "national", "rural", "urban"),
   ppp = NULL,
   lkup
 )
@@ -35,7 +35,7 @@ pip(
 
 \item{welfare_type}{character: Welfare type.}
 
-\item{svy_coverage}{character: Survey coverage.}
+\item{reporting_level}{character: Geographical reporting level}
 
 \item{ppp}{numeric: Custom Purchase Power Parity value}
 
