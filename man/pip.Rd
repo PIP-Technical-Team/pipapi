@@ -11,7 +11,7 @@ pip(
   popshare = NULL,
   fill_gaps = FALSE,
   aggregate = FALSE,
-  group_by = NULL,
+  group_by = c("none", "wb"),
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
   ppp = NULL,

@@ -14,7 +14,7 @@ ui_hp_stacked <- function(povline = 1.9,
              lkup         = lkup,
              fill_gaps    = TRUE,
              aggregate    = TRUE,
-             group_by     = TRUE,
+             group_by     = "wb",
              reporting_level = "national")
 
   out <- out[, .(region_code, reporting_year, poverty_line, pop_in_poverty)]
@@ -72,7 +72,7 @@ ui_pc_charts <- function(country = c("AGO"),
                        povline = 1.9,
                        fill_gaps = FALSE,
                        aggregate = FALSE,
-                       group_by = NULL,
+                       group_by = c("none", "wb"),
                        welfare_type = c("all", "consumption", "income"),
                        reporting_level = c("all", "national", "rural", "urban"),
                        lkup) {
@@ -86,22 +86,25 @@ ui_pc_charts <- function(country = c("AGO"),
              reporting_level = reporting_level,
              lkup         = lkup,)
 
-  if (fill_gaps == FALSE) {
-  out <- out[, .(country_code, reporting_year, welfare_type,
-                 pop_data_level, median, gini, polarization,
-                 mld, decile1, decile2, decile3, decile4, decile5,
-                 decile6, decile7, decile8, decile9, decile10,
-                 wb_region_code, survey_coverage, survey_comparability,
-                 survey_year, survey_mean_lcu, survey_mean_ppp,
-                 reporting_pop, ppp, cpi, distribution_type,
-                 is_interpolated, poverty_line, mean, headcount,
-                 poverty_gap, poverty_severity, watts)]
+  if (group_by != "none") {
+    return(out)
+  }  else if (fill_gaps == FALSE) {
+    out <- out[, .(country_code, reporting_year, welfare_type,
+                   pop_data_level, median, gini, polarization,
+                   mld, decile1, decile2, decile3, decile4, decile5,
+                   decile6, decile7, decile8, decile9, decile10,
+                   wb_region_code, survey_coverage, survey_comparability,
+                   survey_year, survey_mean_lcu, survey_mean_ppp,
+                   reporting_pop, ppp, cpi, distribution_type,
+                   is_interpolated, poverty_line, mean, headcount,
+                   poverty_gap, poverty_severity, watts)]
+    return(out)
   } else {
     out <- out[, .(country_code, reporting_year, poverty_line, mean,
                    headcount, poverty_gap, poverty_severity, watts,
                    wb_region_code, reporting_pop, is_interpolated)]
+    return(out)
   }
 
-  return(out)
 }
 

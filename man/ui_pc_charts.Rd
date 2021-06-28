@@ -10,7 +10,7 @@ ui_pc_charts(
   povline = 1.9,
   fill_gaps = FALSE,
   aggregate = FALSE,
-  group_by = NULL,
+  group_by = c("none", "wb"),
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
   lkup

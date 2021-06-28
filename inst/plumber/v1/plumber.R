@@ -189,7 +189,7 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups
-
+  # browser()
   do.call(pipapi::ui_pc_charts, params)
 }
 

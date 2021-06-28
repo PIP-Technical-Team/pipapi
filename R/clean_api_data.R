@@ -57,7 +57,7 @@ clean_api_data <- function(data_folder_root) {
                    type = "numeric")
   fill_gaps <- aggregate <- list(values = c(TRUE, FALSE),
                                  type = "logical")
-  group_by <- list(values = c("wb", "inc"),
+  group_by <- list(values = c("none", "wb"),
                    type = "character")
   welfare_type <- list(values = c("all", sort(unique(c(svy_lkup$welfare_type, ref_lkup$welfare_type)))),
                        type = "character")

@@ -89,6 +89,19 @@ test_that("Homepage country charts endpoint is working", {
                                        "pop_in_poverty"))
 })
 
+# test_that("Poverty calculator chart endpoint is working", {
+#   # Send API request
+#   r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-charts")
+#
+#   # Check response
+#   tmp_resp <- httr::content(r, encoding = "UTF-8")
+#   expect_equal(names(tmp_resp[[1]]), c("country_code",
+#                                        "reporting_year",
+#                                        "poverty_line",
+#                                        "reporting_pop",
+#                                        "pop_in_poverty"))
+# })
+
 # Kill process
 api1$kill()
 

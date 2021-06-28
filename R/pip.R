@@ -21,7 +21,7 @@ pip <- function(country   = "all",
                 popshare  = NULL,
                 fill_gaps = FALSE,
                 aggregate = FALSE,
-                group_by  = NULL,
+                group_by  = c("none", "wb"),
                 welfare_type = c("all", "consumption", "income"),
                 reporting_level = c("all", "national", "rural", "urban"),
                 ppp       = NULL,
@@ -29,9 +29,10 @@ pip <- function(country   = "all",
 
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
+  group_by <- match.arg(group_by)
 
   # Forces fill_gaps to TRUE when using group_by option
-  if (!is.null(group_by)) {
+  if (group_by != "none") {
     fill_gaps <- TRUE
   }
 
@@ -72,7 +73,7 @@ pip <- function(country   = "all",
   }
 
   # Handle grouped aggregations
-  if (!is.null(group_by)) {
+  if (group_by != "none") {
     # Handle potential (insignificant) difference in poverty_line values  that
     # may mess-up the grouping
     out$poverty_line <- povline
