@@ -4,7 +4,7 @@ rg_pip <- function(country   = "all",
                    year      = "all",
                    aggregate = FALSE,
                    welfare_type = "all",
-                   svy_coverage = "all",
+                   reporting_level = "all",
                    ppp       = NULL,
                    server    = NULL,
                    lkup) {
@@ -12,7 +12,7 @@ rg_pip <- function(country   = "all",
   metadata <- subset_lkup(country = country,
                           year = year,
                           welfare_type = welfare_type,
-                          svy_coverage = svy_coverage,
+                          reporting_level = reporting_level,
                           lkup = lkup[["svy_lkup"]])
 
   # return empty dataframe if no metadata is found
@@ -27,7 +27,7 @@ rg_pip <- function(country   = "all",
     tmp_metadata <- metadata[i, ]
 
     svy_data <- get_svy_data(tmp_metadata$cache_id,
-                             svy_coverage = tmp_metadata$pop_data_level,
+                             reporting_level = tmp_metadata$pop_data_level,
                              path = tmp_metadata$path)
 
     tmp_stats <- wbpip:::prod_compute_pip_stats(welfare = svy_data$df0$welfare,

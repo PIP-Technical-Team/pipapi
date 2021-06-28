@@ -90,10 +90,10 @@ paths:
               enum: [all, consumption, income]
              description: Welfare measure
            - in: query
-             name: svy_coverage
+             name: reporting_level
              schema:
               type: string
-              enum: [all, rural, urban]
+              enum: [all, national, rural, urban]
              description: Survey coverage
       responses:
        '200':

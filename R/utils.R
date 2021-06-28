@@ -1,7 +1,7 @@
 subset_lkup <- function(country,
                         year,
                         welfare_type,
-                        svy_coverage,
+                        reporting_level,
                         lkup) {
 
   svy_n <- nrow(lkup)
@@ -21,13 +21,13 @@ subset_lkup <- function(country,
   }
   # Select survey coverage
   # To be updated: Fix the coverage variable names in aux data (reporting_coverage?)
-  if (svy_coverage[1] != "all") {
+  if (reporting_level[1] != "all") {
     if ("survey_coverage" %in% names(lkup)) {
       keep <- keep &
-        (lkup$survey_coverage == svy_coverage |
-           lkup$pop_data_level  == svy_coverage)
+        (lkup$survey_coverage == reporting_level |
+           lkup$pop_data_level  == reporting_level)
     } else {
-      keep <- keep & lkup$pop_data_level  == svy_coverage
+      keep <- keep & lkup$pop_data_level  == reporting_level
     }
   }
 
@@ -37,19 +37,19 @@ subset_lkup <- function(country,
 }
 
 get_svy_data <- function(svy_id,
-                         svy_coverage,
+                         reporting_level,
                          path)
 {
   # Each call should be made at a unique pop_data_level (equivalent to reporting_data_level: national, urban, rural)
   # This check should be conducted at the data validation stage
-  svy_coverage <- unique(svy_coverage)
-  assertthat::assert_that(length(svy_coverage) == 1,
+  reporting_level <- unique(reporting_level)
+  assertthat::assert_that(length(reporting_level) == 1,
                           msg = "Problem with input data: Multiple pop_data_levels")
 
   out <- lapply(path, function(x) {
     tmp <- fst::read_fst(x)
-    if (svy_coverage %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
-      tmp <- tmp[tmp$area == svy_coverage, ]
+    if (reporting_level %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
+      tmp <- tmp[tmp$area == reporting_level, ]
     }
     tmp <- tmp[, c("welfare", "weight")]
 
