@@ -7,53 +7,44 @@
 <!-- [![Codecov test coverage](https://codecov.io/gh/PIP-Technical-Team/pipapi/branch/master/graph/badge.svg)](https://codecov.io/gh/PIP-Technical-Team/pipapi?branch=master) -->
 <!-- badges: end -->
 
-The goal of pipapi is to …
+The goal of pipapi is to provide a high level API to the computations
+and methods that power the Poverty and Inequality Platform (PIP).
+
+World Bank staff who have read access to the PIP data can use the
+functions from this package directly (without hitting the PIP API)
 
 ## Installation
 
-You can install the released version of pipapi from
-[CRAN](https://CRAN.R-project.org) with:
-
-``` r
-install.packages("pipapi")
-```
-
-And the development version from [GitHub](https://github.com/) with:
+You can install the development version from
+[GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("PIP-Technical-Team/pipapi")
 ```
 
-## Example
+## Getting started
 
-This is a basic example which shows you how to solve a common problem:
+The main function from the `pipapi` package is the `pip()` function. See
+`?pip` for more information.
+
+### Data access
+
+In order to use the `pip()` you’ll need to have access to PIP
+`data_folder`. The expected structure for the PIP `data_folder` is the
+following: data\_folder \|\_aux \|estimations \|survey\_data
+
+### Basic example
 
 ``` r
-# library(pipapi)
-## basic example code
+library(pipapi)
+# STEP 1: Connect to data_folder
+lkups <- pipapi:::clean_api_data(data_folder_root = "path/to/pip/data_folder")
+pip(country = "AGO",
+    year    = 2008,
+    povline = 1.9,
+    fill_gaps = FALSE,
+    aggregate = FALSE,
+    reporting_level = "national",
+    lkup = lkups)
 ```
-
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
-
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
-
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub!

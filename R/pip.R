@@ -46,7 +46,6 @@ pip <- function(country   = "all",
                   welfare_type = welfare_type,
                   reporting_level = reporting_level,
                   ppp          = ppp,
-                  server       = server,
                   lkup         = lkup)
   } else {
     # Compute survey year stats
@@ -58,7 +57,6 @@ pip <- function(country   = "all",
                   welfare_type = welfare_type,
                   reporting_level = reporting_level,
                   ppp          = ppp,
-                  server       = server,
                   lkup         = lkup)
   }
 
