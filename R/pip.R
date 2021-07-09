@@ -36,9 +36,8 @@ pip <- function(country   = "all",
     fill_gaps <- TRUE
   }
 
-  # Handle interpolation
   if (fill_gaps == TRUE) {
-
+    # Compute imputed stats
     out <- fg_pip(country      = country,
                   year         = year,
                   povline      = povline,
@@ -50,6 +49,7 @@ pip <- function(country   = "all",
                   server       = server,
                   lkup         = lkup)
   } else {
+    # Compute survey year stats
     out <- rg_pip(country      = country,
                   year         = year,
                   povline      = povline,
@@ -67,14 +67,14 @@ pip <- function(country   = "all",
     return(out)
   }
 
-  # Handle aggregated distributions
+  # Handles aggregated distributions
   if (reporting_level %in% c("national", "all")) {
     out <- add_agg_stats(out)
   }
 
-  # Handle grouped aggregations
+  # Handles grouped aggregations
   if (group_by != "none") {
-    # Handle potential (insignificant) difference in poverty_line values  that
+    # Handle potential (insignificant) difference in poverty_line values that
     # may mess-up the grouping
     out$poverty_line <- povline
 

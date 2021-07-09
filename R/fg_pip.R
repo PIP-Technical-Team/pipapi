@@ -1,13 +1,18 @@
-fg_pip <- function(country   = "all",
-                   povline   = NULL,
-                   popshare  = NULL,
-                   year      = "all",
-                   aggregate = FALSE,
-                   welfare_type = "all",
-                   reporting_level = "all",
-                   ppp       = NULL,
-                   server    = NULL,
-                   format    = "csv",
+#' Compute the main PIP poverty and inequality statistics for imputed years
+#'
+#' @inheritParams pip
+#'
+#' @return data.frame
+#' @export
+
+fg_pip <- function(country,
+                   year,
+                   povline,
+                   popshare,
+                   aggregate,
+                   welfare_type,
+                   reporting_level,
+                   ppp,
                    lkup) {
 
   # Handle interpolation

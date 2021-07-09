@@ -36,6 +36,15 @@ subset_lkup <- function(country,
   return(lkup)
 }
 
+#' Read survey data
+#'
+#' @param svy_id character: Survey ID
+#' @param reporting_level character: geographical reporting level
+#' @param path character: Path to survey data
+#'
+#' @return data.frame
+#' @export
+#'
 get_svy_data <- function(svy_id,
                          reporting_level,
                          path)
@@ -126,6 +135,14 @@ collapse_rows <- function(df, vars, na_var) {
   df <- unique(df)
 }
 
+#' Add pre-computed distributional stats
+#'
+#' @param df data.frame: Data frame of poverty statistics
+#' @param dist_stats data.frame: Distributional stats lookup
+#'
+#' @return data.frame
+#' @export
+#'
 add_dist_stats <- function(df, dist_stats) {
   # Keep only relevant columns
   cols <- c("cache_id",

@@ -1,12 +1,17 @@
-rg_pip <- function(country   = "all",
-                   povline   = NULL,
-                   popshare  = NULL,
-                   year      = "all",
-                   aggregate = FALSE,
-                   welfare_type = "all",
-                   reporting_level = "all",
-                   ppp       = NULL,
-                   server    = NULL,
+#' Compute the main PIP poverty and inequality statistics for survey years
+#'
+#' @inheritParams pip
+#'
+#' @return data.frame
+#' @export
+rg_pip <- function(country,
+                   year,
+                   povline,
+                   popshare,
+                   aggregate,
+                   welfare_type,
+                   reporting_level,
+                   ppp,
                    lkup) {
 
   metadata <- subset_lkup(country = country,
