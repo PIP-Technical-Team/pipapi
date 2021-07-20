@@ -38,6 +38,27 @@ function(req, res, query_controls = lkups$query_controls) {
   plumber::forward()
 }
 
+#* Set required response headers
+#* @filter response_headers
+function(res) {
+  res$setHeader("Strict-Transport-Security",
+                "max-age=63072000; includeSubDomains; preload")
+
+  res$setHeader("Content-Security-Policy",
+                "default-src *  data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval' 'unsafe-dynamic'; script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src * data: blob: 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src * data: blob: ; style-src * data: blob: 'unsafe-inline'; font-src * data: blob: 'unsafe-inline';")
+
+  res$setHeader("X-Frame-Options",
+                "SAMEORIGIN")
+
+  res$setHeader("X-Content-Type-Options",
+                "nosniff")
+
+  res$setHeader("Referrer-Policy",
+                "no-referrer")
+
+  plumber::forward()
+}
+
 
 # Endpoints definition ----------------------------------------------------
 
