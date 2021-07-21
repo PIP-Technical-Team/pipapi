@@ -75,6 +75,20 @@ test_that("Interpolated PIP request is working", {
   expect_equal(tmp_resp[[1]]$reporting_year, 2012)
 })
 
+test_that("Indicator names are correct", {
+  # Send pip API request
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=AGO&year=2018")
+  # Check response
+  pip_resp <- httr::content(r, encoding = "UTF-8")
+
+  # Retrieve indicator master
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/indicators")
+  # Check response
+  ind_resp <- httr::content(r, encoding = "UTF-8")
+  ind_code <- purrr::map_chr(ind_resp, "indicator_code")
+  expect_equal(sum(names(pip_resp[[1]]) %in% ind_code), 19)
+})
+
 # Kill process
 api1$kill()
 
