@@ -169,6 +169,15 @@ function() {
                         table = "countries")
 }
 
+#* Return list of variables used for decomposition
+#* @get /api/v1/decomposition-vars
+#* @serializer json
+function() {
+  pipapi::get_aux_table(data_dir = lkups$data_root,
+                        table = "decomposition_master")
+}
+
+
 #* @get /api/v1/hp-stacked
 #* @param povline:[dbl] Poverty Line
 #* @param
