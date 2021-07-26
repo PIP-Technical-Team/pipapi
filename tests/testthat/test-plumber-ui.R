@@ -30,7 +30,7 @@ test_that("Poverty line endpoint is working", {
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("poverty_line","is_default", "is_visible"))
+  expect_equal(names(tmp_resp[[1]]), c("name", "poverty_line","is_default", "is_visible"))
 })
 
 test_that("Indicators master endpoint is working", {
@@ -61,10 +61,12 @@ test_that("Countries endpoint is working", {
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(names(tmp_resp[[1]]), c("region_code",
                                        "country_code",
-                                       "country_name"))
+                                       "country_name",
+                                       "income_group",
+                                       "iso2_code"))
 })
 
-skip("CHECK CURRENT API RESPONSE on /pipbeta")
+# skip("Needs to be changed to tidy format")
 test_that("CPI endpoint is working", {
   # Send API request
   r <- httr::GET(root_path, port = 8000, path = "api/v1/cpi")
