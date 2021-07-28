@@ -169,6 +169,14 @@ function() {
                         table = "countries")
 }
 
+#* Return poverty lines for home page display
+#* @get /api/v1/regions
+#* @serializer json
+function() {
+  pipapi::get_aux_table(data_dir = lkups$data_root,
+                        table = "regions")
+}
+
 #* Return list of variables used for decomposition
 #* @get /api/v1/decomposition-vars
 #* @serializer json
