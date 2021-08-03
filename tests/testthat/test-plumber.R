@@ -3,7 +3,7 @@ library(httr)
 
 # Setup by starting APIs
 root_path <- "http://localhost"
-data_folder_root <- "C:/Users/wb499754/OneDrive - WBG/PIP/pip_data_master/ITSES-POVERTYSCORE-DATA/20210401/"
+data_folder_root <- Sys.getenv('DATA_FOLDER_ROOT')
 # CAUTION: data_folder_root is also hard-coded on line 14 below. (passing data_folder_root fails)
 # MAKE SURE BOTH ARE IN SYNC
 
@@ -15,7 +15,7 @@ api1$call(function() {
   # Use double assignment operator so the lkups object is available in the global
   # environment of the background R session, so it is available for the API
   lkups <<- pipapi:::clean_api_data(
-    data_folder_root = "C:/Users/wb499754/OneDrive - WBG/PIP/pip_data_master/ITSES-POVERTYSCORE-DATA/20210401/")
+    data_folder_root = Sys.getenv('DATA_FOLDER_ROOT'))
 
   plbr_file <- system.file("plumber", "v1", "plumber.R", package = "pipapi")
   pr <- plumber::plumb(plbr_file)
