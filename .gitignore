@@ -6,3 +6,5 @@ TEMP.R
 renv/
 .Rprofile
 inst/doc
+tests/testdata/
+.Renviron

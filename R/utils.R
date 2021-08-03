@@ -1,3 +1,20 @@
+globalVariables(
+  c('.', 'cache_id', 'country_code', 'cpi', 'decile1',
+  'decile10', 'decile2', 'decile3', 'decile4',
+  'decile5', 'decile6', 'decile7', 'decile8',
+  'decile9','distribution_type', 'gini',
+  'headcount', 'interpolation_id',
+  'is_interpolated', 'median', 'mld',
+  'polarization', 'pop', 'pop_data_level',
+  'pop_in_poverty', 'poverty_gap',
+  'poverty_line', 'poverty_severity',
+  'ppp', 'region_code', 'reporting_pop',
+  'reporting_year', 'survey_comparability',
+  'survey_coverage', 'survey_mean_lcu',
+  'survey_mean_ppp', 'survey_year', 'watts',
+  'wb_region_code', 'weighted.mean',
+  'welfare_type'))
+
 subset_lkup <- function(country,
                         year,
                         welfare_type,

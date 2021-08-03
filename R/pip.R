@@ -1,3 +1,6 @@
+#' @importFrom stats median weighted.mean
+NULL
+
 #' Compute the main PIP poverty and inequality statistics
 #'
 #' @param country character: Country ISO 3 codes
