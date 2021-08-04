@@ -75,7 +75,6 @@ survey_pfw <- haven::read_dta('TEMP/Survey_price_framework.dta')
 metadata <- readxl::read_xlsx('TEMP/metadata_to_update_MN@2.xlsx')
 survey_pfw$link <- with(survey_pfw,
                         sprintf('%s_%s_%s', code, year, survname))
-
 # Merge datasets (inner join)
 metadata <-
   merge(metadata, survey_pfw[c('code', 'year', 'survname', 'link')],
@@ -85,11 +84,11 @@ metadata <-
 metadata <- metadata %>%
   dplyr::rename(country_code = code,
               surveyid_year = year,
-              survey_name = survname)
+              survey_acronym = survname)
 
 # Select columns (as mentioned by Minh in email 29.07.2021)
 metadata <- metadata[
-  c('country_code', 'surveyid_year', 'survey_name',
+  c('country_code', 'surveyid_year', 'survey_acronym',
     'title', 'year_start', 'year_end',
     'authoring_entity_name', 'abstract',
     'collection_dates_cycle', 'collection_dates_start',

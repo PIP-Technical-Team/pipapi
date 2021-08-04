@@ -202,7 +202,7 @@ test_that("Survey metadata endpoint is working", {
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(names(tmp_resp[[1]]),
-               c('country_code', 'surveyid_year', 'survey_name',
+               c('country_code', 'surveyid_year', 'survey_acronym',
                  'title', 'year_start', 'year_end',
                  'authoring_entity_name', 'abstract',
                  'collection_dates_cycle', 'collection_dates_start',
