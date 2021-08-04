@@ -83,14 +83,13 @@ test_that("reporting_level selection are correct", {
 })
 
 # Check aggregation ----
-skip("Aggregation not correctly implemented")
 test_that("Aggregation is working", {
 tmp <- pip(country = "all",
            year    = "all",
            povline = 3.5,
            aggregate = TRUE,
            lkup = lkups)
-
+skip("Aggregation not correctly implemented")
 expect_equal(nrow(tmp), 1)
 })
 
@@ -125,5 +124,5 @@ test_that("pop_share option is working", {
              popshare = .2,
              lkup = lkups)
 
-  expect_equal(nrow(tmp), 3)
+  expect_equal(nrow(tmp), 1)
 })
