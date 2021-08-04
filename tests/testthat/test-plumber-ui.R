@@ -93,7 +93,8 @@ test_that("Homepage country charts endpoint is working", {
 
 test_that("Poverty calculator chart endpoint is working for survey years", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&group_by=none")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&group_by=none")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -114,7 +115,8 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
 
 test_that("Poverty calculator chart endpoint is working for imputed years", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&fill_gaps=true")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&fill_gaps=true")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -127,7 +129,8 @@ test_that("Poverty calculator chart endpoint is working for imputed years", {
 
 test_that("Poverty calculator chart endpoint is working for regional aggregates", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&group_by=wb")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&group_by=wb")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -140,7 +143,8 @@ test_that("Poverty calculator chart endpoint is working for regional aggregates"
 
 test_that("Poverty calculator chart endpoint is working for survey years", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&group_by=none")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&group_by=none")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -162,7 +166,8 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
 
 test_that("Poverty calculator chart endpoint is working for imputed years", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&fill_gaps=true")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&fill_gaps=true")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -176,7 +181,8 @@ test_that("Poverty calculator chart endpoint is working for imputed years", {
 
 test_that("Poverty calculator download endpoint is working for regional aggregates", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&group_by=wb")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&group_by=wb")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -187,6 +193,24 @@ test_that("Poverty calculator download endpoint is working for regional aggregat
                                   "poverty_severity", "watts",
                                   "pop_in_poverty"))
 })
+
+test_that("Survey metadata endpoint is working", {
+
+  # Send API request
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/survey-metadata")
+
+  # Check response
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]),
+               c('country_code', 'surveyid_year', 'survey_name',
+                 'title', 'year_start', 'year_end',
+                 'authoring_entity_name', 'abstract',
+                 'collection_dates_cycle', 'collection_dates_start',
+                 'collection_dates_end', 'coverage',
+                 'sampling_procedure', 'collection_mode',
+                 'coll_situation','weight','cleaning_operations'))
+})
+
 
 # Kill process
 api1$kill()

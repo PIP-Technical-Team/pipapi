@@ -108,3 +108,20 @@ ui_pc_charts <- function(country = c("AGO"),
 
 }
 
+#' Provides survey metadata that will populate the Data Sources page
+#'
+#' @param country character: Country code
+#' @param lkup list: A list of lkup tables
+#' @return data.frame
+#' @export
+#'
+ui_svy_meta <- function(country = "all", lkup) {
+  out <- pipapi::get_aux_table(data_dir = lkup$data_root,
+                        table = "survey_metadata")
+  if (country == "all") {
+    return(out)
+  } else {
+   out <- out[out$country_code == country, ]
+   return(out)
+  }
+}

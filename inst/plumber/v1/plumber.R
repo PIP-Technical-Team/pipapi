@@ -246,6 +246,19 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups
   # browser()
-
   do.call(pipapi::ui_pc_charts, params)
 }
+
+
+# UI Endpoints: Survey metadata  ------------------------------------------
+
+#* Return data for the Data Sources page
+#* @get /api/v1/survey-metadata
+#* @param country:[chr] country iso3 code
+#* @serializer json list(na="null")
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups
+  do.call(pipapi::ui_svy_meta, params)
+}
+
