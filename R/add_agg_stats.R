@@ -50,20 +50,27 @@ ag_average_poverty_stats <- function(df) {
 
   if (dfr$poverty_severity < 0) {# Check if rural poverty severity < 0
 
-    if (dfu$poverty_severity < 0) # Same for urban
-    {
+    if (dfu$poverty_severity < 0) { # Same for urban
+
       out[, c("headcount", "poverty_gap", "poverty_severity")] <- NA
+      
     } else {
+
       out$headcount        <- dfu$headcount
       out$poverty_gap      <- dfu$poverty_gap
       out$poverty_severity <- dfu$poverty_severity
+
     }
   } else {
+
     if (dfu$poverty_severity < 0) {
+
       out$headcount        <- dfr$headcount
       out$poverty_gap      <- dfr$poverty_gap
       out$poverty_severity <- dfr$poverty_severity
+
     } else {
+      
       out$headcount <- wgt_rural * dfr$headcount +
         wgt_urban * dfu$headcount
 
