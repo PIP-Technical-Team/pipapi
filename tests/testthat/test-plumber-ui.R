@@ -66,13 +66,13 @@ test_that("Countries endpoint is working", {
                                        "iso2_code"))
 })
 
-skip("Needs to be changed to tidy format")
 test_that("CPI endpoint is working", {
   # Send API request
   r <- httr::GET(root_path, port = 8000, path = "api/v1/cpi")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
+  skip("Needs to be changed to tidy format")
   expect_equal(names(tmp_resp[[1]]), c("country_code",
                                        "country_name",
                                        "region_code"))
