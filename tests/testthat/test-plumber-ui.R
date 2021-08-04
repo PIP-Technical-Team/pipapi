@@ -66,13 +66,13 @@ test_that("Countries endpoint is working", {
                                        "iso2_code"))
 })
 
-skip("Needs to be changed to tidy format")
 test_that("CPI endpoint is working", {
   # Send API request
   r <- httr::GET(root_path, port = 8000, path = "api/v1/cpi")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
+  skip("Needs to be changed to tidy format")
   expect_equal(names(tmp_resp[[1]]), c("country_code",
                                        "country_name",
                                        "region_code"))
@@ -104,7 +104,8 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
                                        "decile5", "decile6", "decile7",
                                        "decile8", "decile9", "decile10",
                                        "wb_region_code", "survey_coverage",
-                                       "survey_comparability", "survey_year",
+                                       "survey_comparability", "comparable_spell",
+                                       "survey_year",
                                        "survey_mean_lcu", "survey_mean_ppp",
                                        "reporting_pop", "ppp", "cpi",
                                        "distribution_type", "is_interpolated",
@@ -152,7 +153,8 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
                                   "decile5", "decile6", "decile7",
                                   "decile8", "decile9", "decile10",
                                   "wb_region_code", "survey_coverage",
-                                  "survey_comparability", "survey_year",
+                                  "survey_comparability", "comparable_spell",
+                                  "survey_year",
                                   "survey_mean_lcu", "survey_mean_ppp",
                                   "reporting_pop", "ppp", "cpi",
                                   "distribution_type", "is_interpolated",

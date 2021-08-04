@@ -3,7 +3,7 @@ library(fst)
 library(dplyr)
 
 # Globals -----------------------------------------------------------------
-data_folder_root <- "C:/Users/wb499754/OneDrive - WBG/PIP/pip_data_master/ITSES-POVERTYSCORE-DATA/"
+data_folder_root <- sub('[/]20210401', '', Sys.getenv('DATA_FOLDER_ROOT'))
 
 v1 <- "20210401/"
 v0 <- "00010101/"
@@ -59,3 +59,43 @@ fst::write_fst(tmp, paste0(data_folder_root, v1, "_aux/regions.fst"))
 # rgn_lkup <- fst::read_fst("TEMP/country_list.fst") %>%
 #   select(pcn_region_code, region = region) %>%
 #   distinct()
+
+
+# Add comparable spell to survey means dataset -----------------------------
+
+tmp <- fst::read_fst(paste0(data_folder_root, v1, "estimations/survey_means.fst"))
+dl <- split(tmp, list(x$country_code, x$survey_comparability))
+dl <- lapply(dl, function(x) {
+  if (nrow(x) == 1) {
+    x$comparable_spell <- x$reporting_year
+  } else {
+    x$comparable_spell <-
+      sprintf('%s - %s',
+              x$reporting_year[1],
+              x$reporting_year[length(x$reporting_year)]
+      )
+  }
+  return(x)
+})
+tmp <- data.table::rbindlist(dl)
+fst::write_fst(tmp, paste0(data_folder_root, v1, "estimations/survey_means.fst"))
+
+
+# Add comparable spell to interpolated means dataset -----------------------------
+
+tmp <- fst::read_fst(paste0(data_folder_root, v1, "estimations/interpolated_means.fst"))
+dl <- split(tmp, list(x$country_code, x$reporting_year, x$survey_comparability))
+dl <- lapply(dl, function(x) {
+  if (nrow(x) == 1) {
+    x$comparable_spell <- x$reporting_year
+  } else {
+    x$comparable_spell <-
+      sprintf('%s - %s',
+              x$reporting_year[1],
+              x$reporting_year[length(x$reporting_year)]
+      )
+  }
+  return(x)
+})
+tmp <- data.table::rbindlist(dl)
+fst::write_fst(tmp, paste0(data_folder_root, v1, "estimations/interpolated_means.fst"))
