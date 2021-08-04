@@ -17,7 +17,8 @@ ui_hp_stacked <- function(povline = 1.9,
              group_by     = "wb",
              reporting_level = "national")
 
-  out <- out[, .(region_code, reporting_year, poverty_line, pop_in_poverty)]
+  out <- out[, .(region_code, reporting_year,
+                 poverty_line, pop_in_poverty)]
   return(out)
 }
 
@@ -50,7 +51,7 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
   out <- out[, .(pcn_region_code, country_code, reporting_year,
                  poverty_line, reporting_pop, pop_in_poverty)]
   out <- out %>%
-    dplyr::rename(region_code = pcn_region_code)
+    data.table::setnames('pcn_region_code', 'region_code')
 
   return(out)
 }
@@ -102,14 +103,14 @@ ui_pc_charts <- function(country = c("AGO"),
                    is_interpolated, poverty_line, mean, headcount,
                    poverty_gap, poverty_severity, watts)]
     out <- out %>%
-      dplyr::rename(region_code = pcn_region_code)
+      data.table::setnames('pcn_region_code', 'region_code')
     return(out)
   } else {
     out <- out[, .(country_code, reporting_year, poverty_line, mean,
                    headcount, poverty_gap, poverty_severity, watts,
                    pcn_region_code, reporting_pop, is_interpolated)]
     out <- out %>%
-      dplyr::rename(region_code = pcn_region_code)
+      data.table::setnames('pcn_region_code', 'region_code')
     return(out)
   }
 
