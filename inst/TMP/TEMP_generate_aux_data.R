@@ -72,7 +72,7 @@ fst::write_fst(tmp, paste0(data_folder_root, v1, "_aux/regions.fst"))
 # Metadata master ---------------------------------------------------------
 
 survey_pfw <- haven::read_dta('TEMP/Survey_price_framework.dta')
-metadata <- readxl::read_xlsx('TEMP/metadata_to_update_MN@2.xlsx')
+metadata <- readxl::read_xlsx('TEMP/metadata_to_update_MN@3.xlsx')
 survey_pfw$link <- with(survey_pfw,
                         sprintf('%s_%s_%s', code, year, survname))
 # Merge datasets (inner join)
