@@ -47,8 +47,11 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
   out$reporting_pop  <- out$reporting_pop / pop_units
 
-  out <- out[, .(country_code, reporting_year, poverty_line, reporting_pop,
-                 pop_in_poverty)]
+  out <- out[, .(pcn_region_code, country_code, reporting_year,
+                 poverty_line, reporting_pop, pop_in_poverty)]
+  out <- out %>%
+    dplyr::rename(region_code = pcn_region_code)
+
   return(out)
 }
 
@@ -93,16 +96,20 @@ ui_pc_charts <- function(country = c("AGO"),
                    pop_data_level, median, gini, polarization,
                    mld, decile1, decile2, decile3, decile4, decile5,
                    decile6, decile7, decile8, decile9, decile10,
-                   wb_region_code, survey_coverage, survey_comparability,
+                   pcn_region_code, survey_coverage, survey_comparability,
                    survey_year, survey_mean_lcu, survey_mean_ppp,
                    reporting_pop, ppp, cpi, distribution_type,
                    is_interpolated, poverty_line, mean, headcount,
                    poverty_gap, poverty_severity, watts)]
+    out <- out %>%
+      dplyr::rename(region_code = pcn_region_code)
     return(out)
   } else {
     out <- out[, .(country_code, reporting_year, poverty_line, mean,
                    headcount, poverty_gap, poverty_severity, watts,
-                   wb_region_code, reporting_pop, is_interpolated)]
+                   pcn_region_code, reporting_pop, is_interpolated)]
+    out <- out %>%
+      dplyr::rename(region_code = pcn_region_code)
     return(out)
   }
 
