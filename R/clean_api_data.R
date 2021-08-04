@@ -34,7 +34,7 @@ clean_api_data <- function(data_folder_root) {
   ref_lkup$path <- paste0(data_folder_root, "survey_data/", ref_lkup$cache_id, ".fst")
   ref_lkup <- data.table::setDT(ref_lkup)
   ref_lkup <- ref_lkup %>%
-    dplyr::mutate(
+    base::transform(
       interpolation_id = paste(country_code, reporting_year, pop_data_level, sep = "_")
     )
   # Load dist_stats
@@ -43,7 +43,7 @@ clean_api_data <- function(data_folder_root) {
 
   # Clean pop_region
   pop_region <- fst::read_fst(paste0(data_folder_root, "/_aux/pop-region.fst")) %>%
-    dplyr::rename(reporting_year = year, reporting_pop = pop)
+    data.table::setnames(c('year', 'pop'), c('reporting_year','reporting_pop'))
   pop_region <- data.table::setDT(pop_region)
 
   # Create query controls

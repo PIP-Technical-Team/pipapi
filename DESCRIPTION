@@ -29,7 +29,8 @@ Suggests:
     knitr,
     rmarkdown,
     fs,
-    assertthat
+    assertthat,
+    purrr
 Language: en-US
 Imports: 
     data.table,
@@ -38,12 +39,9 @@ Imports:
     urltools,
     yaml,
     magrittr,
-    readr,
-    dplyr,
     wbpip,
     callr,
-    httr,
-    purrr
+    httr
 Depends: 
     R (>= 2.10)
 VignetteBuilder: knitr
