@@ -98,7 +98,7 @@ ui_pc_charts <- function(country = c("AGO"),
                    mld, decile1, decile2, decile3, decile4, decile5,
                    decile6, decile7, decile8, decile9, decile10,
                    pcn_region_code, survey_coverage, survey_comparability,
-                   survey_year, survey_mean_lcu, survey_mean_ppp,
+                   comparable_spell, survey_year, survey_mean_lcu, survey_mean_ppp,
                    reporting_pop, ppp, cpi, distribution_type,
                    is_interpolated, poverty_line, mean, headcount,
                    poverty_gap, poverty_severity, watts)]
@@ -115,4 +115,3 @@ ui_pc_charts <- function(country = c("AGO"),
   }
 
 }
-

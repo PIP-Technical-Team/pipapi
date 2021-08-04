@@ -1,9 +1,3 @@
-library(dplyr)
-
-# lkups <- pipapi:::clean_api_data(
-#   data_folder_root = "./tests/testdata/20210401/")
-
-
 lkups <- pipapi:::clean_api_data(
   data_folder_root = "../testdata/20210401/")
 
@@ -19,6 +13,7 @@ test_that("output type is correct", {
 })
 
 # Check selections ----
+
 ## Welfare type ----
 test_that("welfare_type selection are correct", {
 
@@ -84,37 +79,37 @@ test_that("reporting_level selection are correct", {
 
 # Check aggregation ----
 test_that("Aggregation is working", {
-tmp <- pip(country = "all",
-           year    = "all",
-           povline = 3.5,
-           aggregate = TRUE,
-           lkup = lkups)
-skip("Aggregation not correctly implemented")
-expect_equal(nrow(tmp), 1)
+  skip("Aggregation not correctly implemented")
+  tmp <- pip(country = "all",
+             year    = "all",
+             povline = 3.5,
+             aggregate = TRUE,
+             lkup = lkups)
+  expect_equal(nrow(tmp), 1)
 })
 
 
 # Check imputation ----
 test_that("Imputation is working", {
-tmp <- pip(country = "all",
-           year    = "all",
-           povline = 3.5,
-           fill_gaps = TRUE,
-           lkup = lkups)
+  tmp <- pip(country = "all",
+             year    = "all",
+             povline = 3.5,
+             fill_gaps = TRUE,
+             lkup = lkups)
 
-expect_equal(nrow(tmp), 182)
+  expect_equal(nrow(tmp), 182)
 })
 
 
 # Check regional aggregations
 test_that("Regional aggregations are working", {
-tmp <- pip(country = "all",
-           year    = 2008,
-           group_by = "wb",
-           povline = 3.5,
-           lkup = lkups)
+  tmp <- pip(country = "all",
+             year    = 2008,
+             group_by = "wb",
+             povline = 3.5,
+             lkup = lkups)
 
-expect_equal(nrow(tmp), 3)
+  expect_equal(nrow(tmp), 3) # Should be changed if lkups are updated. Full set of regions is 8.
 })
 
 # Check pop_share
