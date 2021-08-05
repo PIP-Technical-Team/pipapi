@@ -28,7 +28,7 @@ fg_pip <- function(country,
   }
 
   # Extract unique combinations of country-year
-  ctry_years = unique(metadata[, .(country_code, reporting_year,
+  ctry_years <- unique(metadata[, .(country_code, reporting_year,
                                    pop_data_level, interpolation_id)])
 
   out <- vector(mode = "list", length = nrow(ctry_years))

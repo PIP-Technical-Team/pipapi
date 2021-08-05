@@ -15,7 +15,7 @@ aggregate_by_group <- function(df, group_lkup) {
   group_lkup <- group_lkup[, .(region_code, reporting_year, reporting_pop)]
 
   # Compute stats weighted average by groups
-  rgn <- df[ , lapply(.SD, weighted.mean, w = reporting_pop, na.rm = TRUE),
+  rgn <- df[ , lapply(.SD, stats::weighted.mean, w = reporting_pop, na.rm = TRUE),
              by = .(region_code, reporting_year, poverty_line),
              .SDcols = cols]
 
@@ -24,7 +24,7 @@ aggregate_by_group <- function(df, group_lkup) {
                     allow.cartesian = TRUE]
 
   # Compute world aggregates
-  wld <- rgn[ , lapply(.SD, weighted.mean, w = reporting_pop, na.rm = TRUE),
+  wld <- rgn[ , lapply(.SD, stats::weighted.mean, w = reporting_pop, na.rm = TRUE),
               by = .(reporting_year, poverty_line),
               .SDcols = cols]
 
