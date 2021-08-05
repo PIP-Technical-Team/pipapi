@@ -249,3 +249,17 @@ function(req) {
 
   do.call(pipapi::ui_pc_charts, params)
 }
+
+#* Return regional aggregations for all years
+#* @get /api/v1/pc-regional-aggregates
+#* @param povline:[dbl] Poverty Line
+#* @serializer json
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups
+  pip(country = "all",
+      year    = "all",
+      group_by = "wb",
+      povline = params$povline,
+      lkup = lkups)
+}
