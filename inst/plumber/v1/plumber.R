@@ -246,7 +246,6 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups
   # browser()
-
   do.call(pipapi::ui_pc_charts, params)
 }
 
@@ -262,4 +261,17 @@ function(req) {
       group_by = "wb",
       povline = params$povline,
       lkup = lkups)
+}
+
+# UI Endpoints: Country Profiles ----------------------------------------
+
+#* Return Key Indicators
+#* @get /api/v1/cp-key-indicators
+#* @param country:[chr] country iso3 code
+#* @param povline:[dbl] Poverty Line
+#* @serializer json
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups
+  do.call(pipapi::ui_cp_key_indicators, params)
 }

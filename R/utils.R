@@ -1,4 +1,4 @@
-globalVariables(
+utils::globalVariables(
   c('.', 'cache_id', 'country_code', 'cpi', 'decile1',
   'decile10', 'decile2', 'decile3', 'decile4',
   'decile5', 'decile6', 'decile7', 'decile8',

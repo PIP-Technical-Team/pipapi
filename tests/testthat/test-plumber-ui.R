@@ -3,7 +3,7 @@ library(httr)
 
 # Setup by starting APIs
 root_path <- "http://localhost"
-data_folder_root <- Sys.getenv('DATA_FOLDER_ROOT')
+data_folder_root <- Sys.getenv('PIPAPI_DATA_ROOT_FOLDER')
 # CAUTION: data_folder_root is also hard-coded on line 14 below. (passing data_folder_root fails)
 # MAKE SURE BOTH ARE IN SYNC
 
@@ -15,7 +15,7 @@ api1$call(function() {
   # Use double assignment operator so the lkups object is available in the global
   # environment of the background R session, so it is available for the API
   lkups <<- pipapi:::clean_api_data(
-    data_folder_root = Sys.getenv('DATA_FOLDER_ROOT'))
+    data_folder_root = Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
 
   plbr_file <- system.file("plumber", "v1", "plumber.R", package = "pipapi")
   pr <- plumber::plumb(plbr_file)
@@ -187,6 +187,45 @@ test_that("Poverty calculator download endpoint is working for regional aggregat
                                   "headcount", "poverty_gap",
                                   "poverty_severity", "watts",
                                   "pop_in_poverty"))
+})
+
+test_that("Country profile key indicators endpoints are working", {
+
+  # KI 1
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-1")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "si_pov_nahc"))
+
+  # KI 2
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-2?country=AGO&povline=1.9")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "poverty_line", "headcount"))
+
+  # KI 3
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-3")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "si_mpm_poor"))
+
+  # KI 4
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-4")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "year_range", "b40", "tot"))
+
+  # KI 5
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-5")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "sp_pop_totl"))
+
+  # KI 6
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-6")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "ny_gnp_pcap_cd"))
+
+  # KI 7
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-7")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "ny_gdp_mktp_kd_zg"))
+
 })
 
 # Kill process
