@@ -195,7 +195,7 @@ test_that("Country profile key indicators endpoints are working", {
   tmp_resp <- httr::content(r, encoding = "UTF-8")
 
   # KI 1
-  expect_equal(names(tmp_resp$national_headcount),
+  expect_equal(names(tmp_resp$headcount_national),
                c("country_code", "reporting_year", "headcount_national"))
 
   # KI 2
