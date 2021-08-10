@@ -46,6 +46,9 @@ clean_api_data <- function(data_folder_root) {
     data.table::setnames(c('year', 'pop'), c('reporting_year','reporting_pop'))
   pop_region <- data.table::setDT(pop_region)
 
+  # Add country profiles lkups
+  cp_lkups <- readRDS(paste0(data_folder_root, "/_aux/country_profiles.RDS"))
+
   # Create query controls
   country <- list(values = c("all", sort(unique(c(svy_lkup$country_code, ref_lkup$country_code)))),
                   type = "character")
@@ -90,6 +93,7 @@ clean_api_data <- function(data_folder_root) {
                 ref_lkup       = ref_lkup,
                 dist_stats     = dist_stats,
                 pop_region     = pop_region,
+                cp_lkups       = cp_lkups,
                 query_controls = query_controls,
                 data_root      = data_folder_root)
 

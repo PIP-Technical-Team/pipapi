@@ -1,6 +1,7 @@
 library(readr)
 library(fst)
 library(dplyr)
+library(data.table)
 
 # Globals -----------------------------------------------------------------
 data_folder_root <- sub('[/]20210401', '', Sys.getenv('DATA_FOLDER_ROOT'))
@@ -59,3 +60,97 @@ fst::write_fst(tmp, paste0(data_folder_root, v1, "_aux/regions.fst"))
 # rgn_lkup <- fst::read_fst("TEMP/country_list.fst") %>%
 #   select(pcn_region_code, region = region) %>%
 #   distinct()
+
+
+# Country profile master --------------------------------------------------
+
+tmpfiles <- list.files(paste0(data_folder_root, v1, '/_aux'),
+                       pattern = 'indicator_values_country',
+                       full.names = TRUE)
+tmp <- lapply(tmpfiles, function(x) {
+  x <- read.csv(x)
+  x <- data.table::setDT(x)
+  names(x) <- tolower(sub('xyzD[MCP]xyz', '', names(x)))
+  x <- data.table::setnames(
+    x, skip_absent = TRUE,
+    c('country', 'requestyear', 'datayear', 'welfaretype',
+      'coverage', 'interpolation', 'survname', 'comparability',
+      'comparable_spell', 'povertyline', 'yearrange' #,
+      #'sp_pop_totl','si_pov_nahc', 'ny_gnp_pcap_cd', 'ny_gdp_mktp_kd_zg',
+      #'si_pov_gini', 'si_pov_theil'
+      ),
+    c('country_code', 'reporting_year', 'survey_year', 'welfare_type',
+      'survey_coverage','is_interpolated', 'survey_acronym',
+      'survey_comparability', 'comparable_spell',
+      'poverty_line', 'year_range' #,
+      #'pop', 'headcount', 'gni', 'gdp_growth',
+      #'gini', 'theil'
+      )
+  )
+  if (any(grepl('welfare_type', names(x)))) {
+    x$welfare_type <- data.table::fifelse(
+      x$welfare_type == 'CONS', 'consumption', 'income')
+  }
+  if (any(grepl('survey_coverage', names(x)))) {
+    # Recode survey coverage
+    x <- x[, `:=`(
+      survey_coverage = data.table::fcase(
+        survey_coverage == "N", "national",
+        survey_coverage == "R", "rural",
+        survey_coverage == "U", "urban",
+        default = "")
+    )]
+  }
+  return(x)
+})
+names(tmp) <- gsub('.*indicator_values_country_|[.]csv', '', tmpfiles)
+
+# Create list of key indicators datasets
+key_indicators <- merge(tmp$KI1, tmp$KI5_KI6_KI7, all = TRUE,
+                        by = c('country_code', 'reporting_year'))
+key_indicators <- merge(key_indicators,
+                        tmp$chart5[, c('country_code', 'reporting_year', 'si_mpm_poor')],
+                        all = TRUE,
+                        by = c('country_code', 'reporting_year'))
+key_indicators <- list(
+  ki1 = key_indicators[, c('country_code', 'reporting_year', 'si_pov_nahc')],
+  ki3 = key_indicators[, c('country_code', 'reporting_year', 'si_mpm_poor')],
+  ki5 = key_indicators[, c('country_code', 'reporting_year', 'sp_pop_totl')],
+  ki6 = key_indicators[, c('country_code', 'reporting_year', 'ny_gnp_pcap_cd')],
+  ki7 = key_indicators[, c('country_code', 'reporting_year', 'ny_gdp_mktp_kd_zg')])
+key_indicators[1:3] = lapply(key_indicators[1:3], function(x){
+  x <- x %>%
+    dplyr::filter(!is.na(x[,3])) %>%
+    dplyr::group_by(country_code) %>%
+    dplyr::filter(reporting_year == max(reporting_year)) %>%
+    dplyr::ungroup() %>%
+    data.table::as.data.table()
+})
+key_indicators[4:5] = lapply(key_indicators[4:5], function(x){
+  x <- x %>%
+    dplyr::filter(!is.na(x[,3])) %>%
+    dplyr::group_by(country_code) %>%
+    dplyr::slice_tail(n = 2) %>%
+    dplyr::ungroup() %>%
+    data.table::as.data.table()
+})
+
+ki4 <- tmp$chart6_KI4[, c('country_code', 'year_range', 'distribution','si_spr_pcap_zg')]
+ki4$year1 <- sapply(strsplit(ki4$year_range, '-'), function(x) x[[1]])
+ki4$year2 <- sapply(strsplit(ki4$year_range, '-'), function(x) x[[2]])
+ki4 <- ki4 %>%
+  group_by(country_code) %>%
+  dplyr::filter(distribution %in% c('b40', 'tot')) %>%
+  dplyr::filter(year2 == max(year2)) %>%
+  dplyr::ungroup() %>%
+  dplyr::select(country_code, year_range,
+                distribution, si_spr_pcap_zg) %>%
+  data.table::as.data.table() %>%
+  data.table::dcast(country_code + year_range ~ distribution,
+                    value.var = 'si_spr_pcap_zg')
+key_indicators <- append(key_indicators, list(ki4 = ki4))
+
+cp <- list(key_indicators = key_indicators)
+
+saveRDS(cp, paste0(data_folder_root, v1, "_aux/country_profiles.RDS"))
+
