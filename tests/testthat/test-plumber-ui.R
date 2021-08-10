@@ -191,40 +191,36 @@ test_that("Poverty calculator download endpoint is working for regional aggregat
 
 test_that("Country profile key indicators endpoints are working", {
 
-  # KI 1
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-1")
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicators")
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "si_pov_nahc"))
+
+  # KI 1
+  expect_equal(names(tmp_resp$national_headcount),
+               c("country_code", "reporting_year", "headcount_national"))
 
   # KI 2
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-2?country=AGO&povline=1.9")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "poverty_line", "headcount"))
+  expect_equal(names(tmp_resp$headcount),
+               c("country_code", "reporting_year", "poverty_line", "headcount"))
 
   # KI 3
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-3")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "si_mpm_poor"))
+  expect_equal(names(tmp_resp$mpm_headcount),
+               c("country_code", "reporting_year", "mpm_headcount"))
 
   # KI 4
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-4")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "year_range", "b40", "tot"))
+  expect_equal(names(tmp_resp$shared_prosperity),
+               c("country_code", "year_range", "share_below_40", "share_total"))
 
   # KI 5
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-5")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "sp_pop_totl"))
+  expect_equal(names(tmp_resp$population),
+               c("country_code", "reporting_year", "population"))
 
   # KI 6
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-6")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "ny_gnp_pcap_cd"))
+  expect_equal(names(tmp_resp$gni),
+               c("country_code", "reporting_year", "gni"))
 
   # KI 7
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-7")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "ny_gdp_mktp_kd_zg"))
+  expect_equal(names(tmp_resp$gdp),
+               c("country_code", "reporting_year", "gdp_growth"))
 
 })
 
