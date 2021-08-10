@@ -110,7 +110,6 @@ tmp <- lapply(tmpfiles, function(x) {
   return(x)
 })
 names(tmp) <- gsub('.*indicator_values_country_|[.]csv', '', tmpfiles)
-tmp$chart5
 
 # Create list of key indicators datasets
 key_indicators <- merge(tmp$KI1, tmp$KI5_KI6_KI7, all = TRUE,
@@ -157,8 +156,10 @@ ki4 <- ki4 %>%
   data.table::as.data.table() %>%
   data.table::dcast(country_code + year_range ~ distribution,
                     value.var = 'shared_prosperity')
+
+names(ki4)[3:4] <- c('share_below_40', 'share_total')
 key_indicators <- append(key_indicators, list(shared_prosperity = ki4))
 
-
+cp <- list(key_indicators = key_indicators, charts = NULL)
 saveRDS(cp, paste0(data_folder_root, v1, "_aux/country_profiles.RDS"))
 
