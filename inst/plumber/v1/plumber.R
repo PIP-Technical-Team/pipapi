@@ -265,55 +265,13 @@ function(req) {
 
 # UI Endpoints: Country Profiles ----------------------------------------
 
-#* Return Key Indicator 1 (national poverty)
-#* @get /api/v1/cp-key-indicator-1
-#* @serializer json
-function(req) {
-  lkups$cp_lkups$key_indicators$ki1
-}
-
-#* Return Key Indicator 2 (headcount)
-#* @get /api/v1/cp-key-indicator-2
+#* Return Key Indicators
+#* @get /api/v1/cp-key-indicators
 #* @param country:[chr] country iso3 code
 #* @param povline:[dbl] Poverty Line
 #* @serializer json
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups
-  do.call(pipapi::ui_cp_ki_headcount, params)
-}
-
-#* Return Key Indicator 3 (mpm headcount)
-#* @get /api/v1/cp-key-indicator-3
-#* @serializer json
-function(req) {
-  lkups$cp_lkups$key_indicators$ki3
-}
-
-#* Return Key Indicator 4 (welfare growth)
-#* @get /api/v1/cp-key-indicator-4
-#* @serializer json
-function(req) {
-  lkups$cp_lkups$key_indicators$ki4
-}
-
-#* Return Key Indicator 5 (population)
-#* @get /api/v1/cp-key-indicator-5
-#* @serializer json
-function(req) {
-  lkups$cp_lkups$key_indicators$ki5
-}
-
-#* Return Key Indicator 6 (GNI per capita)
-#* @get /api/v1/cp-key-indicator-6
-#* @serializer json
-function(req) {
-  lkups$cp_lkups$key_indicators$ki6
-}
-
-#* Return Key Indicator 7 (GDP growth)
-#* @get /api/v1/cp-key-indicator-7
-#* @serializer json
-function(req) {
-  lkups$cp_lkups$key_indicators$ki7
+  do.call(pipapi::ui_cp_key_indicators, params)
 }

@@ -118,7 +118,7 @@ ui_pc_charts <- function(country = c("AGO"),
 
 
 
-#' Provides numbers that will populate the country profiles key indicator for headcount
+#' Provides numbers that will population key indicators for Country Profiles
 #'
 #' @param country character: Country code
 #' @param povline numeric: Poverty line
@@ -126,6 +126,23 @@ ui_pc_charts <- function(country = c("AGO"),
 #'
 #' @return data.frame
 #' @export
+#'
+ui_cp_key_indicators <- function(country = 'AGO', povline = 1.9, lkup) {
+  dl <- lapply(lkup$cp$key_indicators, function(x) {
+    x[country_code == country]
+  })
+  dl$headcount <- ui_cp_ki_headcount(country, povline, lkup)
+  return(dl)
+}
+
+#' Provides numbers that will populate the country profiles key indicator for headcount
+#'
+#' @param country character: Country code
+#' @param povline numeric: Poverty line
+#' @param lkup list: A list of lkup tables
+#'
+#' @return data.frame
+#' @keywords internal
 #'
 ui_cp_ki_headcount <- function(country, povline, lkup) {
 
