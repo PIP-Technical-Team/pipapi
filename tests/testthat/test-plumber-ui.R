@@ -189,5 +189,44 @@ test_that("Poverty calculator download endpoint is working for regional aggregat
                                   "pop_in_poverty"))
 })
 
+test_that("Country profile key indicators endpoints are working", {
+
+  # KI 1
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-1")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "si_pov_nahc"))
+
+  # KI 2
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-2?country=AGO&povline=1.9")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "poverty_line", "headcount"))
+
+  # KI 3
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-3")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "si_mpm_poor"))
+
+  # KI 4
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-4")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "year_range", "b40", "tot"))
+
+  # KI 5
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-5")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "sp_pop_totl"))
+
+  # KI 6
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-6")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "ny_gnp_pcap_cd"))
+
+  # KI 7
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-7")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "ny_gdp_mktp_kd_zg"))
+
+})
+
 # Kill process
 api1$kill()
