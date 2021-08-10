@@ -86,7 +86,7 @@ tmp <- lapply(tmpfiles, function(x) {
       'survey_coverage','is_interpolated', 'survey_acronym',
       'survey_comparability', 'comparable_spell',
       'poverty_line', 'year_range', 'pop_in_poverty',
-      'population', 'national_headcount', 'gni', 'gdp_growth',
+      'population', 'headcount_national', 'gni', 'gdp_growth',
       'gini', 'theil', 'headcount', 'poverty_share',
       'mpm_education_attainment', 'mpm_education_enrollment',
       'mpm_electricity', 'mpm_sanitation', 'mpm_water',
@@ -119,7 +119,7 @@ key_indicators <- merge(key_indicators,
                         all = TRUE,
                         by = c('country_code', 'reporting_year'))
 key_indicators <- list(
-  national_headcount = key_indicators[, c('country_code', 'reporting_year', 'national_headcount')],
+  national_headcount = key_indicators[, c('country_code', 'reporting_year', 'headcount_national')],
   mpm_headcount = key_indicators[, c('country_code', 'reporting_year', 'mpm_headcount')],
   population = key_indicators[, c('country_code', 'reporting_year', 'population')],
   gni = key_indicators[, c('country_code', 'reporting_year', 'gni')],
@@ -162,4 +162,6 @@ key_indicators <- append(key_indicators, list(shared_prosperity = ki4))
 
 cp <- list(key_indicators = key_indicators, charts = NULL)
 saveRDS(cp, paste0(data_folder_root, v1, "_aux/country_profiles.RDS"))
+
+
 
