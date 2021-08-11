@@ -13,7 +13,8 @@ utils::globalVariables(
   'survey_coverage', 'survey_mean_lcu',
   'survey_mean_ppp', 'survey_year', 'watts',
   'wb_region_code', 'weighted.mean',
-  'welfare_type'))
+  'welfare_type', 'pcn_region_code',
+  'comparable_spell'))
 
 subset_lkup <- function(country,
                         year,

@@ -155,7 +155,7 @@ function() {
 
 #* Return indicators master table
 #* @get /api/v1/indicators
-#* @serializer json
+#* @serializer json list(na="null")
 function() {
   pipapi::get_aux_table(data_dir = lkups$data_root,
                         table = "indicators_master")
@@ -265,7 +265,7 @@ function(req) {
 
 # UI Endpoints: Country Profiles ----------------------------------------
 
-#* Return Key Indicators
+#* Return Country Profile - Key Indicators
 #* @get /api/v1/cp-key-indicators
 #* @param country:[chr] country iso3 code
 #* @param povline:[dbl] Poverty Line
@@ -274,4 +274,16 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups
   do.call(pipapi::ui_cp_key_indicators, params)
+}
+
+
+#* Return Country Profile - Charts
+#* @get /api/v1/cp-charts
+#* @param country:[chr] country iso3 code
+#* @param povline:[dbl] Poverty Line
+#* @serializer json
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups
+  do.call(pipapi::ui_cp_charts, params)
 }

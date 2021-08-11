@@ -87,7 +87,7 @@ tmp <- lapply(tmpfiles, function(x) {
       'survey_comparability', 'comparable_spell',
       'poverty_line', 'year_range', 'pop_in_poverty',
       'population', 'headcount_national', 'gni', 'gdp_growth',
-      'gini', 'theil', 'headcount', 'poverty_share',
+      'gini', 'theil', 'headcount', 'poverty_share_by_group',
       'mpm_education_attainment', 'mpm_education_enrollment',
       'mpm_electricity', 'mpm_sanitation', 'mpm_water',
       'mpm_headcount', 'mpm_monetary', 'shared_prosperity'
@@ -119,7 +119,7 @@ key_indicators <- merge(key_indicators,
                         all = TRUE,
                         by = c('country_code', 'reporting_year'))
 key_indicators <- list(
-  national_headcount = key_indicators[, c('country_code', 'reporting_year', 'headcount_national')],
+  headcount_national = key_indicators[, c('country_code', 'reporting_year', 'headcount_national')],
   mpm_headcount = key_indicators[, c('country_code', 'reporting_year', 'mpm_headcount')],
   population = key_indicators[, c('country_code', 'reporting_year', 'population')],
   gni = key_indicators[, c('country_code', 'reporting_year', 'gni')],
@@ -138,6 +138,10 @@ key_indicators[4:5] <- lapply(key_indicators[4:5], function(x){
     dplyr::filter(!is.na(x[,3])) %>%
     dplyr::group_by(country_code) %>%
     dplyr::slice_tail(n = 2) %>%
+    dplyr::mutate(
+      latest =
+        dplyr::if_else(reporting_year == max(reporting_year),
+                       TRUE, FALSE)) %>%
     dplyr::ungroup() %>%
     data.table::as.data.table()
 })
@@ -160,8 +164,38 @@ ki4 <- ki4 %>%
 names(ki4)[3:4] <- c('share_below_40', 'share_total')
 key_indicators <- append(key_indicators, list(shared_prosperity = ki4))
 
-cp <- list(key_indicators = key_indicators, charts = NULL)
+
+# Create list of charts datasets
+mpm_cols <- grep('mpm_', names(tmp$chart5), value = TRUE)
+
+charts <- list(
+  ineq_trend =
+    tmp$chart3[, c('country_code', 'reporting_year',
+                 'welfare_type', 'comparable_spell',
+                 'gini', 'theil')],
+  ineq_bar =
+    tmp$chart4[, c('country_code', 'reporting_year',
+                 'gender', 'agegroup', 'education',
+                 'distribution', 'poverty_share_by_group')],
+
+  mpm =
+    tmp$chart5[, c('country_code', 'reporting_year',
+                   'welfare_type',
+                   'mpm_education_attainment',
+                   'mpm_education_enrollment',
+                   'mpm_electricity',
+                   'mpm_sanitation',
+                   'mpm_water',
+                   'mpm_monetary',
+                   'mpm_headcount')],
+
+  sp =
+    tmp$chart6_KI4[, c('country_code', 'year_range',
+                       'welfare_type', 'distribution',
+                       'shared_prosperity')]
+
+
+)
+cp <- list(key_indicators = key_indicators, charts = charts)
 saveRDS(cp, paste0(data_folder_root, v1, "_aux/country_profiles.RDS"))
-
-
 

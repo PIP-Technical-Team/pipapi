@@ -19,7 +19,8 @@ api1$call(function() {
 
   plbr_file <- system.file("plumber", "v1", "plumber.R", package = "pipapi")
   pr <- plumber::plumb(plbr_file)
-  pr$run(port = 8000)})
+  pr$run(port = 8000)
+})
 
 
 Sys.sleep(10)
@@ -30,7 +31,7 @@ test_that("Poverty line endpoint is working", {
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("name", "poverty_line","is_default", "is_visible"))
+  expect_equal(names(tmp_resp[[1]]), c("name", "poverty_line", "is_default", "is_visible"))
 })
 
 test_that("Indicators master endpoint is working", {
@@ -39,18 +40,25 @@ test_that("Indicators master endpoint is working", {
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("indicator_code",
-                                       "indicator_name",
-                                       "scale_data",
-                                       "scale_display",
-                                       "number_of_decimals",
-                                       "indicator_definition_short",
-                                       "indicator_definition_long",
-                                       "key_indicator_template",
-                                       "is_sensitive_to_povline",
-                                       "symbol",
-                                       "sort_order",
-                                       "tags"))
+  expect_equal(names(tmp_resp[[1]]),
+               c('page',
+                 'wdi_code',
+                 'indicator_code',
+                 'indicator_name',
+                 'scale_data',
+                 'scale_display',
+                 'number_of_decimals',
+                 'indicator_definition_short',
+                 'indicator_definition_long',
+                 'key_indicator_template',
+                 'category',
+                 'is_sensitive_to_povline',
+                 'symbol',
+                 'sort_order',
+                 'pip_sort_order',
+                 'tags',
+                 'from_year',
+                 'to_year'))
 })
 
 test_that("Countries endpoint is working", {
@@ -92,7 +100,8 @@ test_that("Homepage country charts endpoint is working", {
 
 test_that("Poverty calculator chart endpoint is working for survey years", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&group_by=none")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&group_by=none")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -114,7 +123,8 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
 
 test_that("Poverty calculator chart endpoint is working for imputed years", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&fill_gaps=true")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&fill_gaps=true")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -127,7 +137,8 @@ test_that("Poverty calculator chart endpoint is working for imputed years", {
 
 test_that("Poverty calculator chart endpoint is working for regional aggregates", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&group_by=wb")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-charts?country=AGO&year=2008&povline=1.9&group_by=wb")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -140,7 +151,8 @@ test_that("Poverty calculator chart endpoint is working for regional aggregates"
 
 test_that("Poverty calculator chart endpoint is working for survey years", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&group_by=none")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&group_by=none")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -163,7 +175,8 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
 
 test_that("Poverty calculator chart endpoint is working for imputed years", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&fill_gaps=true")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&fill_gaps=true")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -177,7 +190,8 @@ test_that("Poverty calculator chart endpoint is working for imputed years", {
 
 test_that("Poverty calculator download endpoint is working for regional aggregates", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&group_by=wb")
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/pc-download?country=AGO&year=2008&povline=1.9&group_by=wb")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
@@ -189,42 +203,87 @@ test_that("Poverty calculator download endpoint is working for regional aggregat
                                   "pop_in_poverty"))
 })
 
-test_that("Country profile key indicators endpoints are working", {
+test_that("Country profile key indicators endpoint is working", {
+
+  r <- httr::GET(root_path, port = 8000,
+                 path = "api/v1/cp-key-indicators?country=ALB&povline=1.9")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
 
   # KI 1
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-1")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "si_pov_nahc"))
+  expect_equal(names(tmp_resp$headcount_national[[1]]),
+               c("country_code", "reporting_year", "headcount_national"))
 
   # KI 2
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-2?country=AGO&povline=1.9")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "poverty_line", "headcount"))
+  expect_equal(names(tmp_resp$headcount$`1.9`[[1]]),
+               c("country_code", "reporting_year", "poverty_line", "headcount"))
 
   # KI 3
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-3")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "si_mpm_poor"))
+  expect_equal(names(tmp_resp$mpm_headcount[[1]]),
+               c("country_code", "reporting_year", "mpm_headcount"))
 
   # KI 4
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-4")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "year_range", "b40", "tot"))
+  expect_equal(names(tmp_resp$shared_prosperity[[1]]),
+               c("country_code", "year_range", "share_below_40", "share_total"))
 
   # KI 5
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-5")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "sp_pop_totl"))
+  expect_equal(names(tmp_resp$population[[1]]),
+               c("country_code", "reporting_year", "population"))
 
   # KI 6
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-6")
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "ny_gnp_pcap_cd"))
+  expect_equal(names(tmp_resp$gni[[1]]),
+               c("country_code", "reporting_year", "gni", "latest"))
 
   # KI 7
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-key-indicator-7")
+  expect_equal(names(tmp_resp$gdp[[1]]),
+               c("country_code", "reporting_year", "gdp_growth", "latest"))
+
+})
+
+test_that("Country profile charts endpoint is working", {
+
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-charts?country=ALB&povline=1.9")
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("country_code", "reporting_year", "ny_gdp_mktp_kd_zg"))
+
+  # Chart 1 (poverty trend)
+  expect_equal(names(tmp_resp$pov_charts$`1.9`$pov_trend[[1]]),
+               c("country_code", "reporting_year",
+                 "headcount", "pop_in_poverty"))
+
+  # Chart 2 (poverty mrv)
+  expect_equal(names(tmp_resp$pov_charts$`1.9`$pov_mrv[[1]]),
+               c("country_code", "reporting_year",
+                 "poverty_line", "headcount"))
+
+  # Chart 3 (inequality gini/theil)
+  expect_equal(names(tmp_resp$ineq_trend[[2]]),
+               c("country_code", "reporting_year",
+                 "welfare_type", "comparable_spell",
+                 "gini", "theil"))
+
+  # Chart 4 (inequality distribution)
+  expect_equal(names(tmp_resp$ineq_bar[[1]]),
+               c("country_code", "reporting_year",
+                 "gender", "agegroup", "education",
+                 "distribution", "poverty_share_by_group"))
+
+  # Chart 5 (MPM)
+  expect_equal(names(tmp_resp$mpm[[1]]),
+               c('country_code', 'reporting_year',
+                 'welfare_type',
+                 'mpm_education_attainment',
+                 'mpm_education_enrollment',
+                 'mpm_electricity',
+                 'mpm_sanitation',
+                 'mpm_water',
+                 'mpm_monetary',
+                 'mpm_headcount'))
+
+  # Chart 6 (SP)
+  expect_equal(names(tmp_resp$sp[[1]]),
+               c('country_code', 'year_range',
+                 'welfare_type', 'distribution',
+                 'shared_prosperity'))
+
 
 })
 

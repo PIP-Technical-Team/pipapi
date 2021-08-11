@@ -117,7 +117,6 @@ ui_pc_charts <- function(country = c("AGO"),
 }
 
 
-
 #' Provides numbers that will population key indicators for Country Profiles
 #'
 #' @param country character: Country code
@@ -127,22 +126,36 @@ ui_pc_charts <- function(country = c("AGO"),
 #' @return data.frame
 #' @export
 #'
-ui_cp_key_indicators <- function(country = 'AGO', povline = 1.9, lkup) {
+ui_cp_key_indicators <- function(country = 'AGO', povline = NULL, lkup) {
+
+  if (is.null(povline)) {
+    poverty_lines <- lkup$pl_lkup$poverty_line
+    dl_hc <- lapply(poverty_lines, function(pl) {
+      ui_cp_ki_headcount(country, pl, lkup)
+    })
+    names(dl_hc) <- poverty_lines
+  } else {
+    dl_hc <- list(ui_cp_ki_headcount(country, povline, lkup))
+    names(dl_hc) <- povline
+  }
+
   dl <- lapply(lkup$cp$key_indicators, function(x) {
     x[country_code == country]
   })
-  dl$headcount <- ui_cp_ki_headcount(country, povline, lkup)
-  return(dl)
+
+  out <- list(headcount = dl_hc)
+  out <- append(out, dl)
+  return(out)
 }
 
-#' Provides numbers that will populate the country profiles key indicator for headcount
+#' Populate the country profiles key indicator for headcount
 #'
 #' @param country character: Country code
 #' @param povline numeric: Poverty line
 #' @param lkup list: A list of lkup tables
 #'
 #' @return data.frame
-#' @keywords internal
+#' @noRd
 #'
 ui_cp_ki_headcount <- function(country, povline, lkup) {
 
@@ -153,4 +166,143 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
     poverty_line = povline, headcount = res$headcount)
   return(out)
 
+}
+
+
+#' Provides numbers that will populate the country profile charts
+#'
+#' @param country character: Country code
+#' @param povline numeric: Poverty line
+#' @param pop_units numeric: Units used to express population numbers (default to million)
+#' @param lkup list: A list of lkup tables
+#'
+#' @return list
+#' @export
+#'
+ui_cp_charts <- function(country = 'AGO', povline = NULL,
+                         pop_units = 1e6, lkup) {
+
+
+  if (is.null(povline)) {
+    poverty_lines <- lkup$pl_lkup$poverty_line
+    dl <- lapply(poverty_lines, function(pl) {
+      ui_cp_poverty_charts(country = country,
+                           povline = pl,
+                           pop_units = pop_units,
+                           lkup = lkup)
+    })
+    names(dl) <- poverty_lines
+  } else {
+    dl <- ui_cp_poverty_charts(country = country,
+                           povline = povline,
+                           pop_units = pop_units,
+                           lkup = lkup)
+    dl <- list(dl)
+    names(dl) <- povline
+  }
+
+  dl <- list(pov_charts = dl)
+
+  # Fetch pre-calculated data (filter selected country)
+  dl2 <- lapply(lkup$cp$charts, function(x) {
+    x[country_code == country]
+  })
+
+  out <- append(dl, dl2)
+
+  return(out)
+
+}
+
+#' Provides numbers that will populate the country profiles poverty charts
+#'
+#' @inheritParams ui_cp_charts
+#' @return list
+#' @keywords internal
+#'
+ui_cp_poverty_charts <- function(country, povline, pop_units,
+                                 lkup) {
+
+  # Fetch data for poverty trend chart
+  res_pov_trend <-
+    pip(country = country, povline = povline, lkup = lkup)
+  res_pov_trend$pop_in_poverty <-
+    res_pov_trend$reporting_pop * res_pov_trend$headcount / pop_units
+  res_pov_trend <-
+    res_pov_trend[, c('country_code', 'reporting_year',
+                      'headcount', 'pop_in_poverty')]
+
+  # Fetch data for poverty bar chart
+  region <-
+    lkup$svy_lkup[country_code == country]$pcn_region_code %>%
+    unique()
+  countries <-
+    lkup$svy_lkup[pcn_region_code == region]$country_code %>%
+    unique()
+
+  res_pov_mrv <- pip(country = countries, povline = povline, lkup = lkup)
+  res_pov_mrv <-
+    res_pov_mrv[, .SD[which.max(reporting_year)],
+                by = country_code]
+  selected_year <- res_pov_mrv[country_code == country]$reporting_year
+  year_range <- c((selected_year - 3):(selected_year + 3))
+  res_pov_mrv <-
+    res_pov_mrv[reporting_year %in% year_range]
+  res_pov_mrv <-
+    res_pov_mrv[, c('country_code', 'reporting_year',
+                    'poverty_line', 'headcount')]
+  res_pov_mrv <-
+    cp_pov_mrv_select_countries(res_pov_mrv, country)
+
+  out <- list(
+    pov_trend = res_pov_trend,
+    pov_mrv = res_pov_mrv
+  )
+
+  return(out)
+
+}
+
+#' Select countries to display for CP Poverty MRV Chart
+#' @param dt data.table: Result from `pip()` query
+#' @param country character: Country code
+#' @noRd
+cp_pov_mrv_select_countries <- function(dt, country){
+  # IF the number of countries is > 12
+  if (nrow(dt) > 12) {
+    hc_req_country <- dt[country_code == country]$headcount
+    hc_all <- dt$headcount
+    vals <- cp_pov_mrv_select_values(v = hc_all, h = hc_req_country)
+    dt <- dt[headcount %in% vals]
+  }
+  dt <- dt[order(headcount)]
+  return(dt)
+}
+
+#' Select values to display for CP Poverty MRV Chart
+#' @param v numeric: A vector with headcounts for all countries in the region
+#' @param h numeric: Headcount for the request country
+#' @noRd
+#' @importFrom utils head tail
+cp_pov_mrv_select_values <- function(v, h) {
+
+  # Sort values
+  v <- sort(v)
+
+  # IF selected country does not pertain to top 5 or bottom 5, display:
+  if (!(h %in% tail(v, 5) | h %in% head(v, 5))) {
+    v <- v[!v %in% h]
+    v_above <- v[v > h]
+    v_below <- v[v < h]
+    vals <- c(h, head(v, 3), tail(v, 3),
+              head(v_above, 2), tail(v_below, 2))
+    # ELSE IF selected country pertains to top 5, display:
+  } else if (h %in% tail(v, 5)) {
+    vals <- c(head(v, 5), tail(v, 6))
+    # ELSE
+  } else {
+    vals <- c(head(v, 6), tail(v, 5))
+  }
+  vals <- sort(vals)
+  return(vals)
 }

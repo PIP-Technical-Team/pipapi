@@ -49,6 +49,10 @@ clean_api_data <- function(data_folder_root) {
   # Add country profiles lkups
   cp_lkups <- readRDS(paste0(data_folder_root, "/_aux/country_profiles.RDS"))
 
+  # Add poverty lines table
+  pl_lkup <- fst::read_fst(paste0(data_folder_root, "/_aux/poverty_lines.fst"))
+  pl_lkup <- data.table::setDT(pl_lkup)
+
   # Create query controls
   country <- list(values = c("all", sort(unique(c(svy_lkup$country_code, ref_lkup$country_code)))),
                   type = "character")
@@ -94,6 +98,7 @@ clean_api_data <- function(data_folder_root) {
                 dist_stats     = dist_stats,
                 pop_region     = pop_region,
                 cp_lkups       = cp_lkups,
+                pl_lkup        = pl_lkup,
                 query_controls = query_controls,
                 data_root      = data_folder_root)
 
