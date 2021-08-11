@@ -224,11 +224,11 @@ test_that("Country profile key indicators endpoint is working", {
 
   # KI 6
   expect_equal(names(tmp_resp$gni[[1]]),
-               c("country_code", "reporting_year", "gni"))
+               c("country_code", "reporting_year", "gni", "latest"))
 
   # KI 7
   expect_equal(names(tmp_resp$gdp[[1]]),
-               c("country_code", "reporting_year", "gdp_growth"))
+               c("country_code", "reporting_year", "gdp_growth", "latest"))
 
 })
 

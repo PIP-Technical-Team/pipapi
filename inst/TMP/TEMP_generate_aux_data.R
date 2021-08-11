@@ -138,6 +138,10 @@ key_indicators[4:5] <- lapply(key_indicators[4:5], function(x){
     dplyr::filter(!is.na(x[,3])) %>%
     dplyr::group_by(country_code) %>%
     dplyr::slice_tail(n = 2) %>%
+    dplyr::mutate(
+      latest =
+        dplyr::if_else(reporting_year == max(reporting_year),
+                       TRUE, FALSE)) %>%
     dplyr::ungroup() %>%
     data.table::as.data.table()
 })
@@ -194,6 +198,4 @@ charts <- list(
 )
 cp <- list(key_indicators = key_indicators, charts = charts)
 saveRDS(cp, paste0(data_folder_root, v1, "_aux/country_profiles.RDS"))
-
-
 
