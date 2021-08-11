@@ -207,7 +207,7 @@ test_that("Country profile key indicators endpoint is working", {
                c("country_code", "reporting_year", "headcount_national"))
 
   # KI 2
-  expect_equal(names(tmp_resp$headcount[[1]]),
+  expect_equal(names(tmp_resp$headcount$`1.9`[[1]]),
                c("country_code", "reporting_year", "poverty_line", "headcount"))
 
   # KI 3
