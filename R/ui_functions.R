@@ -126,12 +126,24 @@ ui_pc_charts <- function(country = c("AGO"),
 #' @return data.frame
 #' @export
 #'
-ui_cp_key_indicators <- function(country = 'AGO', povline = 1.9, lkup) {
+ui_cp_key_indicators <- function(country = 'AGO', povline = NULL, lkup) {
+
+  if (is.null(povline)) {
+    poverty_lines <- lkup$pl_lkup$poverty_line
+    dl_hc <- lapply(poverty_lines, function(pl) {
+      ui_cp_ki_headcount(country, pl, lkup)
+    })
+  } else {
+    dl_hc <- ui_cp_ki_headcount(country, povline, lkup)
+  }
+
   dl <- lapply(lkup$cp$key_indicators, function(x) {
     x[country_code == country]
   })
-  dl$headcount <- ui_cp_ki_headcount(country, povline, lkup)
-  return(dl)
+
+  out <- list(headcount = dl_hc)
+  out <- append(out, dl)
+  return(out)
 }
 
 #' Provides numbers that will populate the country profiles key indicator for headcount
@@ -155,7 +167,7 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
 }
 
 
-#' Provides numbers that will populate the home page country charts
+#' Provides numbers that will populate the country profile charts
 #'
 #' @param country character: Country code
 #' @param povline numeric: Poverty line
@@ -163,12 +175,52 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
 #' @param year_range numeric: Range used to subset countries in Poverty MRV chart
 #' @param lkup list: A list of lkup tables
 #'
-#' @return data.frame
+#' @return list
 #' @export
 #'
-ui_cp_charts <- function(country = 'AGO', povline = 1.9,
+ui_cp_charts <- function(country = 'AGO', povline = NULL,
                          pop_units = 1e6, year_range = 2016:2019,
                          lkup) {
+
+
+  if (is.null(povline)) {
+    poverty_lines <- lkup$pl_lkup$poverty_line
+    dl <- lapply(poverty_lines, function(pl) {
+      ui_cp_poverty_charts(country = country,
+                           povline = pl,
+                           pop_units = pop_units,
+                           year_range = year_range,
+                           lkup = lkups)
+    })
+  } else {
+    dl <-
+      ui_cp_poverty_charts(country = country,
+                           povline = povline,
+                           pop_units = pop_units,
+                           year_range = year_range,
+                           lkup = lkups)
+
+  }
+
+  # Fetch pre-calculated data (filter selected country)
+  dl2 <- lapply(lkup$cp$charts, function(x) {
+    x[country_code == country]
+  })
+
+  out <- append(dl, dl2)
+
+  return(out)
+
+}
+
+#' Provides numbers that will populate the country profiles poverty charts
+#'
+#' @inheritParams ui_cp_charts
+#' @return list
+#' @keywords internal
+#'
+ui_cp_poverty_charts <- function(country, povline, pop_units,
+                                 year_range, lkup) {
 
   # Fetch data for poverty trend chart
   res_pov_trend <-
@@ -199,16 +251,10 @@ ui_cp_charts <- function(country = 'AGO', povline = 1.9,
   res_pov_mrv <-
     cp_pov_mrv_select_countries(res_pov_mrv, country)
 
-  # Fetch pre-calculated data (filter selected country)
-  dl <- lapply(lkup$cp$charts, function(x) {
-    x[country_code == country]
-  })
-
   out <- list(
     pov_trend = res_pov_trend,
     pov_mrv = res_pov_mrv
   )
-  out <- append(out, dl)
 
   return(out)
 

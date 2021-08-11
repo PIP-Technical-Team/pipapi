@@ -199,7 +199,7 @@ test_that("Poverty calculator download endpoint is working for regional aggregat
 test_that("Country profile key indicators endpoint is working", {
 
   r <- httr::GET(root_path, port = 8000,
-                 path = "api/v1/cp-key-indicators?country=ALB")
+                 path = "api/v1/cp-key-indicators?country=ALB&povline=1.9")
   tmp_resp <- httr::content(r, encoding = "UTF-8")
 
   # KI 1
@@ -234,7 +234,7 @@ test_that("Country profile key indicators endpoint is working", {
 
 test_that("Country profile charts endpoint is working", {
 
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-charts?country=ALB")
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-charts?country=ALB&povline=1.9")
   tmp_resp <- httr::content(r, encoding = "UTF-8")
 
   # Chart 1 (poverty trend)
