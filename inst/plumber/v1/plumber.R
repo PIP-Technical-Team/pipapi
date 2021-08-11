@@ -155,7 +155,7 @@ function() {
 
 #* Return indicators master table
 #* @get /api/v1/indicators
-#* @serializer json
+#* @serializer json list(na="null")
 function() {
   pipapi::get_aux_table(data_dir = lkups$data_root,
                         table = "indicators_master")

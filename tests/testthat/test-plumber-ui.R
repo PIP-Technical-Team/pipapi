@@ -40,18 +40,25 @@ test_that("Indicators master endpoint is working", {
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(names(tmp_resp[[1]]), c("indicator_code",
-                                       "indicator_name",
-                                       "scale_data",
-                                       "scale_display",
-                                       "number_of_decimals",
-                                       "indicator_definition_short",
-                                       "indicator_definition_long",
-                                       "key_indicator_template",
-                                       "is_sensitive_to_povline",
-                                       "symbol",
-                                       "sort_order",
-                                       "tags"))
+  expect_equal(names(tmp_resp[[1]]),
+               c('page',
+                 'wdi_code',
+                 'indicator_code',
+                 'indicator_name',
+                 'scale_data',
+                 'scale_display',
+                 'number_of_decimals',
+                 'indicator_definition_short',
+                 'indicator_definition_long',
+                 'key_indicator_template',
+                 'category',
+                 'is_sensitive_to_povline',
+                 'symbol',
+                 'sort_order',
+                 'pip_sort_order',
+                 'tags',
+                 'from_year',
+                 'to_year'))
 })
 
 test_that("Countries endpoint is working", {
@@ -257,7 +264,7 @@ test_that("Country profile charts endpoint is working", {
   expect_equal(names(tmp_resp$ineq_bar[[1]]),
                c("country_code", "reporting_year",
                  "gender", "agegroup", "education",
-                 "distribution", "poverty_share"))
+                 "distribution", "poverty_share_by_group"))
 
   # Chart 5 (MPM)
   expect_equal(names(tmp_resp$mpm[[1]]),

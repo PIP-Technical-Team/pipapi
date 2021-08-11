@@ -148,7 +148,7 @@ ui_cp_key_indicators <- function(country = 'AGO', povline = NULL, lkup) {
   return(out)
 }
 
-#' Provides numbers that will populate the country profiles key indicator for headcount
+#' Populate the country profiles key indicator for headcount
 #'
 #' @param country character: Country code
 #' @param povline numeric: Poverty line

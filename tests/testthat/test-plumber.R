@@ -81,12 +81,12 @@ test_that("Indicator names are correct", {
   # Check response
   pip_resp <- httr::content(r, encoding = "UTF-8")
 
-  # Retrieve indicator master
+  # Retrieve indicators master
   r <- httr::GET(root_path, port = 8000, path = "api/v1/indicators")
   # Check response
   ind_resp <- httr::content(r, encoding = "UTF-8")
   ind_code <- purrr::map_chr(ind_resp, "indicator_code")
-  expect_equal(sum(names(pip_resp[[1]]) %in% ind_code), 19)
+  expect_equal(sum(names(pip_resp[[1]]) %in% ind_code), 21)
 })
 
 # Kill process

@@ -87,7 +87,7 @@ tmp <- lapply(tmpfiles, function(x) {
       'survey_comparability', 'comparable_spell',
       'poverty_line', 'year_range', 'pop_in_poverty',
       'population', 'headcount_national', 'gni', 'gdp_growth',
-      'gini', 'theil', 'headcount', 'poverty_share',
+      'gini', 'theil', 'headcount', 'poverty_share_by_group',
       'mpm_education_attainment', 'mpm_education_enrollment',
       'mpm_electricity', 'mpm_sanitation', 'mpm_water',
       'mpm_headcount', 'mpm_monetary', 'shared_prosperity'
@@ -176,7 +176,7 @@ charts <- list(
   ineq_bar =
     tmp$chart4[, c('country_code', 'reporting_year',
                  'gender', 'agegroup', 'education',
-                 'distribution', 'poverty_share')],
+                 'distribution', 'poverty_share_by_group')],
 
   mpm =
     tmp$chart5[, c('country_code', 'reporting_year',

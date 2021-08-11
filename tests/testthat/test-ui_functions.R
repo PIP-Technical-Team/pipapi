@@ -111,7 +111,3 @@ test_that("ui_cp_charts() works as expected", {
   expect_identical(names(dl$pov_charts[[1]]), c('pov_trend', 'pov_mrv'))
 
 })
-
-
-
-
