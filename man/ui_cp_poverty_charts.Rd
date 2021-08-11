@@ -4,7 +4,7 @@
 \alias{ui_cp_poverty_charts}
 \title{Provides numbers that will populate the country profiles poverty charts}
 \usage{
-ui_cp_poverty_charts(country, povline, pop_units, year_range, lkup)
+ui_cp_poverty_charts(country, povline, pop_units, lkup)
 }
 \arguments{
 \item{country}{character: Country code}
@@ -12,8 +12,6 @@ ui_cp_poverty_charts(country, povline, pop_units, year_range, lkup)
 \item{povline}{numeric: Poverty line}
 
 \item{pop_units}{numeric: Units used to express population numbers (default to million)}
-
-\item{year_range}{numeric: Range used to subset countries in Poverty MRV chart}
 
 \item{lkup}{list: A list of lkup tables}
 }

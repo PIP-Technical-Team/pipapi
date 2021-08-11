@@ -174,15 +174,13 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
 #' @param country character: Country code
 #' @param povline numeric: Poverty line
 #' @param pop_units numeric: Units used to express population numbers (default to million)
-#' @param year_range numeric: Range used to subset countries in Poverty MRV chart
 #' @param lkup list: A list of lkup tables
 #'
 #' @return list
 #' @export
 #'
 ui_cp_charts <- function(country = 'AGO', povline = NULL,
-                         pop_units = 1e6, year_range = 2016:2019,
-                         lkup) {
+                         pop_units = 1e6, lkup) {
 
 
   if (is.null(povline)) {
@@ -191,7 +189,6 @@ ui_cp_charts <- function(country = 'AGO', povline = NULL,
       ui_cp_poverty_charts(country = country,
                            povline = pl,
                            pop_units = pop_units,
-                           year_range = year_range,
                            lkup = lkup)
     })
     names(dl) <- poverty_lines
@@ -199,7 +196,6 @@ ui_cp_charts <- function(country = 'AGO', povline = NULL,
     dl <- ui_cp_poverty_charts(country = country,
                            povline = povline,
                            pop_units = pop_units,
-                           year_range = year_range,
                            lkup = lkup)
     dl <- list(dl)
     names(dl) <- povline
@@ -225,7 +221,7 @@ ui_cp_charts <- function(country = 'AGO', povline = NULL,
 #' @keywords internal
 #'
 ui_cp_poverty_charts <- function(country, povline, pop_units,
-                                 year_range, lkup) {
+                                 lkup) {
 
   # Fetch data for poverty trend chart
   res_pov_trend <-
@@ -244,10 +240,12 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
     lkup$svy_lkup[pcn_region_code == region]$country_code %>%
     unique()
 
-  res_pov_mrv <- pip(country = countries, lkup = lkup)
+  res_pov_mrv <- pip(country = countries, povline = povline, lkup = lkup)
   res_pov_mrv <-
     res_pov_mrv[, .SD[which.max(reporting_year)],
                 by = country_code]
+  selected_year <- res_pov_mrv[country_code == country]$reporting_year
+  year_range <- c((selected_year - 3):(selected_year + 3))
   res_pov_mrv <-
     res_pov_mrv[reporting_year %in% year_range]
   res_pov_mrv <-
@@ -256,17 +254,10 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   res_pov_mrv <-
     cp_pov_mrv_select_countries(res_pov_mrv, country)
 
-  # dl1 <- list(res_pov_trend)
-  # names(dl1) <- as.character(povline)
-  # dl2 <- list(res_pov_mrv)
-  # names(dl2) <- as.character(povline)
-
   out <- list(
     pov_trend = res_pov_trend,
     pov_mrv = res_pov_mrv
   )
-
-  # out <- list(pov_trend = dl1, pov_mrv = dl2)
 
   return(out)
 
@@ -277,30 +268,41 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
 #' @param country character: Country code
 #' @noRd
 cp_pov_mrv_select_countries <- function(dt, country){
-  # If the number of countries in the region of the selected country is > 12,
-  # then the countries to be displayed will be selected as follow:
+  # IF the number of countries is > 12
   if (nrow(dt) > 12) {
-    h <- dt[country_code == country]$headcount
-    v <- sort(dt$headcount)
-    # IF selected country does not pertain to top 5 or bottom 5, display:
-    if (!(h %in% utils::tail(v, 5) | h %in% utils::head(v, 5))) {
-      v <- v[!v %in% h]
-      v2 <- v[v > h]
-      v3 <- v[v < h]
-      vals <- c(h, utils::head(v, 3), utils::tail(v, 3),
-                utils::head(v2, 2), utils::tail(v3, 2))
-      # ELSE IF selected country pertains to top 5, display:
-    } else if (h %in% utils::tail(v, 5)) {
-      vals <- c(utils::head(v, 5), utils::tail(v, 6))
-      # ELSE display
-    } else {
-      vals <- c(utils::head(v, 6), utils::tail(v, 5))
-    }
-
+    hc_req_country <- dt[country_code == country]$headcount
+    hc_all <- dt$headcount
+    vals <- cp_pov_mrv_select_values(v = hc_all, h = hc_req_country)
     dt <- dt[headcount %in% vals]
-    #dt <- dt[order(headcount)]
-
   }
   dt <- dt[order(headcount)]
   return(dt)
+}
+
+#' Select values to display for CP Poverty MRV Chart
+#' @param v numeric: A vector with headcounts for all countries in the region
+#' @param h numeric: Headcount for the request country
+#' @noRd
+#' @importFrom utils head tail
+cp_pov_mrv_select_values <- function(v, h) {
+
+  # Sort values
+  v <- sort(v)
+
+  # IF selected country does not pertain to top 5 or bottom 5, display:
+  if (!(h %in% tail(v, 5) | h %in% head(v, 5))) {
+    v <- v[!v %in% h]
+    v_above <- v[v > h]
+    v_below <- v[v < h]
+    vals <- c(h, head(v, 3), tail(v, 3),
+              head(v_above, 2), tail(v_below, 2))
+    # ELSE IF selected country pertains to top 5, display:
+  } else if (h %in% tail(v, 5)) {
+    vals <- c(head(v, 5), tail(v, 6))
+    # ELSE
+  } else {
+    vals <- c(head(v, 6), tail(v, 5))
+  }
+  vals <- sort(vals)
+  return(vals)
 }

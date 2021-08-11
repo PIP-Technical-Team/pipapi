@@ -4,13 +4,7 @@
 \alias{ui_cp_charts}
 \title{Provides numbers that will populate the country profile charts}
 \usage{
-ui_cp_charts(
-  country = "AGO",
-  povline = NULL,
-  pop_units = 1e+06,
-  year_range = 2016:2019,
-  lkup
-)
+ui_cp_charts(country = "AGO", povline = NULL, pop_units = 1e+06, lkup)
 }
 \arguments{
 \item{country}{character: Country code}
@@ -18,8 +12,6 @@ ui_cp_charts(
 \item{povline}{numeric: Poverty line}
 
 \item{pop_units}{numeric: Units used to express population numbers (default to million)}
-
-\item{year_range}{numeric: Range used to subset countries in Poverty MRV chart}
 
 \item{lkup}{list: A list of lkup tables}
 }

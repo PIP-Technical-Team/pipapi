@@ -9,9 +9,31 @@ dt_sas <- readRDS('../testdata/pip_sas_resp.RDS')
 test_that("ui_cp_poverty_charts() works as expected", {
   dl <- ui_cp_poverty_charts(country = 'AGO',
                              povline = 1.9,
-                             year_range = 2016:2019,
-                             pop_units = 1e6, lkup = lkups)
+                             pop_units = 1e6,
+                             lkup = lkups)
   expect_identical(names(dl), c('pov_trend', 'pov_mrv'))
+})
+
+test_that("cp_pov_mrv_select_values() works as expected", {
+
+  # Top 5
+  set.seed(42); v <- round(runif(20), 5); h <- 0.91481
+  out <- cp_pov_mrv_select_values(v, h)
+  v <- sort(v)
+  expect_equal(out, c(v[1:5], v[15:20]))
+
+  # Bottom 5
+  set.seed(42); v <- round(runif(20), 5); h <- 0.25543
+  out <- cp_pov_mrv_select_values(v, h)
+  v <- sort(v)
+  expect_equal(out, c(v[1:6], v[16:20]))
+
+  # Neither bottom 5 nor top 5
+  set.seed(42); v <- round(runif(20), 5); h <- 0.56033
+  out <- cp_pov_mrv_select_values(v, h)
+  v <- sort(v); x <- which(v == h)
+  expect_equal(out, c(v[1:3], v[(x - 2):(x + 2)], v[18:20]))
+
 })
 
 test_that("cp_pov_mrv_select_countries() works as expected", {

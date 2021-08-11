@@ -4,7 +4,7 @@
 \alias{ui_cp_key_indicators}
 \title{Provides numbers that will population key indicators for Country Profiles}
 \usage{
-ui_cp_key_indicators(country = "AGO", povline = 1.9, lkup)
+ui_cp_key_indicators(country = "AGO", povline = NULL, lkup)
 }
 \arguments{
 \item{country}{character: Country code}
