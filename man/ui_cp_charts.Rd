@@ -19,6 +19,8 @@ ui_cp_charts(
 
 \item{pop_units}{numeric: Units used to express population numbers (default to million)}
 
+\item{year_range}{numeric: Range used to subset countries in Poverty MRV chart}
+
 \item{lkup}{list: A list of lkup tables}
 }
 \value{

@@ -160,6 +160,7 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
 #' @param country character: Country code
 #' @param povline numeric: Poverty line
 #' @param pop_units numeric: Units used to express population numbers (default to million)
+#' @param year_range numeric: Range used to subset countries in Poverty MRV chart
 #' @param lkup list: A list of lkup tables
 #'
 #' @return data.frame
@@ -180,13 +181,13 @@ ui_cp_charts <- function(country = 'AGO', povline = 1.9,
 
   # Fetch data for poverty bar chart
   region <-
-    lkups$svy_lkup[country_code == country]$pcn_region_code %>%
+    lkup$svy_lkup[country_code == country]$pcn_region_code %>%
     unique()
   countries <-
-    lkups$svy_lkup[pcn_region_code == region]$country_code %>%
+    lkup$svy_lkup[pcn_region_code == region]$country_code %>%
     unique()
 
-  res_pov_mrv <- pip(country = countries, lkup = lkups)
+  res_pov_mrv <- pip(country = countries, lkup = lkup)
   res_pov_mrv <-
     res_pov_mrv[, .SD[which.max(reporting_year)],
                 by = country_code]
@@ -198,16 +199,16 @@ ui_cp_charts <- function(country = 'AGO', povline = 1.9,
   res_pov_mrv <-
     cp_pov_mrv_select_countries(res_pov_mrv, country)
 
-  # Fetch precalculated data (filter selected country)
+  # Fetch pre-calculated data (filter selected country)
   dl <- lapply(lkup$cp$charts, function(x) {
     x[country_code == country]
   })
 
   out <- list(
     pov_trend = res_pov_trend,
-    pov_mrv = res_pov_mrv,
-    dl
+    pov_mrv = res_pov_mrv
   )
+  out <- append(out, dl)
 
   return(out)
 
@@ -224,22 +225,24 @@ cp_pov_mrv_select_countries <- function(dt, country){
     h <- dt[country_code == country]$headcount
     v <- sort(dt$headcount)
     # IF selected country does not pertain to top 5 or bottom 5, display:
-    if (!(h %in% tail(v, 5) | h %in% head(v, 5))) {
+    if (!(h %in% utils::tail(v, 5) | h %in% utils::head(v, 5))) {
       v <- v[!v %in% h]
       v2 <- v[v > h]
       v3 <- v[v < h]
-      vals <- c(h, head(v, 3), tail(v, 3),  head(v2, 2), tail(v3, 2))
+      vals <- c(h, utils::head(v, 3), utils::tail(v, 3),
+                utils::head(v2, 2), utils::tail(v3, 2))
       # ELSE IF selected country pertains to top 5, display:
-    } else if (h %in% tail(v, 5)) {
-      vals <- c(head(v, 5), tail(v, 6))
+    } else if (h %in% utils::tail(v, 5)) {
+      vals <- c(utils::head(v, 5), utils::tail(v, 6))
       # ELSE display
     } else {
-      vals <- c(head(v, 6), tail(v, 5))
+      vals <- c(utils::head(v, 6), utils::tail(v, 5))
     }
 
     dt <- dt[headcount %in% vals]
-    dt <- dt[order(headcount)]
+    #dt <- dt[order(headcount)]
 
   }
+  dt <- dt[order(headcount)]
   return(dt)
 }
