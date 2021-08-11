@@ -238,12 +238,12 @@ test_that("Country profile charts endpoint is working", {
   tmp_resp <- httr::content(r, encoding = "UTF-8")
 
   # Chart 1 (poverty trend)
-  expect_equal(names(tmp_resp$pov_trend[[1]]),
+  expect_equal(names(tmp_resp$pov_charts$`1.9`$pov_trend[[1]]),
                c("country_code", "reporting_year",
                  "headcount", "pop_in_poverty"))
 
   # Chart 2 (poverty mrv)
-  expect_equal(names(tmp_resp$pov_mrv[[1]]),
+  expect_equal(names(tmp_resp$pov_charts$`1.9`$pov_mrv[[1]]),
                c("country_code", "reporting_year",
                  "poverty_line", "headcount"))
 

@@ -133,8 +133,10 @@ ui_cp_key_indicators <- function(country = 'AGO', povline = NULL, lkup) {
     dl_hc <- lapply(poverty_lines, function(pl) {
       ui_cp_ki_headcount(country, pl, lkup)
     })
+    names(dl_hc) <- poverty_lines
   } else {
-    dl_hc <- ui_cp_ki_headcount(country, povline, lkup)
+    dl_hc <- list(ui_cp_ki_headcount(country, povline, lkup))
+    names(dl_hc) <- povline
   }
 
   dl <- lapply(lkup$cp$key_indicators, function(x) {
@@ -190,17 +192,20 @@ ui_cp_charts <- function(country = 'AGO', povline = NULL,
                            povline = pl,
                            pop_units = pop_units,
                            year_range = year_range,
-                           lkup = lkups)
+                           lkup = lkup)
     })
+    names(dl) <- poverty_lines
   } else {
-    dl <-
-      ui_cp_poverty_charts(country = country,
+    dl <- ui_cp_poverty_charts(country = country,
                            povline = povline,
                            pop_units = pop_units,
                            year_range = year_range,
-                           lkup = lkups)
-
+                           lkup = lkup)
+    dl <- list(dl)
+    names(dl) <- povline
   }
+
+  dl <- list(pov_charts = dl)
 
   # Fetch pre-calculated data (filter selected country)
   dl2 <- lapply(lkup$cp$charts, function(x) {
@@ -251,10 +256,17 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   res_pov_mrv <-
     cp_pov_mrv_select_countries(res_pov_mrv, country)
 
+  # dl1 <- list(res_pov_trend)
+  # names(dl1) <- as.character(povline)
+  # dl2 <- list(res_pov_mrv)
+  # names(dl2) <- as.character(povline)
+
   out <- list(
     pov_trend = res_pov_trend,
     pov_mrv = res_pov_mrv
   )
+
+  # out <- list(pov_trend = dl1, pov_mrv = dl2)
 
   return(out)
 
