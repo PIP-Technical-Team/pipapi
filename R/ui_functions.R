@@ -159,8 +159,8 @@ ui_cp_key_indicators <- function(country = 'AGO', povline = NULL, lkup) {
 #'
 ui_cp_ki_headcount <- function(country, povline, lkup) {
 
-  query_year <- max(lkup$svy_lkup[country_code == country]$reporting_year)
-  res <- pip(country, year = query_year, povline = povline, lkup = lkup)
+  # query_year <- max(lkup$svy_lkup[country_code == country]$reporting_year)
+  res <- pip(country, year = 'mrv', povline = povline, lkup = lkup)
   out <- data.table::data.table(
     country_code = country, reporting_year = query_year,
     poverty_line = povline, headcount = res$headcount)

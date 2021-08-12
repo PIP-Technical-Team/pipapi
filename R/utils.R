@@ -30,7 +30,11 @@ subset_lkup <- function(country,
     keep <- keep & lkup$country_code %in% country
   }
   # Select years
-  if (year[1] != "all") {
+  if (year[1] == "mrv") {
+    max_year <- max(lkup[country_code == country]$reporting_year)
+    keep <- keep & lkup$reporting_year %in% max_year
+  }
+  if (!year[1] %in% c("all", "mrv")) {
     keep <- keep & lkup$reporting_year %in% year
   }
   # Select welfare_type

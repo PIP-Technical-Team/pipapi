@@ -56,7 +56,7 @@ clean_api_data <- function(data_folder_root) {
   # Create query controls
   country <- list(values = c("all", sort(unique(c(svy_lkup$country_code, ref_lkup$country_code)))),
                   type = "character")
-  year <- list(values = c("all", sort(unique(c(svy_lkup$reporting_year, ref_lkup$reporting_year)))),
+  year <- list(values = c("all", "mrv", sort(unique(c(svy_lkup$reporting_year, ref_lkup$reporting_year)))),
                type = "character")
   povline <- list(values = c(min = 0, max = 100),
                   type = "numeric")

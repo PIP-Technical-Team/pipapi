@@ -1,5 +1,6 @@
 lkups <- pipapi:::clean_api_data(
   data_folder_root = "../testdata/20210401/")
+lkups_all <- pipapi:::clean_api_data(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
 
 # Check output type ----
 test_that("output type is correct", {
@@ -13,6 +14,36 @@ test_that("output type is correct", {
 })
 
 # Check selections ----
+
+## Year -----
+test_that("year selection is working", {
+
+  # All years for a single country
+  tmp <- pip(country = "AGO",
+             year    = "all",
+             povline = 1.9,
+             lkup = lkups_all)
+  check <- sum(lkups_all$svy_lkup$country_code == 'AGO')
+  expect_equal(nrow(tmp), check)
+
+  # Most recent year for a single country
+  tmp <- pip(country = "AGO",
+             year    = "mrv",
+             povline = 1.9,
+             lkup = lkups_all)
+  check <- max(lkups_all$svy_lkup[country_code == 'AGO']$reporting_year)
+  expect_equal(tmp$reporting_year, sum(check))
+
+  # Most recent year for a single country (w/ fill_gaps)
+  tmp <- pip(country = "AGO",
+             year    = "mrv",
+             povline = 1.9,
+             fill_gaps = TRUE,
+             lkup = lkups_all)
+  check <- max(lkups_all$ref_lkup$reporting_year)
+  expect_equal(tmp$reporting_year, check)
+
+})
 
 ## Welfare type ----
 test_that("welfare_type selection are correct", {
@@ -41,6 +72,7 @@ test_that("welfare_type selection are correct", {
 
   expect_equal(unique(tmp$welfare_type), "income")
 })
+
 ## Reporting level ----
 test_that("reporting_level selection are correct", {
 
@@ -88,7 +120,6 @@ test_that("Aggregation is working", {
   expect_equal(nrow(tmp), 1)
 })
 
-
 # Check imputation ----
 test_that("Imputation is working", {
   tmp <- pip(country = "all",
@@ -99,7 +130,6 @@ test_that("Imputation is working", {
 
   expect_equal(nrow(tmp), 182)
 })
-
 
 # Check regional aggregations
 test_that("Regional aggregations are working", {
