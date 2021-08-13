@@ -81,6 +81,8 @@ ui_pc_charts <- function(country = c("AGO"),
                        reporting_level = c("all", "national", "rural", "urban"),
                        lkup) {
 
+  group_by <- match.arg(group_by)
+
   out <- pip(country      = country,
              year         = year,
              povline      = povline,

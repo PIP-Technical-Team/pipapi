@@ -5,6 +5,45 @@ lkups$pl_lkup <- lkups$pl_lkup[sample(nrow(lkups$pl_lkup), 10)]
 dt_lac <- readRDS('../testdata/pip_lac_resp.RDS')
 dt_sas <- readRDS('../testdata/pip_sas_resp.RDS')
 
+test_that("ui_hp_stacked() works as expected", {
+  lkups2 <- lkups
+  lkups2$ref_lkup <- lkups2$ref_lkup[country_code == 'CHN']
+  res <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
+  expect_identical(names(res),
+                   c("region_code", "reporting_year",
+                     "poverty_line", "pop_in_poverty"))
+  expect_identical(unique(res$region_code), c('EAP', 'WLD'))
+})
+
+test_that("ui_hp_countries() works as expected", {
+  res <- ui_hp_countries(country = c("AGO", "CIV"), povline = 1.9, lkup = lkups)
+  expect_identical(names(res),
+                   c("region_code", "country_code",
+                     "reporting_year", "poverty_line",
+                     "reporting_pop", "pop_in_poverty"))
+  expect_true(all(res$pop_in_poverty < 50))
+  check <- lkups$svy_lkup[country_code %in% c("AGO", "CIV")]$reporting_year
+  expect_equal(res$reporting_year, check)
+})
+
+test_that("ui_pc_charts() works as expected", {
+
+  # Regular query (fill_gaps = FALSE)
+  res <- ui_pc_charts(country = "AGO", povline = 1.9, lkup = lkups)
+  expect_equal(nrow(res), nrow(lkups$svy_lkup[country_code == "AGO"]))
+  expect_equal(length(names(res)), 36)
+
+  # Regular query (fill_gaps = TRUE)
+  res <- ui_pc_charts(country = "AGO", povline = 1.9, fill_gaps = TRUE, lkup = lkups)
+  expect_equal(nrow(res), length(unique(lkups$ref_lkup$reporting_year)))
+  expect_equal(length(names(res)), 11)
+
+  # Group by
+  res <- ui_pc_charts(country = "AGO", group_by = "wb", povline = 1.9, lkup = lkups)
+  res2 <- pip(country = "AGO", group_by = "wb", povline = 1.9, lkup = lkups)
+  expect_equal(res, res2)
+
+})
 
 test_that("ui_cp_poverty_charts() works as expected", {
   dl <- ui_cp_poverty_charts(country = 'AGO',

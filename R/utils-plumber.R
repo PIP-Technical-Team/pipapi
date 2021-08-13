@@ -95,14 +95,15 @@ check_param_lgl <- function(value) {
 #'
 format_error <- function(param, valid_values) {
   out <- list(
-    error = paste(
+    error = paste0(
       "Invalid value for ", param, ". Please use one of",
       paste(
         "'", valid_values, "'",
         sep = "", collapse = ", "
-      )
+      ), "."
     )
   )
+  return(out)
 }
 
 validate_query_parameters <- function(params, valid_params = c("country",

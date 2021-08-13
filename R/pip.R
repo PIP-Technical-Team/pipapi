@@ -62,6 +62,7 @@ pip <- function(country   = "all",
 
   # return empty dataframe if no metadata is found
   if (nrow(out) == 0) {
+    # out <- out[, .SD, .SDcols = cols]
     return(out)
   }
 
@@ -78,7 +79,7 @@ pip <- function(country   = "all",
 
     out <- aggregate_by_group(df = out,
                               group_lkup = lkup[["pop_region"]])
-
+    # cols <- c(cols, 'pop_in_poverty')
     return(out)
   }
 
@@ -94,6 +95,9 @@ pip <- function(country   = "all",
 
   # Censor values
   out <- censor_rows(out, lkup[["censored"]])
+
+  # Select columns
+  # out <- out[, .SD, .SDcols = cols]
 
   # ADD FIX FOR MEDIAN WHEN INTERPOLATING
   # median <- dist_stats[["median"]]/(data_mean/requested_mean)
