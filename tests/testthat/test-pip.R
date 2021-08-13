@@ -12,6 +12,14 @@ test_that("output type is correct", {
   expect_equal(class(tmp), c("data.table", "data.frame"))
 })
 
+# Check empty response
+test_that("empty response is returned if no metadata is found", {
+  tmp <- pip("COL", year = 2050, lkup = lkups)
+  expect_equal(nrow(tmp), 0)
+  tmp <- pip("COL", year = 2050, lkup = lkups, fill_gaps = TRUE)
+  expect_equal(nrow(tmp), 0)
+})
+
 # Check selections ----
 
 ## Welfare type ----
