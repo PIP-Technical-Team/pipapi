@@ -6,6 +6,7 @@ dt_lac <- readRDS('../testdata/pip_lac_resp.RDS')
 dt_sas <- readRDS('../testdata/pip_sas_resp.RDS')
 
 test_that("ui_hp_stacked() works as expected", {
+  lkups2 <- lkups
   lkups2$ref_lkup <- lkups2$ref_lkup[country_code == 'CHN']
   res <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
   expect_identical(names(res),
