@@ -31,19 +31,21 @@ rg_pip <- function(country,
 
     tmp_metadata <- metadata[i, ]
 
-    svy_data <- get_svy_data(tmp_metadata$cache_id,
-                             reporting_level = tmp_metadata$pop_data_level,
-                             path = tmp_metadata$path)
+    svy_data <- get_svy_data(
+      tmp_metadata$cache_id,
+      reporting_level = tmp_metadata$pop_data_level,
+      path = tmp_metadata$path)
 
-    tmp_stats <- wbpip:::prod_compute_pip_stats(welfare = svy_data$df0$welfare,
-                                                povline = povline,
-                                                popshare = popshare,
-                                                population = svy_data$df0$weight,
-                                                requested_mean = tmp_metadata$survey_mean_ppp,
-                                                svy_mean_lcu = tmp_metadata$survey_mean_lcu,
-                                                default_ppp = tmp_metadata$ppp,
-                                                ppp = ppp,
-                                                distribution_type = tmp_metadata$distribution_type)
+    tmp_stats <- wbpip:::prod_compute_pip_stats(
+      welfare = svy_data$df0$welfare,
+      povline = povline,
+      popshare = popshare,
+      population = svy_data$df0$weight,
+      requested_mean = tmp_metadata$survey_mean_ppp,
+      svy_mean_lcu = tmp_metadata$survey_mean_lcu,
+      default_ppp = tmp_metadata$ppp,
+      ppp = ppp,
+      distribution_type = tmp_metadata$distribution_type)
 
     # Add stats columns to data frame
     for (j in seq_along(tmp_stats)) {
