@@ -287,5 +287,23 @@ test_that("Country profile charts endpoint is working", {
 
 })
 
+test_that("Survey metadata endpoint is working", {
+
+  # Send API request
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/survey-metadata")
+
+  # Check response
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(names(tmp_resp[[1]]),
+               c('country_code', 'surveyid_year', 'survey_acronym',
+                 'survey_title', 'year_start', 'year_end',
+                 'authoring_entity_name', 'abstract',
+                 'collection_dates_cycle', 'collection_dates_start',
+                 'collection_dates_end', 'coverage',
+                 'sampling_procedure', 'collection_mode',
+                 'coll_situation','weight','cleaning_operations'))
+})
+
+
 # Kill process
 api1$kill()
