@@ -122,14 +122,14 @@ test_that("ui_cp_key_indicators() works as expected", {
   expect_identical(names(dl),
                    c('headcount', 'headcount_national', 'mpm_headcount',
                      'population', 'gni', 'gdp', 'shared_prosperity'))
-  expect_identical(names(dl$headcount), '1.9')
+  expect_identical(dl$headcount$poverty_line, 1.9)
 
   # All poverty lines
   dl <- ui_cp_key_indicators(country = 'AGO', lkup = lkups)
   expect_identical(names(dl),
                    c('headcount', 'headcount_national', 'mpm_headcount',
                      'population', 'gni', 'gdp', 'shared_prosperity'))
-  expect_identical(names(dl$headcount), lkups$pl_lkup$name)
+  expect_identical(nrow(dl$headcount), length(lkups$pl_lkup$name))
 
 })
 
@@ -140,13 +140,13 @@ test_that("ui_cp_charts() works as expected", {
   expect_identical(names(dl), c('pov_charts', 'ineq_trend',
                                 'ineq_bar', 'mpm', 'sp'))
   expect_identical(names(dl$pov_charts), '1.9')
-  expect_identical(names(dl$pov_charts$`1.9`), c('pov_trend', 'pov_mrv'))
+  expect_identical(names(dl$pov_charts[[1]]), c('pov_trend', 'pov_mrv'))
 
   # All poverty lines
   dl <- ui_cp_charts(country = 'AGO', lkup = lkups)
   expect_identical(names(dl), c('pov_charts', 'ineq_trend',
                                 'ineq_bar', 'mpm', 'sp'))
   expect_identical(names(dl$pov_charts), lkups$pl_lkup$name)
-  expect_identical(names(dl$pov_charts[[1]]), c('pov_trend', 'pov_mrv'))
+  expect_identical(names(dl$pov_charts[[5]]), c('pov_trend', 'pov_mrv'))
 
 })
