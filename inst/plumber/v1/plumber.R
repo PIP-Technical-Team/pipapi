@@ -158,7 +158,7 @@ function() {
 #* @serializer json list(na="null")
 function() {
   pipapi::get_aux_table(data_dir = lkups$data_root,
-                        table = "indicators_master")
+                        table = "indicators")
 }
 
 #* Return list of countries
