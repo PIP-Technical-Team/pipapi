@@ -72,14 +72,14 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
 #' @export
 #'
 ui_pc_charts <- function(country = c("AGO"),
-                       year    = "all",
-                       povline = 1.9,
-                       fill_gaps = FALSE,
-                       aggregate = FALSE,
-                       group_by = c("none", "wb"),
-                       welfare_type = c("all", "consumption", "income"),
-                       reporting_level = c("all", "national", "rural", "urban"),
-                       lkup) {
+                         year    = "all",
+                         povline = 1.9,
+                         fill_gaps = FALSE,
+                         aggregate = FALSE,
+                         group_by = c("none", "wb"),
+                         welfare_type = c("all", "consumption", "income"),
+                         reporting_level = c("all", "national", "rural", "urban"),
+                         lkup) {
 
   group_by <- match.arg(group_by)
 
@@ -132,20 +132,22 @@ ui_cp_key_indicators <- function(country = 'AGO', povline = NULL, lkup) {
 
   if (is.null(povline)) {
     poverty_lines <- lkup$pl_lkup$poverty_line
-    dl_hc <- lapply(poverty_lines, function(pl) {
+    hc <- lapply(poverty_lines, function(pl) {
       ui_cp_ki_headcount(country, pl, lkup)
     })
-    names(dl_hc) <- poverty_lines
+    hc <- data.table::rbindlist(hc)
+    #names(hc) <- poverty_lines
   } else {
-    dl_hc <- list(ui_cp_ki_headcount(country, povline, lkup))
-    names(dl_hc) <- povline
+    hc <- ui_cp_ki_headcount(country, povline, lkup)
+    # hc <- list(hc)
+    # names(hc) <- povline
   }
 
   dl <- lapply(lkup$cp$key_indicators, function(x) {
     x[country_code == country]
   })
 
-  out <- list(headcount = dl_hc)
+  out <- list(headcount = hc)
   out <- append(out, dl)
   return(out)
 }
@@ -195,9 +197,9 @@ ui_cp_charts <- function(country = 'AGO', povline = NULL,
     names(dl) <- poverty_lines
   } else {
     dl <- ui_cp_poverty_charts(country = country,
-                           povline = povline,
-                           pop_units = pop_units,
-                           lkup = lkup)
+                               povline = povline,
+                               pop_units = pop_units,
+                               lkup = lkup)
     dl <- list(dl)
     names(dl) <- povline
   }
@@ -231,7 +233,8 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
     res_pov_trend$reporting_pop * res_pov_trend$headcount / pop_units
   res_pov_trend <-
     res_pov_trend[, c('country_code', 'reporting_year',
-                      'headcount', 'pop_in_poverty')]
+                      'poverty_line', 'headcount',
+                      'pop_in_poverty')]
 
   # Fetch data for poverty bar chart
   region <-
