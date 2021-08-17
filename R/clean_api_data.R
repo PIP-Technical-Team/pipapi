@@ -8,55 +8,44 @@
 
 clean_api_data <- function(data_folder_root) {
 
-  # poverty_lines <- fst::read_fst(paste0(data_folder_root, "/_aux/poverty_lines.fst"))
-
   paths <- fs::dir_ls(paste0(data_folder_root, "/survey_data"), recurse = FALSE, type = "file")
   paths_ids <- basename(paths)
   paths_ids <- tools::file_path_sans_ext(paths_ids)
 
   # Clean svy_lkup
-  svy_lkup <- fst::read_fst(paste0(data_folder_root, "/estimations/survey_means.fst"))
-  # TEMP cleaning - START
-  svy_lkup <- svy_lkup[!is.na(svy_lkup$survey_mean_ppp), ]
-  svy_lkup <- svy_lkup[!is.na(svy_lkup$ppp), ]
-  svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
-  # TEMP cleaning - END
-  svy_lkup$path <- paste0(data_folder_root, "survey_data/", svy_lkup$cache_id, ".fst")
-  svy_lkup <- data.table::setDT(svy_lkup)
-
+  svy_lkup <- fst::read_fst(sprintf("%s/estimations/survey_means.fst", data_folder_root),
+                            as.data.table = TRUE)
+  svy_lkup$path <- sprintf("%ssurvey_data/%s.fst",
+                           data_folder_root, svy_lkup$cache_id)
   # Clean ref_lkup
-  ref_lkup <- fst::read_fst(paste0(data_folder_root, "/estimations/interpolated_means.fst"))
-  # TEMP cleaning - START
-  ref_lkup <- ref_lkup[!is.na(ref_lkup$predicted_mean_ppp), ]
-  ref_lkup <- ref_lkup[!is.na(ref_lkup$ppp), ]
-  ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
-  # TEMP cleaning - END
-  ref_lkup$path <- paste0(data_folder_root, "survey_data/", ref_lkup$cache_id, ".fst")
-  ref_lkup <- data.table::setDT(ref_lkup)
-  ref_lkup <- ref_lkup %>%
-    base::transform(
-      interpolation_id = paste(country_code, reporting_year, pop_data_level, sep = "_")
-    )
-  # Load dist_stats
-  dist_stats <- fst::read_fst(paste0(data_folder_root, "/estimations/dist_stats.fst"))
-  dist_stats <- data.table::setDT(dist_stats)
+  ref_lkup <- fst::read_fst(sprintf("%s/estimations/interpolated_means.fst", data_folder_root),
+                            as.data.table = TRUE)
+  ref_lkup$path <- sprintf("%ssurvey_data/%s.fst",
+                           data_folder_root, ref_lkup$cache_id)
 
-  # Clean pop_region
-  pop_region <- fst::read_fst(paste0(data_folder_root, "/_aux/pop-region.fst")) %>%
-    data.table::setnames(c('year', 'pop'), c('reporting_year','reporting_pop'))
-  pop_region <- data.table::setDT(pop_region)
+  # Load dist_stats
+  dist_stats <- fst::read_fst(sprintf("%s/estimations/dist_stats.fst", data_folder_root),
+                              as.data.table = TRUE)
+
+  # Load pop_region
+  pop_region <- fst::read_fst(sprintf("%s/_aux/pop_region.fst", data_folder_root),
+                              as.data.table = TRUE)
 
   # Add country profiles lkups
-  cp_lkups <- readRDS(paste0(data_folder_root, "/_aux/country_profiles.RDS"))
+  cp_lkups <- readRDS(sprintf("%s/_aux/country_profiles.RDS", data_folder_root))
 
-  # Add poverty lines table
-  pl_lkup <- fst::read_fst(paste0(data_folder_root, "/_aux/poverty_lines.fst"))
-  pl_lkup <- data.table::setDT(pl_lkup)
+    # Add poverty lines table
+  pl_lkup <- fst::read_fst(sprintf("%s/_aux/poverty_lines.fst", data_folder_root),
+                           as.data.table = TRUE)
 
   # Create query controls
-  country <- list(values = c("all", sort(unique(c(svy_lkup$country_code, ref_lkup$country_code)))),
+  country <- list(values = c("all",
+                             sort(unique(c(svy_lkup$country_code,
+                                           ref_lkup$country_code)))),
                   type = "character")
-  year <- list(values = c("all", "mrv", sort(unique(c(svy_lkup$reporting_year, ref_lkup$reporting_year)))),
+  year <- list(values = c("all", "mrv",
+                          sort(unique(c(svy_lkup$reporting_year,
+                                        ref_lkup$reporting_year)))),
                type = "character")
   povline <- list(values = c(min = 0, max = 100),
                   type = "numeric")
@@ -66,10 +55,13 @@ clean_api_data <- function(data_folder_root) {
                                  type = "logical")
   group_by <- list(values = c("none", "wb"),
                    type = "character")
-  welfare_type <- list(values = c("all", sort(unique(c(svy_lkup$welfare_type, ref_lkup$welfare_type)))),
+  welfare_type <- list(values = c("all", sort(unique(c(svy_lkup$welfare_type,
+                                                       ref_lkup$welfare_type)))),
                        type = "character")
-  reporting_level <- list(values = c("all", sort(unique(c(svy_lkup$pop_data_level, ref_lkup$pop_data_level)))),
-                       type = "character")
+  reporting_level <- list(values = c("all",
+                                     sort(unique(c(svy_lkup$pop_data_level,
+                                                   ref_lkup$pop_data_level)))),
+                          type = "character")
   ppp <- list(values = c(min = 0, max = 1000000), # CHECK THE VALUE OF MAX
               type = "numeric")
 
@@ -77,6 +69,7 @@ clean_api_data <- function(data_folder_root) {
                          type = "directory",
                          recurse = FALSE)
 
+  # Create list of query controls
   query_controls <- list(
     country = country,
     year = year,
@@ -92,7 +85,6 @@ clean_api_data <- function(data_folder_root) {
   )
 
   # Create list of lkups
-
   lkups <- list(svy_lkup       = svy_lkup,
                 ref_lkup       = ref_lkup,
                 dist_stats     = dist_stats,
