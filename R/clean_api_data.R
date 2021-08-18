@@ -81,6 +81,8 @@ clean_api_data <- function(data_folder_root) {
                          type = "directory",
                          recurse = FALSE)
 
+  formats <- list(values = c("json", "csv", "rds"), type = "character")
+
   # Create list of query controls
   query_controls <- list(
     country = country,
@@ -93,7 +95,8 @@ clean_api_data <- function(data_folder_root) {
     welfare_type = welfare_type,
     reporting_level = reporting_level,
     ppp = ppp,
-    version = versions
+    version = versions,
+    format = formats
   )
 
   # Create list of lkups

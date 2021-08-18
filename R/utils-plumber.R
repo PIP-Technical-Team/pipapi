@@ -115,7 +115,8 @@ validate_query_parameters <- function(params, valid_params = c("country",
                                                                "group_by",
                                                                "welfare_type",
                                                                "reporting_level",
-                                                               "ppp")) {
+                                                               "ppp",
+                                                               "format")) {
 
   params$argsQuery <- params$argsQuery[names(params$argsQuery) %in% valid_params]
 
@@ -150,7 +151,7 @@ parse_parameter <- function(param, param_name) {
   param <- strsplit(param, ",")
   param <- unlist(param)
 
-  if (param_name %in% c("country", "year", "group_by", "welfare_type", "reporting_level")) {
+  if (param_name %in% c("country", "year", "group_by", "welfare_type", "reporting_level", "format")) {
     param <- as.character(param)
   } else if (param_name %in% c("povline", "popshare", "ppp")) {
     param <- as.numeric(param)
@@ -160,3 +161,32 @@ parse_parameter <- function(param, param_name) {
 
   return(param)
 }
+
+#' Switch serializer
+#'
+#' @return A plumber response
+#' @export
+serializer_switch <- function() {
+  function(val, req, res, errorHandler) {
+    tryCatch({
+      format <- attr(val, "serialize_format")
+      if (is.null(format) || format  == "json") {
+        type <- "application/json"
+        sfn <- jsonlite::toJSON
+      } else if (format == "csv") {
+        type <- "text/csv; charset=UTF-8"
+        sfn <- readr::format_csv
+      } else if (format == "rds") {
+        type <- "application/rds"
+        sfn <- function(x) base::serialize(x, NULL)
+      }
+      val <- sfn(val)
+      res$setHeader("Content-Type", type)
+      res$body <- val
+      res$toResponse()
+    }, error = function(err) {
+      errorHandler(req, res, err)
+    })
+  }
+}
+
