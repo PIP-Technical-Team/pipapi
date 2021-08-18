@@ -158,7 +158,7 @@ function() {
 #* @serializer json list(na="null")
 function() {
   pipapi::get_aux_table(data_dir = lkups$data_root,
-                        table = "indicators_master")
+                        table = "indicators")
 }
 
 #* Return list of countries
@@ -286,4 +286,16 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups
   do.call(pipapi::ui_cp_charts, params)
+}
+
+# UI Endpoints: Survey metadata  ------------------------------------------
+
+#* Return data for the Data Sources page
+#* @get /api/v1/survey-metadata
+#* @param country:[chr] country iso3 code
+#* @serializer json list(na="null")
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups
+  do.call(pipapi::ui_svy_meta, params)
 }
