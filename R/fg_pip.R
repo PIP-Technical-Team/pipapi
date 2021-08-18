@@ -66,7 +66,7 @@ fg_pip <- function(country,
                           "survey_acronym", "survey_coverage", "survey_comparability",
                           "comparable_spell", "welfare_type", "distribution_type",
                           "gd_type", "predicted_mean_ppp", "survey_mean_lcu",
-                          "interpolation_id", "path")
+                          "interpolation_id", "path", "cpi")
     tmp_metadata <- collapse_rows(df = tmp_metadata,
                                   vars = vars_to_collapse,
                                   na_var = "survey_mean_ppp")
