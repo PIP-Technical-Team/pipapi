@@ -5,7 +5,6 @@
 
 library(pipapi)
 
-
 # API filters -------------------------------------------------------------
 
 #* Ensure that only valid parameters are being forwarded
@@ -58,6 +57,9 @@ function(res) {
 
   plumber::forward()
 }
+
+# Register serializer
+plumber::register_serializer("switch", pipapi:::serializer_switch)
 
 
 # Endpoints definition ----------------------------------------------------
@@ -123,17 +125,17 @@ function() {
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Survey coverage. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value
-#* @param
-#* @serializer json
+#* @param format:[chr] One of "json", "csv", or "rds". Defaults to "json".
 function(req) {
   # Process request
   # browser()
   params <- req$argsQuery
   params$lkup <- lkups
-
-  do.call(pipapi::pip, params)
+  params$format <- NULL
+  out <- do.call(pipapi::pip, params)
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
 }
-
 
 # # Update UI
 # #* @plumber
@@ -166,7 +168,8 @@ function() {
 #* @serializer json
 function() {
   pipapi::get_aux_table(data_dir = lkups$data_root,
-                        table = "countries")
+                        table = "countries") %>%
+    data.table::setnames('pcn_region_code', 'region_code')
 }
 
 #* Return poverty lines for home page display

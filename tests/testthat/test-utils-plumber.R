@@ -14,7 +14,8 @@ test_that("validate_query_parameters() works", {
     group_by  = "none",
     welfare_type = "all",
     reporting_level = "all",
-    ppp = "NULL"
+    ppp = "NULL",
+    format = "json"
   ))
   tmp <- validate_query_parameters(req)
   expect_identical(req$argsQuery, tmp)
@@ -40,7 +41,9 @@ test_that("parse_parameters() works as expected", {
     welfare_type = "all",
     reporting_level = "all",
     popshare = "0.5",
-    ppp = "1"
+    ppp = "1",
+    format = "json"
+
   )
   tmp <- parse_parameters(params)
   expect_type(tmp$country, 'character')
@@ -53,6 +56,7 @@ test_that("parse_parameters() works as expected", {
   expect_type(tmp$reporting_level, 'character')
   expect_true(is.numeric(tmp$popshare))
   expect_true(is.numeric(tmp$ppp))
+  expect_type(tmp$format, 'character')
 
 })
 
@@ -127,6 +131,11 @@ test_that("check_parameters() works as expected", {
 
   # Invalid ppp parameter
   req <- list(argsQuery = list(ppp = "NULL"))
+  tmp <- check_parameters(req, lkups$query_controls)
+  expect_false(tmp)
+
+  # Invalid format parameter
+  req <- list(argsQuery = list(format = "tiff"))
   tmp <- check_parameters(req, lkups$query_controls)
   expect_false(tmp)
 
