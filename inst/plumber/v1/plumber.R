@@ -168,7 +168,8 @@ function() {
 #* @serializer json
 function() {
   pipapi::get_aux_table(data_dir = lkups$data_root,
-                        table = "countries")
+                        table = "countries") %>%
+    data.table::setnames('pcn_region_code', 'region_code')
 }
 
 #* Return poverty lines for home page display
