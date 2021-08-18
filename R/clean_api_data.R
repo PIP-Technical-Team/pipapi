@@ -47,6 +47,8 @@ clean_api_data <- function(data_folder_root) {
     # Add poverty lines table
   pl_lkup <- fst::read_fst(sprintf("%s/_aux/poverty_lines.fst", data_folder_root),
                            as.data.table = TRUE)
+  # TEMP fix
+  pl_lkup$name <- as.character(pl_lkup$name)
 
   # Create query controls
   country <- list(values = c("all",
