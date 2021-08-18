@@ -139,7 +139,7 @@ test_that("Imputation is working", {
              fill_gaps = TRUE,
              lkup = lkups)
   # Why is this correct? E.g. tmp %>% group_by(country_code) %>% summarise(n = n())
-  expect_equal(nrow(tmp), 213)
+  expect_equal(nrow(tmp), 195)
   # expect_equal(nrow(tmp), 182)
 })
 
