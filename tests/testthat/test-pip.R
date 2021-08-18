@@ -1,8 +1,9 @@
 # lkups <- pipapi:::clean_api_data(
 #   data_folder_root = "../testdata/20210401/")
+files <- sub('[.]fst', '', list.files('../testdata/20210401/survey_data/'))
 lkups <- pipapi:::clean_api_data(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
-lkups$svy_lkup <- lkups$svy_lkup[country_code %in% c('IND', 'AGO', 'PHL')]
-lkups$ref_lkup <- lkups$ref_lkup[country_code %in% c('IND', 'AGO', 'PHL')]
+lkups$svy_lkup <- lkups$svy_lkup[(cache_id %in% files | country_code == 'AGO')]
+lkups$ref_lkup <- lkups$ref_lkup[(cache_id %in% files | country_code == 'AGO')]
 
 # Check output type ----
 test_that("output type is correct", {
@@ -137,19 +138,20 @@ test_that("Imputation is working", {
              povline = 3.5,
              fill_gaps = TRUE,
              lkup = lkups)
-
-  expect_equal(nrow(tmp), 182)
+  # Why is this correct? E.g. tmp %>% group_by(country_code) %>% summarise(n = n())
+  expect_equal(nrow(tmp), 213)
+  # expect_equal(nrow(tmp), 182)
 })
 
 # Check regional aggregations
 test_that("Regional aggregations are working", {
   tmp <- pip(country = "all",
-             year    = 2018,
+             year    = "2000",
              group_by = "wb",
              povline = 3.5,
              lkup = lkups)
 
-  expect_equal(nrow(tmp), 4) # Should be changed if lkups are updated. Full set of regions is 8.
+  expect_equal(nrow(tmp), 3) # Should be changed if lkups are updated. Full set of regions is 8.
 })
 
 # Check pop_share

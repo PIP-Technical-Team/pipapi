@@ -15,11 +15,21 @@ clean_api_data <- function(data_folder_root) {
   # Clean svy_lkup
   svy_lkup <- fst::read_fst(sprintf("%s/estimations/survey_means.fst", data_folder_root),
                             as.data.table = TRUE)
+  # TEMP cleaning - START
+  svy_lkup <- svy_lkup[!is.na(svy_lkup$survey_mean_ppp), ]
+  svy_lkup <- svy_lkup[!is.na(svy_lkup$ppp), ]
+  svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
+  # TEMP cleaning - END
   svy_lkup$path <- sprintf("%ssurvey_data/%s.fst",
                            data_folder_root, svy_lkup$cache_id)
   # Clean ref_lkup
   ref_lkup <- fst::read_fst(sprintf("%s/estimations/interpolated_means.fst", data_folder_root),
                             as.data.table = TRUE)
+  # TEMP cleaning - START
+  ref_lkup <- ref_lkup[!is.na(ref_lkup$predicted_mean_ppp), ]
+  ref_lkup <- ref_lkup[!is.na(ref_lkup$ppp), ]
+  ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
+  # TEMP cleaning - END
   ref_lkup$path <- sprintf("%ssurvey_data/%s.fst",
                            data_folder_root, ref_lkup$cache_id)
 
