@@ -194,14 +194,14 @@ ui_cp_charts <- function(country = 'AGO', povline = NULL,
                            pop_units = pop_units,
                            lkup = lkup)
     })
-    names(dl) <- poverty_lines
+    # names(dl) <- poverty_lines
   } else {
     dl <- ui_cp_poverty_charts(country = country,
                                povline = povline,
                                pop_units = pop_units,
                                lkup = lkup)
     dl <- list(dl)
-    names(dl) <- povline
+    # names(dl) <- povline
   }
 
   dl <- list(pov_charts = dl)
