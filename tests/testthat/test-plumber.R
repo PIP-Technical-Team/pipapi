@@ -75,6 +75,27 @@ test_that("Interpolated PIP request is working", {
   expect_equal(tmp_resp[[1]]$reporting_year, 2012)
 })
 
+test_that("Serializer formats are working", {
+
+  # Check json
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=AGO&year=2000&format=json")
+  expect_equal(httr::http_type(r),"application/json")
+
+  # Check that default is json
+  r2 <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=AGO&year=2000")
+  expect_equal(httr::http_type(r), httr::http_type(r2))
+  expect_equal(httr::content(r, encoding = "UTF-8"), httr::content(r2, encoding = "UTF-8"))
+
+  # Check csv
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=AGO&year=2000&format=csv")
+  expect_equal(httr::headers(r)$`content-type`, "text/csv; charset=UTF-8")
+
+  # Check rds
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=AGO&year=2000&format=rds")
+  expect_equal(httr::http_type(r), "application/rds")
+
+})
+
 test_that("Indicator names are correct", {
   # Send pip API request
   r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=AGO&year=2018")
