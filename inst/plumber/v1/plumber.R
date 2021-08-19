@@ -58,7 +58,7 @@ function(res) {
   plumber::forward()
 }
 
-# Register serializer
+# Register switch serializer
 plumber::register_serializer("switch", pipapi:::serializer_switch)
 
 
@@ -126,6 +126,7 @@ function() {
 #* @param reporting_level:[chr] Survey coverage. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value
 #* @param format:[chr] One of "json", "csv", or "rds". Defaults to "json".
+#* @serializer switch
 function(req) {
   # Process request
   # browser()
@@ -172,7 +173,7 @@ function() {
     data.table::setnames('pcn_region_code', 'region_code')
 }
 
-#* Return poverty lines for home page display
+#* Return list of regions
 #* @get /api/v1/regions
 #* @serializer json
 function() {
@@ -188,17 +189,13 @@ function() {
                         table = "decomposition_master")
 }
 
-
+#* Return data for home page main chart
 #* @get /api/v1/hp-stacked
 #* @param povline:[dbl] Poverty Line
-#* @param
 #* @serializer json
 function(req) {
-  # Process request
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups
-
   do.call(pipapi:::ui_hp_stacked, params)
 }
 
@@ -208,10 +205,8 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups
-
   do.call(pipapi:::ui_hp_countries, params)
 }
-
 
 
 # UI Endpoints: Poverty calculator ----------------------------------------
@@ -230,7 +225,6 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups
-  # browser()
   do.call(pipapi::ui_pc_charts, params)
 }
 
@@ -248,7 +242,6 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups
-  # browser()
   do.call(pipapi::ui_pc_charts, params)
 }
 
