@@ -8,7 +8,7 @@ Authors@R:
             email = "tfujs@worldbank.org"),
      person(given = "Aleksander",
             family = "Eilertsen",
-            role = "ctb",
+            role = "aut",
             email = "aeilertsen@worldbank.org"),
      person(given = "World Bank",
             role = "cph")
@@ -28,6 +28,7 @@ Suggests:
     spelling,
     knitr,
     rmarkdown,
+    markdown,
     fs,
     assertthat,
     purrr
