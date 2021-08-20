@@ -1,3 +1,4 @@
+skip_if(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER') == "")
 data_folder_root <- Sys.getenv('PIPAPI_DATA_ROOT_FOLDER')
 lkups <- pipapi:::clean_api_data(data_folder_root)
 

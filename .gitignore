@@ -8,3 +8,4 @@ renv/
 inst/doc
 tests/testdata/20210401
 .Renviron
+docs

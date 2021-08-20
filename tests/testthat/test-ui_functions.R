@@ -1,7 +1,9 @@
+# Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
+skip_if(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER') == "")
+
 # constants
 lkups <- pipapi:::clean_api_data(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
 lkups$pl_lkup <- lkups$pl_lkup[sample(nrow(lkups$pl_lkup), 10)]
-
 dt_lac <- readRDS('../testdata/pip_lac_resp.RDS')
 dt_sas <- readRDS('../testdata/pip_sas_resp.RDS')
 

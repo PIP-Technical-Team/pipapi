@@ -1,5 +1,12 @@
-lkups <- pipapi:::clean_api_data(
-  data_folder_root = Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
+if (Sys.getenv('PIPAPI_DATA_ROOT_FOLDER') != "") {
+  lkups <- pipapi:::clean_api_data(
+    data_folder_root = Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
+} else {
+  # lkups$query_controls$version <- NULL
+  # saveRDS(list(query_controls = lkups$query_controls),
+  #         'tests/testdata/query-controls.rds')
+  lkups <- readRDS('../testdata/query-controls.rds')
+}
 
 test_that("validate_query_parameters() works", {
 

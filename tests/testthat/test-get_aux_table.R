@@ -1,3 +1,4 @@
+skip_if(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER') == "")
 data_folder_root <- Sys.getenv('PIPAPI_DATA_ROOT_FOLDER')
 tables <- c('gdp', 'pce', 'pop', 'cpi', 'ppp')
 

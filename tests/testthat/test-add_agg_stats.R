@@ -1,50 +1,32 @@
-lkups <- pipapi:::clean_api_data(
-  data_folder_root = Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
+res_ex1 <- readRDS('../testdata/agg-stats-ex-1.rds')
+res_ex2 <- readRDS('../testdata/agg-stats-ex-2.rds')
 
 test_that("add_agg_stats() works", {
 
   # Check that Watts is set to NA if either U/R watts is not above zero
-  res <- rg_pip(country = 'CHN',
-                year = '1996',
-                povline = 0.05,
-                welfare_type = 'all',
-                aggregate = FALSE,
-                reporting_level = 'all',
-                ppp = NULL,
-                popshare = NULL,
-                lkup = lkups)
-  expect_equal(res$watts[1], 0)
-  tmp <- add_agg_stats(res)
+  expect_equal(res_ex1$watts[1], 0)
+  tmp <- add_agg_stats(res_ex1)
   expect_true(is.na(tmp$watts[3]))
 
   # Note: Wasn't able to trigger poverty_severity statements
   # with real data, so created dummy examples
-  res <- rg_pip(country = 'CHN',
-                year = '1996',
-                povline = 1.9,
-                welfare_type = 'all',
-                aggregate = FALSE,
-                reporting_level = 'all',
-                ppp = NULL,
-                popshare = NULL,
-                lkup = lkups)
 
   # If rural poverty_severity > 0
-  res2 <- res
-  res2$poverty_severity[1] <- -0.5
-  tmp <- add_agg_stats(res2)
+  res_ex3 <- res_ex2
+  res_ex3$poverty_severity[1] <- -0.5
+  tmp <- add_agg_stats(res_ex3)
   expect_equal(tmp$headcount[2], tmp$headcount[3])
 
   # If urban poverty_severity > 0
-  res2 <- res
-  res2$poverty_severity[2] <- -0.5
-  tmp <- add_agg_stats(res2)
+  res_ex3 <- res_ex2
+  res_ex3$poverty_severity[2] <- -0.5
+  tmp <- add_agg_stats(res_ex3)
   expect_equal(tmp$headcount[1], tmp$headcount[3])
 
   # If both urban and rural poverty_severity > 0
-  res2 <- res
-  res2$poverty_severity <- -0.5
-  tmp <- add_agg_stats(res2)
+  res_ex3 <- res_ex2
+  res_ex3$poverty_severity <- -0.5
+  tmp <- add_agg_stats(res_ex3)
   expect_true(is.na(tmp$headcount[3]))
 
 })
