@@ -43,6 +43,8 @@ Imports:
     wbpip,
     callr,
     httr
+Remotes:
+    PIP-Technical-Team/wbpip
 Depends: 
     R (>= 2.10)
 VignetteBuilder: knitr
