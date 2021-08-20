@@ -1,3 +1,6 @@
+# Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
+skip_if(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER') == "")
+
 library(callr)
 library(httr)
 

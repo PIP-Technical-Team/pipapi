@@ -29,20 +29,21 @@ Suggests:
     knitr,
     rmarkdown,
     markdown,
-    fs,
     assertthat,
-    purrr
+    purrr,
+    callr,
+    httr,
+    jsonlite
 Language: en-US
 Imports: 
     data.table,
+    fs,
     fst,
     plumber,
     urltools,
     yaml,
     magrittr,
-    wbpip,
-    callr,
-    httr
+    wbpip
 Remotes:
     PIP-Technical-Team/wbpip
 Depends: 
