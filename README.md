@@ -6,7 +6,7 @@
 <!-- badges: start -->
 <!-- [![Codecov test coverage](https://codecov.io/gh/PIP-Technical-Team/pipapi/branch/master/graph/badge.svg)](https://codecov.io/gh/PIP-Technical-Team/pipapi?branch=master) -->
 
-[![check-release](https://github.com/PIP-Technical-Team/pipapi/workflows/check-release/badge.svg)](https://github.com/PIP-Technical-Team/pipapi/actions)
+[![R-CMD-check](https://github.com/PIP-Technical-Team/pipapi/workflows/check-release/badge.svg)](https://github.com/PIP-Technical-Team/pipapi/actions)
 [![test-coverage](https://github.com/PIP-Technical-Team/pipapi/workflows/test-coverage/badge.svg)](https://github.com/PIP-Technical-Team/pipapi/actions)
 [![pkgdown](https://github.com/PIP-Technical-Team/pipapi/workflows/pkgdown/badge.svg)](https://github.com/PIP-Technical-Team/pipapi/actions)
 <!-- badges: end -->
