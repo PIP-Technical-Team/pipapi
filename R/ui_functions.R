@@ -8,17 +8,21 @@
 #'
 ui_hp_stacked <- function(povline = 1.9,
                           lkup) {
-  out <- pip(country      = "all",
-             year         = "all",
-             povline      = povline,
-             lkup         = lkup,
-             fill_gaps    = TRUE,
-             aggregate    = TRUE,
-             group_by     = "wb",
-             reporting_level = "national")
+  out <- pip(
+    country = "all",
+    year = "all",
+    povline = povline,
+    lkup = lkup,
+    fill_gaps = TRUE,
+    aggregate = TRUE,
+    group_by = "wb",
+    reporting_level = "national"
+  )
 
-  out <- out[, .(region_code, reporting_year,
-                 poverty_line, pop_in_poverty)]
+  out <- out[, .(
+    region_code, reporting_year,
+    poverty_line, pop_in_poverty
+  )]
   return(out)
 }
 
@@ -36,22 +40,26 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
                             povline = 1.9,
                             pop_units = 1e6,
                             lkup) {
-  out <- pip(country      = country,
-             year         = "all",
-             povline      = povline,
-             lkup         = lkup,
-             fill_gaps    = FALSE,
-             aggregate    = FALSE,
-             group_by     = NULL,
-             reporting_level = "national")
+  out <- pip(
+    country = country,
+    year = "all",
+    povline = povline,
+    lkup = lkup,
+    fill_gaps = FALSE,
+    aggregate = FALSE,
+    group_by = NULL,
+    reporting_level = "national"
+  )
 
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
-  out$reporting_pop  <- out$reporting_pop / pop_units
+  out$reporting_pop <- out$reporting_pop / pop_units
 
-  out <- out[, .(pcn_region_code, country_code, reporting_year,
-                 poverty_line, reporting_pop, pop_in_poverty)]
+  out <- out[, .(
+    pcn_region_code, country_code, reporting_year,
+    poverty_line, reporting_pop, pop_in_poverty
+  )]
   out <- out %>%
-    data.table::setnames('pcn_region_code', 'region_code')
+    data.table::setnames("pcn_region_code", "region_code")
 
   return(out)
 }
@@ -72,7 +80,7 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
 #' @export
 #'
 ui_pc_charts <- function(country = c("AGO"),
-                         year    = "all",
+                         year = "all",
                          povline = 1.9,
                          fill_gaps = FALSE,
                          aggregate = FALSE,
@@ -80,42 +88,46 @@ ui_pc_charts <- function(country = c("AGO"),
                          welfare_type = c("all", "consumption", "income"),
                          reporting_level = c("all", "national", "rural", "urban"),
                          lkup) {
-
   group_by <- match.arg(group_by)
 
-  out <- pip(country      = country,
-             year         = year,
-             povline      = povline,
-             fill_gaps    = fill_gaps,
-             aggregate    = aggregate,
-             group_by     = group_by,
-             reporting_level = reporting_level,
-             lkup         = lkup,)
+  out <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    fill_gaps = fill_gaps,
+    aggregate = aggregate,
+    group_by = group_by,
+    reporting_level = reporting_level,
+    lkup = lkup,
+  )
 
   if (group_by != "none") {
     return(out)
-  }  else if (fill_gaps == FALSE) {
-    out <- out[, .(country_code, reporting_year, welfare_type,
-                   pop_data_level, median, gini, polarization,
-                   mld, decile1, decile2, decile3, decile4, decile5,
-                   decile6, decile7, decile8, decile9, decile10,
-                   pcn_region_code, survey_coverage, survey_comparability,
-                   comparable_spell, survey_year, survey_mean_lcu, survey_mean_ppp,
-                   reporting_pop, ppp, cpi, distribution_type,
-                   is_interpolated, poverty_line, mean, headcount,
-                   poverty_gap, poverty_severity, watts)]
+  } else if (fill_gaps == FALSE) {
+    out <- out[, .(
+      country_code, reporting_year, welfare_type,
+      pop_data_level, median, gini, polarization,
+      mld, decile1, decile2, decile3, decile4, decile5,
+      decile6, decile7, decile8, decile9, decile10,
+      pcn_region_code, survey_coverage, survey_comparability,
+      comparable_spell, survey_year, survey_mean_lcu, survey_mean_ppp,
+      reporting_pop, ppp, cpi, distribution_type,
+      is_interpolated, poverty_line, mean, headcount,
+      poverty_gap, poverty_severity, watts
+    )]
     out <- out %>%
-      data.table::setnames('pcn_region_code', 'region_code')
+      data.table::setnames("pcn_region_code", "region_code")
     return(out)
   } else {
-    out <- out[, .(country_code, reporting_year, poverty_line, mean,
-                   headcount, poverty_gap, poverty_severity, watts,
-                   pcn_region_code, reporting_pop, is_interpolated)]
+    out <- out[, .(
+      country_code, reporting_year, poverty_line, mean,
+      headcount, poverty_gap, poverty_severity, watts,
+      pcn_region_code, reporting_pop, is_interpolated
+    )]
     out <- out %>%
-      data.table::setnames('pcn_region_code', 'region_code')
+      data.table::setnames("pcn_region_code", "region_code")
     return(out)
   }
-
 }
 
 
@@ -128,15 +140,14 @@ ui_pc_charts <- function(country = c("AGO"),
 #' @return data.frame
 #' @export
 #'
-ui_cp_key_indicators <- function(country = 'AGO', povline = NULL, lkup) {
-
+ui_cp_key_indicators <- function(country = "AGO", povline = NULL, lkup) {
   if (is.null(povline)) {
     poverty_lines <- lkup$pl_lkup$poverty_line
     hc <- lapply(poverty_lines, function(pl) {
       ui_cp_ki_headcount(country, pl, lkup)
     })
     hc <- data.table::rbindlist(hc)
-    #names(hc) <- poverty_lines
+    # names(hc) <- poverty_lines
   } else {
     hc <- ui_cp_ki_headcount(country, povline, lkup)
     # hc <- list(hc)
@@ -162,13 +173,12 @@ ui_cp_key_indicators <- function(country = 'AGO', povline = NULL, lkup) {
 #' @noRd
 #'
 ui_cp_ki_headcount <- function(country, povline, lkup) {
-
-  res <- pip(country, year = 'mrv', povline = povline, lkup = lkup)
+  res <- pip(country, year = "mrv", povline = povline, lkup = lkup)
   out <- data.table::data.table(
     country_code = country, reporting_year = res$reporting_year,
-    poverty_line = povline, headcount = res$headcount)
+    poverty_line = povline, headcount = res$headcount
+  )
   return(out)
-
 }
 
 
@@ -182,24 +192,26 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
 #' @return list
 #' @export
 #'
-ui_cp_charts <- function(country = 'AGO', povline = NULL,
+ui_cp_charts <- function(country = "AGO", povline = NULL,
                          pop_units = 1e6, lkup) {
-
-
   if (is.null(povline)) {
     poverty_lines <- lkup$pl_lkup$poverty_line
     dl <- lapply(poverty_lines, function(pl) {
-      ui_cp_poverty_charts(country = country,
-                           povline = pl,
-                           pop_units = pop_units,
-                           lkup = lkup)
+      ui_cp_poverty_charts(
+        country = country,
+        povline = pl,
+        pop_units = pop_units,
+        lkup = lkup
+      )
     })
     # names(dl) <- poverty_lines
   } else {
-    dl <- ui_cp_poverty_charts(country = country,
-                               povline = povline,
-                               pop_units = pop_units,
-                               lkup = lkup)
+    dl <- ui_cp_poverty_charts(
+      country = country,
+      povline = povline,
+      pop_units = pop_units,
+      lkup = lkup
+    )
     dl <- list(dl)
     # names(dl) <- povline
   }
@@ -214,7 +226,6 @@ ui_cp_charts <- function(country = 'AGO', povline = NULL,
   out <- append(dl, dl2)
 
   return(out)
-
 }
 
 #' Provides numbers that will populate the country profiles poverty charts
@@ -232,9 +243,11 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   res_pov_trend$pop_in_poverty <-
     res_pov_trend$reporting_pop * res_pov_trend$headcount / pop_units
   res_pov_trend <-
-    res_pov_trend[, c('country_code', 'reporting_year',
-                      'poverty_line', 'headcount',
-                      'pop_in_poverty')]
+    res_pov_trend[, c(
+      "country_code", "reporting_year",
+      "poverty_line", "headcount",
+      "pop_in_poverty"
+    )]
 
   # Fetch data for poverty bar chart
   region <-
@@ -247,14 +260,17 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   res_pov_mrv <- pip(country = countries, povline = povline, lkup = lkup)
   res_pov_mrv <-
     res_pov_mrv[, .SD[which.max(reporting_year)],
-                by = country_code]
+      by = country_code
+    ]
   selected_year <- res_pov_mrv[country_code == country]$reporting_year
   year_range <- c((selected_year - 3):(selected_year + 3))
   res_pov_mrv <-
     res_pov_mrv[reporting_year %in% year_range]
   res_pov_mrv <-
-    res_pov_mrv[, c('country_code', 'reporting_year',
-                    'poverty_line', 'headcount')]
+    res_pov_mrv[, c(
+      "country_code", "reporting_year",
+      "poverty_line", "headcount"
+    )]
   res_pov_mrv <-
     cp_pov_mrv_select_countries(res_pov_mrv, country)
 
@@ -264,14 +280,13 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   )
 
   return(out)
-
 }
 
 #' Select countries to display for CP Poverty MRV Chart
 #' @param dt data.table: Result from `pip()` query
 #' @param country character: Country code
 #' @noRd
-cp_pov_mrv_select_countries <- function(dt, country){
+cp_pov_mrv_select_countries <- function(dt, country) {
   # IF the number of countries is > 12
   if (nrow(dt) > 12) {
     hc_req_country <- dt[country_code == country]$headcount
@@ -298,8 +313,10 @@ cp_pov_mrv_select_values <- function(v, h) {
     v <- v[!v %in% h]
     v_above <- v[v > h]
     v_below <- v[v < h]
-    vals <- c(h, head(v, 3), tail(v, 3),
-              head(v_above, 2), tail(v_below, 2))
+    vals <- c(
+      h, head(v, 3), tail(v, 3),
+      head(v_above, 2), tail(v_below, 2)
+    )
     # ELSE IF selected country pertains to top 5, display:
   } else if (h %in% tail(v, 5)) {
     vals <- c(head(v, 5), tail(v, 6))
@@ -319,8 +336,10 @@ cp_pov_mrv_select_values <- function(v, h) {
 #' @export
 #'
 ui_svy_meta <- function(country = "all", lkup) {
-  out <- pipapi::get_aux_table(data_dir = lkup$data_root,
-                               table = "survey_metadata")
+  out <- pipapi::get_aux_table(
+    data_dir = lkup$data_root,
+    table = "survey_metadata"
+  )
   if (country == "all") {
     return(out)
   } else {

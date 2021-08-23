@@ -5,9 +5,12 @@ add_agg_stats <- function(df) {
 
   if (nrow(aggregated) > 0) {
     aggregated_list <- split(aggregated,
-                             interaction(aggregated$country_code,
-                                         aggregated$reporting_year),
-                             drop = TRUE)
+      interaction(
+        aggregated$country_code,
+        aggregated$reporting_year
+      ),
+      drop = TRUE
+    )
     aggregated <- lapply(aggregated_list, ag_average_poverty_stats)
     aggregated <- data.table::rbindlist(aggregated)
 
@@ -24,7 +27,6 @@ add_agg_stats <- function(df) {
 #' @export
 
 ag_average_poverty_stats <- function(df) {
-
   assertthat::assert_that(assertthat::are_equal(length(df$pop_data_level), 2))
   dfu <- df[df$pop_data_level == "urban", ]
   dfr <- df[df$pop_data_level == "rural", ]
@@ -45,32 +47,25 @@ ag_average_poverty_stats <- function(df) {
   wgt_urban <- dfu$reporting_pop / sum(df$reporting_pop)
   wgt_rural <- 1 - wgt_urban
 
-  out$survey_mean_ppp = wgt_urban * dfu$mean +
+  out$survey_mean_ppp <- wgt_urban * dfu$mean +
     wgt_rural * dfr$mean
 
-  if (dfr$poverty_severity < 0) {# Check if rural poverty severity < 0
+  if (dfr$poverty_severity < 0) { # Check if rural poverty severity < 0
 
     if (dfu$poverty_severity < 0) { # Same for urban
 
       out[, c("headcount", "poverty_gap", "poverty_severity")] <- NA
-      
     } else {
-
-      out$headcount        <- dfu$headcount
-      out$poverty_gap      <- dfu$poverty_gap
+      out$headcount <- dfu$headcount
+      out$poverty_gap <- dfu$poverty_gap
       out$poverty_severity <- dfu$poverty_severity
-
     }
   } else {
-
     if (dfu$poverty_severity < 0) {
-
-      out$headcount        <- dfr$headcount
-      out$poverty_gap      <- dfr$poverty_gap
+      out$headcount <- dfr$headcount
+      out$poverty_gap <- dfr$poverty_gap
       out$poverty_severity <- dfr$poverty_severity
-
     } else {
-      
       out$headcount <- wgt_rural * dfr$headcount +
         wgt_urban * dfu$headcount
 
@@ -91,8 +86,10 @@ ag_average_poverty_stats <- function(df) {
 
   # Update other variables
   out$reporting_pop <- sum(df$reporting_pop)
-  out[, c("pop_data_level", "gdp_data_level",
-          "pce_data_level", "cpi_data_level", "ppp_data_level")] <- "national"
+  out[, c(
+    "pop_data_level", "gdp_data_level",
+    "pce_data_level", "cpi_data_level", "ppp_data_level"
+  )] <- "national"
 
   return(out)
 }

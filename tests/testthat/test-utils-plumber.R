@@ -1,11 +1,12 @@
-if (Sys.getenv('PIPAPI_DATA_ROOT_FOLDER') != "") {
+if (Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") != "") {
   lkups <- pipapi:::clean_api_data(
-    data_folder_root = Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
+    data_folder_root = Sys.getenv("PIPAPI_DATA_ROOT_FOLDER")
+  )
 } else {
   # lkups$query_controls$version <- NULL
   # saveRDS(list(query_controls = lkups$query_controls),
   #         'tests/testdata/query-controls.rds')
-  lkups <- readRDS('../testdata/query-controls.rds')
+  lkups <- readRDS("../testdata/query-controls.rds")
 }
 
 test_that("validate_query_parameters() works", {
@@ -15,10 +16,10 @@ test_that("validate_query_parameters() works", {
     country = "AGO",
     year = "2018",
     povline = "1.9",
-    popshare  = "NULL",
+    popshare = "NULL",
     fill_gaps = "FALSE",
     aggregate = "FALSE",
-    group_by  = "none",
+    group_by = "none",
     welfare_type = "all",
     reporting_level = "all",
     ppp = "NULL",
@@ -30,41 +31,38 @@ test_that("validate_query_parameters() works", {
   # Test that non-accepted parameter are removed
   req <- list(argsQuery = list(
     country = "AGO",
-    test = "hello"))
+    test = "hello"
+  ))
   tmp <- validate_query_parameters(req)
   expect_identical(list(country = "AGO"), tmp)
-
 })
 
 test_that("parse_parameters() works as expected", {
-
   params <- list(
     country = "AGO",
     year = "2018",
     povline = "1.9",
     fill_gaps = "FALSE",
     aggregate = "FALSE",
-    group_by  = "none",
+    group_by = "none",
     welfare_type = "all",
     reporting_level = "all",
     popshare = "0.5",
     ppp = "1",
     format = "json"
-
   )
   tmp <- parse_parameters(params)
-  expect_type(tmp$country, 'character')
-  expect_type(tmp$year, 'character')
+  expect_type(tmp$country, "character")
+  expect_type(tmp$year, "character")
   expect_true(is.numeric(tmp$povline))
-  expect_type(tmp$fill_gaps, 'logical')
-  expect_type(tmp$aggregate, 'logical')
-  expect_type(tmp$group_by, 'character')
-  expect_type(tmp$welfare_type, 'character')
-  expect_type(tmp$reporting_level, 'character')
+  expect_type(tmp$fill_gaps, "logical")
+  expect_type(tmp$aggregate, "logical")
+  expect_type(tmp$group_by, "character")
+  expect_type(tmp$welfare_type, "character")
+  expect_type(tmp$reporting_level, "character")
   expect_true(is.numeric(tmp$popshare))
   expect_true(is.numeric(tmp$ppp))
-  expect_type(tmp$format, 'character')
-
+  expect_type(tmp$format, "character")
 })
 
 test_that("check_parameters() works as expected", {
@@ -74,10 +72,10 @@ test_that("check_parameters() works as expected", {
     country = "AGO",
     year = 2018,
     povline = 1.9,
-    popshare  = NULL,
+    popshare = NULL,
     fill_gaps = FALSE,
     aggregate = FALSE,
-    group_by  = "none",
+    group_by = "none",
     welfare_type = "all",
     reporting_level = "all",
     ppp = NULL
@@ -145,11 +143,12 @@ test_that("check_parameters() works as expected", {
   req <- list(argsQuery = list(format = "tiff"))
   tmp <- check_parameters(req, lkups$query_controls)
   expect_false(tmp)
-
 })
 
 test_that("format_error() works as expected", {
-  tmp <- format_error("XYZ", c('AGO', 'BOL'))
-  expect_identical(tmp$error,
-                   "Invalid value for XYZ. Please use one of'AGO', 'BOL'.")
+  tmp <- format_error("XYZ", c("AGO", "BOL"))
+  expect_identical(
+    tmp$error,
+    "Invalid value for XYZ. Please use one of'AGO', 'BOL'."
+  )
 })

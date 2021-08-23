@@ -16,15 +16,17 @@ get_pip_version <- function(pip_packages = c("pipapi", "wbpip"),
   names(pkg) <- pip_packages
 
   # Data version
-  data <- fs::dir_ls(path = data_folder_root,
-                     type = "directory",
-                     recurse = TRUE)
+  data <- fs::dir_ls(
+    path = data_folder_root,
+    type = "directory",
+    recurse = TRUE
+  )
 
   return(
     list(
       valid_query_parameters = valid_params,
       packages_version = pkg,
-      data_versions    = data
+      data_versions = data
     )
   )
 }
@@ -32,9 +34,9 @@ get_pip_version <- function(pip_packages = c("pipapi", "wbpip"),
 retrieve_pkg_version <- function(package) {
   desc <- read.dcf(system.file("DESCRIPTION", package = package))
   pkg <- list(
-      version = unname(desc[1,"Version"])#,
-      # built = unname(desc[1,"Built"])
-    )
+    version = unname(desc[1, "Version"]) # ,
+    # built = unname(desc[1,"Built"])
+  )
 
   return(pkg)
 }

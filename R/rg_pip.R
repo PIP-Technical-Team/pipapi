@@ -13,12 +13,13 @@ rg_pip <- function(country,
                    reporting_level,
                    ppp,
                    lkup) {
-
-  metadata <- subset_lkup(country = country,
-                          year = year,
-                          welfare_type = welfare_type,
-                          reporting_level = reporting_level,
-                          lkup = lkup[["svy_lkup"]])
+  metadata <- subset_lkup(
+    country = country,
+    year = year,
+    welfare_type = welfare_type,
+    reporting_level = reporting_level,
+    lkup = lkup[["svy_lkup"]]
+  )
 
   # return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
@@ -28,13 +29,13 @@ rg_pip <- function(country,
   out <- vector(mode = "list", length = nrow(metadata))
 
   for (i in seq_along(out)) {
-
     tmp_metadata <- metadata[i, ]
 
     svy_data <- get_svy_data(
       tmp_metadata$cache_id,
       reporting_level = tmp_metadata$pop_data_level,
-      path = tmp_metadata$path)
+      path = tmp_metadata$path
+    )
 
     tmp_stats <- wbpip:::prod_compute_pip_stats(
       welfare = svy_data$df0$welfare,
@@ -45,7 +46,8 @@ rg_pip <- function(country,
       svy_mean_lcu = tmp_metadata$survey_mean_lcu,
       default_ppp = tmp_metadata$ppp,
       ppp = ppp,
-      distribution_type = tmp_metadata$distribution_type)
+      distribution_type = tmp_metadata$distribution_type
+    )
 
     # Add stats columns to data frame
     for (j in seq_along(tmp_stats)) {

@@ -1,5 +1,5 @@
-res_ex1 <- readRDS('../testdata/agg-stats-ex-1.rds')
-res_ex2 <- readRDS('../testdata/agg-stats-ex-2.rds')
+res_ex1 <- readRDS("../testdata/agg-stats-ex-1.rds")
+res_ex2 <- readRDS("../testdata/agg-stats-ex-2.rds")
 
 test_that("add_agg_stats() works", {
 
@@ -28,5 +28,4 @@ test_that("add_agg_stats() works", {
   res_ex3$poverty_severity <- -0.5
   tmp <- add_agg_stats(res_ex3)
   expect_true(is.na(tmp$headcount[3]))
-
 })
