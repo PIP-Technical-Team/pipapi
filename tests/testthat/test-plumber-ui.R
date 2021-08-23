@@ -277,7 +277,7 @@ test_that("Country profile key indicators endpoint is working", {
   # KI 5
   expect_equal(
     names(tmp_resp$population[[1]]),
-    c("country_code", "reporting_year", "population")
+    c("country_code", "reporting_year", "reporting_pop")
   )
 
   # KI 6
