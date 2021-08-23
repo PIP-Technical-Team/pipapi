@@ -1,27 +1,29 @@
 utils::globalVariables(
-  c('.', 'cache_id', 'country_code', 'cpi', 'decile1',
-    'decile10', 'decile2', 'decile3', 'decile4',
-    'decile5', 'decile6', 'decile7', 'decile8',
-    'decile9','distribution_type', 'gini',
-    'headcount', 'interpolation_id',
-    'is_interpolated', 'median', 'mld',
-    'polarization', 'pop', 'pop_data_level',
-    'pop_in_poverty', 'poverty_gap',
-    'poverty_line', 'poverty_severity',
-    'ppp', 'region_code', 'reporting_pop',
-    'reporting_year', 'survey_comparability',
-    'survey_coverage', 'survey_mean_lcu',
-    'survey_mean_ppp', 'survey_year', 'watts',
-    'wb_region_code', 'weighted.mean',
-    'welfare_type', 'pcn_region_code',
-    'comparable_spell'))
+  c(
+    ".", "cache_id", "country_code", "cpi", "decile1",
+    "decile10", "decile2", "decile3", "decile4",
+    "decile5", "decile6", "decile7", "decile8",
+    "decile9", "distribution_type", "gini",
+    "headcount", "interpolation_id",
+    "is_interpolated", "median", "mld",
+    "polarization", "pop", "pop_data_level",
+    "pop_in_poverty", "poverty_gap",
+    "poverty_line", "poverty_severity",
+    "ppp", "region_code", "reporting_pop",
+    "reporting_year", "survey_comparability",
+    "survey_coverage", "survey_mean_lcu",
+    "survey_mean_ppp", "survey_year", "watts",
+    "wb_region_code", "weighted.mean",
+    "welfare_type", "pcn_region_code",
+    "comparable_spell"
+  )
+)
 
 subset_lkup <- function(country,
                         year,
                         welfare_type,
                         reporting_level,
                         lkup) {
-
   svy_n <- nrow(lkup)
   keep <- rep(TRUE, svy_n)
   # Select data files based on requested country, year, etc.
@@ -47,10 +49,10 @@ subset_lkup <- function(country,
     if ("survey_coverage" %in% names(lkup)) {
       keep <- keep &
         (lkup$survey_coverage == reporting_level |
-           lkup$pop_data_level  == reporting_level)
+          lkup$pop_data_level == reporting_level)
     } else {
       # This condition is not triggered
-      keep <- keep & lkup$pop_data_level  == reporting_level
+      keep <- keep & lkup$pop_data_level == reporting_level
     }
   }
 
@@ -70,13 +72,13 @@ subset_lkup <- function(country,
 #'
 get_svy_data <- function(svy_id,
                          reporting_level,
-                         path)
-{
+                         path) {
   # Each call should be made at a unique pop_data_level (equivalent to reporting_data_level: national, urban, rural)
   # This check should be conducted at the data validation stage
   reporting_level <- unique(reporting_level)
   assertthat::assert_that(length(reporting_level) == 1,
-                          msg = "Problem with input data: Multiple pop_data_levels")
+    msg = "Problem with input data: Multiple pop_data_levels"
+  )
 
   out <- lapply(path, function(x) {
     tmp <- fst::read_fst(x)
@@ -88,8 +90,10 @@ get_svy_data <- function(svy_id,
     return(tmp)
   })
 
-  names_out <- sprintf("df%s",
-                       seq_along(svy_id) - 1)
+  names_out <- sprintf(
+    "df%s",
+    seq_along(svy_id) - 1
+  )
   names(out) <- names_out
 
   return(out)
@@ -100,7 +104,7 @@ create_empty_response <- function() {
   out <- data.table::data.table(
     cache_id = character(0),
     survey_id = character(0),
-    #region_code = character(0),
+    # region_code = character(0),
     wb_region_code = character(0),
     pcn_region_code = character(0),
     country_code = character(0),
@@ -131,7 +135,7 @@ create_empty_response <- function() {
     mean = numeric(0),
     median = numeric(0),
     headcount = numeric(0),
-    #poverty_rate = numeric(0),
+    # poverty_rate = numeric(0),
     poverty_gap = numeric(0),
     poverty_severity = numeric(0),
     watts = numeric(0),
@@ -179,24 +183,27 @@ collapse_rows <- function(df, vars, na_var) {
 #'
 add_dist_stats <- function(df, dist_stats) {
   # Keep only relevant columns
-  cols <- c("cache_id",
-            "country_code",
-            "reporting_year",
-            "welfare_type",
-            "pop_data_level",
-            "survey_median_ppp",
-            "gini",
-            "polarization",
-            "mld",
-            sprintf("decile%s", 1:10))
+  cols <- c(
+    "cache_id",
+    "country_code",
+    "reporting_year",
+    "welfare_type",
+    "pop_data_level",
+    "survey_median_ppp",
+    "gini",
+    "polarization",
+    "mld",
+    sprintf("decile%s", 1:10)
+  )
   dist_stats <- dist_stats[, .SD, .SDcols = cols]
 
   # merge dist stats with main table
   data.table::setnames(dist_stats, "survey_median_ppp", "median")
 
   df <- dist_stats[df,
-                   on = .(cache_id, country_code, reporting_year, welfare_type, pop_data_level),
-                   allow.cartesian = TRUE]
+    on = .(cache_id, country_code, reporting_year, welfare_type, pop_data_level),
+    allow.cartesian = TRUE
+  ]
 
   return(df)
 }
@@ -208,11 +215,12 @@ add_dist_stats <- function(df, dist_stats) {
 #' @return data.table
 #' @noRd
 censor_rows <- function(df, censored_table) {
-
   df$tmp_id <-
-    sprintf('%s_%s_%s',
-            df$country_code, df$reporting_year,
-            df$welfare_type)
+    sprintf(
+      "%s_%s_%s",
+      df$country_code, df$reporting_year,
+      df$welfare_type
+    )
 
   if (any(df$tmp_id %in% censored_table$id)) {
     for (i in seq_len(nrow(df))) {

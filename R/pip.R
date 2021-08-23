@@ -15,18 +15,17 @@
 #' @return data.frame
 #' @export
 #'
-pip <- function(country   = "all",
-                year      = "all",
-                povline   = 1.9,
-                popshare  = NULL,
+pip <- function(country = "all",
+                year = "all",
+                povline = 1.9,
+                popshare = NULL,
                 fill_gaps = FALSE,
                 aggregate = FALSE,
-                group_by  = c("none", "wb"),
+                group_by = c("none", "wb"),
                 welfare_type = c("all", "consumption", "income"),
                 reporting_level = c("all", "national", "rural", "urban"),
-                ppp       = NULL,
+                ppp = NULL,
                 lkup) {
-
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
@@ -38,26 +37,30 @@ pip <- function(country   = "all",
 
   if (fill_gaps == TRUE) {
     # Compute imputed stats
-    out <- fg_pip(country      = country,
-                  year         = year,
-                  povline      = povline,
-                  popshare     = popshare,
-                  aggregate    = aggregate,
-                  welfare_type = welfare_type,
-                  reporting_level = reporting_level,
-                  ppp          = ppp,
-                  lkup         = lkup)
+    out <- fg_pip(
+      country = country,
+      year = year,
+      povline = povline,
+      popshare = popshare,
+      aggregate = aggregate,
+      welfare_type = welfare_type,
+      reporting_level = reporting_level,
+      ppp = ppp,
+      lkup = lkup
+    )
   } else {
     # Compute survey year stats
-    out <- rg_pip(country      = country,
-                  year         = year,
-                  povline      = povline,
-                  popshare     = popshare,
-                  aggregate    = aggregate,
-                  welfare_type = welfare_type,
-                  reporting_level = reporting_level,
-                  ppp          = ppp,
-                  lkup         = lkup)
+    out <- rg_pip(
+      country = country,
+      year = year,
+      povline = povline,
+      popshare = popshare,
+      aggregate = aggregate,
+      welfare_type = welfare_type,
+      reporting_level = reporting_level,
+      ppp = ppp,
+      lkup = lkup
+    )
   }
 
   # return empty dataframe if no metadata is found
@@ -77,16 +80,20 @@ pip <- function(country   = "all",
     # may mess-up the grouping
     out$poverty_line <- povline
 
-    out <- aggregate_by_group(df = out,
-                              group_lkup = lkup[["pop_region"]])
+    out <- aggregate_by_group(
+      df = out,
+      group_lkup = lkup[["pop_region"]]
+    )
     # cols <- c(cols, 'pop_in_poverty')
     return(out)
   }
 
 
   # Add pre-computed distributional statistics
-  out <- add_dist_stats(df = out,
-                        dist_stats = lkup[["dist_stats"]])
+  out <- add_dist_stats(
+    df = out,
+    dist_stats = lkup[["dist_stats"]]
+  )
 
   # Handle survey coverage
   if (reporting_level != "all") {
@@ -104,5 +111,3 @@ pip <- function(country   = "all",
 
   return(out)
 }
-
-

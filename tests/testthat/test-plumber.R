@@ -1,12 +1,12 @@
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
-skip_if(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER') == "")
+skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 
 library(callr)
 library(httr)
 
 # Setup by starting APIs
 root_path <- "http://localhost"
-data_folder_root <- Sys.getenv('PIPAPI_DATA_ROOT_FOLDER')
+data_folder_root <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER")
 # CAUTION: data_folder_root is also hard-coded on line 14 below. (passing data_folder_root fails)
 # MAKE SURE BOTH ARE IN SYNC
 
@@ -18,11 +18,13 @@ api1$call(function() {
   # Use double assignment operator so the lkups object is available in the global
   # environment of the background R session, so it is available for the API
   lkups <<- pipapi:::clean_api_data(
-    data_folder_root = Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
+    data_folder_root = Sys.getenv("PIPAPI_DATA_ROOT_FOLDER")
+  )
 
   plbr_file <- system.file("plumber", "v1", "plumber.R", package = "pipapi")
   pr <- plumber::plumb(plbr_file)
-  pr$run(port = 8000)})
+  pr$run(port = 8000)
+})
 
 
 Sys.sleep(10)
@@ -82,7 +84,7 @@ test_that("Serializer formats are working", {
 
   # Check json
   r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=AGO&year=2000&format=json")
-  expect_equal(httr::http_type(r),"application/json")
+  expect_equal(httr::http_type(r), "application/json")
 
   # Check that default is json
   r2 <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=AGO&year=2000")
@@ -96,7 +98,6 @@ test_that("Serializer formats are working", {
   # Check rds
   r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=AGO&year=2000&format=rds")
   expect_equal(httr::http_type(r), "application/rds")
-
 })
 
 test_that("Indicator names are correct", {
@@ -115,5 +116,3 @@ test_that("Indicator names are correct", {
 
 # Kill process
 api1$kill()
-
-
