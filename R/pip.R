@@ -88,13 +88,6 @@ pip <- function(country = "all",
     return(out)
   }
 
-
-  # Add pre-computed distributional statistics
-  out <- add_dist_stats(
-    df = out,
-    dist_stats = lkup[["dist_stats"]]
-  )
-
   # Handle survey coverage
   if (reporting_level != "all") {
     out <- out[out$pop_data_level == reporting_level, ]

@@ -169,7 +169,6 @@ create_empty_response <- function() {
   return(out)
 }
 
-
 #' Collapse rows
 #' @return data.table
 #' @noRd
@@ -182,41 +181,6 @@ collapse_rows <- function(df, vars, na_var) {
     df[[tmp_var_names[tmp_var]]] <- tmp_vars[[tmp_var]]
   }
   df <- unique(df)
-}
-
-#' Add pre-computed distributional stats
-#'
-#' @param df data.frame: Data frame of poverty statistics
-#' @param dist_stats data.frame: Distributional stats lookup
-#'
-#' @return data.frame
-#' @export
-#'
-add_dist_stats <- function(df, dist_stats) {
-  # Keep only relevant columns
-  cols <- c(
-    "cache_id",
-    "country_code",
-    "reporting_year",
-    "welfare_type",
-    "pop_data_level",
-    "survey_median_ppp",
-    "gini",
-    "polarization",
-    "mld",
-    sprintf("decile%s", 1:10)
-  )
-  dist_stats <- dist_stats[, .SD, .SDcols = cols]
-
-  # merge dist stats with main table
-  data.table::setnames(dist_stats, "survey_median_ppp", "median")
-
-  df <- dist_stats[df,
-    on = .(cache_id, country_code, reporting_year, welfare_type, pop_data_level),
-    allow.cartesian = TRUE
-  ]
-
-  return(df)
 }
 
 #' Censor rows
