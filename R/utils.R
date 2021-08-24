@@ -19,6 +19,11 @@ utils::globalVariables(
   )
 )
 
+
+#' Subset look-up data
+#' @inheritParams pip
+#' @return data.frame
+#' @keywords internal
 subset_lkup <- function(country,
                         year,
                         welfare_type,
@@ -68,8 +73,7 @@ subset_lkup <- function(country,
 #' @param path character: Path to survey data
 #'
 #' @return data.frame
-#' @export
-#'
+#' @keywords internal
 get_svy_data <- function(svy_id,
                          reporting_level,
                          path) {
@@ -100,6 +104,9 @@ get_svy_data <- function(svy_id,
 }
 
 
+#' Create empty response
+#' @return data.table
+#' @noRd
 create_empty_response <- function() {
   out <- data.table::data.table(
     cache_id = character(0),
@@ -162,6 +169,10 @@ create_empty_response <- function() {
   return(out)
 }
 
+
+#' Collapse rows
+#' @return data.table
+#' @noRd
 collapse_rows <- function(df, vars, na_var) {
   tmp_vars <- lapply(df[, .SD, .SDcols = vars], unique, collapse = "|")
   tmp_vars <- lapply(tmp_vars, paste, collapse = "|")

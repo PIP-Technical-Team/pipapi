@@ -1,3 +1,7 @@
+#' Add aggregated stats to `pip()`
+#' @param df data.frame: Response from `rg_pip()` or `fg_pip()`.
+#' @return data.frame
+#' @noRd
 add_agg_stats <- function(df) {
   # Keep only Urban / Rural observations that will be aggregated at the
   # national level
@@ -24,8 +28,7 @@ add_agg_stats <- function(df) {
 #'
 #' @param df data.frame: Survey data
 #' @return data.frame
-#' @export
-
+#' @noRd
 ag_average_poverty_stats <- function(df) {
   assertthat::assert_that(assertthat::are_equal(length(df$pop_data_level), 2))
   dfu <- df[df$pop_data_level == "urban", ]

@@ -1,10 +1,10 @@
-#' Compute the main PIP poverty and inequality statistics for imputed years
+#' Compute imputed year stats
+#'
+#' Compute the main PIP poverty and inequality statistics for imputed years.
 #'
 #' @inheritParams pip
-#'
 #' @return data.frame
-#' @export
-
+#' @keywords internal
 fg_pip <- function(country,
                    year,
                    povline,

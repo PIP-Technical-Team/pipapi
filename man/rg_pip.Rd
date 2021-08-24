@@ -2,7 +2,7 @@
 % Please edit documentation in R/rg_pip.R
 \name{rg_pip}
 \alias{rg_pip}
-\title{Compute the main PIP poverty and inequality statistics for survey years}
+\title{Compute survey year stats}
 \usage{
 rg_pip(
   country,
@@ -39,5 +39,6 @@ rg_pip(
 data.frame
 }
 \description{
-Compute the main PIP poverty and inequality statistics for survey years
+Compute the main PIP poverty and inequality statistics for survey years.
 }
+\keyword{internal}

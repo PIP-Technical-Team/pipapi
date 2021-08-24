@@ -19,3 +19,4 @@ data.frame
 \description{
 Read survey data
 }
+\keyword{internal}

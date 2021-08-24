@@ -1,9 +1,10 @@
-#' Compute the main PIP poverty and inequality statistics for survey years
+#' Compute survey year stats
+#'
+#' Compute the main PIP poverty and inequality statistics for survey years.
 #'
 #' @inheritParams pip
-#'
 #' @return data.frame
-#' @export
+#' @keywords internal
 rg_pip <- function(country,
                    year,
                    povline,
