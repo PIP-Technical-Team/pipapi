@@ -20,7 +20,6 @@ api1$call(function() {
   lkups <<- pipapi:::clean_api_data(
     data_folder_root = Sys.getenv("PIPAPI_DATA_ROOT_FOLDER")
   )
-
   plbr_file <- system.file("plumber", "v1", "plumber.R", package = "pipapi")
   pr <- plumber::plumb(plbr_file)
   pr$run(port = 8000)
@@ -249,6 +248,7 @@ test_that("Country profile key indicators endpoint is working", {
     path = "api/v1/cp-key-indicators?country=ALB&povline=1.9"
   )
   tmp_resp <- httr::content(r, encoding = "UTF-8")
+  tmp_resp <- tmp_resp[[1]]
 
   # KI 1
   expect_equal(
@@ -276,7 +276,7 @@ test_that("Country profile key indicators endpoint is working", {
 
   # KI 5
   expect_equal(
-    names(tmp_resp$population[[1]]),
+    names(tmp_resp$reporting_pop[[1]]),
     c("country_code", "reporting_year", "reporting_pop")
   )
 
@@ -288,7 +288,7 @@ test_that("Country profile key indicators endpoint is working", {
 
   # KI 7
   expect_equal(
-    names(tmp_resp$gdp[[1]]),
+    names(tmp_resp$gdp_growth[[1]]),
     c("country_code", "reporting_year", "gdp_growth", "latest")
   )
 })
@@ -296,22 +296,25 @@ test_that("Country profile key indicators endpoint is working", {
 test_that("Country profile charts endpoint is working", {
   r <- httr::GET(root_path, port = 8000, path = "api/v1/cp-charts?country=ALB&povline=1.9")
   tmp_resp <- httr::content(r, encoding = "UTF-8")
+  tmp_resp <- tmp_resp[[1]]
 
   # Chart 1 (poverty trend)
   expect_equal(
     names(tmp_resp$pov_charts[[1]]$pov_trend[[1]]),
     c(
       "country_code", "reporting_year", "poverty_line",
-      "headcount", "pop_in_poverty"
+      "survey_acronym", "welfare_type", "survey_comparability",
+      "comparable_spell", "headcount", "pop_in_poverty"
     )
   )
 
-  # Chart 2 (poverty mrv)
+  # Chart 2 (poverty mrv in region)
   expect_equal(
     names(tmp_resp$pov_charts[[1]]$pov_mrv[[1]]),
     c(
       "country_code", "reporting_year",
-      "poverty_line", "headcount"
+      "poverty_line", "headcount",
+      "sort_order"
     )
   )
 
@@ -320,7 +323,9 @@ test_that("Country profile charts endpoint is working", {
     names(tmp_resp$ineq_trend[[2]]),
     c(
       "country_code", "reporting_year",
-      "welfare_type", "comparable_spell",
+      "survey_acronym", "welfare_type",
+      "survey_comparability",
+      "comparable_spell",
       "gini", "theil"
     )
   )
@@ -330,8 +335,10 @@ test_that("Country profile charts endpoint is working", {
     names(tmp_resp$ineq_bar[[1]]),
     c(
       "country_code", "reporting_year",
-      "gender", "agegroup", "education",
-      "distribution", "poverty_share_by_group"
+      "welfare_type", "gender",
+      "agegroup", "education",
+      "distribution",
+      "poverty_share_by_group"
     )
   )
 
@@ -382,7 +389,6 @@ test_that("Survey metadata endpoint is working", {
     )
   )
 })
-
 
 # Kill process
 api1$kill()

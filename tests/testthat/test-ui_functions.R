@@ -4,6 +4,8 @@ skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 # constants
 lkups <- pipapi:::clean_api_data(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
 lkups$pl_lkup <- lkups$pl_lkup[sample(nrow(lkups$pl_lkup), 10)]
+lkups2 <- lkups
+lkups2$svy_lkup <- lkups2$svy_lkup[country_code %in% c('AGO', 'ZWE')]
 dt_lac <- readRDS("../testdata/pip_lac_resp.RDS")
 dt_sas <- readRDS("../testdata/pip_sas_resp.RDS")
 
@@ -147,46 +149,86 @@ test_that("ui_cp_key_indicators() works as expected", {
 
   # A single poverty line
   dl <- ui_cp_key_indicators(country = "AGO", povline = 1.9, lkup = lkups)
+  expect_length(dl, 1) # 1 country
+  expect_length(dl[[1]], 7) # # 7 KI objects
+  expect_equal(nrow(dl[[1]]$headcount), 1) # 1 poverty line
   expect_identical(
-    names(dl),
+    names(dl[[1]]),
     c(
       "headcount", "headcount_national", "mpm_headcount",
       "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
     )
   )
-  expect_identical(dl$headcount$poverty_line, 1.9)
+  expect_identical(dl[[1]]$headcount$poverty_line, 1.9)
 
   # All poverty lines
   dl <- ui_cp_key_indicators(country = "AGO", lkup = lkups)
+  expect_length(dl, 1) # 1 country
+  expect_length(dl[[1]], 7) # # 7 KI objects
+  expect_equal(nrow(dl[[1]]$headcount), 10) # 10 poverty lines
   expect_identical(
-    names(dl),
+    names(dl[[1]]),
     c(
       "headcount", "headcount_national", "mpm_headcount",
       "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
     )
   )
-  expect_identical(nrow(dl$headcount), length(lkups$pl_lkup$name))
+  expect_identical(nrow(dl[[1]]$headcount), length(lkups$pl_lkup$name))
+
+  # All countries and poverty lines
+  dl <- ui_cp_key_indicators(country = "all", lkup = lkups2)
+  expect_length(dl, 2) # 2 countries
+  expect_length(dl[[1]], 7) # # 7 KI objects
+  expect_equal(nrow(dl[[1]]$headcount), 10) # 10 poverty lines
+  expect_identical(
+    names(dl[[2]]),
+    c(
+      "headcount", "headcount_national", "mpm_headcount",
+      "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
+    )
+  )
+  expect_identical(nrow(dl[[2]]$headcount), length(lkups2$pl_lkup$name))
+
 })
 
 test_that("ui_cp_charts() works as expected", {
 
   # A single poverty line
   dl <- ui_cp_charts(country = "AGO", povline = 1.9, lkup = lkups)
-  expect_identical(names(dl), c(
+  expect_length(dl, 1) # 1 country
+  expect_length(dl[[1]], 5) # # 5 chart objects (2 inside pov_charts)
+  expect_length(dl[[1]]$pov_charts, 1) # 1 poverty line
+  expect_identical(names(dl[[1]]), c(
     "pov_charts", "ineq_trend",
     "ineq_bar", "mpm", "sp"
   ))
-  # expect_identical(names(dl$pov_charts), '1.9')
-  expect_identical(names(dl$pov_charts[[1]]), c("pov_trend", "pov_mrv"))
+  expect_identical(names(dl[[1]]$pov_charts[[1]]),
+                   c("pov_trend", "pov_mrv"))
 
   # All poverty lines
   dl <- ui_cp_charts(country = "AGO", lkup = lkups)
-  expect_identical(names(dl), c(
+  expect_length(dl, 1) # 1 country
+  expect_length(dl[[1]], 5) # 5 chart objects (2 inside pov_charts)
+  expect_length(dl[[1]]$pov_charts, 10) # 10 poverty lines
+  expect_identical(names(dl[[1]]), c(
     "pov_charts", "ineq_trend",
     "ineq_bar", "mpm", "sp"
   ))
-  # expect_identical(names(dl$pov_charts), lkups$pl_lkup$name)
-  expect_identical(names(dl$pov_charts[[5]]), c("pov_trend", "pov_mrv"))
+  expect_identical(names(dl[[1]]$pov_charts[[5]]),
+                   c("pov_trend", "pov_mrv"))
+
+  # All countries and poverty lines
+  dl <- ui_cp_charts(country = "all", lkup = lkups2)
+  expect_length(dl, 2) # 2 countries
+  expect_length(dl[[2]], 5) # 5 chart objects (2 inside pov_charts)
+  expect_length(dl[[2]]$pov_charts, 10) # 10 poverty lines
+  expect_identical(names(dl[[2]]), c(
+    "pov_charts", "ineq_trend",
+    "ineq_bar", "mpm", "sp"
+  ))
+  expect_identical(names(dl[[2]]$pov_charts[[5]]),
+                   c("pov_trend", "pov_mrv"))
+
 })
 
 test_that("ui_svy_meta() works as expected", {
