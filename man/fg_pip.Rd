@@ -2,7 +2,7 @@
 % Please edit documentation in R/fg_pip.R
 \name{fg_pip}
 \alias{fg_pip}
-\title{Compute the main PIP poverty and inequality statistics for imputed years}
+\title{Compute imputed year stats}
 \usage{
 fg_pip(
   country,
@@ -39,5 +39,6 @@ fg_pip(
 data.frame
 }
 \description{
-Compute the main PIP poverty and inequality statistics for imputed years
+Compute the main PIP poverty and inequality statistics for imputed years.
 }
+\keyword{internal}

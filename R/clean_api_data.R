@@ -4,34 +4,38 @@
 #' of the plumber.R file
 #'
 #' @return list
-#'
-
+#' @noRd
 clean_api_data <- function(data_folder_root) {
   paths <- fs::dir_ls(paste0(data_folder_root, "/survey_data"), recurse = FALSE, type = "file")
   paths_ids <- basename(paths)
   paths_ids <- tools::file_path_sans_ext(paths_ids)
 
   # Clean svy_lkup
-  svy_lkup <- fst::read_fst(sprintf("%s/estimations/survey_means.fst", data_folder_root),
+  svy_lkup <- fst::read_fst(sprintf("%s/estimations/prod_svy_estimation.fst", data_folder_root),
     as.data.table = TRUE
   )
   # TEMP cleaning - START
   svy_lkup <- svy_lkup[!is.na(svy_lkup$survey_mean_ppp), ]
   svy_lkup <- svy_lkup[!is.na(svy_lkup$ppp), ]
   svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
+  svy_lkup <- svy_lkup %>%
+    data.table::setnames('survey_median_ppp', 'median')
   # TEMP cleaning - END
   svy_lkup$path <- sprintf(
     "%ssurvey_data/%s.fst",
     data_folder_root, svy_lkup$cache_id
   )
   # Clean ref_lkup
-  ref_lkup <- fst::read_fst(sprintf("%s/estimations/interpolated_means.fst", data_folder_root),
+  ref_lkup <- fst::read_fst(sprintf("%s/estimations/prod_ref_estimation.fst", data_folder_root),
     as.data.table = TRUE
   )
   # TEMP cleaning - START
   ref_lkup <- ref_lkup[!is.na(ref_lkup$predicted_mean_ppp), ]
   ref_lkup <- ref_lkup[!is.na(ref_lkup$ppp), ]
   ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
+  ref_lkup$problem <- NULL; ref_lkup$report <- NULL
+  ref_lkup <- ref_lkup %>%
+    data.table::setnames('survey_median_ppp', 'median')
   # TEMP cleaning - END
   ref_lkup$path <- sprintf(
     "%ssurvey_data/%s.fst",
