@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Home Page Main Chart — ui_hp_stacked • pipapi</title>
+<title>Country Profile Key Indicators Single — ui_cp_key_indicators_single • pipapi</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Home Page Main Chart — ui_hp_stacked" />
-<meta property="og:description" content="Provides numbers that will populate the home page main chart." />
+<meta property="og:title" content="Country Profile Key Indicators Single — ui_cp_key_indicators_single" />
+<meta property="og:description" content="Country profile key indicators for a single country." />
 
 
 
@@ -111,20 +111,24 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Home Page Main Chart</h1>
+    <h1>Country Profile Key Indicators Single</h1>
     <small class="dont-index">Source: <a href='https://github.com/PIP-Technical-Team/pipapi/blob/master/R/ui_functions.R'><code>R/ui_functions.R</code></a></small>
-    <div class="hidden name"><code>ui_hp_stacked.Rd</code></div>
+    <div class="hidden name"><code>ui_cp_key_indicators_single.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Provides numbers that will populate the home page main chart.</p>
+    <p>Country profile key indicators for a single country.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>ui_hp_stacked</span><span class='op'>(</span>povline <span class='op'>=</span> <span class='fl'>1.9</span>, <span class='va'>lkup</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>ui_cp_key_indicators_single</span><span class='op'>(</span>country <span class='op'>=</span> <span class='st'>"AGO"</span>, povline <span class='op'>=</span> <span class='cn'>NULL</span>, <span class='va'>lkup</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>country</th>
+      <td><p>character: Country ISO 3 codes</p></td>
+    </tr>
     <tr>
       <th>povline</th>
       <td><p>numeric: Poverty line</p></td>
@@ -137,7 +141,7 @@
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>data.frame</p>
+    <p>list</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

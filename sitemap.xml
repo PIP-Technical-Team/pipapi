@@ -70,7 +70,13 @@
     <loc>https://pip-technical-team.github.io/pipapi/reference/ui_cp_charts.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/ui_cp_charts_single.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/ui_cp_key_indicators.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/ui_cp_key_indicators_single.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/ui_cp_poverty_charts.html</loc>
