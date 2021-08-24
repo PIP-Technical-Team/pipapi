@@ -4,12 +4,6 @@
     <loc>https://pip-technical-team.github.io/pipapi/index.html</loc>
   </url>
   <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/add_dist_stats.html</loc>
-  </url>
-  <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/ag_average_poverty_stats.html</loc>
-  </url>
-  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/check_param_chr.html</loc>
   </url>
   <url>
@@ -23,9 +17,6 @@
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/check_parameters.html</loc>
-  </url>
-  <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/clean_api_data.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/empty_response.html</loc>
@@ -65,6 +56,9 @@
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/start_api.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/subset_lkup.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/ui_cp_charts.html</loc>

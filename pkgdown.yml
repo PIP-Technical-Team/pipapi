@@ -2,7 +2,7 @@ pandoc: 2.7.3
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles: {}
-last_built: 2021-08-24T09:06Z
+last_built: 2021-08-24T14:47Z
 urls:
   reference: https://pip-technical-team.github.io/pipapi/reference
   article: https://pip-technical-team.github.io/pipapi/articles

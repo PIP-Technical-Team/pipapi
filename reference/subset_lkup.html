@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • pipapi</title>
+<title>Subset look-up data — subset_lkup • pipapi</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,8 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Subset look-up data — subset_lkup" />
+<meta property="og:description" content="Subset look-up data" />
 
 
 
@@ -58,7 +59,7 @@
   </head>
 
   <body data-spy="scroll" data-target="#toc">
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -108,157 +109,49 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Subset look-up data</h1>
+    <small class="dont-index">Source: <a href='https://github.com/PIP-Technical-Team/pipapi/blob/master/R/utils.R'><code>R/utils.R</code></a></small>
+    <div class="hidden name"><code>subset_lkup.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    <p>Subset look-up data</p>
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
+    <pre class="usage"><span class='fu'>subset_lkup</span><span class='op'>(</span><span class='va'>country</span>, <span class='va'>year</span>, <span class='va'>welfare_type</span>, <span class='va'>reporting_level</span>, <span class='va'>lkup</span><span class='op'>)</span></pre>
 
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      
-      
-    </tbody><tbody>
-      
-      
-      <tr>
-        
-        <td>
-          <p><code><a href="check_param_chr.html">check_param_chr()</a></code> </p>
-        </td>
-        <td><p>Check validity of a single query parameter</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="check_param_lgl.html">check_param_lgl()</a></code> </p>
-        </td>
-        <td><p>Check validity of a single query parameter</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="check_param_num.html">check_param_num()</a></code> </p>
-        </td>
-        <td><p>Check validity of a single query parameter</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="check_parameter.html">check_parameter()</a></code> </p>
-        </td>
-        <td><p>Check validity of a single query parameter</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="check_parameters.html">check_parameters()</a></code> </p>
-        </td>
-        <td><p>Check validity of query parameters</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="empty_response.html">empty_response</a></code> </p>
-        </td>
-        <td><p>Empty response schema</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="format_error.html">format_error()</a></code> </p>
-        </td>
-        <td><p>format_error
-Format error if check_parameters() returns TRUE</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_aux_table.html">get_aux_table()</a></code> </p>
-        </td>
-        <td><p>Return specified auxiliary data</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_pip_version.html">get_pip_version()</a></code> </p>
-        </td>
-        <td><p>Return the versions of the pip packages used for computations</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="parse_parameters.html">parse_parameters()</a></code> </p>
-        </td>
-        <td><p>parse_parameters</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="pip.html">pip()</a></code> </p>
-        </td>
-        <td><p>Compute the main PIP poverty and inequality statistics</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="reporting_level_list.html">reporting_level_list</a></code> </p>
-        </td>
-        <td><p>List of valid coverage values</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="serializer_switch.html">serializer_switch()</a></code> </p>
-        </td>
-        <td><p>Switch serializer</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="start_api.html">start_api()</a></code> </p>
-        </td>
-        <td><p>Main function to launch the API</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ui_cp_charts.html">ui_cp_charts()</a></code> </p>
-        </td>
-        <td><p>Country Profiles Charts</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ui_cp_key_indicators.html">ui_cp_key_indicators()</a></code> </p>
-        </td>
-        <td><p>Country Profiles Key Indicators</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ui_hp_countries.html">ui_hp_countries()</a></code> </p>
-        </td>
-        <td><p>Home Page Country Charts</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ui_hp_stacked.html">ui_hp_stacked()</a></code> </p>
-        </td>
-        <td><p>Home Page Main Chart</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ui_pc_charts.html">ui_pc_charts()</a></code> </p>
-        </td>
-        <td><p>Poverty Calculator Main chart</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ui_svy_meta.html">ui_svy_meta()</a></code> </p>
-        </td>
-        <td><p>Data Sources Survey Metadata</p></td>
-      </tr>
-    </tbody>
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>country</th>
+      <td><p>character: Country ISO 3 codes</p></td>
+    </tr>
+    <tr>
+      <th>year</th>
+      <td><p>integer: Reporting year</p></td>
+    </tr>
+    <tr>
+      <th>welfare_type</th>
+      <td><p>character: Welfare type.</p></td>
+    </tr>
+    <tr>
+      <th>reporting_level</th>
+      <td><p>character: Geographical reporting level</p></td>
+    </tr>
+    <tr>
+      <th>lkup</th>
+      <td><p>list: A list of lkup tables</p></td>
+    </tr>
     </table>
-  </div>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>data.frame</p>
+
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
       <h2 data-toc-skip>Contents</h2>
