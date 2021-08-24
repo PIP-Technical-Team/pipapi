@@ -2,12 +2,12 @@
 % Please edit documentation in R/ui_functions.R
 \name{ui_svy_meta}
 \alias{ui_svy_meta}
-\title{Provides survey metadata that will populate the Data Sources page}
+\title{Data Sources Survey Metadata}
 \usage{
 ui_svy_meta(country = "all", lkup)
 }
 \arguments{
-\item{country}{character: Country code}
+\item{country}{character: Country ISO 3 codes}
 
 \item{lkup}{list: A list of lkup tables}
 }
@@ -15,5 +15,5 @@ ui_svy_meta(country = "all", lkup)
 data.frame
 }
 \description{
-Provides survey metadata that will populate the Data Sources page
+Provides survey metadata that will populate the Data Sources page.
 }

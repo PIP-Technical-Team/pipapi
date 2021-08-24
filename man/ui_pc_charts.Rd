@@ -2,7 +2,7 @@
 % Please edit documentation in R/ui_functions.R
 \name{ui_pc_charts}
 \alias{ui_pc_charts}
-\title{Provides numbers that will populate the poverty calculator main chart}
+\title{Poverty Calculator Main chart}
 \usage{
 ui_pc_charts(
   country = c("AGO"),
@@ -17,21 +17,21 @@ ui_pc_charts(
 )
 }
 \arguments{
-\item{country}{character: Country code}
+\item{country}{character: Country ISO 3 codes}
 
-\item{year}{numeric: reporting year}
+\item{year}{integer: Reporting year}
 
 \item{povline}{numeric: Poverty line}
 
-\item{fill_gaps}{logical: Whether to impute missing values (TRUE) or not (FALSE)}
+\item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate values for missing years}
 
-\item{aggregate}{logical: Whether to aggregate results (TRUE) or not (FALSE)}
+\item{aggregate}{logical: If set to TRUE, will return aggregate results}
 
-\item{group_by}{character: Subgroups to aggregate by}
+\item{group_by}{character: Will return aggregated values for pre-defined sub-groups}
 
-\item{welfare_type}{character: Welfare type}
+\item{welfare_type}{character: Welfare type.}
 
-\item{reporting_level}{character: Reporting level}
+\item{reporting_level}{character: Geographical reporting level}
 
 \item{lkup}{list: A list of lkup tables}
 }
@@ -39,5 +39,5 @@ ui_pc_charts(
 data.frame
 }
 \description{
-Provides numbers that will populate the poverty calculator main chart
+Provides numbers that will populate the poverty calculator main chart.
 }

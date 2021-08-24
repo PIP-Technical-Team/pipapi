@@ -1,4 +1,6 @@
-#' Provides numbers that will populate the home page main chart
+#' Home Page Main Chart
+#'
+#' Provides numbers that will populate the home page main chart.
 #'
 #' @param povline numeric: Poverty line
 #' @param lkup list: A list of lkup tables
@@ -26,13 +28,13 @@ ui_hp_stacked <- function(povline = 1.9,
   return(out)
 }
 
-#' Provides numbers that will populate the home page country charts
+#' Home Page Country Charts
 #'
-#' @param country character: Country code
-#' @param povline numeric: Poverty line
-#' @param pop_units numeric: Units used to express population numbers (default to million)
-#' @param lkup list: A list of lkup tables
+#' Provides numbers that will populate the home page country charts.
 #'
+#' @inheritParams pip
+#' @param pop_units numeric: Units used to express population numbers (default
+#'   to million)
 #' @return data.frame
 #' @export
 #'
@@ -64,18 +66,11 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
   return(out)
 }
 
-#' Provides numbers that will populate the poverty calculator main chart
+#' Poverty Calculator Main chart
 #'
-#' @param country character: Country code
-#' @param year numeric: reporting year
-#' @param povline numeric: Poverty line
-#' @param fill_gaps logical: Whether to impute missing values (TRUE) or not (FALSE)
-#' @param aggregate logical: Whether to aggregate results (TRUE) or not (FALSE)
-#' @param group_by character: Subgroups to aggregate by
-#' @param welfare_type character: Welfare type
-#' @param reporting_level character: Reporting level
-#' @param lkup list: A list of lkup tables
+#' Provides numbers that will populate the poverty calculator main chart.
 #'
+#' @inheritParams pip
 #' @return data.frame
 #' @export
 #'
@@ -131,16 +126,44 @@ ui_pc_charts <- function(country = c("AGO"),
 }
 
 
-#' Provides numbers that will population key indicators for Country Profiles
+#' Country Profiles Key Indicators
 #'
-#' @param country character: Country code
-#' @param povline numeric: Poverty line
-#' @param lkup list: A list of lkup tables
+#' Provides numbers that will population for country profiles key indicators.
 #'
-#' @return data.frame
+#' @inheritParams pip
+#' @return list
 #' @export
 #'
-ui_cp_key_indicators <- function(country = "AGO", povline = NULL, lkup) {
+ui_cp_key_indicators <- function(country = "AGO",
+                                 povline = NULL,
+                                 lkup) {
+
+  if (country == "all") {
+    country_codes <- unique(lkup$svy_lkup$country_code)
+    dl <- lapply(country_codes, function(country)
+      ui_cp_key_indicators_single(
+        country = country, povline = povline, lkup = lkups))
+  } else {
+    dl <- ui_cp_key_indicators_single(
+      country = country, povline = povline, lkup = lkups)
+    dl <- list(dl)
+  }
+  return(dl)
+
+}
+
+
+#' Country Profile Key Indicators Single
+#'
+#' Country profile key indicators for a single country.
+#'
+#' @inheritParams ui_cp_key_indicators
+#' @return list
+#' @keywords internal
+#'
+ui_cp_key_indicators_single <- function(country = "AGO",
+                                        povline = NULL,
+                                        lkup) {
   if (is.null(povline)) {
     poverty_lines <- lkup$pl_lkup$poverty_line
     hc <- lapply(poverty_lines, function(pl) {
@@ -163,12 +186,11 @@ ui_cp_key_indicators <- function(country = "AGO", povline = NULL, lkup) {
   return(out)
 }
 
-#' Populate the country profiles key indicator for headcount
+#' CP Key Indicator Headcount
 #'
-#' @param country character: Country code
-#' @param povline numeric: Poverty line
-#' @param lkup list: A list of lkup tables
+#' Populate the country profiles key indicator for headcount.
 #'
+#' @inheritParams cp_key_indicators
 #' @return data.frame
 #' @noRd
 #'
@@ -182,18 +204,43 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
 }
 
 
-#' Provides numbers that will populate the country profile charts
+#' Country Profiles Charts
 #'
-#' @param country character: Country code
-#' @param povline numeric: Poverty line
-#' @param pop_units numeric: Units used to express population numbers (default to million)
-#' @param lkup list: A list of lkup tables
+#' Provides numbers that will populate the country profile charts.
 #'
+#' @inheritParams pip
+#' @inheritParams ui_hp_countries
 #' @return list
 #' @export
 #'
-ui_cp_charts <- function(country = "AGO", povline = NULL,
-                         pop_units = 1e6, lkup) {
+ui_cp_charts <- function(country = "AGO",
+                         povline = NULL,
+                         pop_units = 1e6,
+                         lkup) {
+
+  if (country == "all") {
+    country_codes <- unique(lkup$svy_lkup$country_code)
+    dl <- lapply(country_codes, function(country)
+      ui_cp_charts_single(country = country, povline = povline,
+                          pop_units = pop_units, lkup = lkups))
+  } else {
+    dl <- ui_cp_charts_single(country = country, povline = povline,
+                              pop_units = pop_units, lkup = lkups)
+    dl <- list(dl)
+  }
+  return(dl)
+}
+
+
+#' Country profile charts for a single country
+#'
+#' @inheritParams ui_cp_charts
+#' @return list
+#' @keywords internal
+#'
+ui_cp_charts_single <- function(country, povline,
+                                pop_units, lkup) {
+
   if (is.null(povline)) {
     poverty_lines <- lkup$pl_lkup$poverty_line
     dl <- lapply(poverty_lines, function(pl) {
@@ -228,6 +275,9 @@ ui_cp_charts <- function(country = "AGO", povline = NULL,
   return(out)
 }
 
+
+#' CP Poverty Charts
+#'
 #' Provides numbers that will populate the country profiles poverty charts
 #'
 #' @inheritParams ui_cp_charts
@@ -244,9 +294,9 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
     res_pov_trend$reporting_pop * res_pov_trend$headcount / pop_units
   res_pov_trend <-
     res_pov_trend[, c(
-      "country_code", "reporting_year",
-      "poverty_line", "headcount",
-      "pop_in_poverty"
+      "country_code", "reporting_year",  "poverty_line",
+      "survey_acronym", "welfare_type", "survey_comparability",
+      "comparable_spell", "headcount", "pop_in_poverty"
     )]
 
   # Fetch data for poverty bar chart
@@ -260,7 +310,7 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   res_pov_mrv <- pip(country = countries, povline = povline, lkup = lkup)
   res_pov_mrv <-
     res_pov_mrv[, .SD[which.max(reporting_year)],
-      by = country_code
+                by = country_code
     ]
   selected_year <- res_pov_mrv[country_code == country]$reporting_year
   year_range <- c((selected_year - 3):(selected_year + 3))
@@ -273,6 +323,7 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
     )]
   res_pov_mrv <-
     cp_pov_mrv_select_countries(res_pov_mrv, country)
+  res_pov_mrv$sort_order <- 1:nrow(res_pov_mrv)
 
   out <- list(
     pov_trend = res_pov_trend,
@@ -328,10 +379,11 @@ cp_pov_mrv_select_values <- function(v, h) {
   return(vals)
 }
 
-#' Provides survey metadata that will populate the Data Sources page
+#' Data Sources Survey Metadata
 #'
-#' @param country character: Country code
-#' @param lkup list: A list of lkup tables
+#' Provides survey metadata that will populate the Data Sources page.
+#'
+#' @inheritParams pip
 #' @return data.frame
 #' @export
 #'

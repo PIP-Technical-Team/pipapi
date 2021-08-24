@@ -2,16 +2,17 @@
 % Please edit documentation in R/ui_functions.R
 \name{ui_cp_poverty_charts}
 \alias{ui_cp_poverty_charts}
-\title{Provides numbers that will populate the country profiles poverty charts}
+\title{CP Poverty Charts}
 \usage{
 ui_cp_poverty_charts(country, povline, pop_units, lkup)
 }
 \arguments{
-\item{country}{character: Country code}
+\item{country}{character: Country ISO 3 codes}
 
 \item{povline}{numeric: Poverty line}
 
-\item{pop_units}{numeric: Units used to express population numbers (default to million)}
+\item{pop_units}{numeric: Units used to express population numbers (default
+to million)}
 
 \item{lkup}{list: A list of lkup tables}
 }

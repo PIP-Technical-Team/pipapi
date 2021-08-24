@@ -2,7 +2,7 @@
 % Please edit documentation in R/ui_functions.R
 \name{ui_hp_stacked}
 \alias{ui_hp_stacked}
-\title{Provides numbers that will populate the home page main chart}
+\title{Home Page Main Chart}
 \usage{
 ui_hp_stacked(povline = 1.9, lkup)
 }
@@ -15,5 +15,5 @@ ui_hp_stacked(povline = 1.9, lkup)
 data.frame
 }
 \description{
-Provides numbers that will populate the home page main chart
+Provides numbers that will populate the home page main chart.
 }
