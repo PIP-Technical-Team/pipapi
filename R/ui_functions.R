@@ -142,16 +142,15 @@ ui_cp_key_indicators <- function(country = "AGO",
     country_codes <- unique(lkup$svy_lkup$country_code)
     dl <- lapply(country_codes, function(country)
       ui_cp_key_indicators_single(
-        country = country, povline = povline, lkup = lkups))
+        country = country, povline = povline, lkup = lkup))
   } else {
     dl <- ui_cp_key_indicators_single(
-      country = country, povline = povline, lkup = lkups)
+      country = country, povline = povline, lkup = lkup)
     dl <- list(dl)
   }
   return(dl)
 
 }
-
 
 #' Country Profile Key Indicators Single
 #'
@@ -222,10 +221,10 @@ ui_cp_charts <- function(country = "AGO",
     country_codes <- unique(lkup$svy_lkup$country_code)
     dl <- lapply(country_codes, function(country)
       ui_cp_charts_single(country = country, povline = povline,
-                          pop_units = pop_units, lkup = lkups))
+                          pop_units = pop_units, lkup = lkup))
   } else {
     dl <- ui_cp_charts_single(country = country, povline = povline,
-                              pop_units = pop_units, lkup = lkups)
+                              pop_units = pop_units, lkup = lkup)
     dl <- list(dl)
   }
   return(dl)
