@@ -33,9 +33,6 @@ pip <- function(country = "all",
                 lkup,
                 debug = FALSE) {
 
-
-  # if (debug) browser()
-
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
@@ -109,7 +106,9 @@ pip <- function(country = "all",
   out <- censor_rows(out, lkup[["censored"]])
 
   # Select columns
-  # out <- out[, .SD, .SDcols = cols]
+  if (!group_by != "none") {
+    out <- out[, .SD, .SDcols = lkup$pip_cols]
+  }
 
   # ADD FIX FOR MEDIAN WHEN INTERPOLATING
   # median <- dist_stats[["median"]]/(data_mean/requested_mean)

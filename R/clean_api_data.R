@@ -19,7 +19,13 @@ clean_api_data <- function(data_folder_root) {
   svy_lkup <- svy_lkup[!is.na(svy_lkup$ppp), ]
   svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
   svy_lkup <- svy_lkup %>%
-    data.table::setnames('survey_median_ppp', 'median')
+    data.table::setnames("survey_median_ppp", "median")
+  svy_lkup$reporting_gdp <- 0
+  svy_lkup$reporting_pce <- 0
+  svy_lkup$estimation_type <- "survey"
+  # svy_lkup$survey_year <- as.character(svy_lkup$survey_year)
+  svy_lkup$reporting_year <- as.integer(svy_lkup$reporting_year)
+  svy_lkup$predicted_mean_ppp <- numeric(0)
   # TEMP cleaning - END
   svy_lkup$path <- sprintf(
     "%ssurvey_data/%s.fst",
@@ -35,7 +41,7 @@ clean_api_data <- function(data_folder_root) {
   ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
   ref_lkup$problem <- NULL; ref_lkup$report <- NULL
   ref_lkup <- ref_lkup %>%
-    data.table::setnames('survey_median_ppp', 'median')
+    data.table::setnames("survey_median_ppp", "median")
   # TEMP cleaning - END
   ref_lkup$path <- sprintf(
     "%ssurvey_data/%s.fst",
@@ -43,9 +49,9 @@ clean_api_data <- function(data_folder_root) {
   )
 
   # Load dist_stats
-  dist_stats <- fst::read_fst(sprintf("%s/estimations/dist_stats.fst", data_folder_root),
-    as.data.table = TRUE
-  )
+  # dist_stats <- fst::read_fst(sprintf("%s/estimations/dist_stats.fst", data_folder_root),
+  #   as.data.table = TRUE
+  # )
 
   # Load pop_region
   pop_region <- fst::read_fst(sprintf("%s/_aux/pop_region.fst", data_folder_root),
@@ -59,6 +65,29 @@ clean_api_data <- function(data_folder_root) {
   pl_lkup <- fst::read_fst(sprintf("%s/_aux/poverty_lines.fst", data_folder_root),
     as.data.table = TRUE
   )
+
+  # Add pip return cols
+  pip_cols <-
+    c('pcn_region_code', 'country_code', 'reporting_year',
+      'survey_acronym', 'survey_coverage', 'survey_year',
+      'welfare_type', 'survey_comparability', 'comparable_spell',
+      'poverty_line', 'headcount', 'poverty_gap', 'poverty_severity',
+      'mean', 'median', 'mld', 'gini', 'polarization', 'watts',
+      'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
+      'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
+      'survey_mean_lcu', 'survey_mean_ppp', # Do we need these?
+      'predicted_mean_ppp', # Do we need this?
+      'cpi', 'cpi_data_level',
+      'ppp', 'ppp_data_level',
+      'reporting_pop', 'pop_data_level',
+      'reporting_gdp', 'gdp_data_level',
+      'reporting_pce', 'pce_data_level',
+      'is_interpolated', 'is_used_for_aggregation',
+      'distribution_type', 'estimation_type'
+      # 'gd_type', 'path',
+      # 'cache_id', 'survey_id', 'surveyid_year'
+      # 'wb_region_code', 'interpolation_id'
+    )
 
   # Create query controls
   country <- list(
@@ -147,10 +176,11 @@ clean_api_data <- function(data_folder_root) {
   lkups <- list(
     svy_lkup = svy_lkup,
     ref_lkup = ref_lkup,
-    dist_stats = dist_stats,
+    # dist_stats = dist_stats,
     pop_region = pop_region,
     cp_lkups = cp_lkups,
     pl_lkup = pl_lkup,
+    pip_cols = pip_cols,
     query_controls = query_controls,
     data_root = data_folder_root
   )
