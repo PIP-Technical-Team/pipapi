@@ -15,19 +15,7 @@ clean_api_data <- function(data_folder_root) {
     as.data.table = TRUE
   )
   # TEMP cleaning - START
-  svy_lkup <- svy_lkup[!is.na(svy_lkup$survey_mean_ppp), ]
-  svy_lkup <- svy_lkup[!is.na(svy_lkup$ppp), ]
   svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
-  svy_lkup <- svy_lkup %>%
-    data.table::setnames("survey_median_ppp", "median")
-  svy_lkup <- svy_lkup %>%
-    data.table::setnames("pcn_region_code", "region_code")
-  svy_lkup$reporting_gdp <- 0
-  svy_lkup$reporting_pce <- 0
-  svy_lkup$estimation_type <- "survey"
-  # svy_lkup$survey_year <- as.character(svy_lkup$survey_year)
-  svy_lkup$reporting_year <- as.integer(svy_lkup$reporting_year)
-  svy_lkup$predicted_mean_ppp <- numeric(0)
   # TEMP cleaning - END
   svy_lkup$path <- sprintf(
     "%ssurvey_data/%s.fst",
@@ -38,14 +26,7 @@ clean_api_data <- function(data_folder_root) {
     as.data.table = TRUE
   )
   # TEMP cleaning - START
-  ref_lkup <- ref_lkup[!is.na(ref_lkup$predicted_mean_ppp), ]
-  ref_lkup <- ref_lkup[!is.na(ref_lkup$ppp), ]
   ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
-  ref_lkup$problem <- NULL; ref_lkup$report <- NULL
-  ref_lkup <- ref_lkup %>%
-    data.table::setnames("survey_median_ppp", "median")
-  ref_lkup <- ref_lkup %>%
-    data.table::setnames("pcn_region_code", "region_code")
   # TEMP cleaning - END
   ref_lkup$path <- sprintf(
     "%ssurvey_data/%s.fst",
