@@ -3,8 +3,6 @@
 #' @param group_lkup data.frame Group lkup table (pop_region)
 #' @noRd
 aggregate_by_group <- function(df, group_lkup) {
-  # TEMPORARY FIX: TO BE MODIFIED
-  data.table::setnames(df, old = "pcn_region_code", new = "region_code")
 
   df <- df[, .(
     region_code,

@@ -20,6 +20,8 @@ clean_api_data <- function(data_folder_root) {
   svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
   svy_lkup <- svy_lkup %>%
     data.table::setnames("survey_median_ppp", "median")
+  svy_lkup <- svy_lkup %>%
+    data.table::setnames("pcn_region_code", "region_code")
   svy_lkup$reporting_gdp <- 0
   svy_lkup$reporting_pce <- 0
   svy_lkup$estimation_type <- "survey"
@@ -42,6 +44,8 @@ clean_api_data <- function(data_folder_root) {
   ref_lkup$problem <- NULL; ref_lkup$report <- NULL
   ref_lkup <- ref_lkup %>%
     data.table::setnames("survey_median_ppp", "median")
+  ref_lkup <- ref_lkup %>%
+    data.table::setnames("pcn_region_code", "region_code")
   # TEMP cleaning - END
   ref_lkup$path <- sprintf(
     "%ssurvey_data/%s.fst",
@@ -68,7 +72,7 @@ clean_api_data <- function(data_folder_root) {
 
   # Add pip return cols
   pip_cols <-
-    c('pcn_region_code', 'country_code', 'reporting_year',
+    c('region_code', 'country_code', 'reporting_year',
       'survey_acronym', 'survey_coverage', 'survey_year',
       'welfare_type', 'survey_comparability', 'comparable_spell',
       'poverty_line', 'headcount', 'poverty_gap', 'poverty_severity',
