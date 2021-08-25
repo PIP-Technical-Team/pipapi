@@ -40,7 +40,7 @@ rg_pip <- function(country,
       path = tmp_metadata$path
     )
 
-    if (debug) debug(wbpip:::prod_compute_pip_stats)
+    if (debug) debugonce(wbpip:::prod_compute_pip_stats)
     tmp_stats <- wbpip:::prod_compute_pip_stats(
       welfare = svy_data$df0$welfare,
       povline = povline,
