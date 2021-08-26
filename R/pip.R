@@ -8,7 +8,7 @@
 #' @param fill_gaps logical: If set to TRUE, will interpolate / extrapolate
 #'   values for missing years
 #' @param aggregate logical: If set to TRUE, will return aggregate results
-#' @param group_by character: Will return aggregated values for pre-defined
+#' @param group_by character: Will return aggregated values for predefined
 #'   sub-groups
 #' @param welfare_type character: Welfare type
 #' @param reporting_level character: Geographical reporting level
