@@ -120,11 +120,7 @@
     <p>Return the versions of the pip packages used for computations</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_pip_version</span><span class='op'>(</span>
-  pip_packages <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"pipapi"</span>, <span class='st'>"wbpip"</span><span class='op'>)</span>,
-  <span class='va'>data_folder_root</span>,
-  <span class='va'>valid_params</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>get_pip_version</span><span class='op'>(</span>pip_packages <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"pipapi"</span>, <span class='st'>"wbpip"</span><span class='op'>)</span>, <span class='va'>lkup</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -134,12 +130,8 @@
       <td><p>character: Custom packages powering the API</p></td>
     </tr>
     <tr>
-      <th>data_folder_root</th>
-      <td><p>character: Root path of data folder</p></td>
-    </tr>
-    <tr>
-      <th>valid_params</th>
-      <td><p>list: Valid API query parameters</p></td>
+      <th>lkup</th>
+      <td><p>list: A list of lkup tables</p></td>
     </tr>
     </table>
 
