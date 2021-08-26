@@ -4,40 +4,22 @@
     <loc>https://pip-technical-team.github.io/pipapi/index.html</loc>
   </url>
   <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/check_param_chr.html</loc>
-  </url>
-  <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/check_param_lgl.html</loc>
-  </url>
-  <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/check_param_num.html</loc>
-  </url>
-  <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/check_parameter.html</loc>
-  </url>
-  <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/check_parameters.html</loc>
-  </url>
-  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/empty_response.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/fg_pip.html</loc>
   </url>
   <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/format_error.html</loc>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/get_aux_table.html</loc>
   </url>
   <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/get_aux_table.html</loc>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/get_param_values.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/get_pip_version.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/get_svy_data.html</loc>
-  </url>
-  <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/parse_parameters.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/pip.html</loc>
@@ -50,9 +32,6 @@
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/rg_pip.html</loc>
-  </url>
-  <url>
-    <loc>https://pip-technical-team.github.io/pipapi/reference/serializer_switch.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/start_api.html</loc>
