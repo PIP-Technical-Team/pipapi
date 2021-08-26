@@ -144,3 +144,129 @@ censor_rows <- function(df, censored_table) {
 
   return(df)
 }
+
+
+#' Get valid query parameter values
+#' Get vector of accepted query parameter values
+#' @param param character: Query parameter
+#' @export
+get_param_values <- function(param) {
+  out <- lkups$query_controls[[param]]$values
+  out <- data.frame(out)
+  if (param == "parameter")
+    out <- out[!out == "parameter"]
+  names(out) <- param
+  return(out)
+}
+
+#' Create query controls
+#' @inheritParams clean_api_data
+#' @param syv_lkup data.table: Survey lkup table
+#' @param ref_lkup data.table: Reference lkup table
+#' @return list
+#' @noRd
+create_query_controls <- function(data_folder_root, svy_lkup, ref_lkup) {
+
+  country <- list(
+    values = c(
+      "all",
+      sort(unique(c(
+        svy_lkup$country_code,
+        ref_lkup$country_code
+      )))
+    ),
+    type = "character"
+  )
+
+  year <- list(
+    values = c(
+      "all", "mrv",
+      sort(unique(c(
+        svy_lkup$reporting_year,
+        ref_lkup$reporting_year
+      )))
+    ),
+    type = "character"
+  )
+
+  povline <- list(
+    values = c(min = 0, max = 100),
+    type = "numeric"
+  )
+
+  popshare <- list(
+    values = c(min = 0, max = 1),
+    type = "numeric"
+  )
+
+  fill_gaps <- aggregate <- list(
+    values = c(TRUE, FALSE),
+    type = "logical"
+  )
+
+  group_by <- list(
+    values = c("none", "wb"),
+    type = "character"
+  )
+
+  welfare_type <- list(
+    values = c("all", sort(unique(c(
+      svy_lkup$welfare_type,
+      ref_lkup$welfare_type
+    )))),
+    type = "character"
+  )
+
+  reporting_level <- list(
+    values = c(
+      "all",
+      sort(unique(c(
+        svy_lkup$pop_data_level,
+        ref_lkup$pop_data_level
+      )))
+    ),
+    type = "character"
+  )
+
+  ppp <- list(
+    values = c(min = 0, max = 1000000), # CHECK THE VALUE OF MAX
+    type = "numeric"
+  )
+
+  versions <-
+    list.files(sub('/[0-9]{8}', '', data_folder_root),
+               recursive = FALSE, full.names = FALSE,
+               all.files = FALSE, pattern = '[0-9]{8}')
+  # list.dirs(sub('/[0-9]{8}', '', data_folder_root),
+  #           recursive = FALSE, full.names = FALSE)
+
+  format <- list(values = c("json", "csv", "rds"),
+                 type = "character")
+
+  parameter <-
+    list(values = c("country", "year", "povline",
+                    "popshare", "fill_gaps", "aggregate",
+                    "group_by", "welfare_type",
+                    "reporting_level", "ppp",
+                    "format", "parameter"),
+         type = "character")
+
+  # Create list of query controls
+  query_controls <- list(
+    country = country,
+    year = year,
+    povline = povline,
+    popshare = popshare,
+    fill_gaps = fill_gaps,
+    aggregate = aggregate,
+    group_by = group_by,
+    welfare_type = welfare_type,
+    reporting_level = reporting_level,
+    ppp = ppp,
+    version = versions,
+    format = format,
+    parameter = parameter
+  )
+
+  return(query_controls)
+}
