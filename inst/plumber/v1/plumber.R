@@ -70,18 +70,19 @@ function() {
   "PIP API is running"
 }
 
+#* Return system info
 #* @get /api/v1/system-info
 function(){
   Sys.info()
 }
 
-#* Return PIP information
+#* Return working directory
 #* @get /api/v1/get-root
 function() {
   getwd()
 }
 
-#* Return PIP information
+#* Return available objects
 #* @get /api/v1/get-available-objects
 function() {
   list(
@@ -95,8 +96,20 @@ function() {
 #* Return PIP information
 #* @get /api/v1/info
 function() {
-  pipapi::get_pip_version(data_folder_root = lkups$data_root,
-                          valid_params     = lkups$query_controls)
+  pipapi::get_pip_version(
+    data_folder_root = lkups$data_root,
+    valid_params     = lkups$query_controls)
+}
+
+#* Return valid parameters
+#* @get /api/v1/valid-params
+#* @param parameter:[chr] Query parameter
+#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @serializer switch
+function(req) {
+  out <- pipapi::get_param_values(req$argsQuery$parameter)
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
 }
 
 #* Return main poverty and inequality statistics
@@ -109,7 +122,7 @@ function() {
 #* @param aggregate:[bool] Whether to aggregate results or not.
 #* @param group_by:[chr] Triggers sub-groups aggregation.
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
-#* @param reporting_level:[chr] Survey coverage. Options are "national", "urban", "rural".
+#* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* @serializer switch
@@ -219,14 +232,14 @@ function(req) {
 
 #* Return data for Poverty Calculator main chart
 #* @get /api/v1/pc-charts
-#* @param country:[chr] country iso3 code
-#* @param year:[chr] year
+#* @param country:[chr] Country ISO3 code
+#* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
 #* @param fill_gaps:[bool] Fill gaps for years with no available surveys
 #* @param aggregate:[bool] Whether to aggregate results or not
 #* @param group_by:[chr] Triggers sub-groups aggregation
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
-#* @param reporting_level:[chr] Survey coverage. Options are "all", national", "urban", "rural".
+#* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
 #* @serializer json
 function(req) {
   params <- req$argsQuery
@@ -236,14 +249,14 @@ function(req) {
 
 #* Return data for Poverty Calculator download
 #* @get /api/v1/pc-download
-#* @param country:[chr] country iso3 code
-#* @param year:[chr] year
+#* @param country:[chr] Country ISO3 code
+#* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
 #* @param fill_gaps:[bool] Fill gaps for years with no available surveys
 #* @param aggregate:[bool] Whether to aggregate results or not
 #* @param group_by:[chr] Triggers sub-groups aggregation
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
-#* @param reporting_level:[chr] Survey coverage. Options are "all", national", "urban", "rural".
+#* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
 #* @serializer csv
 function(req) {
   params <- req$argsQuery
@@ -269,7 +282,7 @@ function(req) {
 
 #* Return Country Profile - Key Indicators
 #* @get /api/v1/cp-key-indicators
-#* @param country:[chr] country iso3 code
+#* @param country:[chr] Country ISO3 code
 #* @param povline:[dbl] Poverty Line
 #* @serializer json
 function(req) {
@@ -281,7 +294,7 @@ function(req) {
 
 #* Return Country Profile - Charts
 #* @get /api/v1/cp-charts
-#* @param country:[chr] country iso3 code
+#* @param country:[chr] Country ISO3 code
 #* @param povline:[dbl] Poverty Line
 #* @serializer json
 function(req) {
@@ -294,7 +307,7 @@ function(req) {
 
 #* Return data for the Data Sources page
 #* @get /api/v1/survey-metadata
-#* @param country:[chr] country iso3 code
+#* @param country:[chr] Country ISO3 code
 #* @serializer json list(na="null")
 function(req) {
   params <- req$argsQuery

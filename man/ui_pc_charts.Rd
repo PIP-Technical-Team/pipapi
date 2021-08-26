@@ -28,7 +28,7 @@ values for missing years}
 
 \item{aggregate}{logical: If set to TRUE, will return aggregate results}
 
-\item{group_by}{character: Will return aggregated values for pre-defined
+\item{group_by}{character: Will return aggregated values for predefined
 sub-groups}
 
 \item{welfare_type}{character: Welfare type}

@@ -37,7 +37,6 @@ Suggests:
 Language: en-US
 Imports: 
     data.table,
-    fs,
     fst,
     plumber,
     urltools,
