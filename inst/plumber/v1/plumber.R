@@ -96,9 +96,7 @@ function() {
 #* Return PIP information
 #* @get /api/v1/info
 function() {
-  pipapi::get_pip_version(
-    data_folder_root = lkups$data_root,
-    valid_params     = lkups$query_controls)
+  pipapi::get_pip_version(lkup = lkups)
 }
 
 #* Return valid parameters
@@ -107,7 +105,8 @@ function() {
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
-  out <- pipapi::get_param_values(req$argsQuery$parameter)
+  out <- pipapi::get_param_values(
+    req$argsQuery$parameter, lkup = lkups)
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }

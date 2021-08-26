@@ -5,10 +5,12 @@
 \title{Get valid query parameter values
 Get vector of accepted query parameter values}
 \usage{
-get_param_values(param)
+get_param_values(param, lkup)
 }
 \arguments{
 \item{param}{character: Query parameter}
+
+\item{lkup}{list: A list of lkup tables}
 }
 \description{
 Get valid query parameter values

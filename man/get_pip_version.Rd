@@ -4,18 +4,12 @@
 \alias{get_pip_version}
 \title{Return the versions of the pip packages used for computations}
 \usage{
-get_pip_version(
-  pip_packages = c("pipapi", "wbpip"),
-  data_folder_root,
-  valid_params
-)
+get_pip_version(pip_packages = c("pipapi", "wbpip"), lkup)
 }
 \arguments{
 \item{pip_packages}{character: Custom packages powering the API}
 
-\item{data_folder_root}{character: Root path of data folder}
-
-\item{valid_params}{list: Valid API query parameters}
+\item{lkup}{list: A list of lkup tables}
 }
 \value{
 list

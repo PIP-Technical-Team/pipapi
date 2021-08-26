@@ -1,32 +1,21 @@
 #' Return the versions of the pip packages used for computations
 #'
 #' @param pip_packages character: Custom packages powering the API
-#' @param data_folder_root character: Root path of data folder
-#' @param valid_params list: Valid API query parameters
-#'
+#' @inheritParams pip
 #' @return list
 #' @export
-#'
 get_pip_version <- function(pip_packages = c("pipapi", "wbpip"),
-                            data_folder_root,
-                            valid_params) {
+                            lkup) {
 
   # Package versions
   pkg <- lapply(pip_packages, retrieve_pkg_version)
   names(pkg) <- pip_packages
 
-  # Data version
-  data <- fs::dir_ls(
-    path = data_folder_root,
-    type = "directory",
-    recurse = TRUE
-  )
-
   return(
     list(
-      valid_query_parameters = valid_params,
+      valid_query_parameters = lkup$query_controls,
       packages_version = pkg,
-      data_versions = data
+      data_versions = lkups$query_controls$version
     )
   )
 }
