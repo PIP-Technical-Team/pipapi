@@ -13,7 +13,8 @@ fg_pip(
   welfare_type,
   reporting_level,
   ppp,
-  lkup
+  lkup,
+  debug
 )
 }
 \arguments{
@@ -23,17 +24,21 @@ fg_pip(
 
 \item{povline}{numeric: Poverty line}
 
-\item{popshare}{numeric: Proportion of the population living below the poverty line}
+\item{popshare}{numeric: Proportion of the population living below the
+poverty line}
 
 \item{aggregate}{logical: If set to TRUE, will return aggregate results}
 
-\item{welfare_type}{character: Welfare type.}
+\item{welfare_type}{character: Welfare type}
 
 \item{reporting_level}{character: Geographical reporting level}
 
 \item{ppp}{numeric: Custom Purchase Power Parity value}
 
 \item{lkup}{list: A list of lkup tables}
+
+\item{debug}{logical: If TRUE poverty calculations from \code{wbpip} will run in
+debug mode}
 }
 \value{
 data.frame

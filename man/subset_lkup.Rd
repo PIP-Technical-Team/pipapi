@@ -11,7 +11,7 @@ subset_lkup(country, year, welfare_type, reporting_level, lkup)
 
 \item{year}{integer: Reporting year}
 
-\item{welfare_type}{character: Welfare type.}
+\item{welfare_type}{character: Welfare type}
 
 \item{reporting_level}{character: Geographical reporting level}
 

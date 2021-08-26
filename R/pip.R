@@ -3,14 +3,19 @@
 #' @param country character: Country ISO 3 codes
 #' @param year integer: Reporting year
 #' @param povline numeric: Poverty line
-#' @param popshare numeric: Proportion of the population living below the poverty line
-#' @param fill_gaps logical: If set to TRUE, will interpolate / extrapolate values for missing years
+#' @param popshare numeric: Proportion of the population living below the
+#'   poverty line
+#' @param fill_gaps logical: If set to TRUE, will interpolate / extrapolate
+#'   values for missing years
 #' @param aggregate logical: If set to TRUE, will return aggregate results
-#' @param group_by character: Will return aggregated values for pre-defined sub-groups
-#' @param welfare_type character: Welfare type.
+#' @param group_by character: Will return aggregated values for predefined
+#'   sub-groups
+#' @param welfare_type character: Welfare type
 #' @param reporting_level character: Geographical reporting level
 #' @param ppp numeric: Custom Purchase Power Parity value
 #' @param lkup list: A list of lkup tables
+#' @param debug logical: If TRUE poverty calculations from `wbpip` will run in
+#'   debug mode
 #'
 #' @return data.frame
 #' @export
@@ -25,7 +30,9 @@ pip <- function(country = "all",
                 welfare_type = c("all", "consumption", "income"),
                 reporting_level = c("all", "national", "rural", "urban"),
                 ppp = NULL,
-                lkup) {
+                lkup,
+                debug = FALSE) {
+
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
@@ -46,7 +53,8 @@ pip <- function(country = "all",
       welfare_type = welfare_type,
       reporting_level = reporting_level,
       ppp = ppp,
-      lkup = lkup
+      lkup = lkup,
+      debug = debug
     )
   } else {
     # Compute survey year stats
@@ -59,7 +67,8 @@ pip <- function(country = "all",
       welfare_type = welfare_type,
       reporting_level = reporting_level,
       ppp = ppp,
-      lkup = lkup
+      lkup = lkup,
+      debug = debug
     )
   }
 
@@ -97,7 +106,9 @@ pip <- function(country = "all",
   out <- censor_rows(out, lkup[["censored"]])
 
   # Select columns
-  # out <- out[, .SD, .SDcols = cols]
+  if (!group_by != "none") {
+    out <- out[, .SD, .SDcols = lkup$pip_cols]
+  }
 
   # ADD FIX FOR MEDIAN WHEN INTERPOLATING
   # median <- dist_stats[["median"]]/(data_mean/requested_mean)

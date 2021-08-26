@@ -23,13 +23,15 @@ ui_pc_charts(
 
 \item{povline}{numeric: Poverty line}
 
-\item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate values for missing years}
+\item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
+values for missing years}
 
 \item{aggregate}{logical: If set to TRUE, will return aggregate results}
 
-\item{group_by}{character: Will return aggregated values for pre-defined sub-groups}
+\item{group_by}{character: Will return aggregated values for pre-defined
+sub-groups}
 
-\item{welfare_type}{character: Welfare type.}
+\item{welfare_type}{character: Welfare type}
 
 \item{reporting_level}{character: Geographical reporting level}
 

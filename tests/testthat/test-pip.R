@@ -28,6 +28,18 @@ test_that("empty response is returned if no metadata is found", {
   expect_equal(nrow(tmp), 0)
 })
 
+# Check response columns
+test_that("returned columns are the same for all non-group_by queries", {
+  tmp1 <- pip('AGO', 2000, lkup = lkups)
+  tmp2 <- pip('AGO', 2010, lkup = lkups, fill_gaps = TRUE)
+  tmp3 <- pip('AGO', 2050, lkup = lkups)
+  expect_identical(names(tmp1), names(tmp2))
+  expect_identical(names(tmp1), names(tmp3))
+  skip("collapsed columns (e.g. survey_year, cpi) are converted to character")
+  expect_identical(sapply(tmp1, class), sapply(tmp2, class))
+  expect_identical(sapply(tmp1, class), sapply(tmp3, class))
+})
+
 # Check selections ----
 
 ## Year -----

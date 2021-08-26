@@ -15,7 +15,8 @@ pip(
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
   ppp = NULL,
-  lkup
+  lkup,
+  debug = FALSE
 )
 }
 \arguments{
@@ -25,21 +26,27 @@ pip(
 
 \item{povline}{numeric: Poverty line}
 
-\item{popshare}{numeric: Proportion of the population living below the poverty line}
+\item{popshare}{numeric: Proportion of the population living below the
+poverty line}
 
-\item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate values for missing years}
+\item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
+values for missing years}
 
 \item{aggregate}{logical: If set to TRUE, will return aggregate results}
 
-\item{group_by}{character: Will return aggregated values for pre-defined sub-groups}
+\item{group_by}{character: Will return aggregated values for pre-defined
+sub-groups}
 
-\item{welfare_type}{character: Welfare type.}
+\item{welfare_type}{character: Welfare type}
 
 \item{reporting_level}{character: Geographical reporting level}
 
 \item{ppp}{numeric: Custom Purchase Power Parity value}
 
 \item{lkup}{list: A list of lkup tables}
+
+\item{debug}{logical: If TRUE poverty calculations from \code{wbpip} will run in
+debug mode}
 }
 \value{
 data.frame

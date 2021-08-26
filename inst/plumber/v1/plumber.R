@@ -99,33 +99,19 @@ function() {
                           valid_params     = lkups$query_controls)
 }
 
-#* Return CPI table
-#* @get /api/v1/cpi
-#* @serializer json
-function() {
-  pipapi::get_aux_table(data_dir = lkups$data_root,
-                        table = "cpi")
-}
-
-# #* Return custom plot
-# #* @get /api/v1/get-plot
-# #* @serializer htmlwidget
-# function() {
-#   pipapi:::custom_plot(lkups)
-# }
-
+#* Return main poverty and inequality statistics
 #* @get /api/v1/pip
-#* @param country:[chr] country iso3 code
-#* @param year:[chr] year
+#* @param country:[chr] Country ISO3 code
+#* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
-#* @param popshare:[dbl] numeric Share of the population living below the poverty Line
-#* @param fill_gaps:[bool] Fill gaps for years with no available surveys
-#* @param aggregate:[bool] Whether to aggregate results or not
-#* @param group_by:[chr] Triggers sub-groups aggregation
+#* @param popshare:[dbl] Share of the population living below the poverty Line.
+#* @param fill_gaps:[bool] Fill gaps for years with no available surveys.
+#* @param aggregate:[bool] Whether to aggregate results or not.
+#* @param group_by:[chr] Triggers sub-groups aggregation.
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Survey coverage. Options are "national", "urban", "rural".
-#* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value
-#* @param format:[chr] One of "json", "csv", or "rds". Defaults to "json".
+#* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
+#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
   # Process request
@@ -146,6 +132,43 @@ function(req) {
 # }
 
 
+#* Return CPI table
+#* @get /api/v1/cpi
+#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @serializer switch
+function(req) {
+  out <- pipapi::get_aux_table(
+    data_dir = lkups$data_root,
+    table = "cpi")
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
+}
+
+#* Return list of countries
+#* @get /api/v1/countries
+#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @serializer switch
+function(req) {
+  out <- pipapi::get_aux_table(
+    data_dir = lkups$data_root,
+    table = "countries")
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
+}
+
+#* Return list of regions
+#* @get /api/v1/regions
+#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @serializer switch
+function(req) {
+  out <- pipapi::get_aux_table(
+    data_dir = lkups$data_root,
+    table = "regions")
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
+}
+
+
 # UI endpoints: Homepage --------------------------------------------------
 
 #* Return poverty lines for home page display
@@ -162,23 +185,6 @@ function() {
 function() {
   pipapi::get_aux_table(data_dir = lkups$data_root,
                         table = "indicators")
-}
-
-#* Return list of countries
-#* @get /api/v1/countries
-#* @serializer json
-function() {
-  pipapi::get_aux_table(data_dir = lkups$data_root,
-                        table = "countries") %>%
-    data.table::setnames('pcn_region_code', 'region_code')
-}
-
-#* Return list of regions
-#* @get /api/v1/regions
-#* @serializer json
-function() {
-  pipapi::get_aux_table(data_dir = lkups$data_root,
-                        table = "regions")
 }
 
 #* Return list of variables used for decomposition
