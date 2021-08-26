@@ -169,8 +169,7 @@ function() {
 #* @serializer json
 function() {
   pipapi::get_aux_table(data_dir = lkups$data_root,
-                        table = "countries") %>%
-    data.table::setnames('pcn_region_code', 'region_code')
+                        table = "countries")
 }
 
 #* Return list of regions
