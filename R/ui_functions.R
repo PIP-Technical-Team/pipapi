@@ -216,10 +216,12 @@ ui_cp_charts <- function(country = "AGO",
     dl <- lapply(country_codes, function(country)
       ui_cp_charts_single(country = country, povline = povline,
                           pop_units = pop_units, lkup = lkup))
+    names(dl) <- country_codes
   } else {
     dl <- ui_cp_charts_single(country = country, povline = povline,
                               pop_units = pop_units, lkup = lkup)
     dl <- list(dl)
+    names(dl) <- country
   }
   return(dl)
 }
