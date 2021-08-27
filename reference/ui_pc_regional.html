@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Poverty Calculator Main chart — ui_pc_charts • pipapi</title>
+<title>Poverty Calculator regional aggregates — ui_pc_regional • pipapi</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,9 @@
 
 
 
-<meta property="og:title" content="Poverty Calculator Main chart — ui_pc_charts" />
-<meta property="og:description" content="Provides numbers that will populate the poverty calculator main chart." />
+<meta property="og:title" content="Poverty Calculator regional aggregates — ui_pc_regional" />
+<meta property="og:description" content="Provides numbers that will populate poverty calculator regional aggregates
+for all years." />
 
 
 
@@ -111,64 +112,24 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Poverty Calculator Main chart</h1>
+    <h1>Poverty Calculator regional aggregates</h1>
     <small class="dont-index">Source: <a href='https://github.com/PIP-Technical-Team/pipapi/blob/master/R/ui_functions.R'><code>R/ui_functions.R</code></a></small>
-    <div class="hidden name"><code>ui_pc_charts.Rd</code></div>
+    <div class="hidden name"><code>ui_pc_regional.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Provides numbers that will populate the poverty calculator main chart.</p>
+    <p>Provides numbers that will populate poverty calculator regional aggregates
+for all years.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>ui_pc_charts</span><span class='op'>(</span>
-  country <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"AGO"</span><span class='op'>)</span>,
-  year <span class='op'>=</span> <span class='st'>"all"</span>,
-  povline <span class='op'>=</span> <span class='fl'>1.9</span>,
-  fill_gaps <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  aggregate <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  group_by <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"none"</span>, <span class='st'>"wb"</span><span class='op'>)</span>,
-  welfare_type <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"all"</span>, <span class='st'>"consumption"</span>, <span class='st'>"income"</span><span class='op'>)</span>,
-  reporting_level <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"all"</span>, <span class='st'>"national"</span>, <span class='st'>"rural"</span>, <span class='st'>"urban"</span><span class='op'>)</span>,
-  pop_units <span class='op'>=</span> <span class='fl'>1e+06</span>,
-  <span class='va'>lkup</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>ui_pc_regional</span><span class='op'>(</span>povline <span class='op'>=</span> <span class='fl'>1.9</span>, pop_units <span class='op'>=</span> <span class='fl'>1e+06</span>, <span class='va'>lkup</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>country</th>
-      <td><p>character: Country ISO 3 codes</p></td>
-    </tr>
-    <tr>
-      <th>year</th>
-      <td><p>integer: Reporting year</p></td>
-    </tr>
-    <tr>
       <th>povline</th>
       <td><p>numeric: Poverty line</p></td>
-    </tr>
-    <tr>
-      <th>fill_gaps</th>
-      <td><p>logical: If set to TRUE, will interpolate / extrapolate
-values for missing years</p></td>
-    </tr>
-    <tr>
-      <th>aggregate</th>
-      <td><p>logical: If set to TRUE, will return aggregate results</p></td>
-    </tr>
-    <tr>
-      <th>group_by</th>
-      <td><p>character: Will return aggregated values for predefined
-sub-groups</p></td>
-    </tr>
-    <tr>
-      <th>welfare_type</th>
-      <td><p>character: Welfare type</p></td>
-    </tr>
-    <tr>
-      <th>reporting_level</th>
-      <td><p>character: Geographical reporting level</p></td>
     </tr>
     <tr>
       <th>pop_units</th>
