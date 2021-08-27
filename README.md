@@ -54,8 +54,7 @@ data-folder-root/
 
 ``` r
 # Create a list of look-up tables from the root data folder
-lkups <- pipapi:::clean_api_data(
-  data_folder_root = "path/to/data_folder")
+lkups <- create_lkups("<data-folder>")
 ```
 
 ### Usage

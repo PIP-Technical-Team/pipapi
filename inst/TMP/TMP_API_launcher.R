@@ -1,5 +1,4 @@
-lkups <- pipapi:::clean_api_data(
-  data_folder_root = Sys.getenv('PIPAPI_DATA_FOLDER_ROOT'))
+lkups <- pipapi::create_lkups(Sys.getenv('PIPAPI_DATA_FOLDER_ROOT'))
 
 start_api(api_version = "v1",
           port = 80,

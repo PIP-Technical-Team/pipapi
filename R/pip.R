@@ -1,4 +1,6 @@
-#' Compute the main PIP poverty and inequality statistics
+#' Compute PIP statistics
+#'
+#' Compute the main PIP poverty and inequality statistics.
 #'
 #' @param country character: Country ISO 3 codes
 #' @param year integer: Reporting year
@@ -17,9 +19,39 @@
 #' @param debug logical: If TRUE poverty calculations from `wbpip` will run in
 #'   debug mode
 #'
-#' @return data.frame
-#' @export
+#' @return data.table
+#' @examples
+#' \dontrun{
+#' # Create lkups
+#' lkups <- create_lkups("<data-folder>")
 #'
+#' # A single country and year
+#' pip(country = "AGO",
+#'     year = 2000,
+#'     povline = 1.9,
+#'     lkup = lkups)
+#'
+#' # All years for a single country
+#' pip(country = "AGO",
+#'     year = "all",
+#'     povline = 1.9,
+#'     lkup = lkups)
+#'
+#' # Fill gaps
+#' pip(country = "AGO",
+#'     year = "all",
+#'     povline = 1.9,
+#'     fill_gaps = TRUE,
+#'     lkup = lkups)
+#'
+#' # Group by regions
+#' pip(country = "all",
+#'     year = "all",
+#'     povline = 1.9,
+#'     group_by = "wb",
+#'     lkup = lkups)
+#' }
+#' @export
 pip <- function(country = "all",
                 year = "all",
                 povline = 1.9,

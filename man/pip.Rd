@@ -2,7 +2,7 @@
 % Please edit documentation in R/pip.R
 \name{pip}
 \alias{pip}
-\title{Compute the main PIP poverty and inequality statistics}
+\title{Compute PIP statistics}
 \usage{
 pip(
   country = "all",
@@ -49,8 +49,40 @@ sub-groups}
 debug mode}
 }
 \value{
-data.frame
+data.table
 }
 \description{
-Compute the main PIP poverty and inequality statistics
+Compute the main PIP poverty and inequality statistics.
+}
+\examples{
+\dontrun{
+# Create lkups
+lkups <- create_lkups("<data-folder>")
+
+# A single country and year
+pip(country = "AGO",
+    year = 2000,
+    povline = 1.9,
+    lkup = lkups)
+
+# All years for a single country
+pip(country = "AGO",
+    year = "all",
+    povline = 1.9,
+    lkup = lkups)
+
+# Fill gaps
+pip(country = "AGO",
+    year = "all",
+    povline = 1.9,
+    fill_gaps = TRUE,
+    lkup = lkups)
+
+# Group by regions
+pip(country = "all",
+    year = "all",
+    povline = 1.9,
+    group_by = "wb",
+    lkup = lkups)
+}
 }

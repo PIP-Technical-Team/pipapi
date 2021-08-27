@@ -1,10 +1,8 @@
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 
-# lkups <- pipapi:::clean_api_data(
-#   data_folder_root = "../testdata/20210401/")
 files <- sub("[.]fst", "", list.files("../testdata/20210401/survey_data/"))
-lkups <- pipapi:::clean_api_data(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+lkups <- create_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
 lkups$svy_lkup <- lkups$svy_lkup[(cache_id %in% files | country_code == "AGO")]
 lkups$ref_lkup <- lkups$ref_lkup[(cache_id %in% files | country_code == "AGO")]
 

@@ -1,5 +1,5 @@
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
-lkups <- pipapi:::clean_api_data(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+lkups <- create_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
 
 test_that("get_pip_version() is working", {
   res <- get_pip_version(lkup = lkups)
