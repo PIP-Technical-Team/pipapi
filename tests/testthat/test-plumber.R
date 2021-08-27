@@ -50,7 +50,7 @@ test_that("Data folder path is correctly set up", {
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(names(tmp_resp), c("valid_query_parameters", "packages_version", "data_versions"))
-  expect_equal(tmp_resp$data_versions[[1]], paste0(data_folder_root, "estimations"))
+  expect_equal(tmp_resp$data_versions[[2]], "20210401")
 })
 
 test_that("Necessary objects are available in the API environment", {
@@ -81,7 +81,6 @@ test_that("Interpolated PIP request is working", {
 })
 
 test_that("Serializer formats are working", {
-
   # Check json
   r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=AGO&year=2000&format=json")
   expect_equal(httr::http_type(r), "application/json")

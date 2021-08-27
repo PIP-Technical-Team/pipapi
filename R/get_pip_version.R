@@ -15,7 +15,7 @@ get_pip_version <- function(pip_packages = c("pipapi", "wbpip"),
     list(
       valid_query_parameters = lkup$query_controls,
       packages_version = pkg,
-      data_versions = lkups$query_controls$version
+      data_versions = lkup$query_controls$version
     )
   )
 }
