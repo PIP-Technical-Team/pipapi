@@ -12,7 +12,7 @@ ui_hp_stacked(povline = 1.9, lkup)
 \item{lkup}{list: A list of lkup tables}
 }
 \value{
-data.frame
+data.table
 }
 \description{
 Provides numbers that will populate the home page main chart.

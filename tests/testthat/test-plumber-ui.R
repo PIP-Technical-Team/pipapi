@@ -131,7 +131,8 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
     "reporting_pop", "ppp", "cpi",
     "distribution_type", "is_interpolated",
     "poverty_line", "mean", "headcount",
-    "poverty_gap", "poverty_severity", "watts"
+    "poverty_gap", "poverty_severity", "watts",
+    "pop_in_poverty"
   ))
 })
 
@@ -149,7 +150,8 @@ test_that("Poverty calculator chart endpoint is working for imputed years", {
     "poverty_line", "mean", "headcount",
     "poverty_gap", "poverty_severity",
     "watts", "region_code",
-    "reporting_pop", "is_interpolated"
+    "reporting_pop", "is_interpolated",
+    "pop_in_poverty"
   ))
 })
 
@@ -171,7 +173,7 @@ test_that("Poverty calculator chart endpoint is working for regional aggregates"
   ))
 })
 
-test_that("Poverty calculator chart endpoint is working for survey years", {
+test_that("Poverty calculator download endpoint is working for survey years", {
   # Send API request
   r <- httr::GET(root_path,
     port = 8000,
@@ -195,11 +197,12 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
     "reporting_pop", "ppp", "cpi",
     "distribution_type", "is_interpolated",
     "poverty_line", "mean", "headcount",
-    "poverty_gap", "poverty_severity", "watts"
+    "poverty_gap", "poverty_severity", "watts",
+    "pop_in_poverty"
   ))
 })
 
-test_that("Poverty calculator chart endpoint is working for imputed years", {
+test_that("Poverty calculator download endpoint is working for imputed years", {
   # Send API request
   r <- httr::GET(root_path,
     port = 8000,
@@ -214,7 +217,8 @@ test_that("Poverty calculator chart endpoint is working for imputed years", {
     "poverty_line", "mean", "headcount",
     "poverty_gap", "poverty_severity",
     "watts", "region_code",
-    "reporting_pop", "is_interpolated"
+    "reporting_pop", "is_interpolated",
+    "pop_in_poverty"
   ))
 })
 
