@@ -26,7 +26,7 @@ The goal of pipapi is to provide a high level API to the computations and
 methods that power the Poverty and Inequality Platform (PIP).
 
 World Bank staff who have read access to the PIP data can use the functions from
-this package directly (without hitting the PIP API)
+this package directly, without hitting the PIP API. 
 
 ## Installation
 
@@ -43,17 +43,18 @@ for more information.
 
 ### Data access
 
-In order to use the `pip()` you'll need to have access to PIP `data_folder`. 
+In order to use `pip()` you'll need to have access to a PIP `data_folder`. 
 The folder structure looks like this:
+
 ```{bash eval=FALSE, echo=TRUE}
 data-folder-root/
 ├─ _aux/
-│  ├─ pop-regions.fst
+│  ├─ pop_regions.fst
 │  ├─ pop.fst
+│  ├─ ...
 ├─ estimations/
-│  ├─ survey_means.fst
-│  ├─ interpolated_means.fst
-│  ├─ dist_stats.fst
+│  ├─ prod_svy_estimation.fst
+│  ├─ prod_ref_estimation.fst
 ├─ survey_data/
 │  ├─ survey_1.fst
 │  ├─ ...
@@ -66,17 +67,11 @@ lkups <- pipapi:::clean_api_data(
   data_folder_root = "path/to/data_folder")
 ```
 
-```{r data-access-2, echo=FALSE, message=FALSE, warning=FALSE}
-lkups <- pipapi:::clean_api_data(
-  data_folder_root = "./tests/testdata/20210401/")
+### Usage
 
-str(lkups)
-
-```
-
-### Run package functions
 Pass the `lkups` list to the main `pip()` function to compute poverty and inequality 
 statistics in your `R` session.
+
 ```{r pip}
 library(pipapi)
 
