@@ -1,18 +1,18 @@
-#' Temporary function that takes care of basic data cleaning and validation
+#' Create look-up tables
 #'
-#' @param data_folder_root character: Path to data folder relative to the location
-#' of the plumber.R file
+#' Create look-up tables that can be passed to [pip()].
 #'
+#' @param data_dir character: Path to PIP data root folder.
 #' @return list
-#' @noRd
-clean_api_data <- function(data_folder_root) {
+#' @export
+create_lkups <- function(data_dir) {
 
   # Get survey paths
-  paths <- list.files(paste0(data_folder_root, "/survey_data"))
+  paths <- list.files(paste0(data_dir, "/survey_data"))
   paths_ids <- tools::file_path_sans_ext(paths)
 
   # Clean svy_lkup
-  svy_lkup <- fst::read_fst(sprintf("%s/estimations/prod_svy_estimation.fst", data_folder_root),
+  svy_lkup <- fst::read_fst(sprintf("%s/estimations/prod_svy_estimation.fst", data_dir),
     as.data.table = TRUE
   )
   # TEMP cleaning - START
@@ -20,10 +20,10 @@ clean_api_data <- function(data_folder_root) {
   # TEMP cleaning - END
   svy_lkup$path <- sprintf(
     "%ssurvey_data/%s.fst",
-    data_folder_root, svy_lkup$cache_id
+    data_dir, svy_lkup$cache_id
   )
   # Clean ref_lkup
-  ref_lkup <- fst::read_fst(sprintf("%s/estimations/prod_ref_estimation.fst", data_folder_root),
+  ref_lkup <- fst::read_fst(sprintf("%s/estimations/prod_ref_estimation.fst", data_dir),
     as.data.table = TRUE
   )
   # TEMP cleaning - START
@@ -31,19 +31,19 @@ clean_api_data <- function(data_folder_root) {
   # TEMP cleaning - END
   ref_lkup$path <- sprintf(
     "%ssurvey_data/%s.fst",
-    data_folder_root, ref_lkup$cache_id
+    data_dir, ref_lkup$cache_id
   )
 
   # Load pop_region
-  pop_region <- fst::read_fst(sprintf("%s/_aux/pop_region.fst", data_folder_root),
+  pop_region <- fst::read_fst(sprintf("%s/_aux/pop_region.fst", data_dir),
     as.data.table = TRUE
   )
 
   # Load country profiles lkups
-  cp_lkups <- readRDS(sprintf("%s/_aux/country_profiles.RDS", data_folder_root))
+  cp_lkups <- readRDS(sprintf("%s/_aux/country_profiles.RDS", data_dir))
 
   # Load poverty lines table
-  pl_lkup <- fst::read_fst(sprintf("%s/_aux/poverty_lines.fst", data_folder_root),
+  pl_lkup <- fst::read_fst(sprintf("%s/_aux/poverty_lines.fst", data_dir),
     as.data.table = TRUE
   )
 
@@ -73,7 +73,7 @@ clean_api_data <- function(data_folder_root) {
   # Create list of query controls
   query_controls <-
     create_query_controls(
-      data_folder_root,
+      data_dir,
       svy_lkup = svy_lkup,
       ref_lkup = ref_lkup)
 
@@ -86,7 +86,7 @@ clean_api_data <- function(data_folder_root) {
     pl_lkup = pl_lkup,
     pip_cols = pip_cols,
     query_controls = query_controls,
-    data_root = data_folder_root
+    data_root = data_dir
   )
 
   return(lkups)

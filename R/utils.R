@@ -146,12 +146,12 @@ censor_rows <- function(df, censored_table) {
 }
 
 #' Create query controls
-#' @inheritParams clean_api_data
+#' @inheritParams create_lkups
 #' @param syv_lkup data.table: Survey lkup table
 #' @param ref_lkup data.table: Reference lkup table
 #' @return list
 #' @noRd
-create_query_controls <- function(data_folder_root, svy_lkup, ref_lkup) {
+create_query_controls <- function(data_dir, svy_lkup, ref_lkup) {
 
   country <- list(
     values = c(
@@ -220,10 +220,10 @@ create_query_controls <- function(data_folder_root, svy_lkup, ref_lkup) {
   )
 
   versions <-
-    list.files(sub('/[0-9]{8}', '', data_folder_root),
+    list.files(sub('/[0-9]{8}', '', data_dir),
                recursive = FALSE, full.names = FALSE,
                all.files = FALSE, pattern = '[0-9]{8}')
-  # list.dirs(sub('/[0-9]{8}', '', data_folder_root),
+  # list.dirs(sub('/[0-9]{8}', '', data_dir),
   #           recursive = FALSE, full.names = FALSE)
 
   format <- list(values = c("json", "csv", "rds"),
