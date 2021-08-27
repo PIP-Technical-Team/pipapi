@@ -5,9 +5,8 @@
 #' @param povline numeric: Poverty line
 #' @param lkup list: A list of lkup tables
 #'
-#' @return data.frame
+#' @return data.table
 #' @export
-#'
 ui_hp_stacked <- function(povline = 1.9,
                           lkup) {
   out <- pip(
@@ -35,9 +34,8 @@ ui_hp_stacked <- function(povline = 1.9,
 #' @inheritParams pip
 #' @param pop_units numeric: Units used to express population numbers (default
 #'   to million)
-#' @return data.frame
+#' @return data.table
 #' @export
-#'
 ui_hp_countries <- function(country = c("AGO", "CIV"),
                             povline = 1.9,
                             pop_units = 1e6,
@@ -53,6 +51,7 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
     reporting_level = "national"
   )
 
+  # Add pop_in_poverty and scale according to pop_units
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
   out$reporting_pop <- out$reporting_pop / pop_units
 
@@ -69,9 +68,9 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
 #' Provides numbers that will populate the poverty calculator main chart.
 #'
 #' @inheritParams pip
-#' @return data.frame
+#' @inheritParams ui_hp_countries
+#' @return data.table
 #' @export
-#'
 ui_pc_charts <- function(country = c("AGO"),
                          year = "all",
                          povline = 1.9,
@@ -80,6 +79,7 @@ ui_pc_charts <- function(country = c("AGO"),
                          group_by = c("none", "wb"),
                          welfare_type = c("all", "consumption", "income"),
                          reporting_level = c("all", "national", "rural", "urban"),
+                         pop_units = 1e6,
                          lkup) {
   group_by <- match.arg(group_by)
 
@@ -94,6 +94,10 @@ ui_pc_charts <- function(country = c("AGO"),
     lkup = lkup,
   )
 
+  # Add pop_in_poverty and scale according to pop_units
+  out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
+  out$reporting_pop <- out$reporting_pop / pop_units
+
   if (group_by != "none") {
     return(out)
   } else if (fill_gaps == FALSE) {
@@ -103,20 +107,45 @@ ui_pc_charts <- function(country = c("AGO"),
       mld, decile1, decile2, decile3, decile4, decile5,
       decile6, decile7, decile8, decile9, decile10,
       region_code, survey_coverage, survey_comparability,
-      comparable_spell, survey_year, survey_mean_lcu, survey_mean_ppp,
+      comparable_spell, survey_year,
+      survey_mean_lcu, survey_mean_ppp, # Do we need these here?
       reporting_pop, ppp, cpi, distribution_type,
       is_interpolated, poverty_line, mean, headcount,
-      poverty_gap, poverty_severity, watts
+      poverty_gap, poverty_severity, watts, pop_in_poverty
     )]
     return(out)
   } else {
     out <- out[, .(
       country_code, reporting_year, poverty_line, mean,
       headcount, poverty_gap, poverty_severity, watts,
-      region_code, reporting_pop, is_interpolated
+      region_code, reporting_pop, is_interpolated,
+      pop_in_poverty
     )]
     return(out)
   }
+}
+
+#' Poverty Calculator regional aggregates
+#'
+#' Provides numbers that will populate poverty calculator regional aggregates
+#' for all years.
+#'
+#' @inheritParams ui_pc_charts
+#' @return data.table
+#' @export
+ui_pc_regional <- function(povline = 1.9, pop_units = 1e6, lkup) {
+
+  out <- pip(country = "all",
+             year    = "all",
+             group_by = "wb",
+             povline = povline,
+             lkup = lkup)
+
+  # Add pop_in_poverty and scale according to pop_units
+  out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
+  out$reporting_pop <- out$reporting_pop / pop_units
+
+  return(out)
 }
 
 
@@ -127,7 +156,6 @@ ui_pc_charts <- function(country = c("AGO"),
 #' @inheritParams pip
 #' @return list
 #' @export
-#'
 ui_cp_key_indicators <- function(country = "AGO",
                                  povline = NULL,
                                  lkup) {
@@ -153,7 +181,6 @@ ui_cp_key_indicators <- function(country = "AGO",
 #' @inheritParams ui_cp_key_indicators
 #' @return list
 #' @keywords internal
-#'
 ui_cp_key_indicators_single <- function(country = "AGO",
                                         povline = NULL,
                                         lkup) {
@@ -184,9 +211,8 @@ ui_cp_key_indicators_single <- function(country = "AGO",
 #' Populate the country profiles key indicator for headcount.
 #'
 #' @inheritParams cp_key_indicators
-#' @return data.frame
+#' @return data.table
 #' @noRd
-#'
 ui_cp_ki_headcount <- function(country, povline, lkup) {
   res <- pip(country, year = "mrv", povline = povline, lkup = lkup)
   out <- data.table::data.table(
@@ -205,7 +231,6 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
 #' @inheritParams ui_hp_countries
 #' @return list
 #' @export
-#'
 ui_cp_charts <- function(country = "AGO",
                          povline = NULL,
                          pop_units = 1e6,
@@ -232,7 +257,6 @@ ui_cp_charts <- function(country = "AGO",
 #' @inheritParams ui_cp_charts
 #' @return list
 #' @keywords internal
-#'
 ui_cp_charts_single <- function(country, povline,
                                 pop_units, lkup) {
 
@@ -278,7 +302,6 @@ ui_cp_charts_single <- function(country, povline,
 #' @inheritParams ui_cp_charts
 #' @return list
 #' @keywords internal
-#'
 ui_cp_poverty_charts <- function(country, povline, pop_units,
                                  lkup) {
 
@@ -379,9 +402,8 @@ cp_pov_mrv_select_values <- function(v, h) {
 #' Provides survey metadata that will populate the Data Sources page.
 #'
 #' @inheritParams pip
-#' @return data.frame
+#' @return data.table
 #' @export
-#'
 ui_svy_meta <- function(country = "all", lkup) {
   out <- pipapi::get_aux_table(
     data_dir = lkup$data_root,

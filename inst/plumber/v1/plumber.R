@@ -260,6 +260,7 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups
+  params$pop_units <- 1
   do.call(pipapi::ui_pc_charts, params)
 }
 
@@ -270,11 +271,7 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups
-  pip(country = "all",
-      year    = "all",
-      group_by = "wb",
-      povline = params$povline,
-      lkup = lkups)
+  do.call(pipapi::ui_pc_regional, params)
 }
 
 # UI Endpoints: Country Profiles ----------------------------------------

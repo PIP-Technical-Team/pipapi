@@ -6,12 +6,11 @@ lkups <- create_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
 lkups$pl_lkup <- lkups$pl_lkup[sample(nrow(lkups$pl_lkup), 10)]
 lkups2 <- lkups
 lkups2$svy_lkup <- lkups2$svy_lkup[country_code %in% c('AGO', 'ZWE')]
+lkups2$ref_lkup <- lkups2$ref_lkup[country_code %in% c('AGO', 'ZWE')]
 dt_lac <- readRDS("../testdata/pip_lac_resp.RDS")
 dt_sas <- readRDS("../testdata/pip_sas_resp.RDS")
 
 test_that("ui_hp_stacked() works as expected", {
-  lkups2 <- lkups
-  lkups2$ref_lkup <- lkups2$ref_lkup[country_code == "CHN"]
   res <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
   expect_identical(
     names(res),
@@ -20,7 +19,7 @@ test_that("ui_hp_stacked() works as expected", {
       "poverty_line", "pop_in_poverty"
     )
   )
-  expect_identical(unique(res$region_code), c("EAP", "WLD"))
+  expect_identical(unique(res$region_code), c("SSA", "WLD"))
 })
 
 test_that("ui_hp_countries() works as expected", {
@@ -43,17 +42,34 @@ test_that("ui_pc_charts() works as expected", {
   # Regular query (fill_gaps = FALSE)
   res <- ui_pc_charts(country = "AGO", povline = 1.9, lkup = lkups)
   expect_equal(nrow(res), nrow(lkups$svy_lkup[country_code == "AGO"]))
-  expect_equal(length(names(res)), 36)
+  expect_equal(length(names(res)), 37)
 
   # Regular query (fill_gaps = TRUE)
   res <- ui_pc_charts(country = "AGO", povline = 1.9, fill_gaps = TRUE, lkup = lkups)
   expect_equal(nrow(res), length(unique(lkups$ref_lkup$reporting_year)))
-  expect_equal(length(names(res)), 11)
+  expect_equal(length(names(res)), 12)
 
   # Group by
   res <- ui_pc_charts(country = "AGO", group_by = "wb", povline = 1.9, lkup = lkups)
   res2 <- pip(country = "AGO", group_by = "wb", povline = 1.9, lkup = lkups)
+  res2$reporting_pop <- res2$reporting_pop / 1e6
+  res2$pop_in_poverty <- res2$pop_in_poverty / 1e6
   expect_equal(res, res2)
+})
+
+test_that("ui_pc_regional() works as expected", {
+  res <- ui_pc_regional(povline = 1.9, lkup = lkups2)
+  expect_identical(
+    names(res),
+    c(
+      "region_code", "reporting_year",
+      "reporting_pop",  "poverty_line",
+      "headcount", "poverty_gap",
+      "poverty_severity", "watts" ,
+      "pop_in_poverty"
+    )
+  )
+  expect_identical(unique(res$region_code), c("SSA", "WLD"))
 })
 
 test_that("ui_cp_poverty_charts() works as expected", {
@@ -217,16 +233,16 @@ test_that("ui_cp_charts() works as expected", {
   expect_identical(names(dl[[1]]$pov_charts[[5]]),
                    c("pov_trend", "pov_mrv"))
 
-  # All countries and poverty lines
-  dl <- ui_cp_charts(country = "all", lkup = lkups2)
+  # All countries
+  dl <- ui_cp_charts(country = "all", povline = 1.9, lkup = lkups2)
   expect_length(dl, 2) # 2 countries
   expect_length(dl[[2]], 5) # 5 chart objects (2 inside pov_charts)
-  expect_length(dl[[2]]$pov_charts, 10) # 10 poverty lines
+  expect_length(dl[[2]]$pov_charts, 1) # 1 poverty line
   expect_identical(names(dl[[2]]), c(
     "pov_charts", "ineq_trend",
     "ineq_bar", "mpm", "sp"
   ))
-  expect_identical(names(dl[[2]]$pov_charts[[5]]),
+  expect_identical(names(dl[[2]]$pov_charts[[1]]),
                    c("pov_trend", "pov_mrv"))
 
 })

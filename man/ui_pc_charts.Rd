@@ -13,6 +13,7 @@ ui_pc_charts(
   group_by = c("none", "wb"),
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
+  pop_units = 1e+06,
   lkup
 )
 }
@@ -35,10 +36,13 @@ sub-groups}
 
 \item{reporting_level}{character: Geographical reporting level}
 
+\item{pop_units}{numeric: Units used to express population numbers (default
+to million)}
+
 \item{lkup}{list: A list of lkup tables}
 }
 \value{
-data.frame
+data.table
 }
 \description{
 Provides numbers that will populate the poverty calculator main chart.

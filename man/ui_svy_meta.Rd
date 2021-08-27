@@ -12,7 +12,7 @@ ui_svy_meta(country = "all", lkup)
 \item{lkup}{list: A list of lkup tables}
 }
 \value{
-data.frame
+data.table
 }
 \description{
 Provides survey metadata that will populate the Data Sources page.
