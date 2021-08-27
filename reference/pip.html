@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compute the main PIP poverty and inequality statistics — pip • pipapi</title>
+<title>Compute PIP statistics — pip • pipapi</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Compute the main PIP poverty and inequality statistics — pip" />
-<meta property="og:description" content="Compute the main PIP poverty and inequality statistics" />
+<meta property="og:title" content="Compute PIP statistics — pip" />
+<meta property="og:description" content="Compute the main PIP poverty and inequality statistics." />
 
 
 
@@ -111,13 +111,13 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compute the main PIP poverty and inequality statistics</h1>
+    <h1>Compute PIP statistics</h1>
     <small class="dont-index">Source: <a href='https://github.com/PIP-Technical-Team/pipapi/blob/master/R/pip.R'><code>R/pip.R</code></a></small>
     <div class="hidden name"><code>pip.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Compute the main PIP poverty and inequality statistics</p>
+    <p>Compute the main PIP poverty and inequality statistics.</p>
     </div>
 
     <pre class="usage"><span class='fu'>pip</span><span class='op'>(</span>
@@ -194,8 +194,40 @@ debug mode</p></td>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>data.frame</p>
+    <p>data.table</p>
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
+<span class='co'># Create lkups</span>
+<span class='va'>lkups</span> <span class='op'>&lt;-</span> <span class='fu'><a href='create_lkups.html'>create_lkups</a></span><span class='op'>(</span><span class='st'>"&lt;data-folder&gt;"</span><span class='op'>)</span>
+
+<span class='co'># A single country and year</span>
+<span class='fu'>pip</span><span class='op'>(</span>country <span class='op'>=</span> <span class='st'>"AGO"</span>,
+    year <span class='op'>=</span> <span class='fl'>2000</span>,
+    povline <span class='op'>=</span> <span class='fl'>1.9</span>,
+    lkup <span class='op'>=</span> <span class='va'>lkups</span><span class='op'>)</span>
+
+<span class='co'># All years for a single country</span>
+<span class='fu'>pip</span><span class='op'>(</span>country <span class='op'>=</span> <span class='st'>"AGO"</span>,
+    year <span class='op'>=</span> <span class='st'>"all"</span>,
+    povline <span class='op'>=</span> <span class='fl'>1.9</span>,
+    lkup <span class='op'>=</span> <span class='va'>lkups</span><span class='op'>)</span>
+
+<span class='co'># Fill gaps</span>
+<span class='fu'>pip</span><span class='op'>(</span>country <span class='op'>=</span> <span class='st'>"AGO"</span>,
+    year <span class='op'>=</span> <span class='st'>"all"</span>,
+    povline <span class='op'>=</span> <span class='fl'>1.9</span>,
+    fill_gaps <span class='op'>=</span> <span class='cn'>TRUE</span>,
+    lkup <span class='op'>=</span> <span class='va'>lkups</span><span class='op'>)</span>
+
+<span class='co'># Group by regions</span>
+<span class='fu'>pip</span><span class='op'>(</span>country <span class='op'>=</span> <span class='st'>"all"</span>,
+    year <span class='op'>=</span> <span class='st'>"all"</span>,
+    povline <span class='op'>=</span> <span class='fl'>1.9</span>,
+    group_by <span class='op'>=</span> <span class='st'>"wb"</span>,
+    lkup <span class='op'>=</span> <span class='va'>lkups</span><span class='op'>)</span>
+<span class='op'>}</span>
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
