@@ -1,5 +1,5 @@
 default:
   log_dir: !expr here::here("R", "plumber", "logs")
-  
+
 rsconnect:
   log_dir: /var/log/plumber
