@@ -43,7 +43,9 @@ Imports:
     yaml,
     magrittr,
     wbpip,
-    readr
+    readr,
+    glue,
+    logger
 Remotes:
     PIP-Technical-Team/wbpip
 Depends: 
