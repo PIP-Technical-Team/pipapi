@@ -1,13 +1,9 @@
-## ---- entrypoint
 library(plumber)
+library(logger)
+library(glue)
 
 # Config
-config <- config::get()
-
-# logging
-library(logger)
-# Ensure glue is a specific dependency so it's avaible for logger
-library(glue)
+config <- config::get(file = here::here('inst', 'config.yml'))
 
 # Specify how logs are written
 if (!fs::dir_exists(config$log_dir)) fs::dir_create(config$log_dir)
@@ -21,21 +17,25 @@ convert_empty <- function(string) {
   }
 }
 
-pr <- plumb("endpoints.R")
 
-pr$registerHooks(
-  list(
-    preroute = function() {
-      # Start timer for log info
-      tictoc::tic()
-    },
-    postroute = function(req, res) {
-      end <- tictoc::toc(quiet = TRUE)
-      # Log details about the request and the response
-      # TODO: Sanitize log details - perhaps in convert_empty
-      log_info('{convert_empty(req$REMOTE_ADDR)} "{convert_empty(req$HTTP_USER_AGENT)}" {convert_empty(req$HTTP_HOST)} {convert_empty(req$REQUEST_METHOD)} {convert_empty(req$PATH_INFO)} {convert_empty(res$status)} {round(end$toc - end$tic, digits = getOption("digits", 5))}')
-    }
-  )
-)
-
-pr
+plumber::pr("inst/plumber/v1/endpoints.R") %>%
+  # pre-route log
+  plumber::pr_hook("preroute", function() {
+    tictoc::tic() # Start timer for log info
+  }) %>%
+  # post-route log
+  plumber::pr_hook("postroute", function(req, res) {
+    end_route <- tictoc::toc(quiet = TRUE)
+    log_info('{convert_empty(req$REMOTE_ADDR)} {convert_empty(req$REQUEST_METHOD)} {convert_empty(req$PATH_INFO)} {convert_empty(req$QUERY_STRING)}  {convert_empty(res$status)} {round(end_route$toc - end_route$tic, digits = getOption("digits", 6))}')
+  }) %>%
+  # pre-serialization log
+  plumber::pr_hook("preserialize", function() {
+    tictoc::tic()
+  }) %>%
+  # post-serialization log
+  plumber::pr_hook("preserialize", function(req) {
+    end_serial <- tictoc::toc(quiet = TRUE)
+    log_info('{convert_empty(req$PATH_INFO)} {round(end_serial$toc - end_serial$tic, digits = getOption("digits", 6))}') }) %>%
+  plumber::pr_hook("exit", function() {
+    log_info('Bye bye: {proc.time()[["elapsed"]]}')
+  })

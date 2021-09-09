@@ -1,9 +1,0 @@
-INFO [2021-09-06 15:33:12] 127.0.0.1 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) QtWebEngine/5.12.8 Chrome/69.0.3497.128 Safari/537.36" 127.0.0.1:5126 GET / 200 0.06
-INFO [2021-09-06 15:33:16] 127.0.0.1 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" 127.0.0.1:5126 GET / 200 0.02
-INFO [2021-09-06 15:33:16] 127.0.0.1 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" 127.0.0.1:5126 GET /swagger-ui.css 200 0.03
-INFO [2021-09-06 15:33:19] 127.0.0.1 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" 127.0.0.1:5126 GET /swagger-ui-bundle.js 200 0.02
-INFO [2021-09-06 15:33:19] 127.0.0.1 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" 127.0.0.1:5126 GET /swagger-ui-standalone-preset.js 200 0.02
-INFO [2021-09-06 15:33:21] 127.0.0.1 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" 127.0.0.1:5126 GET /openapi.json 200 0.01
-INFO [2021-09-06 15:33:21] 127.0.0.1 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" 127.0.0.1:5126 GET /favicon-32x32.png 200 0
-INFO [2021-09-06 15:33:29] 127.0.0.1 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" 127.0.0.1:5126 GET /api/v1/health-check 200 0.01
-INFO [2021-09-06 15:34:48] 127.0.0.1 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36" 127.0.0.1:5126 GET /api/v1/pip 200 0.17
