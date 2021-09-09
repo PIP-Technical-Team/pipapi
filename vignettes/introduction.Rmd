@@ -50,18 +50,18 @@ lkups <- pipapi::create_lkups(
   data_dir = "path/to/data_folder")
 ```
 
-```{r data-access-2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r data-access-2, echo=FALSE, message=FALSE, warning=FALSE, eval=TRUE}
 lkups <- pipapi::create_lkups(
   data_dir = "../tests/testdata/20210401/")
 
-str(lkups)
+lkups$pop_region
 
 ```
 
 ## Run package functions
 Pass the `lkups` list to the main `pip()` function to compute poverty and inequality 
 statistics in your `R` session.
-```{r pip}
+```{r pip, eval=FALSE}
 pip(country = "AGO",
     year = 2000,
     povline = 1.9,

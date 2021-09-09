@@ -256,3 +256,11 @@ create_query_controls <- function(data_dir, svy_lkup, ref_lkup) {
 
   return(query_controls)
 }
+
+convert_empty <- function(string) {
+  if (string == "") {
+    "-"
+  } else {
+    string
+  }
+}

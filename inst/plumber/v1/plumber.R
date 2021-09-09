@@ -6,16 +6,8 @@ library(glue)
 config <- config::get(file = here::here('inst', 'config.yml'))
 
 # Specify how logs are written
-if (!fs::dir_exists(config$log_dir)) fs::dir_create(config$log_dir)
+if (!dir.exists(config$log_dir)) dir_create(config$log_dir)
 log_appender(appender_tee(tempfile("plumber_", config$log_dir, ".log")))
-
-convert_empty <- function(string) {
-  if (string == "") {
-    "-"
-  } else {
-    string
-  }
-}
 
 
 plumber::pr("inst/plumber/v1/endpoints.R") %>%
@@ -33,7 +25,7 @@ plumber::pr("inst/plumber/v1/endpoints.R") %>%
     tictoc::tic()
   }) %>%
   # post-serialization log
-  plumber::pr_hook("preserialize", function(req) {
+  plumber::pr_hook("postserialize", function(req) {
     end_serial <- tictoc::toc(quiet = TRUE)
     log_info('{convert_empty(req$PATH_INFO)} {round(end_serial$toc - end_serial$tic, digits = getOption("digits", 6))}') }) %>%
   plumber::pr_hook("exit", function() {
