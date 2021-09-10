@@ -2,7 +2,9 @@ library(plumber)
 library(logger)
 library(glue)
 
-plumber::pr("inst/plumber/v1/endpoints.R") %>%
+endpoints_path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
+
+plumber::pr(endpoints_path) %>%
   # pre-route log
   plumber::pr_hook("preroute", function() {
     tictoc::tic() # Start timer for log info
