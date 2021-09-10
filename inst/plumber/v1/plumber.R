@@ -3,7 +3,7 @@ library(logger)
 library(glue)
 
 endpoints_path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
-convert_empty <- pipapi::convert_empty
+convert_empty <- pipapi:::convert_empty
 
 plumber::pr(endpoints_path) %>%
   # pre-route log
