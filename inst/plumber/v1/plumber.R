@@ -2,15 +2,9 @@ library(plumber)
 library(logger)
 library(glue)
 
-# Config
-config <- config::get(file = here::here('inst', 'config.yml'))
+endpoints_path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
 
-# Specify how logs are written
-if (!dir.exists(config$log_dir)) dir_create(config$log_dir)
-log_appender(appender_tee(tempfile("plumber_", config$log_dir, ".log")))
-
-
-plumber::pr("inst/plumber/v1/endpoints.R") %>%
+plumber::pr(endpoints_path) %>%
   # pre-route log
   plumber::pr_hook("preroute", function() {
     tictoc::tic() # Start timer for log info
