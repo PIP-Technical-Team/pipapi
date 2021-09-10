@@ -2,14 +2,6 @@ library(plumber)
 library(logger)
 library(glue)
 
-# Config
-config <- config::get(file = here::here('inst', 'config.yml'))
-
-# Specify how logs are written
-if (!dir.exists(config$log_dir)) dir_create(config$log_dir)
-log_appender(appender_tee(tempfile("plumber_", config$log_dir, ".log")))
-
-
 plumber::pr("inst/plumber/v1/endpoints.R") %>%
   # pre-route log
   plumber::pr_hook("preroute", function() {
