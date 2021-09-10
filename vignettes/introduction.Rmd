@@ -1,0 +1,70 @@
+---
+title: "Getting started"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(pipapi)
+```
+
+The `pipapi` powers the PIP API, which can be accessed at [insert URL here]().
+However, if have direct access to the survey data and auxiliary datasets, you
+can run PIP computation directly in your `R` session.
+
+This vignette shows you how.
+
+# Getting started
+## Load auxiliary data
+In order to use PIP computations directly in your `R` session, you will need 
+access to the PIP data folder that stores all the necessary data supporting the 
+API. The folder structure looks like this:
+```{bash eval=FALSE, echo=TRUE}
+data-folder-root/
+├─ _aux/
+│  ├─ pop-regions.fst
+│  ├─ pop.fst
+├─ estimations/
+│  ├─ survey_means.fst
+│  ├─ interpolated_means.fst
+│  ├─ dist_stats.fst
+├─ survey_data/
+│  ├─ survey_1.fst
+│  ├─ ...
+│  ├─ survey_n.fst
+```
+
+```{r data-access, eval=FALSE, echo=TRUE}
+# Create a list of look-up tables from the root data folder
+lkups <- pipapi::create_lkups(
+  data_dir = "path/to/data_folder")
+```
+
+```{r data-access-2, echo=FALSE, message=FALSE, warning=FALSE, eval=TRUE}
+lkups <- pipapi::create_lkups(
+  data_dir = "../tests/testdata/20210401/")
+
+lkups$pop_region
+
+```
+
+## Run package functions
+Pass the `lkups` list to the main `pip()` function to compute poverty and inequality 
+statistics in your `R` session.
+```{r pip, eval=FALSE}
+pip(country = "AGO",
+    year = 2000,
+    povline = 1.9,
+    lkup = lkups)
+```
+
