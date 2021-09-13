@@ -90,6 +90,7 @@ pip <- function(country = "all",
     )
   } else {
     # Compute survey year stats
+    tictoc::tic("pip")
     out <- rg_pip(
       country = country,
       year = year,
@@ -102,6 +103,9 @@ pip <- function(country = "all",
       lkup = lkup,
       debug = debug
     )
+    # Logging
+    end_pip <- tictoc::toc(quiet = TRUE)
+    logger::log_info('pip: {round(end_pip$toc - end_pip$tic, digits = getOption("digits", 6))}')
   }
 
   # return empty dataframe if no metadata is found

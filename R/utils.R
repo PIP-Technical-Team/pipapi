@@ -83,7 +83,7 @@ get_svy_data <- function(svy_id,
   assertthat::assert_that(length(reporting_level) == 1,
     msg = "Problem with input data: Multiple pop_data_levels"
   )
-
+  # tictoc::tic("read_single")
   out <- lapply(path, function(x) {
     tmp <- fst::read_fst(x)
     if (reporting_level %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
@@ -93,6 +93,10 @@ get_svy_data <- function(svy_id,
 
     return(tmp)
   })
+
+  # Logging
+  # end_read_single <- tictoc::toc(quiet = TRUE)
+  # logger::log_info('read_single: {svy_id} {round(end_read_single$toc - end_read_single$tic, digits = getOption("digits", 6))}')
 
   names_out <- sprintf(
     "df%s",
