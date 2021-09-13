@@ -34,6 +34,7 @@ get_files <- function(country = "all",
 
   out <- vector(mode = "integer", length = nrow(metadata))
 
+  tictoc::tic("read_all")
   for (i in seq_along(out)) {
     tmp_metadata <- metadata[i, ]
 
@@ -46,6 +47,9 @@ get_files <- function(country = "all",
     svy_data <- nrow(svy_data[[1]])
     out[i] <- svy_data
   }
+  # Logging
+  end_read_all <- tictoc::toc(quiet = TRUE)
+  logger::log_info('read_all: {round(end_read_all$toc - end_read_all$tic, digits = getOption("digits", 6))}')
 
   return(out)
 }

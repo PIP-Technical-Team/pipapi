@@ -41,6 +41,7 @@ rg_pip <- function(country,
     )
 
     if (debug) debugonce(wbpip:::prod_compute_pip_stats)
+    tictoc::tic("compute_single")
     tmp_stats <- wbpip:::prod_compute_pip_stats(
       welfare = svy_data$df0$welfare,
       povline = povline,
@@ -59,9 +60,16 @@ rg_pip <- function(country,
     }
 
     out[[i]] <- tmp_metadata
+    # Logging
+    end_compute_single <- tictoc::toc(quiet = TRUE)
+    logger::log_info('compute_single: {tmp_metadata$cache_id} {round(end_compute_single$toc - end_compute_single$tic, digits = getOption("digits", 6))}')
   }
 
+  tictoc::tic("bind_results")
   out <- data.table::rbindlist(out)
+  # Logging
+  end_bind_results <- tictoc::toc(quiet = TRUE)
+  logger::log_info('bind_results: {round(end_bind_results$toc - end_bind_results$tic, digits = getOption("digits", 6))}')
 
   return(out)
 }

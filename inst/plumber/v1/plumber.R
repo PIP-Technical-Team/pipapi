@@ -3,12 +3,11 @@ library(logger)
 library(glue)
 
 endpoints_path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
-convert_empty <- pipapi:::convert_empty
 
 plumber::pr(endpoints_path) %>%
   # pre-route log
   plumber::pr_hook("preroute", function() {
-    tictoc::tic() # Start timer for log info
+    tictoc::tic("route") # Start timer for log info
   }) %>%
   # post-route log
   plumber::pr_hook("postroute", function(req, res) {
@@ -17,7 +16,7 @@ plumber::pr(endpoints_path) %>%
   }) %>%
   # pre-serialization log
   plumber::pr_hook("preserialize", function() {
-    tictoc::tic()
+    tictoc::tic("serialize")
   }) %>%
   # post-serialization log
   plumber::pr_hook("postserialize", function(req) {

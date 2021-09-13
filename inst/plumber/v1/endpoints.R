@@ -10,6 +10,7 @@ library(pipapi)
 #* Ensure that only valid parameters are being forwarded
 #* @filter validate_query_parameters
 function(req, res) {
+  tictoc::tic("filters")
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     req$argsQuery <- pipapi:::validate_query_parameters(req)
   }
@@ -56,6 +57,11 @@ function(res) {
                 "no-referrer")
 
   plumber::forward()
+
+  # Logging
+  end_filters <- tictoc::toc(quiet = TRUE)
+  logger::log_info('filters: {round(end_filters$toc - end_filters$tic, digits = getOption("digits", 6))}')
+
 }
 
 # Register switch serializer
