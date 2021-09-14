@@ -10,11 +10,14 @@ create_versioned_lkups <- function(data_dir) {
 
   data_dirs <- extract_data_dirs(data_dir = data_dir)
 
-  out <- purrr::map(data_dirs, create_lkups)
+  versions_paths <- purrr::map(data_dirs, create_lkups)
 
-  names(out) <- names(data_dirs)
+  names(versions_paths) <- names(data_dirs)
 
-  return(out)
+  versions <- names(data_dirs)
+
+  return(list(versions = versions,
+              versions_paths = versions_paths))
 
 }
 
