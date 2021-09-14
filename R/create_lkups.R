@@ -1,3 +1,71 @@
+#' Create one list of lookups per data version
+#'
+#' @param data_dir character: Path to the main data directory
+#'
+#' @return list
+#' @export
+#'
+
+create_versioned_lkups <- function(data_dir) {
+
+  data_dirs <- extract_data_dirs(data_dir = data_dir)
+
+  out <- purrr::map(data_dirs, create_lkups)
+
+  names(out) <- names(data_dirs)
+
+  return(out)
+
+}
+
+#' Extract list of data sub-directories from main data directory
+#'
+#' @param data_dir character: Path to main data directory
+#' @param version_length integer: Number of character of version ID
+#'
+#' @return character
+#' @export
+#'
+extract_data_dirs <- function(data_dir,
+                              version_length = 8) {
+  # List data directories under data_dir
+  data_dirs <- list.dirs(data_dir, full.names = TRUE, recursive = FALSE)
+  data_dirs <- data_dirs[!grepl(pattern = "\\.git$", x = data_dirs)]
+
+  versions <- extract_versions(data_dirs = data_dirs,
+                               version_length = version_length)
+
+  names(data_dirs) <- versions
+
+  data_dirs <- data_dirs[sort(names(data_dirs), decreasing = TRUE)]
+
+  return(data_dirs)
+}
+
+#' Extract data versions from vector of data directory paths
+#'
+#' @param data_dirs character: List of data directory paths
+#' @param version_length integer: Number of character of version ID
+#'
+#' @return character
+#' @export
+#'
+extract_versions <- function(data_dirs,
+                             version_length) {
+
+  data_dirs_length <- nchar(data_dirs)
+
+  versions <- purrr::map2_chr(data_dirs, data_dirs_length,
+                              ~ substr(x = .x,
+                                       start = .y - version_length + 1,
+                                       stop = .y))
+
+  return(versions)
+
+}
+
+
+
 #' Create look-up tables
 #'
 #' Create look-up tables that can be passed to [pip()].
