@@ -14,6 +14,7 @@ function(req, res) {
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     req$argsQuery <- pipapi:::validate_query_parameters(req)
   }
+  browser()
   plumber::forward()
 }
 
@@ -28,7 +29,16 @@ function(req, res) {
 
 #* Protect against invalid country code and year
 #* @filter check_parameters
-function(req, res, query_controls = lkups$query_controls) {
+function(req, res, lkups = lkups) {
+  # validate version
+  browser()
+  if (!req$argsQuery$version %in% lkups$versions) {
+    return("Invalid version has been submitted. Please check valid versions with /versions")
+  }
+
+  lkups <- lkups[version]
+  query_controls = lkups$query_controls
+
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     are_valid <- pipapi:::check_parameters(req, query_controls)
     if (any(are_valid == FALSE)) {
@@ -156,12 +166,14 @@ function(req) {
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* for all available versions
 #* @serializer switch
 function(req) {
   # Process request
-  # browser()
+  browser()
   params <- req$argsQuery
-  params$lkup <- lkups
+  params$lkup <- lkups$versions_paths
   params$format <- NULL
   out <- do.call(pipapi::pip, params)
   attr(out, "serialize_format") <- req$argsQuery$format

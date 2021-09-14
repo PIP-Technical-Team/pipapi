@@ -15,6 +15,7 @@
 #' @param welfare_type character: Welfare type
 #' @param reporting_level character: Geographical reporting level
 #' @param ppp numeric: Custom Purchase Power Parity value
+#' @param version character: Data version to be used
 #' @param lkup list: A list of lkup tables
 #' @param debug logical: If TRUE poverty calculations from `wbpip` will run in
 #'   debug mode
@@ -62,8 +63,12 @@ pip <- function(country = "all",
                 welfare_type = c("all", "consumption", "income"),
                 reporting_level = c("all", "national", "rural", "urban"),
                 ppp = NULL,
+                version = "latest_version",
                 lkup,
                 debug = FALSE) {
+
+  # Select correct data version
+  lkup <- lkup[version]
 
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
