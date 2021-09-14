@@ -117,7 +117,7 @@ function() {
 #* @serializer switch
 function(req) {
   out <- pipapi::get_param_values(
-    req$argsQuery$parameter, lkup = lkups)
+    req$argsQuery$parameter, lkup = lkups$versions_paths)
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
