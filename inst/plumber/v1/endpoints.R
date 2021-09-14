@@ -76,6 +76,12 @@ function() {
   "PIP API is running"
 }
 
+#* Check status of API
+#* @get /api/v1/versions
+function() {
+  lkups$versions
+}
+
 #* Return system info
 #* @get /api/v1/system-info
 function(){
