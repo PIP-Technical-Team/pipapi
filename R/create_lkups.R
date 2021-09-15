@@ -13,7 +13,7 @@ create_versioned_lkups <- function(data_dir) {
   versions <- names(data_dirs)
   versions[1] <- "latest_release"
 
-  versions_paths <- purrr::map(data_dirs, create_lkups)
+  versions_paths <- purrr::map(data_dirs, create_lkups, versions = versions)
 
   names(versions_paths) <- versions
 
@@ -75,9 +75,10 @@ extract_versions <- function(data_dirs,
 #' Create look-up tables that can be passed to [pip()].
 #'
 #' @param data_dir character: Path to PIP data root folder.
+#' @param versions character: Available data versions
 #' @return list
 #' @export
-create_lkups <- function(data_dir) {
+create_lkups <- function(data_dir, versions) {
 
   # Get survey paths
   paths <- list.files(paste0(data_dir, "/survey_data"))
@@ -91,7 +92,7 @@ create_lkups <- function(data_dir) {
   svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
   # TEMP cleaning - END
   svy_lkup$path <- sprintf(
-    "%ssurvey_data/%s.fst",
+    "%s/survey_data/%s.fst",
     data_dir, svy_lkup$cache_id
   )
   # Clean ref_lkup
@@ -102,7 +103,7 @@ create_lkups <- function(data_dir) {
   ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
   # TEMP cleaning - END
   ref_lkup$path <- sprintf(
-    "%ssurvey_data/%s.fst",
+    "%s/survey_data/%s.fst",
     data_dir, ref_lkup$cache_id
   )
 
@@ -145,9 +146,9 @@ create_lkups <- function(data_dir) {
   # Create list of query controls
   query_controls <-
     create_query_controls(
-      data_dir,
       svy_lkup = svy_lkup,
-      ref_lkup = ref_lkup)
+      ref_lkup = ref_lkup,
+      versions = versions)
 
   # Create list of lkups
   lkups <- list(

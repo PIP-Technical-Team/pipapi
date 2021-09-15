@@ -150,12 +150,12 @@ censor_rows <- function(df, censored_table) {
 }
 
 #' Create query controls
-#' @inheritParams create_lkups
 #' @param syv_lkup data.table: Survey lkup table
 #' @param ref_lkup data.table: Reference lkup table
+#' @param versions character: List of available data versions
 #' @return list
 #' @noRd
-create_query_controls <- function(data_dir, svy_lkup, ref_lkup) {
+create_query_controls <- function(svy_lkup, ref_lkup, versions) {
 
   country <- list(
     values = c(
@@ -223,12 +223,10 @@ create_query_controls <- function(data_dir, svy_lkup, ref_lkup) {
     type = "numeric"
   )
 
-  versions <-
-    list.files(sub('/[0-9]{8}', '', data_dir),
-               recursive = FALSE, full.names = FALSE,
-               all.files = FALSE, pattern = '[0-9]{8}')
-  # list.dirs(sub('/[0-9]{8}', '', data_dir),
-  #           recursive = FALSE, full.names = FALSE)
+  version <- list(
+    values = versions,
+    type = "character"
+  )
 
   format <- list(values = c("json", "csv", "rds"),
                  type = "character")
@@ -237,7 +235,7 @@ create_query_controls <- function(data_dir, svy_lkup, ref_lkup) {
     list(values = c("country", "year", "povline",
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
-                    "reporting_level", "ppp",
+                    "reporting_level", "ppp", "version",
                     "format", "parameter"),
          type = "character")
 
@@ -253,7 +251,7 @@ create_query_controls <- function(data_dir, svy_lkup, ref_lkup) {
     welfare_type = welfare_type,
     reporting_level = reporting_level,
     ppp = ppp,
-    version = versions,
+    version = version,
     format = format,
     parameter = parameter
   )
