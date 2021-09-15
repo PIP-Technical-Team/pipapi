@@ -2,7 +2,8 @@
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 
 files <- sub("[.]fst", "", list.files("../testdata/20210401/survey_data/"))
-lkups <- create_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+lkups <- lkups$versions_paths$latest_release
 lkups$svy_lkup <- lkups$svy_lkup[(cache_id %in% files | country_code == "AGO")]
 lkups$ref_lkup <- lkups$ref_lkup[(cache_id %in% files | country_code == "AGO")]
 
