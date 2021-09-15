@@ -13,7 +13,7 @@ Sys.sleep(5)
 api1$call(function() {
   # Use double assignment operator so the lkups object is available in the global
   # environment of the background R session, so it is available for the API
-  lkups <<- pipapi::create_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+  lkups <<- pipapi::create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
   plbr_file <- system.file("plumber", "v1", "plumber.R", package = "pipapi")
   pr <- plumber::plumb(plbr_file)
   pr$run(port = 8000)
