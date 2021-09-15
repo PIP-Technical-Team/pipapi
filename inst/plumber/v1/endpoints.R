@@ -133,7 +133,7 @@ function(req) {
 #* Return valid parameters
 #* @get /api/v1/valid-params
 #* @param parameter:[chr] Query parameter
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
@@ -149,7 +149,7 @@ function(req) {
 #* @param year:[chr] Year
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
@@ -176,7 +176,7 @@ function(req) {
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* for all available versions
 #* @serializer switch
@@ -186,6 +186,7 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
+  params$version <- NULL
   out <- do.call(pipapi::pip, params)
   attr(out, "serialize_format") <- req$argsQuery$format
   out
@@ -195,7 +196,7 @@ function(req) {
 
 #* Return CPI table
 #* @get /api/v1/cpi
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
@@ -208,7 +209,7 @@ function(req) {
 
 #* Return list of countries
 #* @get /api/v1/countries
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
@@ -221,7 +222,7 @@ function(req) {
 
 #* Return list of regions
 #* @get /api/v1/regions
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
@@ -237,7 +238,7 @@ function(req) {
 
 #* Return poverty lines for home page display
 #* @get /api/v1/poverty-lines
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function() {
   pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
@@ -246,7 +247,7 @@ function() {
 
 #* Return indicators master table
 #* @get /api/v1/indicators
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function() {
   pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
@@ -255,7 +256,7 @@ function() {
 
 #* Return list of variables used for decomposition
 #* @get /api/v1/decomposition-vars
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function() {
   pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
@@ -265,21 +266,23 @@ function() {
 #* Return data for home page main chart
 #* @get /api/v1/hp-stacked
 #* @param povline:[dbl] Poverty Line
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  params$version <- NULL
   do.call(pipapi:::ui_hp_stacked, params)
 }
 
 #* Return data for home page country charts
 #* @get /api/v1/hp-countries
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  params$version <- NULL
   do.call(pipapi:::ui_hp_countries, params)
 }
 
@@ -296,11 +299,12 @@ function(req) {
 #* @param group_by:[chr] Triggers sub-groups aggregation
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  params$version <- NULL
   do.call(pipapi::ui_pc_charts, params)
 }
 
@@ -314,23 +318,25 @@ function(req) {
 #* @param group_by:[chr] Triggers sub-groups aggregation
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer csv
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$pop_units <- 1
+  params$version <- NULL
   do.call(pipapi::ui_pc_charts, params)
 }
 
 #* Return regional aggregations for all years
 #* @get /api/v1/pc-regional-aggregates
 #* @param povline:[dbl] Poverty Line
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  params$version <- NULL
   do.call(pipapi::ui_pc_regional, params)
 }
 
@@ -340,11 +346,12 @@ function(req) {
 #* @get /api/v1/cp-key-indicators
 #* @param country:[chr] Country ISO3 code
 #* @param povline:[dbl] Poverty Line
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  params$version <- NULL
   do.call(pipapi::ui_cp_key_indicators, params)
 }
 
@@ -353,11 +360,12 @@ function(req) {
 #* @get /api/v1/cp-charts
 #* @param country:[chr] Country ISO3 code
 #* @param povline:[dbl] Poverty Line
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  params$version <- NULL
   do.call(pipapi::ui_cp_charts, params)
 }
 
@@ -366,11 +374,12 @@ function(req) {
 #* Return data for the Data Sources page
 #* @get /api/v1/survey-metadata
 #* @param country:[chr] Country ISO3 code
-#* @param version:[chr] Data version. Defaults to lastest versions. See api/v1/versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  params$version <- NULL
   do.call(pipapi::ui_svy_meta, params)
 }
 
