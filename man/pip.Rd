@@ -15,6 +15,7 @@ pip(
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
   ppp = NULL,
+  version = "latest_version",
   lkup,
   debug = FALSE
 )
