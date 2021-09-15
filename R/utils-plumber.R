@@ -99,7 +99,7 @@ validate_query_parameters <-
     "welfare_type",
     "reporting_level",
     "ppp",
-    "version"
+    "version",
     "format",
     "parameter"
   )) {
