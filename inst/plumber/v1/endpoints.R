@@ -11,14 +11,16 @@ library(pipapi)
 #* @filter validate_version
 function(req, res) {
   tictoc::tic("filters")
-  if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
+  # browser()
+  if (!is.null(req$argsQuery$version) & !grepl("swagger", req$PATH_INFO)) {
     if (!is.null(req$argsQuery$version)) {
       if (!req$argsQuery$version %in% lkups$versions) {
         return("Invalid version has been submitted. Please check valid versions with /versions")
       }
     }
+  } else {
+    req$argsQuery$version <- "latest_release"
   }
-  req$argsQuery$version <- "latest_release"
   plumber::forward()
 }
 
