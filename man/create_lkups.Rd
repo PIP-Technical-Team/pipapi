@@ -4,10 +4,12 @@
 \alias{create_lkups}
 \title{Create look-up tables}
 \usage{
-create_lkups(data_dir)
+create_lkups(data_dir, versions)
 }
 \arguments{
 \item{data_dir}{character: Path to PIP data root folder.}
+
+\item{versions}{character: Available data versions}
 }
 \value{
 list
