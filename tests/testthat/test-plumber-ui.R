@@ -6,21 +6,14 @@ library(httr)
 
 # Setup by starting APIs
 root_path <- "http://localhost"
-
 api1 <- callr::r_session$new()
-
 Sys.sleep(5)
-
 api1$call(function() {
   # Use double assignment operator so the lkups object is available in the global
   # environment of the background R session, so it is available for the API
   lkups <<- pipapi::create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-  plbr_file <- system.file("plumber", "v1", "plumber.R", package = "pipapi")
-  pr <- plumber::plumb(plbr_file)
-  pr$run(port = 8000)
+  pipapi::start_api(port = 8000)
 })
-
-
 Sys.sleep(10)
 
 test_that("Poverty line endpoint is working", {
