@@ -37,7 +37,7 @@ test_that("Data folder path is correctly set up", {
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(names(tmp_resp), c("valid_query_parameters", "packages_version", "data_versions"))
-  expect_equal(tmp_resp$data_versions$values[1], "latest_release")
+  expect_equal(tmp_resp$data_versions$values[[1]], "latest_release")
 })
 
 test_that("Necessary objects are available in the API environment", {
