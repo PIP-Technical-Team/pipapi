@@ -214,7 +214,7 @@ function(req) {
 #* @get /api/v1/poverty-lines
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
-function() {
+function(req) {
   pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
                         table = "poverty_lines")
 }
@@ -223,7 +223,7 @@ function() {
 #* @get /api/v1/indicators
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
-function() {
+function(req) {
   pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
                         table = "indicators")
 }
@@ -232,7 +232,7 @@ function() {
 #* @get /api/v1/decomposition-vars
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
-function() {
+function(req) {
   pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
                         table = "decomposition_master")
 }
