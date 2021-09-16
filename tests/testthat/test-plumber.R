@@ -7,19 +7,13 @@ library(httr)
 # Setup by starting APIs
 root_path <- "http://localhost"
 api1 <- callr::r_session$new()
-
 Sys.sleep(5)
-
 api1$call(function() {
   # Use double assignment operator so the lkups object is available in the global
   # environment of the background R session, so it is available for the API
   lkups <<- pipapi::create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-  plbr_file <- system.file("plumber", "v1", "plumber.R", package = "pipapi")
-  pr <- plumber::plumb(plbr_file)
-  pr$run(port = 8000)
+  pipapi::start_api(port = 8000)
 })
-
-
 Sys.sleep(10)
 
 test_that("API is alive", {
@@ -43,7 +37,7 @@ test_that("Data folder path is correctly set up", {
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(names(tmp_resp), c("valid_query_parameters", "packages_version", "data_versions"))
-  expect_equal(tmp_resp$data_versions[[2]], "20210401")
+  expect_equal(tmp_resp$data_versions$values[1], "latest_release")
 })
 
 test_that("Necessary objects are available in the API environment", {
@@ -52,7 +46,7 @@ test_that("Necessary objects are available in the API environment", {
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(tmp_resp$global[[1]], "lkups")
+  expect_equal(tmp_resp$global[[3]], "lkups")
 })
 
 test_that("Basic PIP request is working", {
