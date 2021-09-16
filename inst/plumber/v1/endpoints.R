@@ -1,5 +1,4 @@
 #* @apiTitle PIP API
-#* @apiVersion 0.0.1
 #* @apiDescription This API powers computations of statistics available at
 #* pip.worldbank.org
 
