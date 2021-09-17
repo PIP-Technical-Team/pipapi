@@ -50,8 +50,7 @@ check_param_chr <- function(values, valid_values) {
 #' @return logical
 #' @noRd
 check_param_num <- function(value, valid_values) {
-  out <- all(value > valid_values[["min"]], value < valid_values[["max"]])
-
+  out <- all(value >= valid_values[["min"]], value <= valid_values[["max"]])
   return(out)
 }
 
