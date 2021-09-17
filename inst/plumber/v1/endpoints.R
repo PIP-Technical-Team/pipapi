@@ -163,42 +163,19 @@ function(req) {
 
 
 
-#* Return CPI table
-#* @get /api/v1/cpi
+#* Return auxiliary data table
+#* @get /api/v1/aux
+#* @param table:[chr] Auxiliary data table to be returned
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
+  # browser()
   out <- pipapi::get_aux_table(
     data_dir = lkups$data_root,
-    table = "cpi")
+    table = req$args$table)
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
-
-#* Return list of countries
-#* @get /api/v1/countries
-#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
-#* @serializer switch
-function(req) {
-  out <- pipapi::get_aux_table(
-    data_dir = lkups$data_root,
-    table = "countries")
-  attr(out, "serialize_format") <- req$argsQuery$format
-  out
-}
-
-#* Return list of regions
-#* @get /api/v1/regions
-#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
-#* @serializer switch
-function(req) {
-  out <- pipapi::get_aux_table(
-    data_dir = lkups$data_root,
-    table = "regions")
-  attr(out, "serialize_format") <- req$argsQuery$format
-  out
-}
-
 
 # UI endpoints: Homepage --------------------------------------------------
 
