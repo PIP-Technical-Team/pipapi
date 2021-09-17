@@ -16,6 +16,8 @@ get_files <- function(country = "all",
                 reporting_level = c("all", "national", "rural", "urban"),
                 lkup) {
 
+  logger::log_info('root: {lkup$data_root}')
+
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
 
