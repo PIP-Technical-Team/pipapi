@@ -28,4 +28,8 @@ plumber::pr(endpoints_path) %>%
   }) %>%
   plumber::pr_hook("exit", function() {
     log_info('Bye bye: {proc.time()[["elapsed"]]}')
+  }) %>%
+  plumber::pr_set_api_spec(api = function(spec) {
+    spec$info$version <- utils::packageVersion("pipapi") %>% as.character()
+    spec
   })
