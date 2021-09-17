@@ -48,7 +48,7 @@ Imports:
     logger,
     tictoc
 Remotes:
-    PIP-Technical-Team/wbpip
+    PIP-Technical-Team/wbpip@master
 Depends: 
     R (>= 3.5.0)
 VignetteBuilder: knitr
