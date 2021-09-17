@@ -84,7 +84,6 @@ get_svy_data <- function(svy_id,
     msg = "Problem with input data: Multiple pop_data_levels"
   )
   # tictoc::tic("read_single")
-  logger::log_info("path: {path}")
   out <- lapply(path, function(x) {
     tmp <- fst::read_fst(x)
     if (reporting_level %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
