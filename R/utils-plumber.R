@@ -159,7 +159,7 @@ serializer_switch <- function() {
           sfn <- jsonlite::toJSON
         } else if (format == "csv") {
           type <- "text/csv; charset=UTF-8"
-          sfn <- readr::format_csv
+          sfn <- function(x) readr::format_csv(x, na = "")
         } else if (format == "rds") {
           type <- "application/rds"
           sfn <- function(x) base::serialize(x, NULL)
