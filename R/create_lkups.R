@@ -106,6 +106,11 @@ create_lkups <- function(data_dir, versions) {
     data_dir, ref_lkup$cache_id
   )
 
+  # Add data interpolation ID (unique combination of survey files used for one
+  # or more reporting years)
+  ref_lkup <- ref_lkup[, data_interpolation_id := paste(unique(cache_id), collapse = "|"),
+                       by = .(interpolation_id)]
+
   # Load pop_region
   pop_region <- fst::read_fst(sprintf("%s/_aux/pop_region.fst", data_dir),
     as.data.table = TRUE
