@@ -1,7 +1,7 @@
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 
-files <- sub("[.]fst", "", list.files("../testdata/20210401/survey_data/"))
+files <- sub("[.]fst", "", list.files("../testdata/app_data/20210401/survey_data/"))
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
 lkups <- lkups$versions_paths$latest_release
 lkups$svy_lkup <- lkups$svy_lkup[(cache_id %in% files | country_code == "AGO")]
