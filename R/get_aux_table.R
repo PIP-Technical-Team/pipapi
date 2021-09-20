@@ -8,7 +8,7 @@
 #'
 get_aux_table <- function(data_dir, table) {
   out <- fst::read_fst(sprintf(
-    "%s_aux/%s.fst",
+    "%s/_aux/%s.fst",
     data_dir,
     table
   ))
