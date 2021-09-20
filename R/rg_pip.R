@@ -42,7 +42,6 @@ rg_pip <- function(country,
 
     if (debug) debugonce(wbpip:::prod_compute_pip_stats)
 
-
     tmp_stats <- wbpip:::prod_compute_pip_stats(
       welfare = svy_data$df0$welfare,
       povline = povline,
@@ -50,6 +49,8 @@ rg_pip <- function(country,
       population = svy_data$df0$weight,
       requested_mean = tmp_metadata$survey_mean_ppp,
       svy_mean_lcu = tmp_metadata$survey_mean_lcu,
+      svy_median_lcu = tmp_metadata$survey_median_lcu,
+      svy_median_ppp = tmp_metadata$survey_median_ppp,
       default_ppp = tmp_metadata$ppp,
       ppp = ppp,
       distribution_type = tmp_metadata$distribution_type
