@@ -11,10 +11,10 @@
 #' @return data.table
 #' @export
 get_files <- function(country = "all",
-                year = "all",
-                welfare_type = c("all", "consumption", "income"),
-                reporting_level = c("all", "national", "rural", "urban"),
-                lkup) {
+                      year = "all",
+                      welfare_type = c("all", "consumption", "income"),
+                      reporting_level = c("all", "national", "rural", "urban"),
+                      lkup) {
 
   logger::log_info('root: {lkup$data_root}')
 

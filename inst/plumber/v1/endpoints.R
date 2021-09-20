@@ -158,6 +158,7 @@ function(req) {
   # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
+  params$version <- NULL
   params$format <- NULL
   out <- do.call(pipapi::get_files, params)
   attr(out, "serialize_format") <- req$argsQuery$format
