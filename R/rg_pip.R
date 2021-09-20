@@ -41,6 +41,8 @@ rg_pip <- function(country,
     )
 
     if (debug) debugonce(wbpip:::prod_compute_pip_stats)
+
+
     tmp_stats <- wbpip:::prod_compute_pip_stats(
       welfare = svy_data$df0$welfare,
       povline = povline,
