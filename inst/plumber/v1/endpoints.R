@@ -322,7 +322,7 @@ function(req) {
 #* @param country:[chr] Country ISO3 code
 #* @param povline:[dbl] Poverty Line
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer json
+#* @serializer json list(na="null")
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
