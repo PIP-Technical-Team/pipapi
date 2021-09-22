@@ -50,7 +50,11 @@ fg_pip <- function(country,
     )
 
     # Extract unique combinations of country-year
-    ctry_years <- interpolation_list[[unique_survey_files[svy_id]]]$ctry_years
+    ctry_years <- subset_lkup(country = country,
+                              year = year,
+                              welfare_type = welfare_type,
+                              reporting_level = reporting_level,
+                              lkup = interpolation_list[[unique_survey_files[svy_id]]]$ctry_years)
 
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 
@@ -74,22 +78,25 @@ fg_pip <- function(country,
         popshare = popshare
       )
 
+      # Ensure that tmp_metadata has a single row
+      vars_to_collapse <- c(
+        "survey_id", "cache_id", "surveyid_year", "survey_year",
+        "survey_acronym", "survey_coverage", "survey_comparability",
+        "comparable_spell", "welfare_type", "distribution_type",
+        "gd_type", "mean", "predicted_mean_ppp", "survey_mean_lcu", "survey_mean_ppp",
+        "interpolation_id", "path", "cpi"
+      )
+
+      tmp_metadata[, vars_to_collapse] <- NA
+
+      tmp_metadata <- unique(tmp_metadata)
+
 
       # Add stats columns to data frame
       for (stat in seq_along(tmp_stats)) {
         tmp_metadata[[names(tmp_stats)[stat]]] <- tmp_stats[[stat]]
       }
 
-      # Ensure that tmp_metadata has a single row
-      vars_to_collapse <- c(
-        "survey_id", "cache_id", "surveyid_year", "survey_year",
-        "survey_acronym", "survey_coverage", "survey_comparability",
-        "comparable_spell", "welfare_type", "distribution_type",
-        "gd_type", "predicted_mean_ppp", "survey_mean_lcu",
-        "interpolation_id", "path", "cpi"
-      )
-
-      tmp_metadata[, vars_to_collapse] <- NA
 
       # tmp_metadata <- collapse_rows(
       #   df = tmp_metadata,

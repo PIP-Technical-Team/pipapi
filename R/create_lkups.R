@@ -114,11 +114,11 @@ create_lkups <- function(data_dir, versions) {
 
   # Create interpolation list.
   # This is to facilitate interpolation computations
-  unique_survey_files <- unique(metadata$data_interpolation_id)
+  unique_survey_files <- unique(ref_lkup$data_interpolation_id)
   interpolation_list <- vector(mode = "list", length = length(unique_survey_files))
 
   for (i in seq_along(interpolation_list)) {
-    tmp_metadata <- metadata[data_interpolation_id == unique_survey_files[i], ]
+    tmp_metadata <- ref_lkup[data_interpolation_id == unique_survey_files[i], ]
     cache_ids <- unique(tmp_metadata[["cache_id"]])
     reporting_level = unique(tmp_metadata[["pop_data_level"]])
     paths <- unique(tmp_metadata$path)
