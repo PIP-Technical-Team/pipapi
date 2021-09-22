@@ -202,8 +202,12 @@ function(req) {
 #* @serializer switch
 function(req) {
   # browser()
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[params$version]]
+  params$format <- NULL
+  params$version <- NULL
   out <- pipapi::get_aux_table(
-    data_dir = lkups$data_root,
+    data_dir = params$lkup$data_root,
     table = req$args$table)
   attr(out, "serialize_format") <- req$argsQuery$format
   out
