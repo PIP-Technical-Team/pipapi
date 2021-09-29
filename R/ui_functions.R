@@ -214,7 +214,8 @@ ui_cp_key_indicators_single <- function(country = "AGO",
 #' @return data.table
 #' @noRd
 ui_cp_ki_headcount <- function(country, povline, lkup) {
-  res <- pip(country, year = "mrv", povline = povline, lkup = lkup)
+  res <- pip(country, year = "mrv", reporting_level = "national",
+             povline = povline, lkup = lkup)
   out <- data.table::data.table(
     country_code = country, reporting_year = res$reporting_year,
     poverty_line = povline, headcount = res$headcount
@@ -307,7 +308,8 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
 
   # Fetch data for poverty trend chart
   res_pov_trend <-
-    pip(country = country, povline = povline, lkup = lkup)
+    pip(country = country, povline = povline,
+        reporting_level = "national", lkup = lkup)
   res_pov_trend$pop_in_poverty <-
     res_pov_trend$reporting_pop * res_pov_trend$headcount / pop_units
   res_pov_trend <-
@@ -325,7 +327,8 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
     lkup$svy_lkup[region_code == region]$country_code %>%
     unique()
 
-  res_pov_mrv <- pip(country = countries, povline = povline, lkup = lkup)
+  res_pov_mrv <- pip(country = countries, povline = povline,
+                     reporting_level = "national", lkup = lkup)
   res_pov_mrv <-
     res_pov_mrv[, .SD[which.max(reporting_year)],
                 by = country_code
