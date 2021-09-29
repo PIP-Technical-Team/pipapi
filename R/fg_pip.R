@@ -114,7 +114,8 @@ fg_pip <- function(country,
     out[[svy_id]] <- results_subset
   }
 
-  out <- purrr::flatten(out)
+  # out <- purrr::flatten(out)
+  out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
 
   # Ensure that out does not have duplicates
