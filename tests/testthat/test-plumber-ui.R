@@ -6,7 +6,7 @@ library(httr)
 
 # Setup by starting APIs
 root_path <- "http://localhost"
-api1 <- callr::r_session$new()
+api1 <- callr::r_session$new(options =  r_session_options(user_profile = FALSE))
 Sys.sleep(5)
 api1$call(function() {
   # Use double assignment operator so the lkups object is available in the global
@@ -14,7 +14,7 @@ api1$call(function() {
   lkups <<- pipapi::create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
   pipapi::start_api(port = 8000)
 })
-Sys.sleep(10)
+Sys.sleep(20)
 
 test_that("Poverty line endpoint is working", {
   # Send API request
@@ -56,9 +56,9 @@ test_that("Indicators master endpoint is working", {
   )
 })
 
-test_that("Countries endpoint is working", {
+test_that("Aux endpoint is working", {
   # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/countries")
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/aux?table=countries")
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")

@@ -99,7 +99,7 @@ test_that("check_parameters() works as expected", {
   req <- list(argsQuery = list(povline = "all"))
   tmp <- check_parameters(req, lkups$query_controls)
   expect_false(tmp)
-  req <- list(argsQuery = list(povline = 100))
+  req <- list(argsQuery = list(povline = 200))
   tmp <- check_parameters(req, lkups$query_controls)
   expect_false(tmp)
 

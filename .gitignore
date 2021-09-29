@@ -6,7 +6,7 @@ TEMP.R
 renv/
 .Rprofile
 inst/doc
-tests/testdata/20210401
+tests/testdata/app_data/
 .Renviron
 docs
 logs/

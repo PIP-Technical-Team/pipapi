@@ -212,7 +212,6 @@ function(req) {
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
-
 # UI endpoints: Homepage --------------------------------------------------
 
 #* Return poverty lines for home page display

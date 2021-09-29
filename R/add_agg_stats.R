@@ -37,10 +37,10 @@ ag_average_poverty_stats <- function(df) {
   # Compute stats for each sub-group
   out <- dfr
 
-  # Set distributional stats to NA is not based on microdata
-  if (dfu$distribution_type != "micro" | dfr$distribution_type != "micro") {
+  # Set distributional stats to NA if not based on microdata
+  if (unique(df$distribution_type) == "micro") {
     # Column to be set to NA
-    # Cannot be computed through weighted average because   # these measures are
+    # Cannot be computed through weighted average because these measures are
     # not additive
     na_cols <- c("survey_mean_lcu", "ppp")
     out[, na_cols] <- NA
@@ -72,16 +72,16 @@ ag_average_poverty_stats <- function(df) {
       out$headcount <- wgt_rural * dfr$headcount +
         wgt_urban * dfu$headcount
 
-      out_poverty_gap <- wgt_rural * dfr$poverty_gap +
+      out$poverty_gap <- wgt_rural * dfr$poverty_gap +
         wgt_urban * dfu$poverty_gap
 
-      out_poverty_severity <- wgt_rural * dfr$poverty_severity +
+      out$poverty_severity <- wgt_rural * dfr$poverty_severity +
         wgt_urban * dfu$poverty_severity
     }
   }
 
   if (dfu$watts > 0 & dfr$watts > 0) {
-    out_watts <- wgt_rural * dfr$watts +
+    out$watts <- wgt_rural * dfr$watts +
       wgt_urban * dfu$watts
   } else {
     out$watts <- NA
