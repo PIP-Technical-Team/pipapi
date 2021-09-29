@@ -82,12 +82,17 @@ fg_pip <- function(country,
       vars_to_collapse <- c(
         "survey_id", "cache_id", "surveyid_year", "survey_year",
         "survey_acronym", "survey_coverage", "survey_comparability",
-        "comparable_spell", "welfare_type", "distribution_type",
+        "comparable_spell", "welfare_type",
         "gd_type", "mean", "predicted_mean_ppp", "survey_mean_lcu", "survey_mean_ppp",
         "interpolation_id", "path", "cpi"
       )
 
       tmp_metadata[, vars_to_collapse] <- NA
+
+      # Handle multiple distribution types (for aggregated distributions)
+      if (length(unique(tmp_metadata$distribution_type)) > 1) {
+        tmp_metadata$distribution_type <- "mixed"
+      }
 
       tmp_metadata <- unique(tmp_metadata)
 
