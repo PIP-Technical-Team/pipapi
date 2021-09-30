@@ -203,3 +203,18 @@ test_that("pop_share option is working", {
 
   expect_equal(nrow(tmp), 1)
 })
+
+test_that("Reporting level filtering is working", {
+  tmp <- pip(country="CHN",
+             year="2008",
+             povline=1.9,
+             popshare=NULL,
+             welfare_type = "all",
+             reporting_level = "national",
+             fill_gaps = FALSE,
+             ppp = 10,
+             lkup = lkups,
+             debug = FALSE)
+
+  expect_equal(nrow(tmp), 1)
+})
