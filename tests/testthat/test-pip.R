@@ -4,6 +4,46 @@ skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 files <- sub("[.]fst", "", list.files("../testdata/app_data/20210401/survey_data/"))
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
 lkups <- lkups$versions_paths$latest_release
+
+
+test_that("Reporting level filtering is working", {
+  reporting_levels <- c("national", "urban", "rural", "all")
+  tmp <- lapply(reporting_levels,
+                function(x) {
+                  pip(country="CHN",
+                      year="2008",
+                      povline=1.9,
+                      popshare=NULL,
+                      welfare_type = "all",
+                      reporting_level = x,
+                      fill_gaps = FALSE,
+                      ppp = 10,
+                      lkup = lkups,
+                      debug = FALSE)
+                })
+  names(tmp) <- reporting_levels
+
+  expect_equal(nrow(tmp$national), 1)
+  expect_equal(tmp$national$pop_data_level, "national")
+
+  expect_equal(nrow(tmp$urban), 1)
+  expect_equal(tmp$urban$pop_data_level, "urban")
+
+  expect_equal(nrow(tmp$rural), 1)
+  expect_equal(tmp$rural$pop_data_level, "rural")
+
+  expect_equal(nrow(tmp$all), 3)
+  expect_equal(sort(tmp$all$pop_data_level), c("national", "rural", "urban"))
+  })
+
+
+
+
+
+
+
+
+# Use only test data
 lkups$svy_lkup <- lkups$svy_lkup[(cache_id %in% files | country_code == "AGO")]
 lkups$ref_lkup <- lkups$ref_lkup[(cache_id %in% files | country_code == "AGO")]
 
@@ -204,17 +244,3 @@ test_that("pop_share option is working", {
   expect_equal(nrow(tmp), 1)
 })
 
-test_that("Reporting level filtering is working", {
-  tmp <- pip(country="CHN",
-             year="2008",
-             povline=1.9,
-             popshare=NULL,
-             welfare_type = "all",
-             reporting_level = "national",
-             fill_gaps = FALSE,
-             ppp = 10,
-             lkup = lkups,
-             debug = FALSE)
-
-  expect_equal(nrow(tmp), 1)
-})
