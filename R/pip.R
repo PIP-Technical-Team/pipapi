@@ -135,7 +135,8 @@ pip <- function(country = "all",
 
   # Handle survey coverage
   if (reporting_level != "all") {
-    out <- out[out$pop_data_level == reporting_level, ]
+    keep <- out$pop_data_level == reporting_level
+    out <- out[keep, ]
   }
 
   # Censor values
