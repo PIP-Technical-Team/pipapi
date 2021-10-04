@@ -208,7 +208,7 @@ function(req) {
   params$version <- NULL
 
   if (is.null(req$args$table)) {
-    out <- lkup$aux_tables
+    out <- params$lkup$aux_tables
   } else {
     out <- pipapi::get_aux_table(
       data_dir = params$lkup$data_root,
