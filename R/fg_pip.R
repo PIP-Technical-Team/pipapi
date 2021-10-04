@@ -70,6 +70,8 @@ fg_pip <- function(country,
         data = svy_data,
         predicted_request_mean = tmp_metadata[["predicted_mean_ppp"]],
         svy_mean_lcu = tmp_metadata[["survey_mean_lcu"]],
+        svy_median_lcu = tmp_metadata$survey_median_lcu,
+        svy_median_ppp = tmp_metadata$survey_median_ppp,
         survey_year = tmp_metadata[["survey_year"]],
         default_ppp = tmp_metadata[["ppp"]],
         ppp = ppp,
@@ -95,7 +97,6 @@ fg_pip <- function(country,
       }
       #
       # tmp_metadata <- unique(tmp_metadata)
-
 
       # Add stats columns to data frame
       for (stat in seq_along(tmp_stats)) {
