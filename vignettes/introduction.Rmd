@@ -46,15 +46,15 @@ data-folder-root/
 
 ```{r data-access, eval=FALSE, echo=TRUE}
 # Create a list of look-up tables from the root data folder
-lkups <- pipapi::create_lkups(
+lkups <- pipapi::create_versioned_lkups(
   data_dir = "path/to/data_folder")
 ```
 
 ```{r data-access-2, echo=FALSE, message=FALSE, warning=FALSE, eval=TRUE}
-lkups <- pipapi::create_lkups(
-  data_dir = "../tests/testdata/20210401/")
+lkups <- pipapi::create_versioned_lkups(
+  data_dir = "../tests/testdata/app_data/")
 
-lkups$pop_region
+lkups$versions_paths$latest_release$pop_region
 
 ```
 
@@ -65,6 +65,6 @@ statistics in your `R` session.
 pip(country = "AGO",
     year = 2000,
     povline = 1.9,
-    lkup = lkups)
+    lkup = lkups$versions_paths$latest_release)
 ```
 

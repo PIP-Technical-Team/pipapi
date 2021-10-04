@@ -62,7 +62,6 @@ pip <- function(country = "all",
                 welfare_type = c("all", "consumption", "income"),
                 reporting_level = c("all", "national", "rural", "urban"),
                 ppp = NULL,
-                version = "latest_version",
                 lkup,
                 debug = FALSE) {
 
@@ -136,7 +135,8 @@ pip <- function(country = "all",
 
   # Handle survey coverage
   if (reporting_level != "all") {
-    out <- out[out$pop_data_level == reporting_level, ]
+    keep <- out$pop_data_level == reporting_level
+    out <- out[keep, ]
   }
 
   # Censor values

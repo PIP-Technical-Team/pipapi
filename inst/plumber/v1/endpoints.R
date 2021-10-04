@@ -202,13 +202,16 @@ function(req) {
 #* @serializer switch
 function(req) {
   # browser()
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[params$version]]
+  params$format <- NULL
+  params$version <- NULL
   out <- pipapi::get_aux_table(
-    data_dir = lkups$data_root,
+    data_dir = params$lkup$data_root,
     table = req$args$table)
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
-
 # UI endpoints: Homepage --------------------------------------------------
 
 #* Return poverty lines for home page display
@@ -322,7 +325,7 @@ function(req) {
 #* @param country:[chr] Country ISO3 code
 #* @param povline:[dbl] Poverty Line
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer json
+#* @serializer json list(na="null")
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
