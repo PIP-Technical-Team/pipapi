@@ -175,6 +175,10 @@ create_lkups <- function(data_dir, versions) {
       # 'wb_region_code', 'interpolation_id'
     )
 
+  # Create list of available auxiliary data tables
+  aux_tables <- tools::file_path_sans_ext(list.files(paste0(data_dir, "/_aux")))
+  aux_tables <- sort(aux_tables)
+
   # Create list of query controls
   query_controls <-
     create_query_controls(
@@ -192,6 +196,7 @@ create_lkups <- function(data_dir, versions) {
     pip_cols = pip_cols,
     query_controls = query_controls,
     data_root = data_dir,
+    aux_tables = aux_tables,
     interpolation_list = interpolation_list
   )
 

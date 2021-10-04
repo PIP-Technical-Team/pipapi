@@ -206,9 +206,14 @@ function(req) {
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
-  out <- pipapi::get_aux_table(
-    data_dir = params$lkup$data_root,
-    table = req$args$table)
+
+  if (is.null(req$args$table)) {
+    out <- params$lkup$aux_tables
+  } else {
+    out <- pipapi::get_aux_table(
+      data_dir = params$lkup$data_root,
+      table = req$args$table)
+  }
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
