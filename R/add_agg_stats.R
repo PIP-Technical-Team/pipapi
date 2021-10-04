@@ -50,8 +50,19 @@ ag_average_poverty_stats <- function(df) {
   wgt_urban <- dfu$reporting_pop / sum(df$reporting_pop)
   wgt_rural <- 1 - wgt_urban
 
+  # Weighted national mean
+  out$mean <- wgt_urban * dfu$mean +
+    wgt_rural * dfr$mean
+
+  # NOTE - This could be potentially be removed
+  # of we remove survey_mean_ppp from pip() outputs
   out$survey_mean_ppp <- wgt_urban * dfu$mean +
     wgt_rural * dfr$mean
+
+  # Set median to NA
+  out$median <- NA_real_
+  out$survey_median_ppp <- NA_real_
+
 
   if (dfr$poverty_severity < 0) { # Check if rural poverty severity < 0
 

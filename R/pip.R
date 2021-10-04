@@ -133,6 +133,12 @@ pip <- function(country = "all",
     return(out)
   }
 
+  # Add pre-computed distributional statistics
+  out <- add_dist_stats(
+    df = out,
+    dist_stats = lkup[["dist_stats"]]
+  )
+
   # Handle survey coverage
   if (reporting_level != "all") {
     keep <- out$pop_data_level == reporting_level
@@ -146,9 +152,6 @@ pip <- function(country = "all",
   if (!group_by != "none") {
     out <- out[, .SD, .SDcols = lkup$pip_cols]
   }
-
-  # ADD FIX FOR MEDIAN WHEN INTERPOLATING
-  # median <- dist_stats[["median"]]/(data_mean/requested_mean)
 
   return(out)
 }
