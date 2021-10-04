@@ -157,7 +157,7 @@ serializer_switch <- function() {
         format <- attr(val, "serialize_format")
         if (is.null(format) || format == "json") {
           type <- "application/json"
-          sfn <- jsonlite::toJSON
+          sfn <- function(x) jsonlite::toJSON(x, na = "null")
         } else if (format == "csv") {
           type <- "text/csv; charset=UTF-8"
           sfn <- function(x) readr::format_csv(x, na = "")
