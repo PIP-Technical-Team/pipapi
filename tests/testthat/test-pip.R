@@ -5,15 +5,14 @@ files <- sub("[.]fst", "", list.files("../testdata/app_data/20210401/survey_data
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
 lkups <- lkups$versions_paths$latest_release
 
-
 test_that("Reporting level filtering is working", {
   reporting_levels <- c("national", "urban", "rural", "all")
   tmp <- lapply(reporting_levels,
                 function(x) {
-                  pip(country="CHN",
-                      year="2008",
-                      povline=1.9,
-                      popshare=NULL,
+                  pip(country = "CHN",
+                      year = "2008",
+                      povline = 1.9,
+                      popshare = NULL,
                       welfare_type = "all",
                       reporting_level = x,
                       fill_gaps = FALSE,
@@ -35,13 +34,6 @@ test_that("Reporting level filtering is working", {
   expect_equal(nrow(tmp$all), 3)
   expect_equal(sort(tmp$all$pop_data_level), c("national", "rural", "urban"))
   })
-
-
-
-
-
-
-
 
 # Use only test data
 lkups$svy_lkup <- lkups$svy_lkup[(cache_id %in% files | country_code == "AGO")]
@@ -74,7 +66,7 @@ test_that("returned columns are the same for all non-group_by queries", {
   tmp3 <- pip('AGO', 2050, lkup = lkups)
   expect_identical(names(tmp1), names(tmp2))
   expect_identical(names(tmp1), names(tmp3))
-  skip("collapsed columns (e.g. survey_year, cpi) are converted to character")
+  # skip("collapsed columns (e.g. survey_year, cpi) are converted to character")
   expect_identical(sapply(tmp1, class), sapply(tmp2, class))
   expect_identical(sapply(tmp1, class), sapply(tmp3, class))
 })
