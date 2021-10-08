@@ -125,6 +125,7 @@ fg_pip <- function(country,
     "survey_acronym", "survey_coverage", "survey_comparability",
     "comparable_spell", "welfare_type",
     "gd_type", "mean", "predicted_mean_ppp", "survey_mean_lcu", "survey_mean_ppp",
+    "survey_median_lcu", "survey_median_ppp",
     "interpolation_id", "path", "cpi"
   )
   out[, vars_to_collapse] <- NA
