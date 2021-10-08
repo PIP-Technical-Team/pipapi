@@ -219,6 +219,18 @@ test_that("Imputation is working", {
   # expect_equal(nrow(tmp), 182)
 })
 
+test_that("Imputation is working for mixed distributions aggregate / micro", {
+  tmp <- pip(
+    country = "IND",
+    year = 1993,
+    povline = 3.5,
+    fill_gaps = TRUE,
+    lkup = lkups
+  )
+
+  expect_equal(nrow(tmp), 3)
+})
+
 # Check regional aggregations
 test_that("Regional aggregations are working", {
   tmp <- pip(
