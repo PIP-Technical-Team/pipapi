@@ -79,7 +79,8 @@ test_that("ui_cp_poverty_charts() works as expected", {
     country = "AGO",
     povline = 1.9,
     pop_units = 1e6,
-    lkup = lkups
+    lkup = lkups,
+    pov_mrv_lkup = NULL
   )
   expect_identical(names(dl), c("pov_trend", "pov_mrv"))
 })
