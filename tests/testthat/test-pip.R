@@ -223,12 +223,30 @@ test_that("Imputation is working for mixed distributions aggregate / micro", {
   tmp <- pip(
     country = "IND",
     year = 1993,
-    povline = 3.5,
+    povline = 1.9,
     fill_gaps = TRUE,
     lkup = lkups
   )
 
   expect_equal(nrow(tmp), 3)
+  expect_equal(tmp$headcount[tmp$pop_data_level == "national"], 0.4794678)
+  expect_equal(tmp$headcount[tmp$pop_data_level == "rural"], 0.5366117)
+  expect_equal(tmp$headcount[tmp$pop_data_level == "urban"], 0.3184304)
+  expect_equal(tmp$mean[tmp$pop_data_level == "national"], 73.6233776262657 * 12 / 365)
+})
+
+test_that("Imputation is working for mixed distributions group / micro", {
+  tmp <- pip(
+    country = "ZWE",
+    year = 2015,
+    povline = 1.9,
+    fill_gaps = TRUE,
+    lkup = lkups
+  )
+
+  expect_equal(nrow(tmp), 1)
+  expect_equal(tmp$headcount, 0.2867193)
+  expect_equal(tmp$mean, 134.504825993006 * 12 / 365)
 })
 
 # Check regional aggregations
