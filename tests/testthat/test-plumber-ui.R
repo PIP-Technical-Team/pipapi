@@ -112,7 +112,7 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(names(tmp_resp[[1]]), c(
     "country_code", "reporting_year", "welfare_type",
-    "pop_data_level", "median", "gini",
+    "reporting_level", "median", "gini",
     "polarization", "mld", "decile1",
     "decile2", "decile3", "decile4",
     "decile5", "decile6", "decile7",
@@ -178,7 +178,7 @@ test_that("Poverty calculator download endpoint is working for survey years", {
   expect_equal(class(tmp_resp), c("spec_tbl_df", "tbl_df", "tbl", "data.frame"))
   expect_equal(names(tmp_resp), c(
     "country_code", "reporting_year", "welfare_type",
-    "pop_data_level", "median", "gini",
+    "reporting_level", "median", "gini",
     "polarization", "mld", "decile1",
     "decile2", "decile3", "decile4",
     "decile5", "decile6", "decile7",
