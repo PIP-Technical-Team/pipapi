@@ -50,11 +50,9 @@ fg_pip <- function(country,
     )
 
     # Extract unique combinations of country-year
-    ctry_years <- subset_lkup(country = country,
-                              year = year,
-                              welfare_type = welfare_type,
-                              reporting_level = reporting_level,
-                              lkup = interpolation_list[[unique_survey_files[svy_id]]]$ctry_years)
+    ctry_years <- subset_ctry_years(country = country,
+                                    year = year,
+                                    lkup = interpolation_list[[unique_survey_files[svy_id]]]$ctry_years)
 
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 
@@ -124,7 +122,7 @@ fg_pip <- function(country,
     "survey_id", "cache_id", "surveyid_year", "survey_year",
     "survey_acronym", "survey_coverage", "survey_comparability",
     "comparable_spell", "welfare_type",
-    "gd_type", "mean", "predicted_mean_ppp", "survey_mean_lcu", "survey_mean_ppp",
+    "gd_type", "predicted_mean_ppp", "survey_mean_lcu", "survey_mean_ppp",
     "survey_median_lcu", "survey_median_ppp",
     "interpolation_id", "path", "cpi"
   )
