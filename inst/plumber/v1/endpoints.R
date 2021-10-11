@@ -9,7 +9,7 @@ library(pipapi)
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
-  tictoc::tic("filters")
+  # tictoc::tic("filters")
   # browser()
   if (!is.null(req$argsQuery$version) & !grepl("swagger", req$PATH_INFO)) {
     if (!is.null(req$argsQuery$version)) {
@@ -79,8 +79,8 @@ function(res) {
   plumber::forward()
 
   # Logging
-  end_filters <- tictoc::toc(quiet = TRUE)
-  logger::log_info('filters: {round(end_filters$toc - end_filters$tic, digits = getOption("digits", 6))}')
+  # end_filters <- tictoc::toc(quiet = TRUE)
+  # logger::log_info('filters: {round(end_filters$toc - end_filters$tic, digits = getOption("digits", 6))}')
 
 }
 
