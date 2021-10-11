@@ -249,7 +249,24 @@ test_that("Imputation is working for mixed distributions group / micro", {
   expect_equal(tmp$mean, 134.504825993006 * 12 / 365)
 })
 
-# Check regional aggregations
+## extrapolation ----
+test_that("imputation is working for extrapolated aggregate distribution", {
+  tmp <- pip(
+    country = "CHN",
+    year = 1988,
+    povline = 1.9,
+    fill_gaps = TRUE,
+    lkup = lkups
+  )
+
+  expect_equal(nrow(tmp), 3)
+  expect_equal(tmp$headcount[tmp$pop_data_level == "national"], 0.5339021)
+  expect_equal(tmp$headcount[tmp$pop_data_level == "rural"], 0.6549765)
+  expect_equal(tmp$headcount[tmp$pop_data_level == "urban"], 0.1701744)
+  expect_equal(tmp$mean[tmp$pop_data_level == "national"], 62.5904793524725 * 12 / 365)
+})
+
+# Check regional aggregations ----
 test_that("Regional aggregations are working", {
   tmp <- pip(
     country = "all",
