@@ -1,8 +1,5 @@
-# Disable until a full set of anonymous package data has been created
-skip("Disable until a full set of anonymous package data has been created")
-
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
-# skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
+skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 
 # files <- sub("[.]fst", "", list.files("../testdata/app_data/20210401/survey_data/"))
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
@@ -211,7 +208,7 @@ test_that("Imputation is working", {
     lkup = lkups
   )
   # Why is this correct? E.g. tmp %>% group_by(country_code) %>% summarise(n = n())
-  expect_equal(nrow(tmp), 195)
+  expect_equal(nrow(tmp), 6765)
   # expect_equal(nrow(tmp), 182)
 })
 
@@ -272,7 +269,7 @@ test_that("Regional aggregations are working", {
     lkup = lkups
   )
 
-  expect_equal(nrow(tmp), 3) # Should be changed if lkups are updated. Full set of regions is 8.
+  expect_equal(nrow(tmp), 8) # Should be changed if lkups are updated. Full set of regions is 8.
 })
 
 # Check pop_share
