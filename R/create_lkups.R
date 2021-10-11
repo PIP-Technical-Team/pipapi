@@ -118,7 +118,7 @@ create_lkups <- function(data_dir, versions) {
 
   # Add data interpolation ID (unique combination of survey files used for one
   # or more reporting years)
-  ref_lkup <- ref_lkup[, data_interpolation_id := paste(cache_id, pop_data_level, sep = "_")]
+  ref_lkup <- ref_lkup[, data_interpolation_id := paste(cache_id, reporting_level, sep = "_")]
   ref_lkup <- ref_lkup[, data_interpolation_id := paste(unique(data_interpolation_id), collapse = "|"),
                        by = .(interpolation_id)]
 
@@ -153,6 +153,7 @@ create_lkups <- function(data_dir, versions) {
                               as.data.table = TRUE)
 
   ### TEMP FIX FOR MEDIAN ###
+  # pop_data_level to be replaced by reporting_level
   bycols <-  c('cache_id', 'country_code', 'reporting_year', 'welfare_type', 'pop_data_level')
   ds <- dist_stats[, .SD, .SDcols = c(bycols, 'survey_median_lcu', 'survey_median_ppp')]
   svy_lkup <- merge(svy_lkup, ds, by = bycols, all.x  = TRUE)
@@ -178,8 +179,8 @@ create_lkups <- function(data_dir, versions) {
       'polarization', 'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
       'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
        'welfare_type', 'survey_comparability', 'comparable_spell',
-      'cpi', 'ppp', 'is_interpolated'
-      # 'gd_type', 'path', 'survey_acronym', 'survey_coverage',
+      'cpi', 'ppp', 'is_interpolated', 'survey_acronym'
+      # 'gd_type', 'path',  'survey_coverage',
       # 'cache_id', 'survey_id', 'surveyid_year'
       # 'wb_region_code', 'interpolation_id', 'pop_data_level',
       # 'cpi_data_level', 'ppp_data_level',
