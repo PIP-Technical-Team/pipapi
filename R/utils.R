@@ -49,22 +49,52 @@ subset_lkup <- function(country,
     keep <- keep & lkup$welfare_type == welfare_type
   }
   # Select survey coverage
-  # To be updated: Fix the coverage variable names in aux data (reporting_coverage?)
-  if (reporting_level[1] != "all") {
-    if ("survey_coverage" %in% names(lkup)) {
-      keep <- keep &
-        (lkup$survey_coverage == reporting_level |
-          lkup$pop_data_level == reporting_level)
-    } else {
-      # This condition is not triggered
-      keep <- keep & lkup$pop_data_level == reporting_level
-    }
-  }
+  keep <- select_reporting_level(lkup = lkup,
+                                 keep = keep,
+                                 reporting_level = reporting_level[1])
 
   lkup <- lkup[keep, ]
 
   return(lkup)
 }
+
+
+#' helper function to correctly filter look up table according to requested
+#' reporting level
+#'
+#' @param lkup data.table: Main lookup table
+#' @param keep logical: Logical vector of rows to be kept
+#' @param reporting_level character: Requested reporting level
+#'
+#' @return data.table
+#' @export
+#'
+select_reporting_level <- function(lkup,
+                                   keep,
+                                   reporting_level) {
+  # To be updated: Fix the coverage variable names in aux data (reporting_coverage?)
+  if (reporting_level == "all") {
+    return(keep)
+
+  } else if (reporting_level == "national") {
+    # Subnational levels necessary to compute national stats for aggregate distributions
+    keep <- keep & (lkup$reporting_level == reporting_level |
+      lkup$distribution_type == "aggregate")
+    return(keep)
+
+  } else {
+    if ("survey_coverage" %in% names(lkup)) {
+      keep <- keep &
+        (lkup$survey_coverage == reporting_level |
+           lkup$reporting_level == reporting_level)
+    } else {
+      # This condition is not triggered
+      keep <- keep & lkup$reporting_level == reporting_level
+    }
+    return(keep)
+  }
+}
+
 
 #' Read survey data
 #'
@@ -301,4 +331,35 @@ convert_empty <- function(string) {
   } else {
     string
   }
+}
+
+
+#' Subset country-years table
+#' This is a table created at start time to facilitate imputations
+#' It part of the interpolated_list object
+#'
+#' @return data.frame
+#' @keywords internal
+subset_ctry_years <- function(country,
+                              year,
+                              lkup) {
+  svy_n <- nrow(lkup)
+  keep <- rep(TRUE, svy_n)
+  # Select data files based on requested country, year, etc.
+  # Select countries
+  if (country[1] != "all") {
+    keep <- keep & lkup$country_code %in% country
+  }
+  # Select years
+  if (year[1] == "mrv") {
+    max_year <- max(lkup[country_code == country]$reporting_year)
+    keep <- keep & lkup$reporting_year %in% max_year
+  }
+  if (!year[1] %in% c("all", "mrv")) {
+    keep <- keep & lkup$reporting_year %in% year
+  }
+
+  lkup <- lkup[keep, ]
+
+  return(lkup)
 }
