@@ -179,7 +179,7 @@ create_lkups <- function(data_dir, versions) {
       'polarization', 'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
       'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
        'welfare_type', 'survey_comparability', 'comparable_spell',
-      'cpi', 'ppp', 'is_interpolated', 'survey_acronym'
+      'cpi', 'ppp', 'reporting_pop', 'is_interpolated', 'survey_acronym'
       # 'gd_type', 'path',
       # 'cache_id', 'survey_id', 'surveyid_year'
       # 'wb_region_code', 'interpolation_id', 'pop_data_level',
