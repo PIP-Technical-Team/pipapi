@@ -44,9 +44,7 @@ Imports:
     magrittr,
     wbpip,
     readr,
-    glue,
-    logger,
-    tictoc
+    glue
 Remotes:
     PIP-Technical-Team/wbpip@master
 Depends: 

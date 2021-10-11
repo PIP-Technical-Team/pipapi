@@ -103,7 +103,7 @@ ui_pc_charts <- function(country = c("AGO"),
   } else if (fill_gaps == FALSE) {
     out <- out[, .(
       country_code, reporting_year, welfare_type,
-      pop_data_level, median, gini, polarization,
+      reporting_level, median, gini, polarization,
       mld, decile1, decile2, decile3, decile4, decile5,
       decile6, decile7, decile8, decile9, decile10,
       region_code, survey_coverage, survey_comparability,

@@ -6,7 +6,7 @@ utils::globalVariables(
     "decile9", "distribution_type", "gini",
     "headcount", "interpolation_id",
     "is_interpolated", "median", "mld",
-    "polarization", "pop", "pop_data_level",
+    "polarization", "pop", "reporting_level",
     "pop_in_poverty", "poverty_gap",
     "poverty_line", "poverty_severity",
     "ppp", "region_code", "reporting_pop",
@@ -49,22 +49,52 @@ subset_lkup <- function(country,
     keep <- keep & lkup$welfare_type == welfare_type
   }
   # Select survey coverage
-  # To be updated: Fix the coverage variable names in aux data (reporting_coverage?)
-  if (reporting_level[1] != "all") {
-    if ("survey_coverage" %in% names(lkup)) {
-      keep <- keep &
-        (lkup$survey_coverage == reporting_level |
-          lkup$pop_data_level == reporting_level)
-    } else {
-      # This condition is not triggered
-      keep <- keep & lkup$pop_data_level == reporting_level
-    }
-  }
+  keep <- select_reporting_level(lkup = lkup,
+                                 keep = keep,
+                                 reporting_level = reporting_level[1])
 
   lkup <- lkup[keep, ]
 
   return(lkup)
 }
+
+
+#' helper function to correctly filter look up table according to requested
+#' reporting level
+#'
+#' @param lkup data.table: Main lookup table
+#' @param keep logical: Logical vector of rows to be kept
+#' @param reporting_level character: Requested reporting level
+#'
+#' @return data.table
+#' @export
+#'
+select_reporting_level <- function(lkup,
+                                   keep,
+                                   reporting_level) {
+  # To be updated: Fix the coverage variable names in aux data (reporting_coverage?)
+  if (reporting_level == "all") {
+    return(keep)
+
+  } else if (reporting_level == "national") {
+    # Subnational levels necessary to compute national stats for aggregate distributions
+    keep <- keep & (lkup$reporting_level == reporting_level |
+      lkup$distribution_type == "aggregate")
+    return(keep)
+
+  } else {
+    if ("survey_coverage" %in% names(lkup)) {
+      keep <- keep &
+        (lkup$survey_coverage == reporting_level |
+           lkup$reporting_level == reporting_level)
+    } else {
+      # This condition is not triggered
+      keep <- keep & lkup$reporting_level == reporting_level
+    }
+    return(keep)
+  }
+}
+
 
 #' Read survey data
 #'
@@ -77,11 +107,11 @@ subset_lkup <- function(country,
 get_svy_data <- function(svy_id,
                          reporting_level,
                          path) {
-  # Each call should be made at a unique pop_data_level (equivalent to reporting_data_level: national, urban, rural)
+  # Each call should be made at a unique reporting_level (equivalent to reporting_data_level: national, urban, rural)
   # This check should be conducted at the data validation stage
   reporting_level <- unique(reporting_level)
   assertthat::assert_that(length(reporting_level) == 1,
-    msg = "Problem with input data: Multiple pop_data_levels"
+    msg = "Problem with input data: Multiple reporting_levels"
   )
   # tictoc::tic("read_single")
   out <- lapply(path, function(x) {
@@ -105,6 +135,43 @@ get_svy_data <- function(svy_id,
   names(out) <- names_out
 
   return(out)
+}
+
+
+#' Add pre-computed distributional stats
+#'
+#' @param df data.table: Data frame of poverty statistics
+#' @param dist_stats data.table: Distributional stats lookup
+#'
+#' @return data.table
+#' @export
+#'
+add_dist_stats <- function(df, dist_stats) {
+  # Keep only relevant columns
+  cols <- c(
+    "cache_id",
+    "country_code",
+    "reporting_year",
+    "welfare_type",
+    "pop_data_level",
+    # "reporting_level",
+    # "survey_median_ppp",
+    "gini",
+    "polarization",
+    "mld",
+    sprintf("decile%s", 1:10)
+  )
+  dist_stats <- dist_stats[, .SD, .SDcols = cols]
+
+  # merge dist stats with main table
+  # data.table::setnames(dist_stats, "survey_median_ppp", "median")
+
+  df <- dist_stats[df,
+                   on = .(cache_id, country_code, reporting_year, welfare_type, pop_data_level),
+                   allow.cartesian = TRUE
+  ]
+
+  return(df)
 }
 
 #' Collapse rows
@@ -211,8 +278,8 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
     values = c(
       "all",
       sort(unique(c(
-        svy_lkup$pop_data_level,
-        ref_lkup$pop_data_level
+        svy_lkup$reporting_level,
+        ref_lkup$reporting_level
       )))
     ),
     type = "character"
@@ -265,4 +332,35 @@ convert_empty <- function(string) {
   } else {
     string
   }
+}
+
+
+#' Subset country-years table
+#' This is a table created at start time to facilitate imputations
+#' It part of the interpolated_list object
+#'
+#' @return data.frame
+#' @keywords internal
+subset_ctry_years <- function(country,
+                              year,
+                              lkup) {
+  svy_n <- nrow(lkup)
+  keep <- rep(TRUE, svy_n)
+  # Select data files based on requested country, year, etc.
+  # Select countries
+  if (country[1] != "all") {
+    keep <- keep & lkup$country_code %in% country
+  }
+  # Select years
+  if (year[1] == "mrv") {
+    max_year <- max(lkup[country_code == country]$reporting_year)
+    keep <- keep & lkup$reporting_year %in% max_year
+  }
+  if (!year[1] %in% c("all", "mrv")) {
+    keep <- keep & lkup$reporting_year %in% year
+  }
+
+  lkup <- lkup[keep, ]
+
+  return(lkup)
 }

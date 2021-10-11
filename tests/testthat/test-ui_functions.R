@@ -4,6 +4,7 @@ skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 # constants
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
 lkups <- lkups$versions_paths$latest_release
+set.seed(42)
 lkups$pl_lkup <- lkups$pl_lkup[sample(nrow(lkups$pl_lkup), 10)]
 lkups2 <- lkups
 lkups2$svy_lkup <- lkups2$svy_lkup[country_code %in% c('AGO', 'ZWE')]
