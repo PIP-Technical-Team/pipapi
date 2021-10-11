@@ -185,6 +185,18 @@ test_that("reporting_level selection are correct", {
   expect_equal(sort(unique(tmp$pop_data_level)), c("urban"))
 })
 
+## Check distribution type computations ----
+test_that("pip returns expected response for aggregated distribution", {
+  tmp <- pip(
+    country = "CHN",
+    year = "1981",
+    povline = 1.9,
+    reporting_level = "all",
+    lkup = lkups
+  )
+  expect_equal(nrow(tmp), 3)
+  expect_equal(sort(tmp$reporting_level), c("national", "rural", "urban"))
+})
 # Check aggregation ----
 test_that("Aggregation is working", {
   skip("Aggregation not correctly implemented")

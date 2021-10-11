@@ -172,25 +172,22 @@ create_lkups <- function(data_dir, versions) {
 
   # Create pip return columns
   pip_cols <-
-    c('region_code', 'country_code', 'reporting_year',
-      'survey_acronym', 'survey_coverage', 'survey_year',
-      'welfare_type', 'survey_comparability', 'comparable_spell',
-      'poverty_line', 'headcount', 'poverty_gap', 'poverty_severity',
-      'mean', 'median', 'mld', 'gini', 'polarization', 'watts',
-      'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
+    c('region_code', 'country_code', 'reporting_year', 'survey_year',
+      'reporting_level', 'poverty_line', 'headcount', 'poverty_gap',
+      'poverty_severity', 'watts', 'mean', 'median', 'mld', 'gini',
+      'polarization', 'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
       'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
-      'survey_mean_lcu', 'survey_mean_ppp', # Do we need these?
-      'predicted_mean_ppp', # Do we need this?
-      'cpi', 'cpi_data_level',
-      'ppp', 'ppp_data_level',
-      'reporting_pop', 'pop_data_level',
-      'reporting_gdp', 'gdp_data_level',
-      'reporting_pce', 'pce_data_level',
-      'is_interpolated', 'is_used_for_aggregation',
-      'distribution_type', 'estimation_type'
-      # 'gd_type', 'path',
+       'welfare_type', 'survey_comparability', 'comparable_spell',
+      'cpi', 'ppp', 'is_interpolated'
+      # 'gd_type', 'path', 'survey_acronym', 'survey_coverage',
       # 'cache_id', 'survey_id', 'surveyid_year'
-      # 'wb_region_code', 'interpolation_id'
+      # 'wb_region_code', 'interpolation_id', 'pop_data_level',
+      # 'cpi_data_level', 'ppp_data_level',
+      # 'survey_mean_lcu', 'survey_mean_ppp', # Do we need these?
+      # 'predicted_mean_ppp', # Do we need this?
+      # 'gdp_data_level', 'reporting_pop', 'reporting_gdp',
+      # 'reporting_pce', 'pce_data_level', 'is_used_for_aggregation',
+      #'distribution_type', 'estimation_type'
     )
 
   # Create list of query controls
