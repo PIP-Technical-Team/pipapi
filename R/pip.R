@@ -141,7 +141,7 @@ pip <- function(country = "all",
 
   # Handle survey coverage
   if (reporting_level != "all") {
-    keep <- out$pop_data_level == reporting_level
+    keep <- out$reporting_level == reporting_level
     out <- out[keep, ]
   }
 

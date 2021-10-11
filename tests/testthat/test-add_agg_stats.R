@@ -38,9 +38,7 @@ test_that("add_agg_stats() works", {
 
   # Check that national mean is a weighted average
   tmp <- add_agg_stats(res_ex3)
-  expect_equal(tmp$mean[3], weighted.mean(res_ex3$mean, res_ex3$reporting_pop))
-  expect_equal(tmp$survey_mean_ppp[3], weighted.mean(res_ex3$mean, res_ex3$reporting_pop))
-
+  expect_equal(tmp$mean[3], weighted.mean(res_ex3$survey_mean_ppp, res_ex3$reporting_pop))
 })
 
 test_that("ag_average_poverty_stats() works", {
@@ -50,7 +48,6 @@ test_that("ag_average_poverty_stats() works", {
   # Benchmark values from PovcalNet API as of 20210929
   # http://iresearch.worldbank.org/povcalnet/povcalnetapi.ashx?YearSelected=1988&Countries=IND_5,IND_1,IND_2&PovertyLine=1.9&display=C&format=csv
   expect_equal(tmp$mean, 72.0616244493633, tolerance = 1.490116e-07)
-  expect_equal(tmp$survey_mean_ppp, 72.0616244493633, tolerance = 1.490116e-07)
   expect_equal(tmp$headcount, 0.5019447, tolerance = 1.490116e-07)
   expect_equal(tmp$poverty_gap, 0.14287220, tolerance = 1.490116e-07)
   expect_equal(tmp$poverty_severity, 0.05508484, tolerance = 1.490116e-07)

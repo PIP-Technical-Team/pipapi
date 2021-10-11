@@ -42,7 +42,7 @@ get_files <- function(country = "all",
 
     svy_data <- get_svy_data(
       tmp_metadata$cache_id,
-      reporting_level = tmp_metadata$pop_data_level,
+      reporting_level = tmp_metadata$reporting_level,
       path = tmp_metadata$path
     )
 

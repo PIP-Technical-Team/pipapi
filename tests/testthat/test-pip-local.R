@@ -24,16 +24,16 @@ test_that("Reporting level filtering is working", {
   names(tmp) <- reporting_levels
 
   expect_equal(nrow(tmp$national), 1)
-  expect_equal(tmp$national$pop_data_level, "national")
+  expect_equal(tmp$national$reporting_level, "national")
 
   expect_equal(nrow(tmp$urban), 1)
-  expect_equal(tmp$urban$pop_data_level, "urban")
+  expect_equal(tmp$urban$reporting_level, "urban")
 
   expect_equal(nrow(tmp$rural), 1)
-  expect_equal(tmp$rural$pop_data_level, "rural")
+  expect_equal(tmp$rural$reporting_level, "rural")
 
   expect_equal(nrow(tmp$all), 3)
-  expect_equal(sort(tmp$all$pop_data_level), c("national", "rural", "urban"))
+  expect_equal(sort(tmp$all$reporting_level), c("national", "rural", "urban"))
   })
 
 # Use only test data
@@ -152,7 +152,7 @@ test_that("reporting_level selection are correct", {
     reporting_level = "all"
   )
 
-  expect_equal(sort(unique(tmp$pop_data_level)), c("national", "rural", "urban"))
+  expect_equal(sort(unique(tmp$reporting_level)), c("national", "rural", "urban"))
 
   tmp <- pip(
     country = "all",
@@ -162,7 +162,7 @@ test_that("reporting_level selection are correct", {
     reporting_level = "national"
   )
 
-  expect_equal(sort(unique(tmp$pop_data_level)), c("national"))
+  expect_equal(sort(unique(tmp$reporting_level)), c("national"))
 
   tmp <- pip(
     country = "all",
@@ -172,7 +172,7 @@ test_that("reporting_level selection are correct", {
     reporting_level = "rural"
   )
 
-  expect_equal(sort(unique(tmp$pop_data_level)), c("rural"))
+  expect_equal(sort(unique(tmp$reporting_level)), c("rural"))
 
   tmp <- pip(
     country = "all",
@@ -182,7 +182,7 @@ test_that("reporting_level selection are correct", {
     reporting_level = "urban"
   )
 
-  expect_equal(sort(unique(tmp$pop_data_level)), c("urban"))
+  expect_equal(sort(unique(tmp$reporting_level)), c("urban"))
 })
 
 ## Check distribution type computations ----
@@ -234,10 +234,10 @@ test_that("Imputation is working for mixed distributions aggregate / micro", {
   )
 
   expect_equal(nrow(tmp), 3)
-  # expect_equal(tmp$headcount[tmp$pop_data_level == "national"], 0.4794678)
-  # expect_equal(tmp$headcount[tmp$pop_data_level == "rural"], 0.5366117)
-  # expect_equal(tmp$headcount[tmp$pop_data_level == "urban"], 0.3184304)
-  # expect_equal(tmp$mean[tmp$pop_data_level == "national"], 73.6233776262657 * 12 / 365)
+  # expect_equal(tmp$headcount[tmp$reporting_level == "national"], 0.4794678)
+  # expect_equal(tmp$headcount[tmp$reporting_level == "rural"], 0.5366117)
+  # expect_equal(tmp$headcount[tmp$reporting_level == "urban"], 0.3184304)
+  # expect_equal(tmp$mean[tmp$reporting_level == "national"], 73.6233776262657 * 12 / 365)
 })
 
 test_that("Imputation is working for mixed distributions group / micro", {
@@ -265,10 +265,10 @@ test_that("imputation is working for extrapolated aggregate distribution", {
   )
 
   expect_equal(nrow(tmp), 3)
-  # expect_equal(tmp$headcount[tmp$pop_data_level == "national"], 0.5339021)
-  # expect_equal(tmp$headcount[tmp$pop_data_level == "rural"], 0.6549765)
-  # expect_equal(tmp$headcount[tmp$pop_data_level == "urban"], 0.1701744)
-  # expect_equal(tmp$mean[tmp$pop_data_level == "national"], 62.5904793524725 * 12 / 365)
+  # expect_equal(tmp$headcount[tmp$reporting_level == "national"], 0.5339021)
+  # expect_equal(tmp$headcount[tmp$reporting_level == "rural"], 0.6549765)
+  # expect_equal(tmp$headcount[tmp$reporting_level == "urban"], 0.1701744)
+  # expect_equal(tmp$mean[tmp$reporting_level == "national"], 62.5904793524725 * 12 / 365)
 })
 
 # Check regional aggregations ----

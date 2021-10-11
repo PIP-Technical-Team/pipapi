@@ -6,7 +6,7 @@ utils::globalVariables(
     "decile9", "distribution_type", "gini",
     "headcount", "interpolation_id",
     "is_interpolated", "median", "mld",
-    "polarization", "pop", "pop_data_level",
+    "polarization", "pop", "reporting_level",
     "pop_in_poverty", "poverty_gap",
     "poverty_line", "poverty_severity",
     "ppp", "region_code", "reporting_pop",
@@ -107,11 +107,11 @@ select_reporting_level <- function(lkup,
 get_svy_data <- function(svy_id,
                          reporting_level,
                          path) {
-  # Each call should be made at a unique pop_data_level (equivalent to reporting_data_level: national, urban, rural)
+  # Each call should be made at a unique reporting_level (equivalent to reporting_data_level: national, urban, rural)
   # This check should be conducted at the data validation stage
   reporting_level <- unique(reporting_level)
   assertthat::assert_that(length(reporting_level) == 1,
-    msg = "Problem with input data: Multiple pop_data_levels"
+    msg = "Problem with input data: Multiple reporting_levels"
   )
   # tictoc::tic("read_single")
   out <- lapply(path, function(x) {
@@ -154,6 +154,7 @@ add_dist_stats <- function(df, dist_stats) {
     "reporting_year",
     "welfare_type",
     "pop_data_level",
+    # "reporting_level",
     # "survey_median_ppp",
     "gini",
     "polarization",
@@ -277,8 +278,8 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
     values = c(
       "all",
       sort(unique(c(
-        svy_lkup$pop_data_level,
-        ref_lkup$pop_data_level
+        svy_lkup$reporting_level,
+        ref_lkup$reporting_level
       )))
     ),
     type = "character"
