@@ -101,20 +101,24 @@ fg_pip <- function(country,
   out <- data.table::rbindlist(out)
 
   # Set collapse vars to NA (by type)
-  # vars_to_collapse <- c(
-  #   "survey_id", "cache_id", "surveyid_year", "survey_year",
-  #   "survey_acronym", "survey_coverage", "survey_comparability",
-  #   "comparable_spell", "welfare_type",
-  #   "gd_type", "mean", "predicted_mean_ppp", "survey_mean_lcu", "survey_mean_ppp",
-  #   "interpolation_id", "path", "cpi"
-  # )
-  vars_to_collapse_real <- c("survey_year", "predicted_mean_ppp", "survey_mean_lcu",
-                             "survey_mean_ppp", "cpi")
-  vars_to_collapse_int <- c("surveyid_year", "survey_comparability")
-  vars_to_collapse_char <-
-    c("survey_id", "cache_id", "survey_acronym", "survey_coverage",
-      "comparable_spell", "welfare_type", "gd_type", "interpolation_id",
-      "path")
+  vars_to_collapse_real <- c("survey_year",
+                             "predicted_mean_ppp",
+                             "survey_mean_lcu",
+                             "survey_mean_ppp",
+                             "survey_median_lcu",
+                             "survey_median_ppp",
+                             "cpi")
+  vars_to_collapse_int <- c("surveyid_year",
+                            "survey_comparability")
+  vars_to_collapse_char <- c("survey_id",
+                             "cache_id",
+                             "survey_acronym",
+                             "survey_coverage",
+                             "comparable_spell",
+                             "welfare_type",
+                             "gd_type",
+                             "interpolation_id",
+                             "path")
 
   out[, vars_to_collapse_char] <- NA_character_
   out[, vars_to_collapse_int] <- NA_integer_
