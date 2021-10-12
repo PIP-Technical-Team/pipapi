@@ -156,6 +156,7 @@ create_lkups <- function(data_dir, versions) {
   # Create pip return columns
   pip_cols <-
     c('region_code', 'country_code', 'reporting_year',
+      'reporting_level',
       'survey_acronym', 'survey_coverage', 'survey_year',
       'welfare_type', 'survey_comparability', 'comparable_spell',
       'poverty_line', 'headcount', 'poverty_gap', 'poverty_severity',
