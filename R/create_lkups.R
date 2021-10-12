@@ -162,15 +162,15 @@ create_lkups <- function(data_dir, versions) {
       'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
        'welfare_type', 'survey_comparability', 'comparable_spell',
       'cpi', 'ppp', 'reporting_pop', 'is_interpolated', 'survey_acronym'
-      # 'gd_type', 'path',
-      # 'cache_id', 'survey_id', 'surveyid_year'
-      # 'wb_region_code', 'interpolation_id', 'pop_data_level',
-      # 'cpi_data_level', 'ppp_data_level',
-      # 'survey_mean_lcu', 'survey_mean_ppp', # Do we need these?
-      # 'predicted_mean_ppp', # Do we need this?
-      # 'gdp_data_level', 'reporting_pop', 'reporting_gdp',
-      # 'reporting_pce', 'pce_data_level', 'is_used_for_aggregation',
-      #'distribution_type', 'estimation_type'
+      'gd_type', 'path',
+      'cache_id', 'survey_id', 'surveyid_year',
+      'wb_region_code', 'interpolation_id', 'pop_data_level',
+      'cpi_data_level', 'ppp_data_level',
+      'survey_mean_lcu', 'survey_mean_ppp', # Do we need these?
+      'predicted_mean_ppp', # Do we need this?
+      'gdp_data_level', 'reporting_pop', 'reporting_gdp',
+      'reporting_pce', 'pce_data_level', 'is_used_for_aggregation',
+      'distribution_type', 'estimation_type'
     )
 
   # Create list of available auxiliary data tables
