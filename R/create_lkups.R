@@ -192,7 +192,8 @@ create_lkups <- function(data_dir, versions) {
     )
 
   # Create list of available auxiliary data tables
-  aux_tables <- tools::file_path_sans_ext(list.files(paste0(data_dir, "/_aux")))
+  aux_tables <- tools::file_path_sans_ext(list.files(paste0(data_dir, "/_aux"),
+                                                     pattern = "\\.fst$"))
   aux_tables <- sort(aux_tables)
 
   # Create list of query controls
