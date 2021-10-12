@@ -84,32 +84,22 @@ create_lkups <- function(data_dir, versions) {
   paths_ids <- tools::file_path_sans_ext(paths)
 
   # Clean svy_lkup
-  svy_lkup <- fst::read_fst(sprintf("%s/estimations/survey_means.fst", data_dir),
+  svy_lkup <- fst::read_fst(sprintf("%s/estimations/prod_svy_estimation.fst", data_dir),
     as.data.table = TRUE
   )
   # TEMP cleaning - START
-  svy_lkup <- svy_lkup[!is.na(svy_lkup$survey_mean_ppp), ]
-  svy_lkup <- svy_lkup[!is.na(svy_lkup$ppp), ]
   svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
-  svy_lkup$region_code <- svy_lkup$pcn_region_code
-  svy_lkup$predicted_mean_ppp <- NA_real_
-  svy_lkup$reporting_gdp <- NA_real_
-  svy_lkup$reporting_pce <- NA_real_
-  svy_lkup$estimation_type <- "survey"
   # TEMP cleaning - END
   svy_lkup$path <- sprintf(
     "%s/survey_data/%s.fst",
     data_dir, svy_lkup$cache_id
   )
   # Clean ref_lkup
-  ref_lkup <- fst::read_fst(sprintf("%s/estimations/interpolated_means.fst", data_dir),
+  ref_lkup <- fst::read_fst(sprintf("%s/estimations/prod_ref_estimation.fst", data_dir),
     as.data.table = TRUE
   )
   # TEMP cleaning - START
-  ref_lkup <- ref_lkup[!is.na(ref_lkup$predicted_mean_ppp), ]
-  ref_lkup <- ref_lkup[!is.na(ref_lkup$ppp), ]
   ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
-  ref_lkup$region_code <- ref_lkup$pcn_region_code
   # TEMP cleaning - END
   ref_lkup$path <- sprintf(
     "%s/survey_data/%s.fst",
@@ -151,14 +141,6 @@ create_lkups <- function(data_dir, versions) {
   # Load dist_stats
   dist_stats <- fst::read_fst(sprintf("%s/estimations/dist_stats.fst", data_dir),
                               as.data.table = TRUE)
-
-  ### TEMP FIX FOR MEDIAN ###
-  # pop_data_level to be replaced by reporting_level
-  bycols <-  c('cache_id', 'country_code', 'reporting_year', 'welfare_type', 'pop_data_level')
-  ds <- dist_stats[, .SD, .SDcols = c(bycols, 'survey_median_lcu', 'survey_median_ppp')]
-  svy_lkup <- merge(svy_lkup, ds, by = bycols, all.x  = TRUE)
-  ref_lkup <- merge(ref_lkup, ds, by = bycols, all.x  = TRUE)
-  ### TEMP FIX END ###
 
   # Load pop_region
   pop_region <- fst::read_fst(sprintf("%s/_aux/pop_region.fst", data_dir),
