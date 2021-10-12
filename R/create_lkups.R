@@ -155,22 +155,25 @@ create_lkups <- function(data_dir, versions) {
 
   # Create pip return columns
   pip_cols <-
-    c('region_code', 'country_code', 'reporting_year', 'survey_year',
-      'reporting_level', 'survey_coverage', 'poverty_line', 'headcount', 'poverty_gap',
-      'poverty_severity', 'watts', 'mean', 'median', 'mld', 'gini',
-      'polarization', 'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
+    c('region_code', 'country_code', 'reporting_year',
+      'survey_acronym', 'survey_coverage', 'survey_year',
+      'welfare_type', 'survey_comparability', 'comparable_spell',
+      'poverty_line', 'headcount', 'poverty_gap', 'poverty_severity',
+      'mean', 'median', 'mld', 'gini', 'polarization', 'watts',
+      'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
       'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
-       'welfare_type', 'survey_comparability', 'comparable_spell',
-      'cpi', 'ppp', 'reporting_pop', 'is_interpolated', 'survey_acronym'
-      'gd_type', 'path',
-      'cache_id', 'survey_id', 'surveyid_year',
-      'wb_region_code', 'interpolation_id', 'pop_data_level',
-      'cpi_data_level', 'ppp_data_level',
       'survey_mean_lcu', 'survey_mean_ppp', # Do we need these?
       'predicted_mean_ppp', # Do we need this?
-      'gdp_data_level', 'reporting_pop', 'reporting_gdp',
-      'reporting_pce', 'pce_data_level', 'is_used_for_aggregation',
+      'cpi', 'cpi_data_level',
+      'ppp', 'ppp_data_level',
+      'reporting_pop', 'pop_data_level',
+      'reporting_gdp', 'gdp_data_level',
+      'reporting_pce', 'pce_data_level',
+      'is_interpolated', 'is_used_for_aggregation',
       'distribution_type', 'estimation_type'
+      # 'gd_type', 'path',
+      # 'cache_id', 'survey_id', 'surveyid_year'
+      # 'wb_region_code', 'interpolation_id'
     )
 
   # Create list of available auxiliary data tables
