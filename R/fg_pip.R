@@ -78,17 +78,6 @@ fg_pip <- function(country,
         popshare = popshare
       )
 
-      # Ensure that tmp_metadata has a single row
-      # vars_to_collapse <- c(
-      #   "survey_id", "cache_id", "surveyid_year", "survey_year",
-      #   "survey_acronym", "survey_coverage", "survey_comparability",
-      #   "comparable_spell", "welfare_type",
-      #   "gd_type", "mean", "predicted_mean_ppp", "survey_mean_lcu", "survey_mean_ppp",
-      #   "interpolation_id", "path", "cpi"
-      # )
-      #
-      # tmp_metadata[, vars_to_collapse] <- NA
-      #
       # Handle multiple distribution types (for aggregated distributions)
       if (length(unique(tmp_metadata$distribution_type)) > 1) {
         tmp_metadata$distribution_type <- "mixed"
@@ -102,31 +91,42 @@ fg_pip <- function(country,
       }
 
 
-      # tmp_metadata <- collapse_rows(
-      #   df = tmp_metadata,
-      #   vars = vars_to_collapse,
-      #   na_var = "survey_mean_ppp"
-      # )
       results_subset[[ctry_year_id]] <- tmp_metadata
     }
 
     out[[svy_id]] <- results_subset
   }
 
-  # out <- purrr::flatten(out)
   out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
 
+  # Set collapse vars to NA (by type)
+  vars_to_collapse_real <- c("survey_year",
+                             "predicted_mean_ppp",
+                             "survey_mean_lcu",
+                             "survey_mean_ppp",
+                             "survey_median_lcu",
+                             "survey_median_ppp",
+                             "cpi")
+
+  vars_to_collapse_int <- c("surveyid_year",
+                            "survey_comparability")
+
+  vars_to_collapse_char <- c("survey_id",
+                             "cache_id",
+                             "survey_acronym",
+                             "survey_coverage",
+                             "comparable_spell",
+                             "welfare_type",
+                             "gd_type",
+                             "interpolation_id",
+                             "path")
+
+  out[, vars_to_collapse_char] <- NA_character_
+  out[, vars_to_collapse_int] <- NA_integer_
+  out[, vars_to_collapse_real] <- NA_real_
+
   # Ensure that out does not have duplicates
-  vars_to_collapse <- c(
-    "survey_id", "cache_id", "surveyid_year", "survey_year",
-    "survey_acronym", "survey_coverage", "survey_comparability",
-    "comparable_spell", "welfare_type",
-    "gd_type", "predicted_mean_ppp", "survey_mean_lcu", "survey_mean_ppp",
-    "survey_median_lcu", "survey_median_ppp",
-    "interpolation_id", "path", "cpi"
-  )
-  out[, vars_to_collapse] <- NA
   out <- unique(out)
 
   return(out)
