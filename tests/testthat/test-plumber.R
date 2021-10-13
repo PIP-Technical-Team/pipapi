@@ -1,5 +1,6 @@
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
+skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "" ||
+          Sys.getenv("PIPAPI_TEST_PLUMBER") != "TRUE")
 
 library(callr)
 library(httr)

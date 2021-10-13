@@ -4,7 +4,7 @@
 \alias{ui_cp_charts_single}
 \title{Country profile charts for a single country}
 \usage{
-ui_cp_charts_single(country, povline, pop_units, lkup)
+ui_cp_charts_single(country, povline, pop_units, lkup, pov_mrv_lkup = NULL)
 }
 \arguments{
 \item{country}{character: Country ISO 3 codes}
