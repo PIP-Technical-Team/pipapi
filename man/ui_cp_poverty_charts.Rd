@@ -4,7 +4,7 @@
 \alias{ui_cp_poverty_charts}
 \title{CP Poverty Charts}
 \usage{
-ui_cp_poverty_charts(country, povline, pop_units, lkup, pov_mrv_lkup)
+ui_cp_poverty_charts(country, povline, pop_units, lkup, pov_lkup)
 }
 \arguments{
 \item{country}{character: Country ISO 3 codes}
