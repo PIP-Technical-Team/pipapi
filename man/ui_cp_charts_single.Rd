@@ -4,7 +4,7 @@
 \alias{ui_cp_charts_single}
 \title{Country profile charts for a single country}
 \usage{
-ui_cp_charts_single(country, povline, pop_units, lkup, pov_mrv_lkup = NULL)
+ui_cp_charts_single(country, povline, pop_units, lkup, pov_lkup = NULL)
 }
 \arguments{
 \item{country}{character: Country ISO 3 codes}
@@ -15,6 +15,8 @@ ui_cp_charts_single(country, povline, pop_units, lkup, pov_mrv_lkup = NULL)
 to million)}
 
 \item{lkup}{list: A list of lkup tables}
+
+\item{pov_lkup}{data.frame: Look up table for poverty charts.}
 }
 \value{
 list
