@@ -233,7 +233,7 @@ test_that("ui_cp_charts() works as expected", {
     "pov_charts", "ineq_trend",
     "ineq_bar", "mpm", "sp"
   ))
-  expect_identical(names(dl[[1]]$pov_charts[[5]]),
+  expect_identical(names(dl2[[1]]$pov_charts[[5]]),
                    c("pov_trend", "pov_mrv"))
 
   # All countries
