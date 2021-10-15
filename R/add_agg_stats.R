@@ -95,10 +95,9 @@ ag_average_poverty_stats <- function(df) {
 
   # Update other variables
   out$reporting_pop <- sum(df$reporting_pop)
-  out[, c(
-    "reporting_level", "gdp_data_level",
-    "pce_data_level", "cpi_data_level", "ppp_data_level"
-  )] <- "national"
+  national_cols <- c("pop_data_level", "reporting_level", "gdp_data_level",
+                     "pce_data_level", "cpi_data_level", "ppp_data_level")
+  out[, national_cols] <- "national"
 
   return(out)
 }
