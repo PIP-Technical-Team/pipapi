@@ -195,6 +195,11 @@ test_that("pip returns expected response for aggregated distribution", {
   )
   expect_equal(nrow(tmp), 3)
   expect_equal(sort(tmp$reporting_level), c("national", "rural", "urban"))
+  # These two tests are here to check that no bad merge is happening with
+  # aggregate distributions
+  expect_true(tmp$gini[1] != tmp$gini[2])
+  expect_true(tmp$gini[1] != tmp$gini[3])
+
 })
 # Check aggregation ----
 test_that("Aggregation is working", {
@@ -219,7 +224,7 @@ test_that("Imputation is working", {
     lkup = lkups
   )
   # Why is this correct? E.g. tmp %>% group_by(country_code) %>% summarise(n = n())
-  expect_equal(nrow(tmp), 6765)
+  expect_equal(nrow(tmp), 6817)
   # expect_equal(nrow(tmp), 182)
 })
 
