@@ -425,10 +425,7 @@ cp_pov_mrv_select_values <- function(v, h) {
 #' @return data.table
 #' @export
 ui_svy_meta <- function(country = "all", lkup) {
-  out <- pipapi::get_aux_table(
-    data_dir = lkup$data_root,
-    table = "survey_metadata"
-  )
+  out <- readRDS(sprintf("%s/_aux/survey_metadata.rds", lkup$data_root))
   if (country == "all") {
     return(out)
   } else {
@@ -436,3 +433,4 @@ ui_svy_meta <- function(country = "all", lkup) {
     return(out)
   }
 }
+
