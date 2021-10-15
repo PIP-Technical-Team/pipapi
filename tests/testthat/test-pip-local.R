@@ -224,7 +224,7 @@ test_that("Imputation is working", {
     lkup = lkups
   )
   # Why is this correct? E.g. tmp %>% group_by(country_code) %>% summarise(n = n())
-  expect_equal(nrow(tmp), 6765)
+  expect_equal(nrow(tmp), 6817)
   # expect_equal(nrow(tmp), 182)
 })
 
