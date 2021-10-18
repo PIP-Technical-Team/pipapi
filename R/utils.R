@@ -301,7 +301,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format", "parameter"),
+                    "format"),
          type = "character")
 
   # Create list of query controls
