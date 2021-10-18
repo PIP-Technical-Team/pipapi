@@ -144,28 +144,6 @@ function(req) {
   out
 }
 
-#* Read files and return number of rows of each
-#* @get /api/v1/read
-#* @param country:[chr] Country ISO3 code
-#* @param year:[chr] Year
-#* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
-#* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
-#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
-#* @serializer switch
-function(req) {
-  # Process request
-  # browser()
-  params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[params$version]]
-  params$version <- NULL
-  params$format <- NULL
-  out <- do.call(pipapi::get_files, params)
-  attr(out, "serialize_format") <- req$argsQuery$format
-  out
-}
-
-
 #* Return main poverty and inequality statistics
 #* @get /api/v1/pip
 #* @param country:[chr] Country ISO3 code
