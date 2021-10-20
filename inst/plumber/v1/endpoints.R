@@ -58,6 +58,9 @@ function(req, res) {
   plumber::forward()
 }
 
+
+# Set response headers ----------------------------------------------------
+
 #* Set required response headers
 #* @filter response_headers
 function(res) {
@@ -102,33 +105,33 @@ function() {
   lkups$versions
 }
 
-#* Return system info
-#* @get /api/v1/system-info
-function(){
-  Sys.info()
-}
+# #* Return system info
+# #* @get /api/v1/system-info
+# function(){
+#   Sys.info()
+# }
 
-#* Return working directory
-#* @get /api/v1/get-root
-function() {
-  getwd()
-}
+# #* Return working directory
+# #* @get /api/v1/get-root
+# function() {
+#   getwd()
+# }
 
-#* Return available objects
-#* @get /api/v1/get-available-objects
-function() {
-  list(
-    search_list = search(),
-    global    = ls(pos = 1),
-    parent    = ls(pos = 2),
-    gd_parent = ls(pos = 3)
-  )
-}
+# #* Return available objects
+# #* @get /api/v1/get-available-objects
+# function() {
+#   list(
+#     search_list = search(),
+#     global    = ls(pos = 1),
+#     parent    = ls(pos = 2),
+#     gd_parent = ls(pos = 3)
+#   )
+# }
 
 #* Return PIP information
-#* @get /api/v1/info
+#* @get /api/v1/pip-info
 function(req) {
-  pipapi::get_pip_version(lkup = lkups$versions_paths[[req$argsQuery$version]])
+  pipapi::get_pip_version(lkup = lkups)
 }
 
 #* Return main poverty and inequality statistics
