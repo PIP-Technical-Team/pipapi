@@ -134,6 +134,20 @@ function(req) {
   pipapi::get_pip_version(lkup = lkups)
 }
 
+#* Return valid parameters
+#* @get /api/v1/valid-params
+#* @param parameter:[chr] Query parameter
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @serializer switch
+function(req) {
+  browser()
+  out <- pipapi::get_param_values(
+    req$argsQuery$parameter, lkup = lkups$versions_paths[[req$argsQuery$version]])
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
+}
+
 #* Return main poverty and inequality statistics
 #* @get /api/v1/pip
 #* @param country:[chr] Country ISO3 code
