@@ -136,7 +136,6 @@ function(req) {
 
 #* Return valid parameters
 #* @get /api/v1/valid-params
-#* @param parameter:[chr] Query parameter
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* @serializer switch
