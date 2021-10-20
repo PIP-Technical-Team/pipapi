@@ -141,9 +141,11 @@ function(req) {
 #* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
-  browser()
+  # browser()
+  version <- req$argsQuery$version
   out <- pipapi::get_param_values(
-    req$argsQuery$parameter, lkup = lkups$versions_paths[[req$argsQuery$version]])
+    lkup = lkups,
+    version = version)
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
