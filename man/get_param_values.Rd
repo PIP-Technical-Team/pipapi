@@ -5,12 +5,12 @@
 \title{Get valid query parameter values
 Get vector of accepted query parameter values}
 \usage{
-get_param_values(param, lkup)
+get_param_values(lkup, version)
 }
 \arguments{
-\item{param}{character: Query parameter}
-
 \item{lkup}{list: A list of lkup tables}
+
+\item{version}{character: Data version. Defaults to most recent version.}
 }
 \description{
 Get valid query parameter values
