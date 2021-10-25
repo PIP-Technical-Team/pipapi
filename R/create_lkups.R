@@ -156,11 +156,11 @@ create_lkups <- function(data_dir, versions) {
   # Create pip return columns
   pip_cols <-
     c('region_code', 'country_code', 'reporting_year',
-      'reporting_level',
-      'survey_acronym', 'survey_coverage', 'survey_year',
-      'welfare_type', 'survey_comparability', 'comparable_spell',
-      'poverty_line', 'headcount', 'poverty_gap', 'poverty_severity',
-      'mean', 'median', 'mld', 'gini', 'polarization', 'watts',
+      'reporting_level','survey_acronym', 'survey_coverage',
+      'survey_year', 'welfare_type', 'survey_comparability',
+      'comparable_spell', 'poverty_line',
+      'headcount', 'poverty_gap', 'poverty_severity', 'watts',
+      'mean', 'median', 'mld', 'gini', 'polarization',
       'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
       'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
       'survey_mean_lcu', 'survey_mean_ppp', # Do we need these?
