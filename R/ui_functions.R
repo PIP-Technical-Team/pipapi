@@ -157,7 +157,7 @@ ui_pc_regional <- function(povline = 1.9, pop_units = 1e6, lkup) {
 #' @return list
 #' @export
 ui_cp_key_indicators <- function(country = "AGO",
-                                 povline = NULL,
+                                 povline = 1.9,
                                  lkup) {
 
   if (country == "all") {
@@ -181,22 +181,11 @@ ui_cp_key_indicators <- function(country = "AGO",
 #' @inheritParams ui_cp_key_indicators
 #' @return list
 #' @keywords internal
-ui_cp_key_indicators_single <- function(country = "AGO",
-                                        povline = NULL,
+ui_cp_key_indicators_single <- function(country,
+                                        povline,
                                         lkup) {
-  if (is.null(povline)) {
-    poverty_lines <- lkup$pl_lkup$poverty_line
-    hc <- lapply(poverty_lines, function(pl) {
-      ui_cp_ki_headcount(country, pl, lkup)
-    })
-    hc <- data.table::rbindlist(hc)
-    # names(hc) <- poverty_lines
-  } else {
-    hc <- ui_cp_ki_headcount(country, povline, lkup)
-    # hc <- list(hc)
-    # names(hc) <- povline
-  }
 
+  hc <- ui_cp_ki_headcount(country, povline, lkup)
   dl <- lapply(lkup$cp$key_indicators, function(x) {
     x[country_code == country]
   })
@@ -233,12 +222,11 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
 #' @return list
 #' @export
 ui_cp_charts <- function(country = "AGO",
-                         povline = NULL,
+                         povline = 1.9,
                          pop_units = 1e6,
                          lkup) {
 
   if (country == "all") {
-    assertthat::assert_that(!is.null(povline), msg = "`povline` can't be NULL when `country` = 'all'.")
     country_codes <- unique(lkup$svy_lkup$country_code)
     pov_lkup <- pip("all", povline = povline, reporting_level = "national", lkup = lkup)
     dl <- lapply(country_codes, function(country)
@@ -255,7 +243,6 @@ ui_cp_charts <- function(country = "AGO",
   return(dl)
 }
 
-
 #' Country profile charts for a single country
 #'
 #' @inheritParams ui_cp_charts
@@ -266,30 +253,14 @@ ui_cp_charts_single <- function(country, povline,
                                 pop_units, lkup,
                                 pov_lkup = NULL) {
 
-  if (is.null(povline)) {
-    poverty_lines <- lkup$pl_lkup$poverty_line
-    dl <- lapply(poverty_lines, function(pl) {
-      ui_cp_poverty_charts(
-        country = country,
-        povline = pl,
-        pop_units = pop_units,
-        lkup = lkup,
-        pov_lkup = pov_lkup
-      )
-    })
-    # names(dl) <- poverty_lines
-  } else {
-    dl <- ui_cp_poverty_charts(
-      country = country,
-      povline = povline,
-      pop_units = pop_units,
-      lkup = lkup,
-      pov_lkup = pov_lkup
-    )
-    dl <- list(dl)
-    # names(dl) <- povline
-  }
-
+  # Create list with poverty charts data
+  dl <- ui_cp_poverty_charts(
+    country = country,
+    povline = povline,
+    pop_units = pop_units,
+    lkup = lkup,
+    pov_lkup = pov_lkup)
+  dl <- list(dl)
   dl <- list(pov_charts = dl)
 
   # Fetch pre-calculated data (filter selected country)
@@ -341,7 +312,7 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
 
   if (is.null(pov_lkup)) {
     res_pov_mrv <- pip(country = countries, povline = povline,
-        reporting_level = "national", lkup = lkup)
+                       reporting_level = "national", lkup = lkup)
   } else {
     res_pov_mrv <- pov_lkup[country_code %in% countries]
   }

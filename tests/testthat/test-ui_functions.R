@@ -166,7 +166,7 @@ test_that("ui_cp_ki_headcount() works as expected", {
 
 test_that("ui_cp_key_indicators() works as expected", {
 
-  # A single poverty line
+  # A single country
   dl <- ui_cp_key_indicators(country = "AGO", povline = 1.9, lkup = lkups)
   expect_length(dl, 1) # 1 country
   expect_length(dl[[1]], 7) # # 7 KI objects
@@ -180,25 +180,10 @@ test_that("ui_cp_key_indicators() works as expected", {
   )
   expect_identical(dl[[1]]$headcount$poverty_line, 1.9)
 
-  # All poverty lines
-  dl <- ui_cp_key_indicators(country = "AGO", lkup = lkups)
-  expect_length(dl, 1) # 1 country
-  expect_length(dl[[1]], 7) # # 7 KI objects
-  expect_equal(nrow(dl[[1]]$headcount), 10) # 10 poverty lines
-  expect_identical(
-    names(dl[[1]]),
-    c(
-      "headcount", "headcount_national", "mpm_headcount",
-      "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
-    )
-  )
-  expect_identical(nrow(dl[[1]]$headcount), length(lkups$pl_lkup$name))
-
-  # All countries and poverty lines
-  dl <- ui_cp_key_indicators(country = "all", lkup = lkups2)
+  # All countries
+  dl <- ui_cp_key_indicators(country = "all", povline = 1.9, lkup = lkups2)
   expect_length(dl, 2) # 2 countries
   expect_length(dl[[1]], 7) # # 7 KI objects
-  expect_equal(nrow(dl[[1]]$headcount), 10) # 10 poverty lines
   expect_identical(
     names(dl[[2]]),
     c(
@@ -206,7 +191,7 @@ test_that("ui_cp_key_indicators() works as expected", {
       "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
     )
   )
-  expect_identical(nrow(dl[[2]]$headcount), length(lkups2$pl_lkup$name))
+  expect_identical(dl[[2]]$headcount$poverty_line, 1.9)
 
 })
 
@@ -222,18 +207,6 @@ test_that("ui_cp_charts() works as expected", {
     "ineq_bar", "mpm", "sp"
   ))
   expect_identical(names(dl1[[1]]$pov_charts[[1]]),
-                   c("pov_trend", "pov_mrv"))
-
-  # All poverty lines
-  dl2 <- ui_cp_charts(country = "AGO", lkup = lkups)
-  expect_length(dl2, 1) # 1 country
-  expect_length(dl2[[1]], 5) # 5 chart objects (2 inside pov_charts)
-  expect_length(dl2[[1]]$pov_charts, 10) # 10 poverty lines
-  expect_identical(names(dl2[[1]]), c(
-    "pov_charts", "ineq_trend",
-    "ineq_bar", "mpm", "sp"
-  ))
-  expect_identical(names(dl2[[1]]$pov_charts[[5]]),
                    c("pov_trend", "pov_mrv"))
 
   # All countries
