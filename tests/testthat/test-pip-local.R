@@ -285,7 +285,7 @@ test_that("Regional aggregations are working", {
     lkup = lkups
   )
 
-  expect_equal(nrow(tmp), 8) # Should be changed if lkups are updated. Full set of regions is 8.
+  expect_equal(nrow(tmp), 8)
 })
 
 # Check pop_share

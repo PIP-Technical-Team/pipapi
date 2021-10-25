@@ -67,7 +67,7 @@ test_that("ui_pc_regional() works as expected", {
       "region_code", "reporting_year",
       "reporting_pop",  "poverty_line",
       "headcount", "poverty_gap",
-      "poverty_severity", "watts" ,
+      "poverty_severity", "watts",
       "pop_in_poverty", "mean"
     )
   )
