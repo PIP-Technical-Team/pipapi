@@ -68,7 +68,8 @@ test_that("ui_pc_regional() works as expected", {
       "reporting_pop",  "poverty_line",
       "headcount", "poverty_gap",
       "poverty_severity", "watts",
-      "pop_in_poverty", "mean"
+      "mean",
+      "pop_in_poverty"
     )
   )
   expect_identical(unique(res$region_code), c("SSA", "WLD"))
