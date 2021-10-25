@@ -156,7 +156,6 @@ function(req) {
 #* @param povline:[dbl] Poverty Line
 #* @param popshare:[dbl] Share of the population living below the poverty Line.
 #* @param fill_gaps:[bool] Fill gaps for years with no available surveys.
-#* @param aggregate:[bool] Whether to aggregate results or not.
 #* @param group_by:[chr] Triggers sub-groups aggregation.
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
@@ -261,7 +260,6 @@ function(req) {
 #* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
 #* @param fill_gaps:[bool] Fill gaps for years with no available surveys
-#* @param aggregate:[bool] Whether to aggregate results or not
 #* @param group_by:[chr] Triggers sub-groups aggregation
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
@@ -280,7 +278,6 @@ function(req) {
 #* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
 #* @param fill_gaps:[bool] Fill gaps for years with no available surveys
-#* @param aggregate:[bool] Whether to aggregate results or not
 #* @param group_by:[chr] Triggers sub-groups aggregation
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
