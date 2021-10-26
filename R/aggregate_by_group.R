@@ -43,7 +43,7 @@ aggregate_by_group <- function(df, group_lkup) {
   out <- rbind(rgn, wld, fill = TRUE)
 
   # Compute population living in poverty
-  out <- out[, pop_in_poverty := headcount * reporting_pop]
+  out <- out[, pop_in_poverty := round(headcount * reporting_pop, 0)]
 
   return(out)
 }
