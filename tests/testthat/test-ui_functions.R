@@ -22,6 +22,7 @@ test_that("ui_hp_stacked() works as expected", {
     )
   )
   expect_identical(unique(res$region_code), c("SSA", "WLD"))
+  expect_true(all(res$pop_in_poverty == floor(res$pop_in_poverty))) # No decimals for population numbers
 })
 
 test_that("ui_hp_countries() works as expected", {

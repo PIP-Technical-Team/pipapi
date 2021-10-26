@@ -150,7 +150,7 @@ test_that("Poverty calculator chart endpoint is working for regional aggregates"
     "reporting_pop", "poverty_line",
     "headcount", "poverty_gap",
     "poverty_severity", "watts",
-    "pop_in_poverty"
+    "mean", "pop_in_poverty"
   ))
 })
 
@@ -211,14 +211,14 @@ test_that("Poverty calculator download endpoint is working for regional aggregat
   )
 
   # Check response
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  tmp_resp <- httr::content(r, encoding = "UTF-8", show_col_types = FALSE)
   expect_equal(class(tmp_resp), c("spec_tbl_df", "tbl_df", "tbl", "data.frame"))
   expect_equal(names(tmp_resp), c(
     "region_code", "reporting_year",
     "reporting_pop", "poverty_line",
     "headcount", "poverty_gap",
     "poverty_severity", "watts",
-    "pop_in_poverty"
+    "mean", "pop_in_poverty"
   ))
 })
 

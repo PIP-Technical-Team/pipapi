@@ -122,9 +122,9 @@ create_lkups <- function(data_dir, versions) {
     cache_ids <- unique(tmp_metadata[["cache_id"]])
     reporting_level = unique(tmp_metadata[["reporting_level"]])
     paths <- unique(tmp_metadata$path)
-    ctry_years <- unique(tmp_metadata[, .(
-      country_code, reporting_year,
-      reporting_level, interpolation_id
+    ctry_years <- unique(tmp_metadata[, c(
+      "country_code", "reporting_year",
+      "reporting_level", "interpolation_id"
     )])
 
     interpolation_list[[i]] <- list(

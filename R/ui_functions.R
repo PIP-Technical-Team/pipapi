@@ -20,9 +20,9 @@ ui_hp_stacked <- function(povline = 1.9,
     reporting_level = "national"
   )
 
-  out <- out[, .(
-    region_code, reporting_year,
-    poverty_line, pop_in_poverty
+  out <- out[, c(
+    "region_code", "reporting_year",
+    "poverty_line", "pop_in_poverty"
   )]
   return(out)
 }
@@ -55,9 +55,9 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
   out$reporting_pop <- out$reporting_pop / pop_units
 
-  out <- out[, .(
-    region_code, country_code, reporting_year,
-    poverty_line, reporting_pop, pop_in_poverty
+  out <- out[, c(
+    "region_code", "country_code", "reporting_year",
+    "poverty_line", "reporting_pop", "pop_in_poverty"
   )]
 
   return(out)
@@ -101,25 +101,25 @@ ui_pc_charts <- function(country = c("AGO"),
   if (group_by != "none") {
     return(out)
   } else if (fill_gaps == FALSE) {
-    out <- out[, .(
-      country_code, reporting_year, welfare_type,
-      reporting_level, median, gini, polarization,
-      mld, decile1, decile2, decile3, decile4, decile5,
-      decile6, decile7, decile8, decile9, decile10,
-      region_code, survey_coverage, survey_comparability,
-      comparable_spell, survey_year,
-      survey_mean_lcu, survey_mean_ppp, # Do we need these here?
-      reporting_pop, ppp, cpi, distribution_type,
-      is_interpolated, poverty_line, mean, headcount,
-      poverty_gap, poverty_severity, watts, pop_in_poverty
+    out <- out[, c(
+      'country_code', 'reporting_year', 'welfare_type',
+      'reporting_level', 'median', 'gini', 'polarization',
+      'mld', 'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
+      'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
+      'region_code', 'survey_coverage', 'survey_comparability',
+      'comparable_spell', 'survey_year',
+      'survey_mean_lcu', 'survey_mean_ppp', # Do we need these here?
+      'reporting_pop', 'ppp', 'cpi', 'distribution_type',
+      'is_interpolated', 'poverty_line', 'mean', 'headcount',
+      'poverty_gap', 'poverty_severity', 'watts', 'pop_in_poverty'
     )]
     return(out)
   } else {
-    out <- out[, .(
-      country_code, reporting_year, poverty_line, mean,
-      headcount, poverty_gap, poverty_severity, watts,
-      region_code, reporting_pop, is_interpolated,
-      pop_in_poverty
+    out <- out[, c(
+      "country_code", "reporting_year", "poverty_line", "mean",
+      "headcount", "poverty_gap", "poverty_severity", "watts",
+      "region_code", "reporting_pop", "is_interpolated",
+      "pop_in_poverty"
     )]
     return(out)
   }
