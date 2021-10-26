@@ -17,7 +17,7 @@ aggregate_by_group <- function(df, group_lkup) {
   )]
 
   cols <- c("headcount", "poverty_gap", "poverty_severity", "watts", "mean")
-  group_lkup <- group_lkup[, .(region_code, reporting_year, reporting_pop)]
+  group_lkup <- group_lkup[, c("region_code", "reporting_year", "reporting_pop")]
 
   # Compute stats weighted average by groups
   rgn <- df[, lapply(.SD, stats::weighted.mean, w = reporting_pop, na.rm = TRUE),
