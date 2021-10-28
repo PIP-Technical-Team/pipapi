@@ -18,6 +18,4 @@ start_api <- function(api_version = "v1",
   api <- source(api_path)
   plumber::pr_run(api$value, host = host, port = port)
 
-  # plumber::plumb_api('pipapi', name = api_version) %>%
-  #    plumber::pr_run(host = host, port = port)
 }
