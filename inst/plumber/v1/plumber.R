@@ -1,4 +1,5 @@
 library(plumber)
+library(rapidoc)
 library(logger)
 library(glue)
 
