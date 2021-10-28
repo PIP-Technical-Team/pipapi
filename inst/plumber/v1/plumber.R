@@ -3,7 +3,8 @@ library(logger)
 library(glue)
 
 endpoints_path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
-convert_empty <- pipapi:::convert_empty
+api_spec_path <-  system.file("plumber/v1/openapi.yaml", package = "pipapi")
+# convert_empty <- pipapi:::convert_empty
 
 plumber::pr(endpoints_path) %>%
   # pre-route log
@@ -29,7 +30,10 @@ plumber::pr(endpoints_path) %>%
   plumber::pr_hook("exit", function() {
     # log_info('Bye bye: {proc.time()[["elapsed"]]}')
   }) %>%
+  # Set API spec
   plumber::pr_set_api_spec(api = function(spec) {
     spec$info$version <- utils::packageVersion("pipapi") %>% as.character()
     spec
-  })
+  }) %>%
+  plumber::pr_set_api_spec(
+    yaml::read_yaml(api_spec_path))
