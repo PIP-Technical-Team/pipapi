@@ -35,9 +35,14 @@ aggregate_by_group <- function(df, group_lkup) {
     by = .(reporting_year, poverty_line),
     .SDcols = cols
   ]
+  # Compute yearly population WLD totals
+  tmp <- rgn
+  tmp <- tmp[, .(reporting_pop = sum(reporting_pop)),by = .(reporting_year)]
+  tmp[["region_code"]] <- "WLD"
 
-  wld$reporting_pop <- sum(rgn$reporting_pop)
   wld[["region_code"]] <- "WLD"
+  wld <- wld[tmp, on = .(region_code = region_code,
+                         reporting_year = reporting_year)]
 
   # Combine
   out <- rbind(rgn, wld, fill = TRUE)
