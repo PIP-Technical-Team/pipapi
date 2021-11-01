@@ -31,13 +31,8 @@ aggregate_by_group <- function(df, group_lkup) {
   ]
 
   # Compute world aggregates
-  wld <- rgn[, lapply(.SD, stats::weighted.mean, w = reporting_pop, na.rm = TRUE),
-    by = .(reporting_year, poverty_line),
-    .SDcols = cols
-  ]
-
-  wld$reporting_pop <- sum(rgn$reporting_pop)
-  wld[["region_code"]] <- "WLD"
+  wld <- compute_world_aggregates(rgn = rgn,
+                                  cols = cols)
 
   # Combine
   out <- rbind(rgn, wld, fill = TRUE)
@@ -46,4 +41,26 @@ aggregate_by_group <- function(df, group_lkup) {
   out <- out[, pop_in_poverty := round(headcount * reporting_pop, 0)]
 
   return(out)
+}
+
+
+compute_world_aggregates <- function(rgn, cols) {
+  # Compute stats
+  wld <- rgn[, lapply(.SD,
+                      stats::weighted.mean,
+                      w = reporting_pop,
+                      na.rm = TRUE),
+             by = .(reporting_year, poverty_line),
+             .SDcols = cols
+  ]
+  # Compute yearly population WLD totals
+  tmp <- rgn[, .(reporting_pop = sum(reporting_pop)),
+             by = .(reporting_year)]
+
+
+  wld <- wld[tmp, on = .(reporting_year = reporting_year)]
+  wld[["region_code"]] <- "WLD"
+
+  return(wld)
+
 }
