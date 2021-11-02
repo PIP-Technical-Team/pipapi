@@ -85,6 +85,47 @@ test_that("ui_cp_poverty_charts() works as expected", {
     pov_lkup = NULL
   )
   expect_identical(names(dl), c("pov_trend", "pov_mrv"))
+
+  # Test that ui_cp_poverty_charts() works correctly for
+  # countries/country-years with only urban/rural
+  # reporting_level
+  dl <- ui_cp_poverty_charts(
+    country = "ARG",
+    povline = 1.9,
+    pop_units = 1e6,
+    lkup = lkups,
+    pov_lkup = NULL
+  )
+  expect_equal(nrow(dl$pov_trend),
+               nrow(lkups$svy_lkup[country_code == "ARG"]))
+  expect_equal(nrow(dl$pov_mrv), 11)
+
+  dl <- ui_cp_poverty_charts(
+    country = "SUR",
+    povline = 1.9,
+    pop_units = 1e6,
+    lkup = lkups,
+    pov_lkup = NULL
+  )
+  expect_equal(nrow(dl$pov_trend),
+               nrow(lkups$svy_lkup[country_code == "SUR"]))
+  expect_equal(nrow(dl$pov_mrv), 3)
+
+  # Test that ui_cp_poverty_charts() works correctly for
+  # aggregated distributions (only national rows are returned)
+  dl <- ui_cp_poverty_charts(
+    country = "CHN",
+    povline = 1.9,
+    pop_units = 1e6,
+    lkup = lkups,
+    pov_lkup = NULL
+  )
+  expect_equal(nrow(dl$pov_trend),
+               nrow(lkups$dist_stats[country_code == "CHN" &
+                          reporting_level == "national"]))
+  skip("These tests can be activated if we implement pipapi#149")
+  expect_equal(unique(dl$pov_trend$reporting_level), "national")
+  expect_equal(unique(dl$pov_mrv$reporting_level), "national")
 })
 
 test_that("cp_pov_mrv_select_values() works as expected", {
@@ -164,6 +205,24 @@ test_that("ui_cp_ki_headcount() works as expected", {
     "country_code", "reporting_year",
     "poverty_line", "headcount"
   ))
+
+  # Test that ui_cp_ki_headcount() works correctly for
+  # countries/country-years with only urban/rural
+  # reporting_level
+  df <- ui_cp_ki_headcount(country = "ARG", povline = 1.9, lkup = lkups)
+  expect_false(is.na(df$headcount))
+  expect_equal(df$reporting_year,
+    max(lkups$svy_lkup[country_code == "ARG"]$reporting_year))
+
+  df <- ui_cp_ki_headcount(country = "SUR", povline = 1.9, lkup = lkups)
+  expect_false(is.na(df$headcount))
+  expect_equal(df$reporting_year,
+               max(lkups$svy_lkup[country_code == "SUR"]$reporting_year))
+
+  # Test that ui_cp_ki_headcount() works correctly for
+  # aggregated distributions (only national rows are returned)
+  df <- ui_cp_ki_headcount(country = "CHN", povline = 1.9, lkup = lkups)
+  expect_false(is.na(df$headcount))
 })
 
 test_that("ui_cp_key_indicators() works as expected", {
@@ -211,9 +270,9 @@ test_that("ui_cp_charts() works as expected", {
   expect_identical(names(dl1[[1]]$pov_charts[[1]]),
                    c("pov_trend", "pov_mrv"))
 
-  # All countries
+    # All countries
   dl3 <- ui_cp_charts(country = "all", povline = 1.9, lkup = lkups)
-  expect_length(dl3, 168) # 168 countries
+  expect_length(dl3, length(lkups$query_controls$country$values) - 1) # All countries
   expect_length(dl3[[2]], 5) # 5 chart objects (2 inside pov_charts)
   expect_length(dl3[[2]]$pov_charts, 1) # 1 poverty line
   expect_identical(names(dl3[[2]]), c(
