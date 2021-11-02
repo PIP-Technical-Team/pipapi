@@ -213,7 +213,7 @@ test_that("ui_cp_charts() works as expected", {
 
   # All countries
   dl3 <- ui_cp_charts(country = "all", povline = 1.9, lkup = lkups)
-  expect_length(dl3, 168) # 168 countries
+  expect_length(dl3, length(lkups$query_controls$country$values) - 1) # All countries
   expect_length(dl3[[2]], 5) # 5 chart objects (2 inside pov_charts)
   expect_length(dl3[[2]]$pov_charts, 1) # 1 poverty line
   expect_identical(names(dl3[[2]]), c(
