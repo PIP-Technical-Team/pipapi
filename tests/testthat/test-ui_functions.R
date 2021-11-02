@@ -205,6 +205,24 @@ test_that("ui_cp_ki_headcount() works as expected", {
     "country_code", "reporting_year",
     "poverty_line", "headcount"
   ))
+
+  # Test that ui_cp_ki_headcount() works correctly for
+  # countries/country-years with only urban/rural
+  # reporting_level
+  df <- ui_cp_ki_headcount(country = "ARG", povline = 1.9, lkup = lkups)
+  expect_false(is.na(df$headcount))
+  expect_equal(df$reporting_year,
+    max(lkups$svy_lkup[country_code == "ARG"]$reporting_year))
+
+  df <- ui_cp_ki_headcount(country = "SUR", povline = 1.9, lkup = lkups)
+  expect_false(is.na(df$headcount))
+  expect_equal(df$reporting_year,
+               max(lkups$svy_lkup[country_code == "SUR"]$reporting_year))
+
+  # Test that ui_cp_ki_headcount() works correctly for
+  # aggregated distributions (only national rows are returned)
+  df <- ui_cp_ki_headcount(country = "CHN", povline = 1.9, lkup = lkups)
+  expect_false(is.na(df$headcount))
 })
 
 test_that("ui_cp_key_indicators() works as expected", {

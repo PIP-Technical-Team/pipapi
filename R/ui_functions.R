@@ -203,8 +203,18 @@ ui_cp_key_indicators_single <- function(country,
 #' @return data.table
 #' @noRd
 ui_cp_ki_headcount <- function(country, povline, lkup) {
-  res <- pip(country, year = "mrv", reporting_level = "national",
+  res <- pip(country, year = "mrv", reporting_level = "all",
              povline = povline, lkup = lkup)
+  ### TEMP FIX for reporting level
+  # We can't use reporting_level == "national" in pip() since this excludes
+  # rows where the reporting level is urban/rural, e.g ARG, SUR.
+  # But we still need to sub-select only national rows for e.g CHN.
+  res[, N := .N, by = list(country_code, reporting_year)]
+  res <- res[, subset_cp_rows(.SD),
+                                 by = .(country_code, reporting_year)]
+  res$N <- NULL
+
+  ### TEMP FIX END
   out <- data.table::data.table(
     country_code = country, reporting_year = res$reporting_year,
     poverty_line = povline, headcount = res$headcount
@@ -303,7 +313,7 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   # rows where the reporting level is urban/rural, e.g ARG, SUR.
   # But we still need to sub-select only national rows for e.g CHN.
   res_pov_trend[, N := .N, by = list(country_code, reporting_year)]
-  res_pov_trend <- res_pov_trend[, subset_cp_pov_rows(.SD),
+  res_pov_trend <- res_pov_trend[, subset_cp_rows(.SD),
                                  by = .(country_code, reporting_year)]
   res_pov_trend$N <- NULL
   ### TEMP FIX END
@@ -336,7 +346,7 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   # rows where the reporting level is urban/rural, e.g ARG, SUR.
   # But we still need to sub-select only national rows for e.g CHN.
   res_pov_mrv[, N := .N, by = list(country_code, reporting_year)]
-  res_pov_mrv <- res_pov_mrv[, subset_cp_pov_rows(.SD),
+  res_pov_mrv <- res_pov_mrv[, subset_cp_rows(.SD),
                                  by = .(country_code, reporting_year)]
   res_pov_mrv$N <- NULL
   ### TEMP FIX END
@@ -367,10 +377,10 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   return(out)
 }
 
-#' subset_cp_pov_rows
+#' subset_cp_rows
 #' TEMP function to select only national rows for
 #' cases like CHN, IND etc.
-subset_cp_pov_rows <- function(x) {
+subset_cp_rows <- function(x) {
   if (any(x$N == 3)) {
     x <- x[reporting_level == "national"]
   }
