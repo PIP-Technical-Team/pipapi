@@ -228,7 +228,9 @@ ui_cp_charts <- function(country = "AGO",
 
   if (country == "all") {
     country_codes <- unique(lkup$svy_lkup$country_code)
-    pov_lkup <- pip("all", povline = povline, reporting_level = "national", lkup = lkup)
+    pov_lkup <- pip("all", povline = povline,
+                    reporting_level = "all",
+                    lkup = lkup)
     dl <- lapply(country_codes, function(country)
       ui_cp_charts_single(country = country, povline = povline,
                           pop_units = pop_units, lkup = lkup,
@@ -289,13 +291,23 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   if (is.null(pov_lkup)) {
     res_pov_trend <-
       pip(country = country, povline = povline,
-          reporting_level = "national", lkup = lkup)
+          reporting_level = "all", lkup = lkup)
   } else {
     res_pov_trend <- pov_lkup[country_code == country]
   }
   if (nrow(res_pov_trend) == 0) {
     return(pipapi::empty_response_cp_poverty)
   }
+  ### TEMP FIX for reporting level
+  # We can't use reporting_level == "national" in pip() since this excludes
+  # rows where the reporting level is urban/rural, e.g ARG, SUR.
+  # But we still need to sub-select only national rows for e.g CHN.
+  res_pov_trend[, N := .N, by = list(country_code, reporting_year)]
+  res_pov_trend <- res_pov_trend[, subset_cp_pov_rows(.SD),
+                                 by = .(country_code, reporting_year)]
+  res_pov_trend$N <- NULL
+  ### TEMP FIX END
+
   res_pov_trend$pop_in_poverty <-
     res_pov_trend$reporting_pop * res_pov_trend$headcount / pop_units
   res_pov_trend <-
@@ -315,10 +327,20 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
 
   if (is.null(pov_lkup)) {
     res_pov_mrv <- pip(country = countries, povline = povline,
-                       reporting_level = "national", lkup = lkup)
+                       reporting_level = "all", lkup = lkup)
   } else {
     res_pov_mrv <- pov_lkup[country_code %in% countries]
   }
+  ### TEMP FIX for reporting level
+  # We can't use reporting_level == "national" in pip() since this excludes
+  # rows where the reporting level is urban/rural, e.g ARG, SUR.
+  # But we still need to sub-select only national rows for e.g CHN.
+  res_pov_mrv[, N := .N, by = list(country_code, reporting_year)]
+  res_pov_mrv <- res_pov_mrv[, subset_cp_pov_rows(.SD),
+                                 by = .(country_code, reporting_year)]
+  res_pov_mrv$N <- NULL
+  ### TEMP FIX END
+
 
   res_pov_mrv <-
     res_pov_mrv[, .SD[which.max(reporting_year)],
@@ -343,6 +365,16 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   )
 
   return(out)
+}
+
+#' subset_cp_pov_rows
+#' TEMP function to select only national rows for
+#' cases like CHN, IND etc.
+subset_cp_pov_rows <- function(x) {
+  if (any(x$N == 3)) {
+    x <- x[reporting_level == "national"]
+  }
+  return(x)
 }
 
 #' Select countries to display for CP Poverty MRV Chart
