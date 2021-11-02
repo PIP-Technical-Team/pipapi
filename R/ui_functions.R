@@ -264,7 +264,7 @@ ui_cp_charts_single <- function(country, povline,
   dl <- list(pov_charts = dl)
 
   # Fetch pre-calculated data (filter selected country)
-  dl2 <- lapply(lkup$cp$charts, function(x) {
+  dl2 <- lapply(lkup$cp_lkups$charts, function(x) {
     x[country_code == country]
   })
 
@@ -292,6 +292,9 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
           reporting_level = "national", lkup = lkup)
   } else {
     res_pov_trend <- pov_lkup[country_code == country]
+  }
+  if (nrow(res_pov_trend) == 0) {
+    return(pipapi::empty_response_cp_poverty)
   }
   res_pov_trend$pop_in_poverty <-
     res_pov_trend$reporting_pop * res_pov_trend$headcount / pop_units
