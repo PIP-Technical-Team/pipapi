@@ -10,7 +10,6 @@ pip(
   povline = 1.9,
   popshare = NULL,
   fill_gaps = FALSE,
-  aggregate = FALSE,
   group_by = c("none", "wb"),
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
@@ -31,8 +30,6 @@ poverty line}
 
 \item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
 values for missing years}
-
-\item{aggregate}{logical: If set to TRUE, will return aggregate results}
 
 \item{group_by}{character: Will return aggregated values for predefined
 sub-groups}

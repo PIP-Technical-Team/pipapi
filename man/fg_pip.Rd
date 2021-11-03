@@ -9,7 +9,6 @@ fg_pip(
   year,
   povline,
   popshare,
-  aggregate,
   welfare_type,
   reporting_level,
   ppp,
@@ -26,8 +25,6 @@ fg_pip(
 
 \item{popshare}{numeric: Proportion of the population living below the
 poverty line}
-
-\item{aggregate}{logical: If set to TRUE, will return aggregate results}
 
 \item{welfare_type}{character: Welfare type}
 
