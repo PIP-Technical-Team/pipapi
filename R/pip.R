@@ -67,10 +67,14 @@ pip <- function(country = "all",
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
 
+
+  # **** TO BE REMOVED **** REMOVAL STARTS HERE
+  # Once `pip-grp` has been integrated in ingestion pipeline
   # Forces fill_gaps to TRUE when using group_by option
   if (group_by != "none") {
     fill_gaps <- TRUE
   }
+  # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   if (fill_gaps == TRUE) {
     # Compute imputed stats
@@ -115,6 +119,8 @@ pip <- function(country = "all",
     out <- add_agg_stats(out)
   }
 
+  # **** TO BE REMOVED **** REMOVAL STARTS HERE
+  # Once `pip-grp` has been integrated in ingestion pipeline
   # Handles grouped aggregations
   if (group_by != "none") {
     # Handle potential (insignificant) difference in poverty_line values that
@@ -125,9 +131,9 @@ pip <- function(country = "all",
       df = out,
       group_lkup = lkup[["pop_region"]]
     )
-    # cols <- c(cols, 'pop_in_poverty')
     return(out)
   }
+  # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   # Add pre-computed distributional statistics
   out <- add_dist_stats(
