@@ -161,7 +161,7 @@ ui_cp_key_indicators <- function(country = "AGO",
                                  lkup) {
 
   # Select surveys to use for CP page
-  lkup$svy_lkup <- lkup$svy_lkup[display_ctry_profile == 1]
+  lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
   if (country == "all") {
     country_codes <- unique(lkup$svy_lkup$country_code)
@@ -208,11 +208,11 @@ ui_cp_key_indicators_single <- function(country,
 ui_cp_ki_headcount <- function(country, povline, lkup) {
 
   # Fetch most recent year (for CP-display)
-  res <- rg_pip(country = country, year = "mrv",
-                povline = povline, popshare = NULL,
-                aggregate = FALSE, welfare_type = "all",
-                reporting_level = "all", ppp = NULL,
-                lkup = lkup, debug = FALSE)
+  res <- pip(country = country, year = "mrv",
+             povline = povline, popshare = NULL,
+             aggregate = FALSE, welfare_type = "all",
+             reporting_level = "all", ppp = NULL,
+             lkup = lkup, debug = FALSE)
 
   ### TEMP FIX for reporting level
   # We can't use reporting_level == "national" in pip() since this excludes
@@ -246,15 +246,15 @@ ui_cp_charts <- function(country = "AGO",
                          lkup) {
 
   # Select surveys to use for CP page
-  lkup$svy_lkup <- lkup$svy_lkup[display_ctry_profile == 1]
+  lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
   if (country == "all") {
     country_codes <- unique(lkup$svy_lkup$country_code)
-    pov_lkup <- rg_pip(country = "all", year = "all",
-                       povline = povline, popshare = NULL,
-                       aggregate = FALSE, welfare_type = "all",
-                       reporting_level = "all", ppp = NULL,
-                       lkup = lkup, debug = FALSE)
+    pov_lkup <- pip(country = "all", year = "all",
+                    povline = povline, popshare = NULL,
+                    aggregate = FALSE, welfare_type = "all",
+                    reporting_level = "all", ppp = NULL,
+                    lkup = lkup, debug = FALSE)
     dl <- lapply(country_codes, function(country) {
       ui_cp_charts_single(country = country, povline = povline,
                           pop_units = pop_units, lkup = lkup,
@@ -315,11 +315,11 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   # Fetch data for poverty trend chart
   if (is.null(pov_lkup)) {
     res_pov_trend <-
-      rg_pip(country = country, year = "all",
-             povline = povline, popshare = NULL,
-             aggregate = FALSE, welfare_type = "all",
-             reporting_level = "all", ppp = NULL,
-             lkup = lkup, debug = FALSE)
+      pip(country = country, year = "all",
+          povline = povline, popshare = NULL,
+          aggregate = FALSE, welfare_type = "all",
+          reporting_level = "all", ppp = NULL,
+          lkup = lkup, debug = FALSE)
   } else {
     res_pov_trend <- pov_lkup[country_code == country]
   }
@@ -354,11 +354,11 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
     unique()
 
   if (is.null(pov_lkup)) {
-    res_pov_mrv <- rg_pip(country = countries, year = "all",
-                          povline = povline, popshare = NULL,
-                          aggregate = FALSE, welfare_type = "all",
-                          reporting_level = "all", ppp = NULL,
-                          lkup = lkup, debug = FALSE)
+    res_pov_mrv <- pip(country = countries, year = "all",
+                       povline = povline, popshare = NULL,
+                       aggregate = FALSE, welfare_type = "all",
+                       reporting_level = "all", ppp = NULL,
+                       lkup = lkup, debug = FALSE)
   } else {
     res_pov_mrv <- pov_lkup[country_code %in% countries]
   }

@@ -12,7 +12,7 @@ cols <- c("country_code", "surveyid_year", "survey_acronym",
 
 # Subset PFW columns
 pfw <- pfw[, c( cols, "show_portal")]
-names(pfw)[ncol(pfw)] <- "display_ctry_profile"
+names(pfw)[ncol(pfw)] <- "display_cp"
 
 # Merge datasets
 prod_syv <- merge(prod_syv, pfw, by = cols, all.x = TRUE)
