@@ -76,7 +76,7 @@ pip <- function(country = "all",
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
-  if (fill_gaps == TRUE) {
+  if (fill_gaps) {
     # Compute imputed stats
     out <- fg_pip(
       country = country,
@@ -140,6 +140,10 @@ pip <- function(country = "all",
     df = out,
     dist_stats = lkup[["dist_stats"]]
   )
+  if (fill_gaps) {
+    vars_to_collapse_char <- c("cache_id", "welfare_type")
+    out[, vars_to_collapse_char] <- NA_character_
+  }
 
   # Handle survey coverage
   if (reporting_level != "all") {

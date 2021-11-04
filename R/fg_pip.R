@@ -116,9 +116,11 @@ fg_pip <- function(country,
                              "survey_acronym",
                              "survey_coverage",
                              "comparable_spell",
-                             # "welfare_type",
+                             #"welfare_type",
                              "gd_type",
                              "interpolation_id",
+                             "estimation_type",
+                             "distribution_type",
                              "path")
 
   out[, vars_to_collapse_char] <- NA_character_
