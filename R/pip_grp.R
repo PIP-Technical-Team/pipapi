@@ -22,10 +22,11 @@
 #'
 #' # A single country and year
 #' pip_grp(country = "all",
-#'      year = 2000,
-#'     povline = 1.9,
-#'     group_by = "wb-regions",
-#'     lkup = lkups)
+#'         year = 2000,
+#'         povline = 1.9,
+#'         group_by = "wb",
+#'         lkup = lkups)
+#' }
 #'
 pip_grp <- function(country = "all",
                     year = "all",

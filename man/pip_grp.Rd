@@ -44,3 +44,17 @@ data.table
 \description{
 Compute various aggregations of PIP statistics
 }
+\examples{
+\dontrun{
+# Create lkups
+lkups <- create_lkups("<data-folder>")
+
+# A single country and year
+pip_grp(country = "all",
+        year = 2000,
+        povline = 1.9,
+        group_by = "wb",
+        lkup = lkups)
+}
+
+}
