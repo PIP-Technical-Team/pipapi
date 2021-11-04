@@ -15,7 +15,6 @@ ui_hp_stacked <- function(povline = 1.9,
     povline = povline,
     lkup = lkup,
     fill_gaps = TRUE,
-    aggregate = TRUE,
     group_by = "wb",
     reporting_level = "national"
   )
@@ -46,7 +45,6 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
     povline = povline,
     lkup = lkup,
     fill_gaps = FALSE,
-    aggregate = FALSE,
     group_by = NULL,
     reporting_level = "national"
   )
@@ -75,7 +73,6 @@ ui_pc_charts <- function(country = c("AGO"),
                          year = "all",
                          povline = 1.9,
                          fill_gaps = FALSE,
-                         aggregate = FALSE,
                          group_by = c("none", "wb"),
                          welfare_type = c("all", "consumption", "income"),
                          reporting_level = c("all", "national", "rural", "urban"),
@@ -88,10 +85,9 @@ ui_pc_charts <- function(country = c("AGO"),
     year = year,
     povline = povline,
     fill_gaps = fill_gaps,
-    aggregate = aggregate,
     group_by = group_by,
     reporting_level = reporting_level,
-    lkup = lkup,
+    lkup = lkup
   )
 
   # Add pop_in_poverty and scale according to pop_units
@@ -210,10 +206,10 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
   # Fetch most recent year (for CP-display)
   res <- pip(country = country, year = "mrv",
              povline = povline, popshare = NULL,
-             aggregate = FALSE, welfare_type = "all",
+             welfare_type = "all",
              reporting_level = "all", ppp = NULL,
              lkup = lkup, debug = FALSE)
-
+  
   ### TEMP FIX for reporting level
   # We can't use reporting_level == "national" in pip() since this excludes
   # rows where the reporting level is urban/rural, e.g ARG, SUR.
@@ -252,7 +248,7 @@ ui_cp_charts <- function(country = "AGO",
     country_codes <- unique(lkup$svy_lkup$country_code)
     pov_lkup <- pip(country = "all", year = "all",
                     povline = povline, popshare = NULL,
-                    aggregate = FALSE, welfare_type = "all",
+                    welfare_type = "all",
                     reporting_level = "all", ppp = NULL,
                     lkup = lkup, debug = FALSE)
     dl <- lapply(country_codes, function(country) {
@@ -262,8 +258,10 @@ ui_cp_charts <- function(country = "AGO",
     })
     names(dl) <- country_codes
   } else {
-    dl <- ui_cp_charts_single(country = country, povline = povline,
-                              pop_units = pop_units, lkup = lkup)
+    dl <- ui_cp_charts_single(country = country,
+                              povline = povline,
+                              pop_units = pop_units,
+                              lkup = lkup)
     dl <- list(dl)
     names(dl) <- country
   }
@@ -317,7 +315,7 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
     res_pov_trend <-
       pip(country = country, year = "all",
           povline = povline, popshare = NULL,
-          aggregate = FALSE, welfare_type = "all",
+          welfare_type = "all",
           reporting_level = "all", ppp = NULL,
           lkup = lkup, debug = FALSE)
   } else {
@@ -356,7 +354,7 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   if (is.null(pov_lkup)) {
     res_pov_mrv <- pip(country = countries, year = "all",
                        povline = povline, popshare = NULL,
-                       aggregate = FALSE, welfare_type = "all",
+                       welfare_type = "all",
                        reporting_level = "all", ppp = NULL,
                        lkup = lkup, debug = FALSE)
   } else {
@@ -401,6 +399,7 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
 #' subset_cp_rows
 #' TEMP function to select only national rows for
 #' cases like CHN, IND etc.
+#' @noRd                 
 subset_cp_rows <- function(x) {
   if (any(x$N == 3)) {
     x <- x[reporting_level == "national"]
