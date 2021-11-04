@@ -176,6 +176,31 @@ function(req) {
   out
 }
 
+#* Return aggregated poverty and inequality statistics
+#* @get /api/v1/pip-grp
+#* @param country:[chr] Country ISO3 code
+#* @param year:[chr] Year
+#* @param povline:[dbl] Poverty Line
+#* @param popshare:[dbl] Share of the population living below the poverty Line.
+#* @param group_by:[chr] Select type of aggregation (simple weighted average or
+#* by pre-defined subgroups)
+#* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* for all available versions
+#* @serializer switch
+function(req) {
+  # Process request
+  # browser()
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[params$version]]
+  params$format <- NULL
+  params$version <- NULL
+  out <- do.call(pipapi::pip_grp, params)
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
+}
+
 #* Return auxiliary data table
 #* @get /api/v1/aux
 #* @param table:[chr] Auxiliary data table to be returned

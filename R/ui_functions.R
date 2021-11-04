@@ -15,7 +15,6 @@ ui_hp_stacked <- function(povline = 1.9,
     povline = povline,
     lkup = lkup,
     fill_gaps = TRUE,
-    aggregate = TRUE,
     group_by = "wb",
     reporting_level = "national"
   )
@@ -46,7 +45,6 @@ ui_hp_countries <- function(country = c("AGO", "CIV"),
     povline = povline,
     lkup = lkup,
     fill_gaps = FALSE,
-    aggregate = FALSE,
     group_by = NULL,
     reporting_level = "national"
   )
@@ -75,7 +73,6 @@ ui_pc_charts <- function(country = c("AGO"),
                          year = "all",
                          povline = 1.9,
                          fill_gaps = FALSE,
-                         aggregate = FALSE,
                          group_by = c("none", "wb"),
                          welfare_type = c("all", "consumption", "income"),
                          reporting_level = c("all", "national", "rural", "urban"),
@@ -88,7 +85,6 @@ ui_pc_charts <- function(country = c("AGO"),
     year = year,
     povline = povline,
     fill_gaps = fill_gaps,
-    aggregate = aggregate,
     group_by = group_by,
     reporting_level = reporting_level,
     lkup = lkup,
@@ -203,8 +199,11 @@ ui_cp_key_indicators_single <- function(country,
 #' @return data.table
 #' @noRd
 ui_cp_ki_headcount <- function(country, povline, lkup) {
-  res <- pip(country, year = "mrv", reporting_level = "all",
-             povline = povline, lkup = lkup)
+  res <- pip(country,
+             year = "mrv",
+             reporting_level = "all",
+             povline = povline,
+             lkup = lkup)
   ### TEMP FIX for reporting level
   # We can't use reporting_level == "national" in pip() since this excludes
   # rows where the reporting level is urban/rural, e.g ARG, SUR.
@@ -242,13 +241,17 @@ ui_cp_charts <- function(country = "AGO",
                     reporting_level = "all",
                     lkup = lkup)
     dl <- lapply(country_codes, function(country)
-      ui_cp_charts_single(country = country, povline = povline,
-                          pop_units = pop_units, lkup = lkup,
+      ui_cp_charts_single(country = country,
+                          povline = povline,
+                          pop_units = pop_units,
+                          lkup = lkup,
                           pov_lkup = pov_lkup))
     names(dl) <- country_codes
   } else {
-    dl <- ui_cp_charts_single(country = country, povline = povline,
-                              pop_units = pop_units, lkup = lkup)
+    dl <- ui_cp_charts_single(country = country,
+                              povline = povline,
+                              pop_units = pop_units,
+                              lkup = lkup)
     dl <- list(dl)
     names(dl) <- country
   }
