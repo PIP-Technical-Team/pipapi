@@ -9,7 +9,6 @@
 #'   poverty line
 #' @param fill_gaps logical: If set to TRUE, will interpolate / extrapolate
 #'   values for missing years
-#' @param aggregate logical: If set to TRUE, will return aggregate results
 #' @param group_by character: Will return aggregated values for predefined
 #'   sub-groups
 #' @param welfare_type character: Welfare type
@@ -57,7 +56,6 @@ pip <- function(country = "all",
                 povline = 1.9,
                 popshare = NULL,
                 fill_gaps = FALSE,
-                aggregate = FALSE,
                 group_by = c("none", "wb"),
                 welfare_type = c("all", "consumption", "income"),
                 reporting_level = c("all", "national", "rural", "urban"),
@@ -69,10 +67,14 @@ pip <- function(country = "all",
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
 
+
+  # **** TO BE REMOVED **** REMOVAL STARTS HERE
+  # Once `pip-grp` has been integrated in ingestion pipeline
   # Forces fill_gaps to TRUE when using group_by option
   if (group_by != "none") {
     fill_gaps <- TRUE
   }
+  # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   if (fill_gaps == TRUE) {
     # Compute imputed stats
@@ -81,7 +83,6 @@ pip <- function(country = "all",
       year = year,
       povline = povline,
       popshare = popshare,
-      aggregate = aggregate,
       welfare_type = welfare_type,
       reporting_level = reporting_level,
       ppp = ppp,
@@ -96,7 +97,6 @@ pip <- function(country = "all",
       year = year,
       povline = povline,
       popshare = popshare,
-      aggregate = aggregate,
       welfare_type = welfare_type,
       reporting_level = reporting_level,
       ppp = ppp,
@@ -119,6 +119,8 @@ pip <- function(country = "all",
     out <- add_agg_stats(out)
   }
 
+  # **** TO BE REMOVED **** REMOVAL STARTS HERE
+  # Once `pip-grp` has been integrated in ingestion pipeline
   # Handles grouped aggregations
   if (group_by != "none") {
     # Handle potential (insignificant) difference in poverty_line values that
@@ -129,11 +131,12 @@ pip <- function(country = "all",
       df = out,
       group_lkup = lkup[["pop_region"]]
     )
-
     # Censor regional values
     out <- censor_rows(out, lkup[["censored"]], type = "region")
+    
     return(out)
   }
+  # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   # Add pre-computed distributional statistics
   out <- add_dist_stats(
