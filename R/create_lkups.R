@@ -157,6 +157,9 @@ create_lkups <- function(data_dir, versions) {
   pl_lkup <- fst::read_fst(sprintf("%s/_aux/poverty_lines.fst", data_dir),
     as.data.table = TRUE)
 
+  # Load list with censor tables
+  censored <- readRDS(sprintf("%s/_aux/censored.RDS", data_dir))
+
   # Create pip return columns
   pip_cols <-
     c('region_code', 'country_code', 'reporting_year',
@@ -186,6 +189,7 @@ create_lkups <- function(data_dir, versions) {
                                                      pattern = "\\.fst$"))
   aux_tables <- sort(aux_tables)
 
+
   # Create list of query controls
   query_controls <-
     create_query_controls(
@@ -201,6 +205,7 @@ create_lkups <- function(data_dir, versions) {
     pop_region = pop_region,
     cp_lkups = cp_lkups,
     pl_lkup = pl_lkup,
+    censored = censored,
     pip_cols = pip_cols,
     query_controls = query_controls,
     data_root = data_dir,

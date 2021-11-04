@@ -276,6 +276,7 @@ test_that("imputation is working for extrapolated aggregate distribution", {
 })
 
 # Check regional aggregations ----
+
 test_that("Regional aggregations are working", {
   tmp <- pip(
     country = "all",
@@ -300,3 +301,56 @@ test_that("pop_share option is working", {
   expect_equal(nrow(tmp), 1)
 })
 
+# ---- Censoring ----
+
+test_that("Censoring for country-year values is working", {
+  lkups2 <- lkups
+  country = data.frame(
+    country_code = rep("CHN", 3),
+    survey_acronym = rep("CNIHS", 3),
+    reporting_year = rep(2016, 3),
+    reporting_level = c("urban", "rural", "national"),
+    welfare_type = rep("consumption", 3),
+    statistic = "all"
+  )
+  censored$country$id <-
+    with(censored$country, sprintf(
+      "%s_%s_%s_%s_%s",
+      country_code,
+      reporting_year,
+      survey_acronym,
+      welfare_type,
+      reporting_level
+    ))
+  lkups2$censored <- censored
+  tmp <- pip(
+    country = "CHN",
+    year = "2016",
+    povline = 1.9,
+    lkup = lkups2
+  )
+  expect_equal(nrow(tmp), 0)
+
+})
+
+test_that("Censoring for regional aggregations is working", {
+  lkups2 <- lkups
+  censored <- list(
+    region = data.frame(
+      region_code = "SSA",
+      reporting_year = 2019,
+      statistic = "all",
+      id = "SSA_2019"
+    ))
+  lkups2$censored <- censored
+  tmp <- pip(
+    country = "all",
+    year = "2019",
+    group_by = "wb",
+    povline = 1.9,
+    lkup = lkups2
+  )
+  # expect_equal(nrow(tmp), 7)
+  id <- paste0(tmp$region_code, "_", tmp$reporting_year)
+  expect_true(!censored$region$id %in% id)
+})
