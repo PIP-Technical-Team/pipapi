@@ -131,6 +131,9 @@ pip <- function(country = "all",
       df = out,
       group_lkup = lkup[["pop_region"]]
     )
+    # Censor regional values
+    out <- censor_rows(out, lkup[["censored"]], type = "region")
+
     return(out)
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
@@ -147,11 +150,13 @@ pip <- function(country = "all",
     out <- out[keep, ]
   }
 
-  # Censor values
-  out <- censor_rows(out, lkup[["censored"]])
+  # Censor country values
+  if (group_by == "none") {
+    out <- censor_rows(out, lkup[["censored"]], type = "country")
+  }
 
   # Select columns
-  if (!group_by != "none") {
+  if (group_by == "none") {
     out <- out[, .SD, .SDcols = lkup$pip_cols]
   }
 

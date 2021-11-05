@@ -1,36 +1,74 @@
-# Constants
-censored_table <- data.frame(
-  country_code = c(rep("XYZ", 3), "WLD"),
-  survey_acronym = c(rep("HBS", 3), NA),
-  reporting_year = c(2000, 2000, 2008, 2018),
-  welfare_type = c(rep("consumption", 3), NA),
-  statistic = c("mld", "gini", "median", "headcount")
-)
-censored_table$id <-
-  sprintf(
-    "%s_%s_%s",
-    censored_table$country_code,
-    censored_table$reporting_year,
-    censored_table$welfare_type
-  )
-df <- data.frame(
-  country_code = c(rep("XYZ", 3), "WLD"),
-  survey_acronym = c(rep("HBS", 3), NA),
-  reporting_year = c(2000, 2008, 2018, 2018),
-  welfare_type = c(rep("consumption", 3), NA),
-  median = c(2.5, 3, 2, 10),
-  gini = c(0.5, 0.4, 0.45, 0.4),
-  polarization = c(0.5, 0.4, 0.45, 0.5),
-  mld = c(0.5, 0.4, 0.45, 0.51),
-  headcount = c(3, 2.5, 2, 400)
-)
+# constants
+censored <- readRDS("../testdata/censored.RDS")
+censored2 <- readRDS("../testdata/censored-2.RDS")
+reg_agg <- readRDS("../testdata/ohi-sample.RDS")
+chn <- readRDS("../testdata/chn-2016.RDS")
 
-test_that("collapse_rows() works correctly", {
-  res <- censor_rows(df, censored_table)
-  expect_identical(dim(res), dim(df))
-  expect_equal(res$gini, c(NA, 0.40, 0.45, 0.40))
-  expect_equal(res$median, c(2.5, NA, 2.0, 10.0))
-  expect_equal(res$mld, c(NA, 0.4, 0.45, 0.51))
-  expect_equal(res$headcount, c(3, 2.5, 2, NA))
-  expect_equal(res$polarization, c(0.5, 0.4, 0.45, 0.50))
+test_that("censor_rows() removes entire row when statistic is 'all'", {
+
+  # Country table
+  res <- censor_rows(chn, censored, type = "country")
+  expect_equal(nrow(res), 0)
+  expect_equal(names(chn), names(res))
+
+  # Region table
+  res <- censor_rows(reg_agg, censored, type = "region")
+  expect_equal(nrow(res), 3)
+  expect_false(all(censored$region$reporting_year %in%
+                     res$reporting_year))
+
+  expect_equal(reg_agg$reporting_pop[1:3], res$reporting_pop[1:3])
+  expect_equal(reg_agg$headcount[1:3], res$headcount[1:3])
+  expect_equal(reg_agg$poverty_gap[1:3], res$poverty_gap[1:3])
+  expect_equal(reg_agg$poverty_severity[1:3], res$poverty_severity[1:3])
+  expect_equal(reg_agg$watts[1:3], res$watts[1:3])
+  expect_equal(reg_agg$mean[1:3], res$mean[1:3])
+  expect_equal(reg_agg$pop_in_poverty[1:3], res$pop_in_poverty[1:3])
+
+})
+
+test_that("censor_rows() sets specific stats to NA_real_", {
+
+  # Country table
+  res <- censor_rows(chn, censored2, type = "country")
+  expect_equal(nrow(res), 3)
+
+  # Check that stats are correctly set to NA
+  expect_equal(unique(res$headcount), NA_real_)
+  expect_equal(unique(res$gini), NA_real_)
+  expect_equal(unique(res$mld), NA_real_)
+
+  # Check that other stats idn't change
+  expect_equal(res[,!c("headcount", "mld", "gini")],
+               chn[,!c("headcount","mld", "gini")])
+
+  # Region table
+  res <- censor_rows(reg_agg, censored2, type = "region")
+  expect_equal(nrow(res), 5)
+
+  # Check that stats are correctly set to NA
+  expect_equal(unique(res$watts[4:5]), NA_real_)
+  expect_equal(unique(res$headcount[4:5]), NA_real_)
+  expect_equal(unique(res$mean[4:5]), NA_real_)
+
+  # Check that other stats (for same indicators) didn't change
+  expect_equal(reg_agg$headcount[1:3], res$headcount[1:3])
+  expect_equal(reg_agg$watts[1:3], res$watts[1:3])
+  expect_equal(reg_agg$mean[1:3], res$mean[1:3])
+
+  # Check that other stats (for other indicators) didn't change
+  expect_equal(reg_agg$reporting_pop[1:5], res$reporting_pop[1:5])
+  expect_equal(reg_agg$poverty_gap[1:5], res$poverty_gap[1:5])
+  expect_equal(reg_agg$poverty_severity[1:5], res$poverty_severity[1:5])
+  expect_equal(reg_agg$pop_in_poverty[1:5], res$pop_in_poverty[1:5])
+})
+
+test_that("censor_rows() returns early when there no censoring observations", {
+  tmp <- list(region = data.frame(
+    region_code = character(0),
+    reporting_year = numeric(0),
+    statistic = character(0)
+  ))
+  res <- censor_rows(reg_agg, tmp, type = "region")
+  expect_equal(res, reg_agg)
 })

@@ -79,7 +79,7 @@ select_reporting_level <- function(lkup,
   } else if (reporting_level == "national") {
     # Subnational levels necessary to compute national stats for aggregate distributions
     keep <- keep & (lkup$reporting_level == reporting_level |
-      lkup$distribution_type == "aggregate")
+                      lkup$distribution_type == "aggregate")
     return(keep)
 
   } else {
@@ -111,7 +111,7 @@ get_svy_data <- function(svy_id,
   # This check should be conducted at the data validation stage
   reporting_level <- unique(reporting_level)
   assertthat::assert_that(length(reporting_level) == 1,
-    msg = "Problem with input data: Multiple reporting_levels"
+                          msg = "Problem with input data: Multiple reporting_levels"
   )
   # tictoc::tic("read_single")
   out <- lapply(path, function(x) {
@@ -187,28 +187,68 @@ collapse_rows <- function(df, vars, na_var) {
 
 #' Censor rows
 #' Censor statistics based on a pre-defined censor table.
-#' @param df data.table: Table to censor, e.g output from `pip()`.
-#' @param censored_table data.table: Censor table.
+#' @param df data.table: Table to censor. Output from `pip()`.
+#' @param censored list: List with censor tables.
+#' @param type character: Type of censor table to use. Either country or region.
 #' @return data.table
 #' @noRd
-censor_rows <- function(df, censored_table) {
-  df$tmp_id <-
-    sprintf(
-      "%s_%s_%s",
-      df$country_code, df$reporting_year,
-      df$welfare_type
-    )
+censor_rows <- function(df, censored, type = c("country", "region")) {
 
+  type <- match.arg(type)
+
+  # Return early if there are no censoring observations
+  if (nrow(censored[[type]]) == 0) {
+    return(df)
+  }
+
+  # Create tmp_id to match with censor table
+  if (type == "country") {
+    df$tmp_id <-
+      sprintf(
+        "%s_%s_%s_%s_%s",
+        df$country_code, df$reporting_year,
+        df$survey_acronym, df$welfare_type,
+        df$reporting_level
+      )
+  } else {
+    df$tmp_id <-
+      sprintf(
+        "%s_%s",
+        df$region_code, df$reporting_year
+      )
+  }
+
+  # Apply censoring
+  out <- censor_stats(df, censored[[type]])
+  out$tmp_id <- NULL
+
+  return(out)
+}
+
+#' Censor stats
+#' @param df data.table: Table to censor.
+#' @param censored_table data.table: Censor table
+#' @noRd
+censor_stats <- function(df, censored_table) {
+
+  df$to_remove <- FALSE
   if (any(df$tmp_id %in% censored_table$id)) {
     for (i in seq_len(nrow(df))) {
       for (y in seq_len(nrow(censored_table))) {
         if (df$tmp_id[i] == censored_table$id[y]) {
-          df[[censored_table$statistic[y]]][i] <- NA
+          # Remove entire row if all statistics should be removed
+          if (censored_table$statistic[y] == "all") {
+            df$to_remove[i] <- TRUE
+          } else {
+            # Otherwise set specific stats to NA
+            df[[censored_table$statistic[y]]][i] <- NA_real_
+          }
         }
       }
     }
   }
-  df$tmp_id <- NULL
+  df <- df[!df$to_remove]
+  df$to_remove <- NULL
 
   return(df)
 }
