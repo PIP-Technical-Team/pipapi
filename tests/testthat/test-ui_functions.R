@@ -254,6 +254,12 @@ test_that("ui_cp_key_indicators() works as expected", {
   )
   expect_identical(dl[[2]]$headcount$poverty_line, 1.9)
 
+  # Only CP relevant surveys
+  dl <- ui_cp_key_indicators(country = "POL", povline = 1.9, lkup = lkups)
+  expect_equal(nrow(dl[[1]]$headcount), 1)
+  y <- max(lkups$svy_lkup[country_code == "POL" & display_cp == 1]$reporting_year)
+  expect_equal(dl[[1]]$headcount$reporting_year, y)
+
 })
 
 test_that("ui_cp_charts() works as expected", {
@@ -283,6 +289,12 @@ test_that("ui_cp_charts() works as expected", {
                    c("pov_trend", "pov_mrv"))
   expect_equal(dl1$AGO, dl3$AGO)
 
+  # Only CP relevant surveys
+  dl <- ui_cp_charts(country = "POL", povline = 1.9, lkup = lkups)
+  w <- dl$POL$pov_charts[[1]]$pov_trend$welfare_type
+  expect_equal(unique(w), "income")
+  y <- dl$POL$pov_charts[[1]]$pov_trend$reporting_year
+  expect_equal(anyDuplicated(y), 0)
 
 })
 
