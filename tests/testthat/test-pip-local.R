@@ -5,6 +5,8 @@ skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
 lkups <- lkups$versions_paths$latest_release
 
+censored <- readRDS("../testdata/censored.RDS")
+
 
 test_that("Reporting level filtering is working", {
   reporting_levels <- c("national", "urban", "rural", "all")
@@ -201,18 +203,6 @@ test_that("pip returns expected response for aggregated distribution", {
   expect_true(tmp$gini[1] != tmp$gini[3])
 
 })
-# Check aggregation ----
-test_that("Aggregation is working", {
-  skip("Aggregation not correctly implemented")
-  tmp <- pip(
-    country = "all",
-    year = "all",
-    povline = 3.5,
-    aggregate = TRUE,
-    lkup = lkups
-  )
-  expect_equal(nrow(tmp), 1)
-})
 
 # Check imputation ----
 test_that("Imputation is working", {
@@ -313,6 +303,9 @@ test_that("Censoring for country-year values is working", {
     welfare_type = rep("consumption", 3),
     statistic = "all"
   )
+
+  censored$country <- country
+
   censored$country$id <-
     with(censored$country, sprintf(
       "%s_%s_%s_%s_%s",
