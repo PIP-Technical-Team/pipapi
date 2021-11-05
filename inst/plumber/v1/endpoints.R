@@ -128,6 +128,14 @@ function() {
 #   )
 # }
 
+#* Check status of API
+#* @get /api/v1/data-timestamp
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+function(req) {
+  dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
+  readLines(sprintf("%s/data_update_timestamp.txt", dir))
+}
+
 #* Return PIP information
 #* @get /api/v1/pip-info
 function(req) {
