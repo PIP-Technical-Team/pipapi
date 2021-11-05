@@ -131,9 +131,9 @@ pip <- function(country = "all",
       df = out,
       group_lkup = lkup[["pop_region"]]
     )
-
     # Censor regional values
     out <- censor_rows(out, lkup[["censored"]], type = "region")
+
     return(out)
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
