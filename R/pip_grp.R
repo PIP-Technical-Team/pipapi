@@ -82,6 +82,8 @@ pip_grp <- function(country = "all",
       df = out,
       group_lkup = lkup[["pop_region"]]
     )
+    # Censor regional values
+    out <- censor_rows(out, lkup[["censored"]], type = "region")
 
   } else {
     # Handle simple aggregation
