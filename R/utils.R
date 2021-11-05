@@ -149,7 +149,6 @@ get_svy_data <- function(svy_id,
 add_dist_stats <- function(df, dist_stats) {
   # Keep only relevant columns
   cols <- c(
-    "cache_id",
     "country_code",
     "reporting_year",
     "welfare_type",
@@ -165,7 +164,7 @@ add_dist_stats <- function(df, dist_stats) {
   # data.table::setnames(dist_stats, "survey_median_ppp", "median")
 
   df <- dist_stats[df,
-                   on = .(cache_id, country_code, reporting_year, welfare_type, reporting_level),
+                   on = .(country_code, reporting_year, welfare_type, reporting_level),
                    allow.cartesian = TRUE
   ]
 

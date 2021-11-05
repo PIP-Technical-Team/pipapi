@@ -112,11 +112,10 @@ fg_pip <- function(country,
                             "survey_comparability")
 
   vars_to_collapse_char <- c("survey_id",
-                             #"cache_id",
+                             "cache_id",
                              "survey_acronym",
                              "survey_coverage",
                              "comparable_spell",
-                             #"welfare_type",
                              "gd_type",
                              "interpolation_id",
                              "estimation_type",
