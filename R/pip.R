@@ -76,7 +76,7 @@ pip <- function(country = "all",
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
-  if (fill_gaps == TRUE) {
+  if (fill_gaps) {
     # Compute imputed stats
     out <- fg_pip(
       country = country,
