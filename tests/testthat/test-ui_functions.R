@@ -257,7 +257,7 @@ test_that("ui_cp_key_indicators() works as expected", {
   # Only CP relevant surveys
   dl <- ui_cp_key_indicators(country = "POL", povline = 1.9, lkup = lkups)
   expect_equal(nrow(dl[[1]]$headcount), 1)
-  y <- max(lkups$svy_lkup[country_code == "POL" & display_ctry_profile == 1]$reporting_year)
+  y <- max(lkups$svy_lkup[country_code == "POL" & display_cp == 1]$reporting_year)
   expect_equal(dl[[1]]$headcount$reporting_year, y)
 
 })
