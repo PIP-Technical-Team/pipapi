@@ -78,7 +78,7 @@ pip_grp <- function(country = "all",
   # Handle aggregations with sub-groups
   if (group_by != "none") {
 
-    out <- aggregate_by_group(
+    out <- pip_aggregate_by(
       df = out,
       group_lkup = lkup[["pop_region"]]
     )
@@ -149,11 +149,14 @@ pip_aggregate <- function(df) {
   return(df)
 }
 
-#' Aggregate by group
+#' Aggregate by predefined groups
 #' @param df data.frame: Response from `fg_pip()` or `rg_pip()`.
 #' @param group_lkup data.frame Group lkup table (pop_region)
 #' @noRd
-aggregate_by_group <- function(df, group_lkup) {
+pip_aggregate_by <- function(df, group_lkup) {
+
+  # Keep only rows necessary for regional aggregates
+  df <- filter_for_aggregate_by(df)
 
   df <- df[, .(
     region_code,
@@ -213,5 +216,23 @@ compute_world_aggregates <- function(rgn, cols) {
   wld[["region_code"]] <- "WLD"
 
   return(wld)
+
+}
+
+
+#' Filter relevant rows for aggregating by predefined groups
+#' @param df data.frame: Response from `fg_pip()`
+#' @noRd
+filter_for_aggregate_by <- function(df) {
+  # This algorithm is incorrect, but should mostly work as a first iteration
+  # Keep only one row per country / year
+  # If nationally representative survey is available, use it
+  # Otherwise, use whatever is available
+
+  out <- df[, check := length(reporting_level),
+            by = c("country_code", "reporting_year", "poverty_line")]
+  out <- out[out$check == 1 | (out$check > 1 & reporting_level == "national"), ]
+
+  return(out)
 
 }

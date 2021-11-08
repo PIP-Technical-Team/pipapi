@@ -9,20 +9,29 @@
 #' @export
 ui_hp_stacked <- function(povline = 1.9,
                           lkup) {
-  out <- pip(
+  # out <- pip(
+  #   country = "all",
+  #   year = "all",
+  #   povline = povline,
+  #   lkup = lkup,
+  #   fill_gaps = TRUE,
+  #   group_by = "wb",
+  #   reporting_level = "national"
+  # )
+
+  out <- pip_grp(
     country = "all",
     year = "all",
     povline = povline,
-    lkup = lkup,
-    fill_gaps = TRUE,
     group_by = "wb",
-    reporting_level = "national"
+    lkup = lkup
   )
 
   out <- out[, c(
     "region_code", "reporting_year",
     "poverty_line", "pop_in_poverty"
   )]
+
   return(out)
 }
 
@@ -209,7 +218,7 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
              welfare_type = "all",
              reporting_level = "all", ppp = NULL,
              lkup = lkup, debug = FALSE)
-  
+
   ### TEMP FIX for reporting level
   # We can't use reporting_level == "national" in pip() since this excludes
   # rows where the reporting level is urban/rural, e.g ARG, SUR.
@@ -399,7 +408,7 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
 #' subset_cp_rows
 #' TEMP function to select only national rows for
 #' cases like CHN, IND etc.
-#' @noRd                 
+#' @noRd
 subset_cp_rows <- function(x) {
   if (any(x$N == 3)) {
     x <- x[reporting_level == "national"]
