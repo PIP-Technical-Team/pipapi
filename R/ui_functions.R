@@ -9,23 +9,27 @@
 #' @export
 ui_hp_stacked <- function(povline = 1.9,
                           lkup) {
-  # out <- pip(
+
+  ref_years <- sort(unique(lkup$ref_lkup$reporting_year))
+  ref_years <- ref_years[!ref_years %in% c(1981:1989)]
+
+  out <- pip(
+    country = "all",
+    year = ref_years,
+    povline = povline,
+    lkup = lkup,
+    fill_gaps = TRUE,
+    group_by = "wb",
+    reporting_level = "national"
+  )
+
+  # out <- pip_grp(
   #   country = "all",
   #   year = "all",
   #   povline = povline,
-  #   lkup = lkup,
-  #   fill_gaps = TRUE,
   #   group_by = "wb",
-  #   reporting_level = "national"
+  #   lkup = lkup
   # )
-
-  out <- pip_grp(
-    country = "all",
-    year = "all",
-    povline = povline,
-    group_by = "wb",
-    lkup = lkup
-  )
 
   out <- out[, c(
     "region_code", "reporting_year",
