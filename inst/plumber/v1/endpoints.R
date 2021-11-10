@@ -378,10 +378,3 @@ function(req) {
   params$version <- NULL
   do.call(pipapi::ui_svy_meta, params)
 }
-
-# # Update UI
-# #* @plumber
-# function(pr) {
-#   pr %>%
-#     plumber::pr_set_api_spec(yaml::read_yaml("openapi.yaml"))
-# }
