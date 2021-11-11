@@ -17,6 +17,7 @@
 #' @param lkup list: A list of lkup tables
 #' @param debug logical: If TRUE poverty calculations from `wbpip` will run in
 #'   debug mode
+#' @param censor logical: Triggers censoring of country/year statistics
 #'
 #' @return data.table
 #' @examples
@@ -61,7 +62,8 @@ pip <- function(country = "all",
                 reporting_level = c("all", "national", "rural", "urban"),
                 ppp = NULL,
                 lkup,
-                debug = FALSE) {
+                debug = FALSE,
+                censor = TRUE) {
 
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
@@ -91,7 +93,6 @@ pip <- function(country = "all",
     )
   } else {
     # Compute survey year stats
-    # tictoc::tic("pip")
     out <- rg_pip(
       country = country,
       year = year,
@@ -103,14 +104,10 @@ pip <- function(country = "all",
       lkup = lkup,
       debug = debug
     )
-    # Logging
-    # end_pip <- tictoc::toc(quiet = TRUE)
-    # logger::log_info('pip: {round(end_pip$toc - end_pip$tic, digits = getOption("digits", 6))}')
   }
 
   # return empty dataframe if no metadata is found
   if (nrow(out) == 0) {
-    # out <- out[, .SD, .SDcols = cols]
     return(out)
   }
 
@@ -132,7 +129,9 @@ pip <- function(country = "all",
       group_lkup = lkup[["pop_region"]]
     )
     # Censor regional values
-    out <- censor_rows(out, lkup[["censored"]], type = "region")
+    if (censor) {
+      out <- censor_rows(out, lkup[["censored"]], type = "region")
+    }
 
     return(out)
   }
@@ -151,14 +150,12 @@ pip <- function(country = "all",
   }
 
   # Censor country values
-  if (group_by == "none") {
+  if (censor) {
     out <- censor_rows(out, lkup[["censored"]], type = "country")
   }
 
   # Select columns
-  if (group_by == "none") {
-    out <- out[, .SD, .SDcols = lkup$pip_cols]
-  }
+  out <- out[, .SD, .SDcols = lkup$pip_cols]
 
   return(out)
 }
