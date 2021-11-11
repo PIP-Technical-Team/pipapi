@@ -27,7 +27,7 @@
 #'         group_by = "wb",
 #'         lkup = lkups)
 #' }
-#'
+#' @export
 pip_grp <- function(country = "all",
                     year = "all",
                     povline = 1.9,
