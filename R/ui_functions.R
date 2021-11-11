@@ -25,7 +25,8 @@ ui_hp_stacked <- function(povline = 1.9,
     lkup = lkup,
     fill_gaps = TRUE,
     group_by = "wb",
-    reporting_level = "national"
+    reporting_level = "national",
+    censor = FALSE
   )
 
   # out <- pip_grp(
