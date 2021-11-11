@@ -214,7 +214,13 @@ test_that("Imputation is working", {
     lkup = lkups
   )
   # Why is this correct? E.g. tmp %>% group_by(country_code) %>% summarise(n = n())
-  expect_equal(nrow(tmp), 6817)
+  expect_equal(nrow(tmp), 7097)
+  # Expect there are no duplicates
+  expect_equal(nrow(unique(tmp[, c("country_code",
+                                     "reporting_year",
+                                     "reporting_level",
+                                     "welfare_type")])),
+               nrow(tmp))
   # expect_equal(nrow(tmp), 182)
 })
 
@@ -273,7 +279,8 @@ test_that("Regional aggregations are working", {
     year = "2000",
     group_by = "wb",
     povline = 3.5,
-    lkup = lkups
+    lkup = lkups,
+    censor = FALSE
   )
 
   expect_equal(nrow(tmp), 8)

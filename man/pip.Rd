@@ -15,7 +15,8 @@ pip(
   reporting_level = c("all", "national", "rural", "urban"),
   ppp = NULL,
   lkup,
-  debug = FALSE
+  debug = FALSE,
+  censor = TRUE
 )
 }
 \arguments{
@@ -44,6 +45,8 @@ sub-groups}
 
 \item{debug}{logical: If TRUE poverty calculations from \code{wbpip} will run in
 debug mode}
+
+\item{censor}{logical: Triggers censoring of country/year statistics}
 }
 \value{
 data.table
