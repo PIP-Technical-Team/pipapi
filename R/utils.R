@@ -79,7 +79,7 @@ select_reporting_level <- function(lkup,
   } else if (reporting_level == "national") {
     # Subnational levels necessary to compute national stats for aggregate distributions
     keep <- keep & (lkup$reporting_level == reporting_level |
-                      lkup$distribution_type == "aggregate")
+                      lkup$is_used_for_aggregation == TRUE)
     return(keep)
 
   } else {
