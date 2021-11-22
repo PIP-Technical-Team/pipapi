@@ -315,6 +315,7 @@ test_that("Country profile charts endpoint is working", {
     names(tmp_resp$ineq_bar[[1]]),
     c(
       "country_code", "reporting_year",
+      "survey_coverage",
       "welfare_type", "gender",
       "agegroup", "education",
       "distribution",
