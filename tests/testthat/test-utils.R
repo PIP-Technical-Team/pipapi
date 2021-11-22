@@ -14,7 +14,7 @@ test_that("select_reporting_level is working as expected", {
                                 reporting_level = "national")
   # Accounting for aggregate distribution does make a difference here
   # CHECK THAT THIS IS THE CORRECT BEHAVIOR
-  expect_equal(sum(tmp), 173)
+  expect_equal(sum(tmp), 183)
 
   tmp <- select_reporting_level(lkup = ref_lkup,
                                 keep = keep,
