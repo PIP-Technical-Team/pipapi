@@ -55,6 +55,17 @@ subset_lkup <- function(country,
 
   lkup <- lkup[keep, ]
 
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## Convert factors to character --------
+
+  fct_vars <- names(lkup)[sapply(lkup, is.factor)]
+
+  lkup[,
+     (fct_vars) := lapply(.SD, as.character),
+     .SDcols = fct_vars
+  ]
+
+
   return(lkup)
 }
 
