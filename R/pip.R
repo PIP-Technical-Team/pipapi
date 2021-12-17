@@ -130,7 +130,7 @@ pip <- function(country = "all",
     )
     # Censor regional values
     if (censor) {
-      out <- censor_rows(out, lkup[["censored"]], type = "region")
+      out <- censor_rows(out, lkup[["censored"]], type = "regions")
     }
 
     return(out)
@@ -151,7 +151,7 @@ pip <- function(country = "all",
 
   # Censor country values
   if (censor) {
-    out <- censor_rows(out, lkup[["censored"]], type = "country")
+    out <- censor_rows(out, lkup[["censored"]], type = "countries")
   }
 
   # Select columns
