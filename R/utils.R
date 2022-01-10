@@ -197,9 +197,9 @@ censor_rows <- function(df, censored, type = c("country", "region")) {
   type <- match.arg(type)
 
   # Return early if there are no censoring observations
-  if (nrow(censored[[type]]) == 0) {
-    return(df)
-  }
+  # if (nrow(censored[[type]]) == 0) {
+  #   return(df)
+  # }
 
   # Create tmp_id to match with censor table
   if (type == "country") {
