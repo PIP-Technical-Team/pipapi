@@ -189,10 +189,10 @@ collapse_rows <- function(df, vars, na_var) {
 #' Censor statistics based on a pre-defined censor table.
 #' @param df data.table: Table to censor. Output from `pip()`.
 #' @param censored list: List with censor tables.
-#' @param type character: Type of censor table to use. Either country or region.
+#' @param type character: Type of censor table to use. Either countries or regions.
 #' @return data.table
 #' @noRd
-censor_rows <- function(df, censored, type = c("country", "region")) {
+censor_rows <- function(df, censored, type = c("countries", "regions")) {
 
   type <- match.arg(type)
 
@@ -202,7 +202,7 @@ censor_rows <- function(df, censored, type = c("country", "region")) {
   # }
 
   # Create tmp_id to match with censor table
-  if (type == "country") {
+  if (type == "countries") {
     df$tmp_id <-
       sprintf(
         "%s_%s_%s_%s_%s",
