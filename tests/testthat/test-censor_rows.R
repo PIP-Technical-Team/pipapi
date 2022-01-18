@@ -7,12 +7,12 @@ chn <- readRDS("../testdata/chn-2016.RDS")
 test_that("censor_rows() removes entire row when statistic is 'all'", {
 
   # Country table
-  res <- censor_rows(chn, censored, type = "country")
+  res <- censor_rows(chn, censored, type = "countries")
   expect_equal(nrow(res), 0)
   expect_equal(names(chn), names(res))
 
   # Region table
-  res <- censor_rows(reg_agg, censored, type = "region")
+  res <- censor_rows(reg_agg, censored, type = "regions")
   expect_equal(nrow(res), 3)
   expect_false(all(censored$region$reporting_year %in%
                      res$reporting_year))
@@ -30,7 +30,7 @@ test_that("censor_rows() removes entire row when statistic is 'all'", {
 test_that("censor_rows() sets specific stats to NA_real_", {
 
   # Country table
-  res <- censor_rows(chn, censored2, type = "country")
+  res <- censor_rows(chn, censored2, type = "countries")
   expect_equal(nrow(res), 3)
 
   # Check that stats are correctly set to NA
@@ -43,7 +43,7 @@ test_that("censor_rows() sets specific stats to NA_real_", {
                chn[,!c("headcount","mld", "gini")])
 
   # Region table
-  res <- censor_rows(reg_agg, censored2, type = "region")
+  res <- censor_rows(reg_agg, censored2, type = "regions")
   expect_equal(nrow(res), 5)
 
   # Check that stats are correctly set to NA
@@ -69,6 +69,6 @@ test_that("censor_rows() returns early when there no censoring observations", {
     reporting_year = numeric(0),
     statistic = character(0)
   ))
-  res <- censor_rows(reg_agg, tmp, type = "region")
+  res <- censor_rows(reg_agg, tmp, type = "regions")
   expect_equal(res, reg_agg)
 })
