@@ -31,41 +31,41 @@ paths:
       responses:
         default:
           description: Default response.
-      parameters: 
+      parameters:
           - in: query
             name: version
-            schema: 
+            schema:
               type: string
-            description: Data version. Defaults to most recent version. See api/v1/versions. 
+            description: Data version. Defaults to most recent version. See api/v1/versions.
           - in: query
             name: format
-            schema: 
+            schema:
               type: string
               enum: [json, csv, rds]
-            description: Response format. Defaults to json. 
+            description: Response format. Defaults to json.
   /api/v1/aux:
     get:
       summary: ' Return auxiliary data tables'
       responses:
         default:
           description: Default response.
-      parameters: 
+      parameters:
           - in: query
             name: table
-            schema: 
+            schema:
               type: string
             description: Auxiliary data table to be returned.
           - in: query
             name: version
-            schema: 
+            schema:
               type: string
-            description: Data version. Defaults to most recent version. See api/v1/versions. 
+            description: Data version. Defaults to most recent version. See api/v1/versions.
           - in: query
             name: format
-            schema: 
+            schema:
               type: string
               enum: [json, csv, rds]
-            description: Response format. Defaults to json. 
+            description: Response format. Defaults to json.
   /api/v1/pip:
     get:
       summary: ' Return main poverty and inequality statistics'
@@ -88,7 +88,7 @@ paths:
               type: array
               items:
                type: integer
-               enum: [2002, 2008, 2018]
+               enum: [2008, 2018]
                example: 2008
              description: Year(s) for which statistics are to be computed, specified as YYYY.
            - in: query
@@ -113,12 +113,6 @@ paths:
               example: FALSE
              description: Whether to interpolate / extrapolate statistics for years without available survey data.
            - in: query
-             name: aggregate
-             schema:
-              type: boolean
-              example: FALSE
-             description: Whether to aggregate results (Population weighted average).
-           - in: query
              name: group_by
              schema:
               type: string
@@ -138,15 +132,15 @@ paths:
              description: Reporting coverage.
            - in: query
              name: version
-             schema: 
+             schema:
               type: string
-             description: Data version. Defaults to most recent version. See api/v1/versions. 
+             description: Data version. Defaults to most recent version. See api/v1/versions.
            - in: query
              name: format
-             schema: 
+             schema:
               type: string
               enum: [json, csv, rds]
-             description: Response format. Defaults to json. 
+             description: Response format. Defaults to json.
       responses:
        '200':
          description: successful message
