@@ -153,8 +153,11 @@ ui_pc_regional <- function(povline = 1.9, pop_units = 1e6, lkup) {
   out <- pip(country = "all",
              year    = "all",
              group_by = "wb",
+             reporting_level = "national",
+             fill_gaps = TRUE,
              povline = povline,
-             lkup = lkup)
+             lkup = lkup,
+             censor = TRUE)
 
   # Add pop_in_poverty and scale according to pop_units
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
