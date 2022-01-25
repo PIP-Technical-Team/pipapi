@@ -11,7 +11,7 @@ ui_hp_stacked <- function(povline = 1.9,
                           lkup) {
 
   ref_years <- sort(unique(lkup$ref_lkup$reporting_year))
-  ref_years <- ref_years[!ref_years %in% c(1981:1989)]
+  ref_years <- ref_years[!ref_years %in% c(1981:1990)]
   ### TMP FIX START
   ### Ad hoc filtering of recent years
   ### To be removed once full censoring is correctly implemented
@@ -54,7 +54,7 @@ ui_hp_stacked <- function(povline = 1.9,
 #'   to million)
 #' @return data.table
 #' @export
-ui_hp_countries <- function(country = c("AGO", "CIV"),
+ui_hp_countries <- function(country = c("BGD", "CIV"),
                             povline = 1.9,
                             pop_units = 1e6,
                             lkup) {
@@ -153,8 +153,11 @@ ui_pc_regional <- function(povline = 1.9, pop_units = 1e6, lkup) {
   out <- pip(country = "all",
              year    = "all",
              group_by = "wb",
+             reporting_level = "national",
+             fill_gaps = TRUE,
              povline = povline,
-             lkup = lkup)
+             lkup = lkup,
+             censor = TRUE)
 
   # Add pop_in_poverty and scale according to pop_units
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
