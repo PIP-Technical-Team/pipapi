@@ -11,7 +11,7 @@ ui_hp_stacked <- function(povline = 1.9,
                           lkup) {
 
   ref_years <- sort(unique(lkup$ref_lkup$reporting_year))
-  ref_years <- ref_years[!ref_years %in% c(1981:1989)]
+  ref_years <- ref_years[!ref_years %in% c(1981:1990)]
   ### TMP FIX START
   ### Ad hoc filtering of recent years
   ### To be removed once full censoring is correctly implemented
