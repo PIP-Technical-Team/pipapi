@@ -5,7 +5,7 @@
 \title{Home Page Country Charts}
 \usage{
 ui_hp_countries(
-  country = c("AGO", "CIV"),
+  country = c("BGD", "CIV"),
   povline = 1.9,
   pop_units = 1e+06,
   lkup
