@@ -336,7 +336,7 @@ test_that("Censoring for country-year values is working", {
 test_that("Censoring for regional aggregations is working", {
   lkups2 <- lkups
   censored <- list(
-    region = data.frame(
+    regions = data.frame(
       region_code = "SSA",
       reporting_year = 2019,
       statistic = "all",
