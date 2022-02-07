@@ -123,7 +123,7 @@ ui_pc_charts <- function(country = c("AGO"),
       'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
       'region_code', 'survey_coverage', 'survey_comparability',
       'comparable_spell', 'survey_year',
-      'survey_mean_lcu', 'survey_mean_ppp', # Do we need these here?
+      # 'survey_mean_lcu', 'survey_mean_ppp', # Do we need these here?
       'reporting_pop', 'ppp', 'cpi', 'distribution_type',
       'is_interpolated', 'poverty_line', 'mean', 'headcount',
       'poverty_gap', 'poverty_severity', 'watts', 'pop_in_poverty'

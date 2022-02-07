@@ -108,7 +108,7 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
     "region_code", "survey_coverage",
     "survey_comparability", "comparable_spell",
     "survey_year",
-    "survey_mean_lcu", "survey_mean_ppp",
+    # "survey_mean_lcu", "survey_mean_ppp",
     "reporting_pop", "ppp", "cpi",
     "distribution_type", "is_interpolated",
     "poverty_line", "mean", "headcount",
