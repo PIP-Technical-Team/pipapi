@@ -362,7 +362,8 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
     res_pov_trend[, c(
       "country_code", "reporting_year",  "poverty_line",
       "survey_acronym", "welfare_type", "survey_comparability",
-      "comparable_spell", "headcount", "pop_in_poverty"
+      "comparable_spell", "headcount", "pop_in_poverty",
+      "reporting_level"
     )]
 
   # Fetch data for poverty bar chart
@@ -404,7 +405,8 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   res_pov_mrv <-
     res_pov_mrv[, c(
       "country_code", "reporting_year",
-      "poverty_line", "headcount"
+      "poverty_line", "headcount",
+      "reporting_level"
     )]
   res_pov_mrv <-
     cp_pov_mrv_select_countries(res_pov_mrv, country)

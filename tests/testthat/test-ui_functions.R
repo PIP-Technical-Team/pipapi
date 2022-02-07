@@ -99,6 +99,7 @@ test_that("ui_cp_poverty_charts() works as expected", {
   expect_equal(nrow(dl$pov_trend),
                nrow(lkups$svy_lkup[country_code == "ARG"]))
   expect_equal(nrow(dl$pov_mrv), 11)
+  expect_equal(unique(dl$pov_trend$reporting_level), "urban")
 
   dl <- ui_cp_poverty_charts(
     country = "SUR",
@@ -123,9 +124,7 @@ test_that("ui_cp_poverty_charts() works as expected", {
   expect_equal(nrow(dl$pov_trend),
                nrow(lkups$dist_stats[country_code == "CHN" &
                           reporting_level == "national"]))
-  skip("These tests can be activated if we implement pipapi#149")
   expect_equal(unique(dl$pov_trend$reporting_level), "national")
-  expect_equal(unique(dl$pov_mrv$reporting_level), "national")
 })
 
 test_that("cp_pov_mrv_select_values() works as expected", {
