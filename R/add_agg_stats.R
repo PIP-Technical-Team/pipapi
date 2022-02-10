@@ -3,11 +3,10 @@
 #' @param except character: countries to be filtered out from computations
 #' @return data.frame
 #' @noRd
-add_agg_stats <- function(df, except = c("ARG", "URY")) {
+add_agg_stats <- function(df) {
   # Keep only Urban / Rural observations that will be aggregated at the
   # national level
-  aggregated <- df[df$is_used_for_aggregation == TRUE &
-                     !df$country_code %in% except, ]
+  aggregated <- df[df$is_used_for_aggregation == TRUE, ]
 
   if (nrow(aggregated) > 0) {
     aggregated_list <- split(aggregated,
