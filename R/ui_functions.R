@@ -37,10 +37,7 @@ ui_hp_stacked <- function(povline = 1.9,
   #   lkup = lkup
   # )
 
-  out <- out[, c(
-    "region_code", "reporting_year",
-    "poverty_line", "pop_in_poverty"
-  )]
+  out <- out[, c("region_code", "year", "poverty_line", "pop_in_poverty")]
 
   return(out)
 }
@@ -69,12 +66,12 @@ ui_hp_countries <- function(country = c("BGD", "CIV"),
   )
 
   # Add pop_in_poverty and scale according to pop_units
-  out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
-  out$reporting_pop <- out$reporting_pop / pop_units
+  out$pop_in_poverty <- out$pop * out$headcount / pop_units
+  out$pop <- out$pop / pop_units
 
   out <- out[, c(
-    "region_code", "country_code", "reporting_year",
-    "poverty_line", "reporting_pop", "pop_in_poverty"
+    "region_code", "country_code", "year",
+    "poverty_line", "pop", "pop_in_poverty"
   )]
 
   return(out)
@@ -110,30 +107,30 @@ ui_pc_charts <- function(country = c("AGO"),
   )
 
   # Add pop_in_poverty and scale according to pop_units
-  out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
-  out$reporting_pop <- out$reporting_pop / pop_units
+  out$pop_in_poverty <- out$pop * out$headcount / pop_units
+  out$pop <- out$pop / pop_units
 
   if (group_by != "none") {
     return(out)
   } else if (fill_gaps == FALSE) {
     out <- out[, c(
-      'country_code', 'reporting_year', 'welfare_type',
+      'country_code', 'year', 'welfare_type',
       'reporting_level', 'median', 'gini', 'polarization',
       'mld', 'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
       'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
       'region_code', 'survey_coverage', 'survey_comparability',
-      'comparable_spell', 'survey_year',
+      'comparable_spell', 'welfare_time',
       'survey_mean_lcu', 'survey_mean_ppp', # Do we need these here?
-      'reporting_pop', 'ppp', 'cpi', 'distribution_type',
+      'pop', 'ppp', 'cpi', 'distribution_type',
       'is_interpolated', 'poverty_line', 'mean', 'headcount',
       'poverty_gap', 'poverty_severity', 'watts', 'pop_in_poverty'
     )]
     return(out)
   } else {
     out <- out[, c(
-      "country_code", "reporting_year", "poverty_line", "mean",
+      "country_code", "year", "poverty_line", "mean",
       "headcount", "poverty_gap", "poverty_severity", "watts",
-      "region_code", "reporting_pop", "is_interpolated",
+      "region_code", "pop", "is_interpolated",
       "pop_in_poverty"
     )]
     return(out)
@@ -160,8 +157,8 @@ ui_pc_regional <- function(povline = 1.9, pop_units = 1e6, lkup) {
              censor = TRUE)
 
   # Add pop_in_poverty and scale according to pop_units
-  out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
-  out$reporting_pop <- out$reporting_pop / pop_units
+  out$pop_in_poverty <- out$pop * out$headcount / pop_units
+  out$pop <- out$pop / pop_units
 
   return(out)
 }
@@ -236,14 +233,14 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
   # We can't use reporting_level == "national" in pip() since this excludes
   # rows where the reporting level is urban/rural, e.g ARG, SUR.
   # But we still need to sub-select only national rows for e.g CHN.
-  res[, N := .N, by = list(country_code, reporting_year)]
+  res[, N := .N, by = list(country_code, year)]
   res <- res[, subset_cp_rows(.SD),
-             by = .(country_code, reporting_year)]
+             by = .(country_code, year)]
   res$N <- NULL
   ### TEMP FIX END
 
   out <- data.table::data.table(
-    country_code = country, reporting_year = res$reporting_year,
+    country_code = country, year = res$year,
     poverty_line = povline, headcount = res$headcount
   )
   return(out)
@@ -350,17 +347,17 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   # We can't use reporting_level == "national" in pip() since this excludes
   # rows where the reporting level is urban/rural, e.g ARG, SUR.
   # But we still need to sub-select only national rows for e.g CHN.
-  res_pov_trend[, N := .N, by = list(country_code, reporting_year)]
+  res_pov_trend[, N := .N, by = list(country_code, year)]
   res_pov_trend <- res_pov_trend[, subset_cp_rows(.SD),
-                                 by = .(country_code, reporting_year)]
+                                 by = .(country_code, year)]
   res_pov_trend$N <- NULL
   ### TEMP FIX END
 
   res_pov_trend$pop_in_poverty <-
-    res_pov_trend$reporting_pop * res_pov_trend$headcount / pop_units
+    res_pov_trend$pop * res_pov_trend$headcount / pop_units
   res_pov_trend <-
     res_pov_trend[, c(
-      "country_code", "reporting_year",  "poverty_line",
+      "country_code", "year",  "poverty_line",
       "survey_acronym", "welfare_type", "survey_comparability",
       "comparable_spell", "headcount", "pop_in_poverty"
     )]
@@ -386,24 +383,24 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   # We can't use reporting_level == "national" in pip() since this excludes
   # rows where the reporting level is urban/rural, e.g ARG, SUR.
   # But we still need to sub-select only national rows for e.g CHN.
-  res_pov_mrv[, N := .N, by = list(country_code, reporting_year)]
+  res_pov_mrv[, N := .N, by = list(country_code, year)]
   res_pov_mrv <- res_pov_mrv[, subset_cp_rows(.SD),
-                             by = .(country_code, reporting_year)]
+                             by = .(country_code, year)]
   res_pov_mrv$N <- NULL
   ### TEMP FIX END
 
 
   res_pov_mrv <-
-    res_pov_mrv[, .SD[which.max(reporting_year)],
+    res_pov_mrv[, .SD[which.max(year)],
                 by = country_code
     ]
-  selected_year <- res_pov_mrv[country_code == country]$reporting_year
+  selected_year <- res_pov_mrv[country_code == country]$year
   year_range <- c((selected_year - 3):(selected_year + 3))
   res_pov_mrv <-
-    res_pov_mrv[reporting_year %in% year_range]
+    res_pov_mrv[year %in% year_range]
   res_pov_mrv <-
     res_pov_mrv[, c(
-      "country_code", "reporting_year",
+      "country_code", "year",
       "poverty_line", "headcount"
     )]
   res_pov_mrv <-

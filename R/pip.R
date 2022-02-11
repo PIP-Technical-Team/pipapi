@@ -133,6 +133,11 @@ pip <- function(country = "all",
       out <- censor_rows(out, lkup[["censored"]], type = "regions")
     }
 
+    out <-
+      data.table::setnames(out,
+                           old = c('reporting_year', 'reporting_pop'),
+                           new = c('year', 'pop'))
+
     return(out)
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
@@ -156,6 +161,13 @@ pip <- function(country = "all",
 
   # Select columns
   out <- out[, .SD, .SDcols = lkup$pip_cols]
+
+  # Rename columns
+  out <-
+    data.table::setnames(out,
+      old = c('survey_year', 'reporting_year', 'reporting_pop', 'reporting_gdp', 'reporting_pce'),
+      new = c('welfare_time', 'year', 'pop', 'gdp', 'hfce'),
+      skip_absent = TRUE)
 
   return(out)
 }
