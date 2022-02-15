@@ -128,6 +128,21 @@ function() {
 #   )
 # }
 
+#* Reset current cache
+#* @get /api/v1/cache-info
+function(){
+  info <- cd$info()
+  info$missing <- NULL
+  c(n_items = cd$size(), info)
+}
+
+
+#* Reset current cache
+#* @get /api/v1/cache-reset
+function(){
+  cd$reset()
+}
+
 #* Check timestamp for the data
 #* @get /api/v1/data-timestamp
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
