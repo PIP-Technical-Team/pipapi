@@ -284,7 +284,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
   )
 
   povline <- list(
-    values = c(min = 0, max = 100),
+    values = c(min = 0, max = 10000),
     type = "numeric"
   )
 
