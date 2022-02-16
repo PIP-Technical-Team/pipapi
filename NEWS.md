@@ -4,6 +4,7 @@
 
 ## Enhancements
 - Remove unnecessary columns from API response
+- Add estimation_type and distribution_type to the API response when fill_gaps=TRUE
 
 ## Bug fixes
 - Duplicates are no longer created when `fill_gaps=TRUE`
