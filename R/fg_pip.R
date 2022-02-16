@@ -119,8 +119,8 @@ fg_pip <- function(country,
                              "comparable_spell",
                              "gd_type",
                              "interpolation_id",
-                             "estimation_type",
-                             "distribution_type",
+                             #"estimation_type",
+                             #"distribution_type",
                              "path")
 
   out[, vars_to_collapse_char] <- NA_character_
