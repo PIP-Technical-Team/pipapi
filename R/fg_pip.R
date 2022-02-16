@@ -106,7 +106,8 @@ fg_pip <- function(country,
                              "survey_mean_ppp",
                              "survey_median_lcu",
                              "survey_median_ppp",
-                             "cpi")
+                             "cpi",
+                             "display_cp")
 
   vars_to_collapse_int <- c("surveyid_year",
                             "survey_comparability")
