@@ -149,10 +149,11 @@ get_svy_data <- function(svy_id,
 add_dist_stats <- function(df, dist_stats) {
   # Keep only relevant columns
   cols <- c(
-    "country_code",
-    "reporting_year",
-    "welfare_type",
-    "reporting_level",
+    "cache_id",
+    # "country_code",
+    # "reporting_year",
+    # "welfare_type",
+    # "reporting_level",
     "gini",
     "polarization",
     "mld",
@@ -164,7 +165,7 @@ add_dist_stats <- function(df, dist_stats) {
   # data.table::setnames(dist_stats, "survey_median_ppp", "median")
 
   df <- dist_stats[df,
-                   on = .(country_code, reporting_year, welfare_type, reporting_level),
+                   on = .(cache_id), #.(country_code, reporting_year, welfare_type, reporting_level),
                    allow.cartesian = TRUE
   ]
 
@@ -174,15 +175,16 @@ add_dist_stats <- function(df, dist_stats) {
 #' Collapse rows
 #' @return data.table
 #' @noRd
-collapse_rows <- function(df, vars, na_var) {
+collapse_rows <- function(df, vars, na_var = NULL) {
   tmp_vars <- lapply(df[, .SD, .SDcols = vars], unique, collapse = "|")
   tmp_vars <- lapply(tmp_vars, paste, collapse = "|")
   tmp_var_names <- names(df[, .SD, .SDcols = vars])
-  df[[na_var]] <- NA_real_
+  if (!is.null(na_var)) df[[na_var]] <- NA_real_
   for (tmp_var in seq_along(tmp_vars)) {
     df[[tmp_var_names[tmp_var]]] <- tmp_vars[[tmp_var]]
   }
   df <- unique(df)
+  return(df)
 }
 
 #' Censor rows

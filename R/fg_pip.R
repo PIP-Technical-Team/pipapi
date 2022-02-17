@@ -99,6 +99,9 @@ fg_pip <- function(country,
   out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
 
+  # Collapse duplicated cache_id's
+  out <- collapse_rows(out, "cache_id")
+
   # Set collapse vars to NA (by type)
   vars_to_collapse_real <- c("survey_year",
                              "predicted_mean_ppp",
@@ -113,7 +116,7 @@ fg_pip <- function(country,
                             "survey_comparability")
 
   vars_to_collapse_char <- c("survey_id",
-                             "cache_id",
+                             #"cache_id",
                              "survey_acronym",
                              "survey_coverage",
                              "comparable_spell",
@@ -122,7 +125,6 @@ fg_pip <- function(country,
                              #"estimation_type",
                              #"distribution_type",
                              "path")
-
   out[, vars_to_collapse_char] <- NA_character_
   out[, vars_to_collapse_int] <- NA_integer_
   out[, vars_to_collapse_real] <- NA_real_
