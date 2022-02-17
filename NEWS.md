@@ -4,6 +4,7 @@
 
 ## Enhancements
 
+- Increase maximum limit for `povline` parameter from 100 to 10 000
 - Remove unnecessary columns from API response
 - Add estimation_type and distribution_type to the API response when fill_gaps=TRUE
 
