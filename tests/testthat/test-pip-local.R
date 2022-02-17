@@ -69,7 +69,7 @@ test_that("returned columns are the same for all non-group_by queries", {
   tmp3 <- pip('AGO', 2050, lkup = lkups)
   expect_identical(names(tmp1), names(tmp2))
   expect_identical(names(tmp1), names(tmp3))
-  #expect_identical(sapply(tmp1, class), sapply(tmp2, class))
+  expect_identical(sapply(tmp1, class), sapply(tmp2, class))
   expect_identical(sapply(tmp1, class), sapply(tmp3, class))
 })
 
