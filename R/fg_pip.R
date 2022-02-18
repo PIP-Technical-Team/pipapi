@@ -99,8 +99,11 @@ fg_pip <- function(country,
   out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
 
-  # Collapse duplicated cache_id's
-  out <- collapse_rows(out, "cache_id")
+  # Set cache_id to a modified version of data_interpolation_id
+  out$cache_id <-
+    ifelse(grepl("[|]", out$data_interpolation_id),
+           gsub(paste0("_", out$reporting_level, collapse = '|'), '', out$data_interpolation_id),
+           out$cache_id)
 
   # Set collapse vars to NA (by type)
   vars_to_collapse_real <- c("survey_year",
@@ -109,6 +112,7 @@ fg_pip <- function(country,
                              "survey_mean_ppp",
                              "survey_median_lcu",
                              "survey_median_ppp",
+                             # "median",
                              "cpi",
                              "display_cp")
 
