@@ -97,7 +97,7 @@ test_that("year selection is working", {
     lkup = lkups
   )
   check <- max(lkups$svy_lkup[country_code == "AGO"]$reporting_year)
-  expect_equal(tmp$reporting_year, sum(check))
+  expect_equal(tmp$year, sum(check))
 
   # Most recent year for a single country (w/ fill_gaps)
   tmp <- pip(
@@ -108,7 +108,7 @@ test_that("year selection is working", {
     lkup = lkups
   )
   check <- max(lkups$ref_lkup$reporting_year)
-  expect_equal(tmp$reporting_year, check)
+  expect_equal(tmp$year, check)
 })
 
 ## Welfare type ----

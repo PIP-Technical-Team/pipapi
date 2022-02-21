@@ -58,7 +58,7 @@ test_that("Basic PIP request is working", {
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(tmp_resp[[1]]$reporting_year, 2018)
+  expect_equal(tmp_resp[[1]]$year, 2018)
 })
 
 test_that("Interpolated PIP request is working", {
@@ -67,7 +67,7 @@ test_that("Interpolated PIP request is working", {
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(tmp_resp[[1]]$reporting_year, 2012)
+  expect_equal(tmp_resp[[1]]$year, 2012)
 })
 
 test_that("Serializer formats are working", {
