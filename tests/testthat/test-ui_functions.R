@@ -236,7 +236,7 @@ test_that("ui_cp_key_indicators() works as expected", {
     names(dl[[1]]),
     c(
       "headcount", "headcount_national", "mpm_headcount",
-      "pop", "gni", "gdp_growth", "shared_prosperity"
+      "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
     )
   )
   expect_identical(dl[[1]]$headcount$poverty_line, 1.9)
@@ -249,7 +249,7 @@ test_that("ui_cp_key_indicators() works as expected", {
     names(dl[[2]]),
     c(
       "headcount", "headcount_national", "mpm_headcount",
-      "pop", "gni", "gdp_growth", "shared_prosperity"
+      "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
     )
   )
   expect_identical(dl[[2]]$headcount$poverty_line, 1.9)
