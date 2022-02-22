@@ -7,7 +7,7 @@ library(httr)
 
 # Setup by starting APIs
 root_path <- "http://localhost"
-api1 <- callr::r_session$new(options =  r_session_options(user_profile = FALSE))
+api1 <- callr::r_session$new(options = r_session_options(user_profile = FALSE))
 Sys.sleep(5)
 api1$call(function() {
   # Use double assignment operator so the lkups object is available in the global
@@ -108,7 +108,7 @@ test_that("Aux table names are correct", {
   # Send pip API request
   r <- httr::GET(root_path, port = 8000, path = "api/v1/aux?table=interpolated_means")
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_true(all(c('welfare_time', 'year', 'hfce', 'gdp', 'pop', 'pce') %in% names(tmp_resp[[1]])))
+  expect_true(all(c('welfare_time', 'year', 'hfce', 'gdp', 'pop') %in% names(tmp_resp[[1]])))
 })
 
 # Kill process
