@@ -10,7 +10,7 @@ utils::globalVariables(
     "pop_in_poverty", "poverty_gap",
     "poverty_line", "poverty_severity",
     "ppp", "region_code", "reporting_pop",
-    "reporting_year", "survey_comparability",
+    "year", "survey_comparability",
     "survey_coverage", "survey_mean_lcu",
     "survey_mean_ppp", "survey_year", "watts",
     "wb_region_code", "weighted.mean",
@@ -18,7 +18,6 @@ utils::globalVariables(
     "comparable_spell"
   )
 )
-
 
 #' Subset look-up data
 #' @inheritParams pip
@@ -38,11 +37,11 @@ subset_lkup <- function(country,
   }
   # Select years
   if (year[1] == "mrv") {
-    max_year <- max(lkup[country_code == country]$reporting_year)
-    keep <- keep & lkup$reporting_year %in% max_year
+    max_year <- max(lkup[country_code == country]$year)
+    keep <- keep & lkup$year %in% max_year
   }
   if (!year[1] %in% c("all", "mrv")) {
-    keep <- keep & lkup$reporting_year %in% year
+    keep <- keep & lkup$year %in% year
   }
   # Select welfare_type
   if (welfare_type[1] != "all") {
@@ -150,7 +149,7 @@ add_dist_stats <- function(df, dist_stats) {
   # Keep only relevant columns
   cols <- c(
     "country_code",
-    "reporting_year",
+    "year",
     "welfare_type",
     "reporting_level",
     "gini",
@@ -164,7 +163,7 @@ add_dist_stats <- function(df, dist_stats) {
   # data.table::setnames(dist_stats, "survey_median_ppp", "median")
 
   df <- dist_stats[df,
-                   on = .(country_code, reporting_year, welfare_type, reporting_level),
+                   on = .(country_code, year, welfare_type, reporting_level),
                    allow.cartesian = TRUE
   ]
 
@@ -206,7 +205,7 @@ censor_rows <- function(df, censored, type = c("countries", "regions")) {
     df$tmp_id <-
       sprintf(
         "%s_%s_%s_%s_%s",
-        df$country_code, df$reporting_year,
+        df$country_code, df$year,
         df$survey_acronym, df$welfare_type,
         df$reporting_level
       )
@@ -214,7 +213,7 @@ censor_rows <- function(df, censored, type = c("countries", "regions")) {
     df$tmp_id <-
       sprintf(
         "%s_%s",
-        df$region_code, df$reporting_year
+        df$region_code, df$year
       )
   }
 
@@ -276,8 +275,8 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
     values = c(
       "all", "mrv",
       sort(unique(c(
-        svy_lkup$reporting_year,
-        ref_lkup$reporting_year
+        svy_lkup$year,
+        ref_lkup$year
       )))
     ),
     type = "character"
@@ -390,14 +389,29 @@ subset_ctry_years <- function(country,
   }
   # Select years
   if (year[1] == "mrv") {
-    max_year <- max(lkup[country_code == country]$reporting_year)
-    keep <- keep & lkup$reporting_year %in% max_year
+    max_year <- max(lkup[country_code == country]$year)
+    keep <- keep & lkup$year %in% max_year
   }
   if (!year[1] %in% c("all", "mrv")) {
-    keep <- keep & lkup$reporting_year %in% year
+    keep <- keep & lkup$year %in% year
   }
 
   lkup <- lkup[keep, ]
 
   return(lkup)
+}
+
+#' Rename columns
+#' TEMP function to rename response cols
+#' @param dt A table
+#' @noRd
+rename_cols <- function(dt){
+  if (class(dt)[1] != "data.table")
+    dt <- data.table::as.data.table(dt)
+  dt <- data.table::setnames(
+    dt,
+    old = c('survey_year', 'reporting_year', 'reporting_pop', 'reporting_gdp', 'reporting_pce', 'pce_data_level'),
+    new = c('welfare_time', 'year', 'pop', 'gdp', 'hfce', 'hfce_data_level'),
+    skip_absent = TRUE)
+  return(dt)
 }

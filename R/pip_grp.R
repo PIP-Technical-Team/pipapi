@@ -91,8 +91,8 @@ pip_grp <- function(country = "all",
   }
 
   out <- out[, c("region_code",
-                 "reporting_year",
-                 "reporting_pop",
+                 "year",
+                 "pop",
                  "poverty_line",
                  "headcount",
                  "poverty_gap",
@@ -109,42 +109,42 @@ pip_aggregate <- function(df) {
   # Handle simple aggregation
   df <- df[, .(
     region_code,
-    reporting_year,
+    year,
     poverty_line,
     mean,
     headcount,
     poverty_gap,
     poverty_severity,
     watts,
-    reporting_pop
+    pop
   )]
 
   # Compute population totals
   pop <- df[, lapply(.SD,
                      base::sum,
                      na.rm = TRUE),
-            by = .(reporting_year, poverty_line),
-            .SDcols = "reporting_pop"
+            by = .(year, poverty_line),
+            .SDcols = "pop"
   ]
 
   # Compute stats weighted average by groups
   cols <- c("headcount", "poverty_gap", "poverty_severity", "watts", "mean")
   df <- df[, lapply(.SD,
                       stats::weighted.mean,
-                      w = reporting_pop,
+                      w = pop,
                       na.rm = TRUE),
-             by = .(reporting_year, poverty_line),
+             by = .(year, poverty_line),
              .SDcols = cols
   ]
 
   # Combine results
-  df <- df[pop, on = .(reporting_year, poverty_line)]
+  df <- df[pop, on = .(year, poverty_line)]
 
   df$region_code <- "CUSTOM"
 
 
   # Compute population living in poverty
-  df <- df[, pop_in_poverty := round(headcount * reporting_pop, 0)]
+  df <- df[, pop_in_poverty := round(headcount * pop, 0)]
 
   return(df)
 }
@@ -160,27 +160,27 @@ pip_aggregate_by <- function(df, group_lkup) {
 
   df <- df[, .(
     region_code,
-    reporting_year,
+    year,
     poverty_line,
     mean,
     headcount,
     poverty_gap,
     poverty_severity,
     watts,
-    reporting_pop
+    pop
   )]
 
   cols <- c("headcount", "poverty_gap", "poverty_severity", "watts", "mean")
-  group_lkup <- group_lkup[, c("region_code", "reporting_year", "reporting_pop")]
+  group_lkup <- group_lkup[, c("region_code", "year", "pop")]
 
   # Compute stats weighted average by groups
-  rgn <- df[, lapply(.SD, stats::weighted.mean, w = reporting_pop, na.rm = TRUE),
-            by = .(region_code, reporting_year, poverty_line),
+  rgn <- df[, lapply(.SD, stats::weighted.mean, w = pop, na.rm = TRUE),
+            by = .(region_code, year, poverty_line),
             .SDcols = cols
   ]
 
   rgn <- group_lkup[rgn,
-                    on = .(region_code, reporting_year),
+                    on = .(region_code, year),
                     allow.cartesian = TRUE
   ]
 
@@ -192,7 +192,7 @@ pip_aggregate_by <- function(df, group_lkup) {
   out <- rbind(rgn, wld, fill = TRUE)
 
   # Compute population living in poverty
-  out <- out[, pop_in_poverty := round(headcount * reporting_pop, 0)]
+  out <- out[, pop_in_poverty := round(headcount * pop, 0)]
 
   return(out)
 }
@@ -202,17 +202,17 @@ compute_world_aggregates <- function(rgn, cols) {
   # Compute stats
   wld <- rgn[, lapply(.SD,
                       stats::weighted.mean,
-                      w = reporting_pop,
+                      w = pop,
                       na.rm = TRUE),
-             by = .(reporting_year, poverty_line),
+             by = .(year, poverty_line),
              .SDcols = cols
   ]
   # Compute yearly population WLD totals
-  tmp <- rgn[, .(reporting_pop = sum(reporting_pop)),
-             by = .(reporting_year)]
+  tmp <- rgn[, .(pop = sum(pop)),
+             by = .(year)]
 
 
-  wld <- wld[tmp, on = .(reporting_year = reporting_year)]
+  wld <- wld[tmp, on = .(year = year)]
   wld[["region_code"]] <- "WLD"
 
   return(wld)
@@ -230,7 +230,7 @@ filter_for_aggregate_by <- function(df) {
   # Otherwise, use whatever is available
 
   out <- df[, check := length(reporting_level),
-            by = c("country_code", "reporting_year", "poverty_line")]
+            by = c("country_code", "year", "poverty_line")]
   out <- out[out$check == 1 | (out$check > 1 & reporting_level == "national"), ]
 
   return(out)

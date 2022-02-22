@@ -95,7 +95,7 @@ test_that("year selection is working", {
     povline = 1.9,
     lkup = lkups
   )
-  check <- max(lkups$svy_lkup[country_code == "AGO"]$reporting_year)
+  check <- max(lkups$svy_lkup[country_code == "AGO"]$year)
   expect_equal(tmp$year, sum(check))
 
   # Most recent year for a single country (w/ fill_gaps)
@@ -106,7 +106,7 @@ test_that("year selection is working", {
     fill_gaps = TRUE,
     lkup = lkups
   )
-  check <- max(lkups$ref_lkup$reporting_year)
+  check <- max(lkups$ref_lkup$year)
   expect_equal(tmp$year, check)
 })
 
@@ -305,7 +305,7 @@ test_that("Censoring for country-year values is working", {
   country = data.frame(
     country_code = rep("CHN", 3),
     survey_acronym = rep("CNIHS", 3),
-    reporting_year = rep(2016, 3),
+    year = rep(2016, 3),
     reporting_level = c("urban", "rural", "national"),
     welfare_type = rep("consumption", 3),
     statistic = "all"
@@ -317,7 +317,7 @@ test_that("Censoring for country-year values is working", {
     with(censored$country, sprintf(
       "%s_%s_%s_%s_%s",
       country_code,
-      reporting_year,
+      year,
       survey_acronym,
       welfare_type,
       reporting_level
@@ -338,7 +338,7 @@ test_that("Censoring for regional aggregations is working", {
   censored <- list(
     regions = data.frame(
       region_code = "SSA",
-      reporting_year = 2019,
+      year = 2019,
       statistic = "all",
       id = "SSA_2019"
     ))
@@ -351,6 +351,6 @@ test_that("Censoring for regional aggregations is working", {
     lkup = lkups2
   )
   # expect_equal(nrow(tmp), 7)
-  id <- paste0(tmp$region_code, "_", tmp$reporting_year)
+  id <- paste0(tmp$region_code, "_", tmp$year)
   expect_true(!censored$region$id %in% id)
 })

@@ -38,7 +38,7 @@ test_that("add_agg_stats() works", {
 
   # Check that national mean is a weighted average
   tmp <- add_agg_stats(res_ex3)
-  expect_equal(tmp$mean[3], weighted.mean(res_ex3$survey_mean_ppp, res_ex3$reporting_pop))
+  expect_equal(tmp$mean[3], weighted.mean(res_ex3$survey_mean_ppp, res_ex3$pop))
 })
 
 test_that("ag_average_poverty_stats() works", {

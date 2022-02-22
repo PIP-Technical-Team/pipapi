@@ -13,7 +13,7 @@ add_agg_stats <- function(df, except = c("ARG", "URY")) {
     aggregated_list <- split(aggregated,
       interaction(
         aggregated$country_code,
-        aggregated$reporting_year
+        aggregated$year
       ),
       drop = TRUE
     )
@@ -54,7 +54,7 @@ ag_average_poverty_stats <- function(df) {
   out[, na_cols] <- NA_real_
 
   # Compute population weighted average
-  wgt_urban <- dfu$reporting_pop / sum(df$reporting_pop)
+  wgt_urban <- dfu$pop / sum(df$pop)
   wgt_rural <- 1 - wgt_urban
 
   # Weighted national mean
@@ -96,9 +96,9 @@ ag_average_poverty_stats <- function(df) {
   }
 
   # Update other variables
-  out$reporting_pop <- sum(df$reporting_pop)
+  out$pop <- sum(df$pop)
   national_cols <- c("reporting_level", "gdp_data_level",
-                     "pce_data_level", "cpi_data_level", "ppp_data_level")
+                     "hfce_data_level", "cpi_data_level", "ppp_data_level")
   out[, national_cols] <- "national"
 
   return(out)

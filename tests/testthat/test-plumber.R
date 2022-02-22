@@ -103,5 +103,13 @@ test_that("Indicator names are correct", {
   expect_equal(sum(names(pip_resp[[1]]) %in% ind_code), 21)
 })
 
+
+test_that("Aux table names are correct", {
+  # Send pip API request
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/aux?interpolated_means")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_true(names(tmp_resp) %in% c('welfare_time', 'year', 'hfce', 'gdp', 'pop', 'pce'))
+})
+
 # Kill process
 api1$kill()

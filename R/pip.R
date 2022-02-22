@@ -135,7 +135,7 @@ pip <- function(country = "all",
 
     out <-
       data.table::setnames(out,
-                           old = c('reporting_year', 'reporting_pop'),
+                           old = c('year', 'pop'),
                            new = c('year', 'pop'))
 
     return(out)
@@ -161,13 +161,6 @@ pip <- function(country = "all",
 
   # Select columns
   out <- out[, .SD, .SDcols = lkup$pip_cols]
-
-  # Rename columns
-  out <-
-    data.table::setnames(out,
-      old = c('survey_year', 'reporting_year', 'reporting_pop', 'reporting_gdp', 'reporting_pce'),
-      new = c('welfare_time', 'year', 'pop', 'gdp', 'hfce'),
-      skip_absent = TRUE)
 
   return(out)
 }

@@ -69,7 +69,7 @@ test_that("returned columns are the same for all non-group_by queries", {
   tmp3 <- pip('AGO', 2050, lkup = lkups)
   expect_identical(names(tmp1), names(tmp2))
   expect_identical(names(tmp1), names(tmp3))
-  # skip("collapsed columns (e.g. survey_year, cpi) are converted to character")
+  # skip("collapsed columns (e.g. welfare_time, cpi) are converted to character")
   expect_identical(sapply(tmp1, class), sapply(tmp2, class))
   expect_identical(sapply(tmp1, class), sapply(tmp3, class))
 })
@@ -96,7 +96,7 @@ test_that("year selection is working", {
     povline = 1.9,
     lkup = lkups
   )
-  check <- max(lkups$svy_lkup[country_code == "AGO"]$reporting_year)
+  check <- max(lkups$svy_lkup[country_code == "AGO"]$year)
   expect_equal(tmp$year, sum(check))
 
   # Most recent year for a single country (w/ fill_gaps)
@@ -107,7 +107,7 @@ test_that("year selection is working", {
     fill_gaps = TRUE,
     lkup = lkups
   )
-  check <- max(lkups$ref_lkup$reporting_year)
+  check <- max(lkups$ref_lkup$year)
   expect_equal(tmp$year, check)
 })
 

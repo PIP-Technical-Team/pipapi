@@ -36,7 +36,7 @@ test_that("ui_hp_countries() works as expected", {
     )
   )
   expect_true(all(res$pop_in_poverty < 50))
-  check <- lkups$svy_lkup[country_code %in% c("AGO", "CIV")]$reporting_year
+  check <- lkups$svy_lkup[country_code %in% c("AGO", "CIV")]$year
   expect_equal(res$year, check)
 })
 
@@ -49,7 +49,7 @@ test_that("ui_pc_charts() works as expected", {
 
   # Regular query (fill_gaps = TRUE)
   res <- ui_pc_charts(country = "AGO", povline = 1.9, fill_gaps = TRUE, lkup = lkups)
-  expect_equal(nrow(res), length(unique(lkups$ref_lkup$reporting_year)))
+  expect_equal(nrow(res), length(unique(lkups$ref_lkup$year)))
   expect_equal(length(names(res)), 12)
 
   # Group by

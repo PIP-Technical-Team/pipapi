@@ -89,6 +89,7 @@ create_lkups <- function(data_dir, versions) {
   )
   # TEMP cleaning - START
   svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
+  svy_lkup <- rename_cols(svy_lkup)
   # TEMP cleaning - END
   svy_lkup$path <- sprintf(
     "%s/survey_data/%s.fst",
@@ -100,6 +101,7 @@ create_lkups <- function(data_dir, versions) {
   )
   # TEMP cleaning - START
   ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
+  ref_lkup <- rename_cols(ref_lkup)
   # TEMP cleaning - END
   ref_lkup$path <- sprintf(
     "%s/survey_data/%s.fst",
@@ -127,7 +129,7 @@ create_lkups <- function(data_dir, versions) {
     reporting_level = unique(tmp_metadata[["reporting_level"]])
     paths <- unique(tmp_metadata$path)
     ctry_years <- unique(tmp_metadata[, c(
-      "country_code", "reporting_year",
+      "country_code", "year",
       "reporting_level", "interpolation_id"
     )])
 
@@ -145,13 +147,17 @@ create_lkups <- function(data_dir, versions) {
   # Load dist_stats
   dist_stats <- fst::read_fst(sprintf("%s/estimations/dist_stats.fst", data_dir),
                               as.data.table = TRUE)
+  dist_stats <- rename_cols(dist_stats)
 
   # Load pop_region
   pop_region <- fst::read_fst(sprintf("%s/_aux/pop_region.fst", data_dir),
     as.data.table = TRUE)
+  pop_region <- rename_cols(pop_region)
 
   # Load country profiles lkups
   cp_lkups <- readRDS(sprintf("%s/_aux/country_profiles.RDS", data_dir))
+  cp_lkups$key_indicators <- lapply(cp_lkups$key_indicators, rename_cols)
+  cp_lkups$charts <- lapply(cp_lkups$charts, rename_cols)
 
   # Load poverty lines table
   pl_lkup <- fst::read_fst(sprintf("%s/_aux/poverty_lines.fst", data_dir),
@@ -159,30 +165,21 @@ create_lkups <- function(data_dir, versions) {
 
   # Load list with censor tables
   censored <- readRDS(sprintf("%s/_aux/censored.RDS", data_dir))
+  censored <- lapply(censored, rename_cols)
 
   # Create pip return columns
   pip_cols <-
-    c('region_code', 'country_code', 'reporting_year',
-      'reporting_level', 'survey_acronym', 'survey_coverage',
-      'survey_year', 'welfare_type', 'survey_comparability',
+    c('region_code', 'country_code', 'year',
+      'reporting_level','survey_acronym', 'survey_coverage',
+      'welfare_time', 'welfare_type', 'survey_comparability',
       'comparable_spell', 'poverty_line',
       'headcount', 'poverty_gap', 'poverty_severity', 'watts',
       'mean', 'median', 'mld', 'gini', 'polarization',
       'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
       'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
-       # 'survey_mean_lcu', 'survey_mean_ppp', # Do we need these?
-       # 'predicted_mean_ppp', # Do we need this?
-      'cpi', #'cpi_data_level',
-      'ppp', #'ppp_data_level',
-      'reporting_pop', #'pop_data_level',
-      'reporting_gdp', #'gdp_data_level',
-      'reporting_pce', #'pce_data_level',
-      'is_interpolated', # 'is_used_for_aggregation',
-      'distribution_type',
+      'cpi', 'ppp', 'pop', 'gdp', 'hfce',
+      'is_interpolated', 'distribution_type',
       'estimation_type'
-      # 'gd_type', 'path',
-      # 'cache_id', 'survey_id', 'surveyid_year'
-      # 'wb_region_code', 'interpolation_id'
     )
 
   # Create list of available auxiliary data tables

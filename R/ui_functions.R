@@ -10,7 +10,7 @@
 ui_hp_stacked <- function(povline = 1.9,
                           lkup) {
 
-  ref_years <- sort(unique(lkup$ref_lkup$reporting_year))
+  ref_years <- sort(unique(lkup$ref_lkup$year))
   ref_years <- ref_years[!ref_years %in% c(1981:1990)]
   ### TMP FIX START
   ### Ad hoc filtering of recent years
@@ -481,6 +481,7 @@ cp_pov_mrv_select_values <- function(v, h) {
 #' @export
 ui_svy_meta <- function(country = "all", lkup) {
   out <- readRDS(sprintf("%s/_aux/survey_metadata.rds", lkup$data_root))
+  out <- rename_cols(out)
   if (country == "all") {
     return(out)
   } else {
