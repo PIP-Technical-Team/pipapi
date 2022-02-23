@@ -4,9 +4,9 @@ rgn <- data.table::data.table(
   region_code = c("SSA","SSA","ECA","ECA",
                   "OHI","OHI","LAC","LAC","SAS","SAS","EAP","EAP",
                   "MNA","MNA"),
-  reporting_year = c(2016,2017,2016,2017,2016,
+  year = c(2016,2017,2016,2017,2016,
                      2017,2016,2017,2016,2017,2016,2017,2016,2017),
-  reporting_pop = c(1022526541,1050153672,
+  pop = c(1022526541,1050153672,
                     488015084.5,490225578.5,1089691233.5,1095331553,624032835,
                     630171566,1771167194,1792835608,2053190764,2068230030,
                     374755680,381212690),
@@ -45,13 +45,13 @@ rgn <- data.table::data.table(
 
 test_that("compute_world_aggregates works as expected", {
 
-  year <- min(rgn$reporting_year)
+  year <- min(rgn$year)
 
   wld <- compute_world_aggregates(rgn = rgn,
                                   cols = cols)
-  expect_equal(nrow(wld), length(unique(rgn$reporting_year)))
-  expect_true(max(wld$reporting_pop) < sum(rgn$reporting_pop))
-  expect_true(wld$reporting_pop[wld$reporting_year == year] ==
-                sum(rgn$reporting_pop[rgn$reporting_year == year]))
+  expect_equal(nrow(wld), length(unique(rgn$year)))
+  expect_true(max(wld$pop) < sum(rgn$pop))
+  expect_true(wld$pop[wld$year == year] ==
+                sum(rgn$pop[rgn$year == year]))
 
 })

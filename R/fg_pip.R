@@ -63,13 +63,13 @@ fg_pip <- function(country,
       # Compute estimated statistics using the fill_gap method
       if (debug) debugonce(wbpip:::prod_fg_compute_pip_stats)
       tmp_stats <- wbpip:::prod_fg_compute_pip_stats(
-        request_year = ctry_years[["reporting_year"]][ctry_year_id],
+        request_year = ctry_years[["year"]][ctry_year_id],
         data = svy_data,
         predicted_request_mean = tmp_metadata[["predicted_mean_ppp"]],
         svy_mean_lcu = tmp_metadata[["survey_mean_lcu"]],
         svy_median_lcu = tmp_metadata$survey_median_lcu,
         svy_median_ppp = tmp_metadata$survey_median_ppp,
-        survey_year = tmp_metadata[["survey_year"]],
+        survey_year = tmp_metadata[["welfare_time"]],
         default_ppp = tmp_metadata[["ppp"]],
         ppp = ppp,
         distribution_type = tmp_metadata[["distribution_type"]],
@@ -100,7 +100,7 @@ fg_pip <- function(country,
   out <- data.table::rbindlist(out)
 
   # Set collapse vars to NA (by type)
-  vars_to_collapse_real <- c("survey_year",
+  vars_to_collapse_real <- c("welfare_time",
                              "predicted_mean_ppp",
                              "survey_mean_lcu",
                              "survey_mean_ppp",

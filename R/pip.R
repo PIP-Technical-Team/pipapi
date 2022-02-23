@@ -133,6 +133,11 @@ pip <- function(country = "all",
       out <- censor_rows(out, lkup[["censored"]], type = "regions")
     }
 
+    out <-
+      data.table::setnames(out,
+                           old = c('year', 'pop'),
+                           new = c('year', 'pop'))
+
     return(out)
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE

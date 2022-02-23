@@ -7,7 +7,7 @@ library(httr)
 
 # Setup by starting APIs
 root_path <- "http://localhost"
-api1 <- callr::r_session$new(options =  r_session_options(user_profile = FALSE))
+api1 <- callr::r_session$new(options = r_session_options(user_profile = FALSE))
 Sys.sleep(5)
 api1$call(function() {
   # Use double assignment operator so the lkups object is available in the global
@@ -58,7 +58,7 @@ test_that("Basic PIP request is working", {
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(tmp_resp[[1]]$reporting_year, 2018)
+  expect_equal(tmp_resp[[1]]$year, 2018)
 })
 
 test_that("Interpolated PIP request is working", {
@@ -67,7 +67,7 @@ test_that("Interpolated PIP request is working", {
 
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(tmp_resp[[1]]$reporting_year, 2012)
+  expect_equal(tmp_resp[[1]]$year, 2012)
 })
 
 test_that("Serializer formats are working", {
@@ -101,6 +101,14 @@ test_that("Indicator names are correct", {
   ind_resp <- httr::content(r, encoding = "UTF-8")
   ind_code <- purrr::map_chr(ind_resp, "indicator_code")
   expect_equal(sum(names(pip_resp[[1]]) %in% ind_code), 21)
+})
+
+
+test_that("Aux table names are correct", {
+  # Send pip API request
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/aux?table=interpolated_means")
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_true(all(c('welfare_time', 'year', 'hfce', 'gdp', 'pop') %in% names(tmp_resp[[1]])))
 })
 
 # Kill process

@@ -84,8 +84,8 @@ test_that("Homepage country charts endpoint is working", {
     names(tmp_resp[[1]]),
     c(
       "region_code", "country_code",
-      "reporting_year", "poverty_line",
-      "reporting_pop", "pop_in_poverty"
+      "year", "poverty_line",
+      "pop", "pop_in_poverty"
     )
   )
 })
@@ -100,7 +100,7 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(names(tmp_resp[[1]]), c(
-    "country_code", "reporting_year", "welfare_type",
+    "country_code", "year", "welfare_type",
     "reporting_level", "median", "gini",
     "polarization", "mld", "decile1",
     "decile2", "decile3", "decile4",
@@ -108,9 +108,7 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
     "decile8", "decile9", "decile10",
     "region_code", "survey_coverage",
     "survey_comparability", "comparable_spell",
-    "survey_year",
-    # "survey_mean_lcu", "survey_mean_ppp",
-    "reporting_pop", "ppp", "cpi",
+    "welfare_time", "pop", "ppp", "cpi",
     "distribution_type", "is_interpolated",
     "poverty_line", "mean", "headcount",
     "poverty_gap", "poverty_severity", "watts",
@@ -128,11 +126,11 @@ test_that("Poverty calculator chart endpoint is working for imputed years", {
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(names(tmp_resp[[1]]), c(
-    "country_code", "reporting_year",
+    "country_code", "year",
     "poverty_line", "mean", "headcount",
     "poverty_gap", "poverty_severity",
     "watts", "region_code",
-    "reporting_pop", "is_interpolated",
+    "pop", "is_interpolated",
     "pop_in_poverty"
   ))
 })
@@ -147,8 +145,8 @@ test_that("Poverty calculator chart endpoint is working for regional aggregates"
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(names(tmp_resp[[1]]), c(
-    "region_code", "reporting_year",
-    "reporting_pop", "poverty_line",
+    "region_code", "year",
+    "pop", "poverty_line",
     "headcount", "poverty_gap",
     "poverty_severity", "watts",
     "mean", "pop_in_poverty"
@@ -166,7 +164,7 @@ test_that("Poverty calculator download endpoint is working for survey years", {
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(class(tmp_resp), c("spec_tbl_df", "tbl_df", "tbl", "data.frame"))
   expect_equal(names(tmp_resp), c(
-    "country_code", "reporting_year", "welfare_type",
+    "country_code", "year", "welfare_type",
     "reporting_level", "median", "gini",
     "polarization", "mld", "decile1",
     "decile2", "decile3", "decile4",
@@ -174,9 +172,7 @@ test_that("Poverty calculator download endpoint is working for survey years", {
     "decile8", "decile9", "decile10",
     "region_code", "survey_coverage",
     "survey_comparability", "comparable_spell",
-    "survey_year",
-    # "survey_mean_lcu", "survey_mean_ppp",
-    "reporting_pop", "ppp", "cpi",
+    "welfare_time", "pop", "ppp", "cpi",
     "distribution_type", "is_interpolated",
     "poverty_line", "mean", "headcount",
     "poverty_gap", "poverty_severity", "watts",
@@ -195,11 +191,11 @@ test_that("Poverty calculator download endpoint is working for imputed years", {
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(class(tmp_resp), c("spec_tbl_df", "tbl_df", "tbl", "data.frame"))
   expect_equal(names(tmp_resp), c(
-    "country_code", "reporting_year",
+    "country_code", "year",
     "poverty_line", "mean", "headcount",
     "poverty_gap", "poverty_severity",
     "watts", "region_code",
-    "reporting_pop", "is_interpolated",
+    "pop", "is_interpolated",
     "pop_in_poverty"
   ))
 })
@@ -215,8 +211,8 @@ test_that("Poverty calculator download endpoint is working for regional aggregat
   tmp_resp <- httr::content(r, encoding = "UTF-8", show_col_types = FALSE)
   expect_equal(class(tmp_resp), c("spec_tbl_df", "tbl_df", "tbl", "data.frame"))
   expect_equal(names(tmp_resp), c(
-    "region_code", "reporting_year",
-    "reporting_pop", "poverty_line",
+    "region_code", "year",
+    "pop", "poverty_line",
     "headcount", "poverty_gap",
     "poverty_severity", "watts",
     "mean", "pop_in_poverty"
@@ -234,19 +230,19 @@ test_that("Country profile key indicators endpoint is working", {
   # KI 1
   expect_equal(
     names(tmp_resp$headcount_national[[1]]),
-    c("country_code", "reporting_year", "headcount_national")
+    c("country_code", "year", "headcount_national")
   )
 
   # KI 2
   expect_equal(
     names(tmp_resp$headcount[[1]]),
-    c("country_code", "reporting_year", "poverty_line", "headcount")
+    c("country_code", "year", "poverty_line", "headcount")
   )
 
   # KI 3
   expect_equal(
     names(tmp_resp$mpm_headcount[[1]]),
-    c("country_code", "reporting_year", "mpm_headcount")
+    c("country_code", "year", "mpm_headcount")
   )
 
   # KI 4
@@ -257,20 +253,20 @@ test_that("Country profile key indicators endpoint is working", {
 
   # KI 5
   expect_equal(
-    names(tmp_resp$reporting_pop[[1]]),
-    c("country_code", "reporting_year", "reporting_pop")
+    names(tmp_resp$pop[[1]]),
+    c("country_code", "year", "pop")
   )
 
   # KI 6
   expect_equal(
     names(tmp_resp$gni[[1]]),
-    c("country_code", "reporting_year", "gni", "latest")
+    c("country_code", "year", "gni", "latest")
   )
 
   # KI 7
   expect_equal(
     names(tmp_resp$gdp_growth[[1]]),
-    c("country_code", "reporting_year", "gdp_growth", "latest")
+    c("country_code", "year", "gdp_growth", "latest")
   )
 })
 
@@ -283,7 +279,7 @@ test_that("Country profile charts endpoint is working", {
   expect_equal(
     names(tmp_resp$pov_charts[[1]]$pov_trend[[1]]),
     c(
-      "country_code", "reporting_year", "poverty_line",
+      "country_code", "year", "poverty_line",
       "survey_acronym", "welfare_type", "survey_comparability",
       "comparable_spell", "headcount", "pop_in_poverty"
     )
@@ -293,7 +289,7 @@ test_that("Country profile charts endpoint is working", {
   expect_equal(
     names(tmp_resp$pov_charts[[1]]$pov_mrv[[1]]),
     c(
-      "country_code", "reporting_year",
+      "country_code", "year",
       "poverty_line", "headcount",
       "sort_order"
     )
@@ -303,7 +299,7 @@ test_that("Country profile charts endpoint is working", {
   expect_equal(
     names(tmp_resp$ineq_trend[[2]]),
     c(
-      "country_code", "reporting_year",
+      "country_code", "year",
       "survey_acronym", "welfare_type",
       "survey_comparability",
       "comparable_spell",
@@ -315,7 +311,7 @@ test_that("Country profile charts endpoint is working", {
   expect_equal(
     names(tmp_resp$ineq_bar[[1]]),
     c(
-      "country_code", "reporting_year",
+      "country_code", "year",
       "survey_coverage",
       "welfare_type", "gender",
       "agegroup", "education",
@@ -328,7 +324,7 @@ test_that("Country profile charts endpoint is working", {
   expect_equal(
     names(tmp_resp$mpm[[1]]),
     c(
-      "country_code", "reporting_year",
+      "country_code", "year",
       "welfare_type",
       "mpm_education_attainment",
       "mpm_education_enrollment",
@@ -359,7 +355,7 @@ test_that("Survey metadata endpoint is working", {
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(names(tmp_resp[[1]]),
-               c("country_code", "reporting_year" ,
+               c("country_code", "year" ,
                  "survey_title", "survey_conductor",  "survey_coverage",
                  "welfare_type",    "distribution_type", "metadata"))
   expect_equal(

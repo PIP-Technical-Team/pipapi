@@ -1,8 +1,8 @@
 # constants
-censored <- readRDS("../testdata/censored.RDS")
-censored2 <- readRDS("../testdata/censored-2.RDS")
-reg_agg <- readRDS("../testdata/ohi-sample.RDS")
-chn <- readRDS("../testdata/chn-2016.RDS")
+censored <- readRDS("../testdata/censored.rds")
+censored2 <- readRDS("../testdata/censored-2.rds")
+reg_agg <- readRDS("../testdata/ohi-sample.rds")
+chn <- readRDS("../testdata/chn-2016.rds")
 
 test_that("censor_rows() removes entire row when statistic is 'all'", {
 
@@ -14,10 +14,10 @@ test_that("censor_rows() removes entire row when statistic is 'all'", {
   # Region table
   res <- censor_rows(reg_agg, censored, type = "regions")
   expect_equal(nrow(res), 3)
-  expect_false(all(censored$region$reporting_year %in%
-                     res$reporting_year))
+  expect_false(all(censored$region$year %in%
+                     res$year))
 
-  expect_equal(reg_agg$reporting_pop[1:3], res$reporting_pop[1:3])
+  expect_equal(reg_agg$pop[1:3], res$pop[1:3])
   expect_equal(reg_agg$headcount[1:3], res$headcount[1:3])
   expect_equal(reg_agg$poverty_gap[1:3], res$poverty_gap[1:3])
   expect_equal(reg_agg$poverty_severity[1:3], res$poverty_severity[1:3])
@@ -57,7 +57,7 @@ test_that("censor_rows() sets specific stats to NA_real_", {
   expect_equal(reg_agg$mean[1:3], res$mean[1:3])
 
   # Check that other stats (for other indicators) didn't change
-  expect_equal(reg_agg$reporting_pop[1:5], res$reporting_pop[1:5])
+  expect_equal(reg_agg$pop[1:5], res$pop[1:5])
   expect_equal(reg_agg$poverty_gap[1:5], res$poverty_gap[1:5])
   expect_equal(reg_agg$poverty_severity[1:5], res$poverty_severity[1:5])
   expect_equal(reg_agg$pop_in_poverty[1:5], res$pop_in_poverty[1:5])
@@ -66,7 +66,7 @@ test_that("censor_rows() sets specific stats to NA_real_", {
 test_that("censor_rows() returns early when there no censoring observations", {
   tmp <- list(region = data.frame(
     region_code = character(0),
-    reporting_year = numeric(0),
+    year = numeric(0),
     statistic = character(0)
   ))
   res <- censor_rows(reg_agg, tmp, type = "regions")

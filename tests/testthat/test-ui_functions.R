@@ -17,7 +17,7 @@ test_that("ui_hp_stacked() works as expected", {
   expect_identical(
     names(res),
     c(
-      "region_code", "reporting_year",
+      "region_code", "year",
       "poverty_line", "pop_in_poverty"
     )
   )
@@ -31,13 +31,13 @@ test_that("ui_hp_countries() works as expected", {
     names(res),
     c(
       "region_code", "country_code",
-      "reporting_year", "poverty_line",
-      "reporting_pop", "pop_in_poverty"
+      "year", "poverty_line",
+      "pop", "pop_in_poverty"
     )
   )
   expect_true(all(res$pop_in_poverty < 50))
-  check <- lkups$svy_lkup[country_code %in% c("AGO", "CIV")]$reporting_year
-  expect_equal(res$reporting_year, check)
+  check <- lkups$svy_lkup[country_code %in% c("AGO", "CIV")]$year
+  expect_equal(res$year, check)
 })
 
 test_that("ui_pc_charts() works as expected", {
@@ -49,13 +49,13 @@ test_that("ui_pc_charts() works as expected", {
 
   # Regular query (fill_gaps = TRUE)
   res <- ui_pc_charts(country = "AGO", povline = 1.9, fill_gaps = TRUE, lkup = lkups)
-  expect_equal(nrow(res), length(unique(lkups$ref_lkup$reporting_year)))
+  expect_equal(nrow(res), length(unique(lkups$ref_lkup$year)))
   expect_equal(length(names(res)), 12)
 
   # Group by
   res <- ui_pc_charts(country = "AGO", group_by = "wb", povline = 1.9, lkup = lkups)
   res2 <- pip(country = "AGO", group_by = "wb", povline = 1.9, lkup = lkups)
-  res2$reporting_pop <- res2$reporting_pop / 1e6
+  res2$pop <- res2$pop / 1e6
   res2$pop_in_poverty <- res2$pop_in_poverty / 1e6
   expect_equal(res, res2)
 })
@@ -65,8 +65,8 @@ test_that("ui_pc_regional() works as expected", {
   expect_identical(
     names(res),
     c(
-      "region_code", "reporting_year",
-      "reporting_pop",  "poverty_line",
+      "region_code", "year",
+      "pop",  "poverty_line",
       "headcount", "poverty_gap",
       "poverty_severity", "watts",
       "mean",
@@ -202,7 +202,7 @@ test_that("cp_pov_mrv_select_countries() works as expected", {
 test_that("ui_cp_ki_headcount() works as expected", {
   df <- ui_cp_ki_headcount(country = "AGO", povline = 1.9, lkup = lkups)
   expect_identical(names(df), c(
-    "country_code", "reporting_year",
+    "country_code", "year",
     "poverty_line", "headcount"
   ))
 
@@ -211,13 +211,13 @@ test_that("ui_cp_ki_headcount() works as expected", {
   # reporting_level
   df <- ui_cp_ki_headcount(country = "ARG", povline = 1.9, lkup = lkups)
   expect_false(is.na(df$headcount))
-  expect_equal(df$reporting_year,
-    max(lkups$svy_lkup[country_code == "ARG"]$reporting_year))
+  expect_equal(df$year,
+    max(lkups$svy_lkup[country_code == "ARG"]$year))
 
   df <- ui_cp_ki_headcount(country = "SUR", povline = 1.9, lkup = lkups)
   expect_false(is.na(df$headcount))
-  expect_equal(df$reporting_year,
-               max(lkups$svy_lkup[country_code == "SUR"]$reporting_year))
+  expect_equal(df$year,
+               max(lkups$svy_lkup[country_code == "SUR"]$year))
 
   # Test that ui_cp_ki_headcount() works correctly for
   # aggregated distributions (only national rows are returned)
@@ -257,8 +257,8 @@ test_that("ui_cp_key_indicators() works as expected", {
   # Only CP relevant surveys
   dl <- ui_cp_key_indicators(country = "POL", povline = 1.9, lkup = lkups)
   expect_equal(nrow(dl[[1]]$headcount), 1)
-  y <- max(lkups$svy_lkup[country_code == "POL" & display_cp == 1]$reporting_year)
-  expect_equal(dl[[1]]$headcount$reporting_year, y)
+  y <- max(lkups$svy_lkup[country_code == "POL" & display_cp == 1]$year)
+  expect_equal(dl[[1]]$headcount$year, y)
 
 })
 
@@ -293,7 +293,7 @@ test_that("ui_cp_charts() works as expected", {
   dl <- ui_cp_charts(country = "POL", povline = 1.9, lkup = lkups)
   w <- dl$POL$pov_charts[[1]]$pov_trend$welfare_type
   expect_equal(unique(w), "income")
-  y <- dl$POL$pov_charts[[1]]$pov_trend$reporting_year
+  y <- dl$POL$pov_charts[[1]]$pov_trend$year
   expect_equal(anyDuplicated(y), 0)
 
 })
@@ -302,7 +302,7 @@ test_that("ui_svy_meta() works as expected", {
   res <- ui_svy_meta(country = "AGO", lkup = lkups)
   expect_equal(unique(res$country_code), "AGO")
   expect_equal(names(res),
-               c("country_code", "reporting_year" ,
+               c("country_code", "year" ,
                  "survey_title", "survey_conductor",  "survey_coverage",
                  "welfare_type",    "distribution_type", "metadata"))
   expect_equal(
@@ -321,7 +321,7 @@ test_that("ui_svy_meta() works as expected", {
   expect_true(all(unique(res$country_code) %in%
                     lkups$query_controls$country$values))
   expect_equal(names(res),
-               c("country_code", "reporting_year" ,
+               c("country_code", "year" ,
                  "survey_title", "survey_conductor",  "survey_coverage",
                  "welfare_type",    "distribution_type", "metadata"))
   expect_equal(

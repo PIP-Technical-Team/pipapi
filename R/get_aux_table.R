@@ -12,6 +12,7 @@ get_aux_table <- function(data_dir, table) {
     data_dir,
     table
   ))
+  out <- rename_cols(out)
 
   return(out)
 }
