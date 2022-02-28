@@ -254,6 +254,20 @@ test_that("ui_cp_key_indicators() works as expected", {
   )
   expect_identical(dl[[2]]$headcount$poverty_line, 1.9)
 
+  # All countries and poverty lines
+  dl <- ui_cp_key_indicators(country = "all", lkup = lkups2)
+  expect_length(dl, 2) # 2 countries
+  expect_length(dl[[1]], 7) # # 7 KI objects
+  expect_equal(nrow(dl[[1]]$headcount), 10) # 10 poverty lines
+  expect_identical(
+    names(dl[[2]]),
+    c(
+      "headcount", "headcount_national", "mpm_headcount",
+      "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
+    )
+  )
+  expect_identical(nrow(dl[[2]]$headcount), length(lkups2$pl_lkup$name))
+
   # Only CP relevant surveys
   dl <- ui_cp_key_indicators(country = "POL", povline = 1.9, lkup = lkups)
   expect_equal(nrow(dl[[1]]$headcount), 1)
