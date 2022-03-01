@@ -11,6 +11,7 @@
 ## Bug fixes
 
 - Duplicates are no longer created when `fill_gaps=TRUE`
+- Add `povline=NULL` option for /cp-key-indicators endpoint. This fixes an issue with the UI ingestion.
 
 # pipapi 0.0.1
 
