@@ -175,7 +175,7 @@ ui_pc_regional <- function(povline = 1.9, pop_units = 1e6, lkup) {
 #' @return list
 #' @export
 ui_cp_key_indicators <- function(country = "AGO",
-                                 povline = 1.9,
+                                 povline = NULL,
                                  lkup) {
 
   # Select surveys to use for CP page
@@ -206,7 +206,19 @@ ui_cp_key_indicators_single <- function(country,
                                         povline,
                                         lkup) {
 
-  hc <- ui_cp_ki_headcount(country, povline, lkup)
+  if (is.null(povline)) {
+    poverty_lines <- lkup$pl_lkup$poverty_line
+    hc <- lapply(poverty_lines, function(pl) {
+      ui_cp_ki_headcount(country, pl, lkup)
+    })
+    hc <- data.table::rbindlist(hc)
+    # names(hc) <- poverty_lines
+  } else {
+    hc <- ui_cp_ki_headcount(country, povline, lkup)
+    # hc <- list(hc)
+    # names(hc) <- povline
+  }
+
   dl <- lapply(lkup$cp$key_indicators, function(x) {
     x[country_code == country]
   })
