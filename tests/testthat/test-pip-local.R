@@ -36,7 +36,7 @@ test_that("Reporting level filtering is working", {
 
   expect_equal(nrow(tmp$all), 3)
   expect_equal(sort(tmp$all$reporting_level), c("national", "rural", "urban"))
-  })
+})
 
 # Use only test data
 # lkups$svy_lkup <- lkups$svy_lkup[(cache_id %in% files | country_code == "AGO")]
@@ -277,28 +277,28 @@ test_that("Distributional stats are correct for interpolated/extrapolated report
   tmp1 <- pip("AGO", year = 1981, fill_gaps = TRUE, lkup = lkups)
   tmp2 <- pip("AGO", year = 2000, fill_gaps = FALSE, lkup = lkups)
   expect_equal(tmp1$gini, tmp2$gini)
-  expect_equal(tmp2$median, tmp2$median)
+  expect_equal(tmp1$median, tmp2$median)
   expect_equal(tmp1$mld, tmp2$mld)
   expect_equal(tmp1$decile10, tmp2$decile10)
 
   # Interpolation (one year)
   tmp1 <- pip("AGO", year = 2004, fill_gaps = TRUE, lkup = lkups)
   expect_equal(tmp1$gini, NA_real_)
-  expect_equal(tmp2$median ,NA_real_)
+  expect_equal(tmp1$median ,NA_real_)
   expect_equal(tmp1$mld, NA_real_)
   expect_equal(tmp1$decile10, NA_real_)
 
   # Extrapolation (multiple years)
   tmp1 <- pip("AGO", year = 1981:1999, fill_gaps = TRUE, lkup = lkups)
   expect_equal(unique(tmp1$gini), tmp2$gini)
-  expect_equal(unique(tmp2$median), tmp2$median)
+  expect_equal(unique(tmp1$median), tmp2$median)
   expect_equal(unique(tmp1$mld), tmp2$mld)
   expect_equal(unique(tmp1$decile10), tmp2$decile10)
 
   # Interpolation (mulitiple year)
   tmp1 <- pip("AGO", year = 2001:2007, fill_gaps = TRUE, lkup = lkups)
   expect_equal(unique(tmp1$gini), NA_real_)
-  expect_equal(unique(tmp2$median), NA_real_)
+  expect_equal(unique(tmp1$median), NA_real_)
   expect_equal(unique(tmp1$mld), NA_real_)
   expect_equal(unique(tmp1$decile10), NA_real_)
 
