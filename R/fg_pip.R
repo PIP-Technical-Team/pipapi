@@ -104,7 +104,7 @@ fg_pip <- function(country,
   # * Ensures that cache_id can be kept as an output of fg_pip() while still removing duplicated rows
   out$cache_id <-
     ifelse(grepl("[|]", out$data_interpolation_id),
-           gsub(paste0("_", out$reporting_level, collapse = '|'), '', out$data_interpolation_id),
+           gsub(paste0("_", unique(out$reporting_level), collapse = '|'), '', out$data_interpolation_id),
            out$cache_id)
 
   # Set collapse vars to NA (by type)
