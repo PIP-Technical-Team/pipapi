@@ -6,11 +6,12 @@
 
 - Increase maximum limit for `povline` parameter from 100 to 10 000
 - Remove unnecessary columns from API response
-- Add estimation_type and distribution_type to the API response when fill_gaps=TRUE
+- Add estimation_type and distribution_type to the API response when `fill_gaps=TRUE`
 
 ## Bug fixes
 
 - Duplicates are no longer created when `fill_gaps=TRUE`
+- Fix bug where distributional stats were incorrectly returned as missing for extrapolated surveys when `fill_gaps=TRUE`
 
 # pipapi 0.0.1
 
