@@ -114,6 +114,9 @@ pip <- function(country = "all",
   # Handles aggregated distributions
   if (reporting_level %in% c("national", "all")) {
     out <- add_agg_stats(out)
+    if (reporting_level == "national") {
+      out <- out[reporting_level == "national"]
+    }
   }
 
   # **** TO BE REMOVED **** REMOVAL STARTS HERE

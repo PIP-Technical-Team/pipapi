@@ -153,7 +153,7 @@ add_dist_stats <- function(df, dist_stats) {
     # "country_code",
     # "reporting_year",
     # "welfare_type",
-    # "reporting_level",
+    "reporting_level",
     "gini",
     "polarization",
     "mld",
@@ -165,7 +165,7 @@ add_dist_stats <- function(df, dist_stats) {
   # data.table::setnames(dist_stats, "survey_median_ppp", "median")
 
   df <- dist_stats[df,
-                   on = .(cache_id), #.(country_code, reporting_year, welfare_type, reporting_level),
+                   on = .(cache_id, reporting_level), #.(country_code, reporting_year, welfare_type, reporting_level),
                    allow.cartesian = TRUE
   ]
 
