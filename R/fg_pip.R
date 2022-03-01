@@ -99,7 +99,9 @@ fg_pip <- function(country,
   out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
 
-  # Set cache_id to a modified version of data_interpolation_id
+  # Modify cache_id
+  # * Ensures that cache_id is unique for both extrapolated and interpolated surveys
+  # * Ensures that cache_id can be kept as an output of fg_pip() while still removing duplicated rows
   out$cache_id <-
     ifelse(grepl("[|]", out$data_interpolation_id),
            gsub(paste0("_", out$reporting_level, collapse = '|'), '', out$data_interpolation_id),
