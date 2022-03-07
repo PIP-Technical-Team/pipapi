@@ -13,6 +13,8 @@
 - Duplicates are no longer created when `fill_gaps=TRUE`
 - Add `povline=NULL` option for /cp-key-indicators endpoint. This fixes an issue with the UI ingestion.
 - Fix bug where distributional stats were incorrectly returned as missing for extrapolated surveys when `fill_gaps=TRUE`
+- Add reporting_level to the output of `ui_cp_poverty_charts()`
+- Make sure `ui_cp_poverty_charts()` only returns non-national observations when a country has no surveys with national coverage
 
 # pipapi 0.0.1
 
