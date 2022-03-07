@@ -285,7 +285,8 @@ test_that("Country profile charts endpoint is working", {
     c(
       "country_code", "reporting_year", "poverty_line",
       "survey_acronym", "welfare_type", "survey_comparability",
-      "comparable_spell", "headcount", "pop_in_poverty"
+      "comparable_spell", "headcount", "pop_in_poverty",
+      "reporting_level"
     )
   )
 
@@ -295,7 +296,7 @@ test_that("Country profile charts endpoint is working", {
     c(
       "country_code", "reporting_year",
       "poverty_line", "headcount",
-      "sort_order"
+      "reporting_level", "sort_order"
     )
   )
 

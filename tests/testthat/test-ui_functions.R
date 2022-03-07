@@ -99,7 +99,7 @@ test_that("ui_cp_poverty_charts() works as expected", {
   expect_equal(nrow(dl$pov_trend),
                nrow(lkups$svy_lkup[country_code == "ARG"]))
   expect_equal(nrow(dl$pov_mrv), 11)
-
+  expect_equal(unique(dl$pov_trend$reporting_level), "urban")
   dl <- ui_cp_poverty_charts(
     country = "SUR",
     povline = 1.9,
@@ -123,9 +123,21 @@ test_that("ui_cp_poverty_charts() works as expected", {
   expect_equal(nrow(dl$pov_trend),
                nrow(lkups$dist_stats[country_code == "CHN" &
                           reporting_level == "national"]))
-  skip("These tests can be activated if we implement pipapi#149")
   expect_equal(unique(dl$pov_trend$reporting_level), "national")
-  expect_equal(unique(dl$pov_mrv$reporting_level), "national")
+
+  # Test that ui_cp_poverty_charts() works correctly for
+  # countries w/ multiple reporting levels (only national rows are returned)
+  dl <- ui_cp_poverty_charts(
+    country = "URY",
+    povline = 1.9,
+    pop_units = 1e6,
+    lkup = lkups,
+    pov_lkup = NULL
+  )
+  expect_equal(nrow(dl$pov_trend),
+               nrow(lkups$dist_stats[country_code == "URY" &
+                                       reporting_level == "national"]))
+  expect_equal(unique(dl$pov_trend$reporting_level), "national")
 })
 
 test_that("cp_pov_mrv_select_values() works as expected", {
@@ -223,6 +235,17 @@ test_that("ui_cp_ki_headcount() works as expected", {
   # aggregated distributions (only national rows are returned)
   df <- ui_cp_ki_headcount(country = "CHN", povline = 1.9, lkup = lkups)
   expect_false(is.na(df$headcount))
+  expect_equal(df$reporting_year,
+               max(lkups$dist_stats[country_code == "CHN" &
+                                    reporting_level == "national"]$reporting_year))
+  # Test that ui_cp_ki_headcount() works correctly for countries
+  # w/ multiple reporting levels (only national rows are returned)
+  df <- ui_cp_ki_headcount(country = "URY", povline = 1.9, lkup = lkups)
+  expect_false(is.na(df$headcount))
+  expect_equal(df$reporting_year,
+               max(lkups$dist_stats[country_code == "URY" &
+                                    reporting_level == "national"]$reporting_year))
+
 })
 
 test_that("ui_cp_key_indicators() works as expected", {
