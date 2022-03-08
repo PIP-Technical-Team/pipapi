@@ -83,6 +83,14 @@ create_lkups <- function(data_dir, versions) {
   paths <- list.files(paste0(data_dir, "/survey_data"))
   paths_ids <- tools::file_path_sans_ext(paths)
 
+  # TEMP FIX to add country and region name
+  countries <-  fst::read_fst(sprintf("%s/_aux/countries.fst", data_dir),
+                              as.data.table = TRUE)
+  regions <-  fst::read_fst(sprintf("%s/_aux/regions.fst", data_dir),
+                              as.data.table = TRUE)
+  regions %>% data.table::setnames('region', 'region_name')
+  # TEMP fix - END (see further code chunks below )
+
   # Clean svy_lkup
   svy_lkup <- fst::read_fst(sprintf("%s/estimations/prod_svy_estimation.fst", data_dir),
     as.data.table = TRUE
@@ -94,6 +102,12 @@ create_lkups <- function(data_dir, versions) {
     "%s/survey_data/%s.fst",
     data_dir, svy_lkup$cache_id
   )
+  # TEMP fix to add country and region name
+  svy_lkup <- merge(svy_lkup, countries[, c('country_code', 'country_name')],
+                    by = 'country_code', all.x = TRUE)
+  svy_lkup <- merge(svy_lkup, regions[, c('region_code', 'region_name')],
+                    by = 'region_code', all.x = TRUE)
+  # TEMP fix - END
   # Clean ref_lkup
   ref_lkup <- fst::read_fst(sprintf("%s/estimations/prod_ref_estimation.fst", data_dir),
     as.data.table = TRUE
@@ -105,6 +119,12 @@ create_lkups <- function(data_dir, versions) {
     "%s/survey_data/%s.fst",
     data_dir, ref_lkup$cache_id
   )
+  # TEMP fix to add country and region name
+  ref_lkup <- merge(ref_lkup, countries[, c('country_code', 'country_name')],
+                    by = 'country_code', all.x = TRUE)
+  ref_lkup <- merge(ref_lkup, regions[, c('region_code', 'region_name')],
+                    by = 'region_code', all.x = TRUE)
+  # TEMP fix - END
   # TEMP fix for ARG - START
   # There is a bug in the pipeline causing ARG to have duplicated rows
   ref_lkup <- ref_lkup[!(country_code == "ARG" & reporting_level == "national")]
@@ -162,7 +182,7 @@ create_lkups <- function(data_dir, versions) {
 
   # Create pip return columns
   pip_cols <-
-    c('region_code', 'country_code', 'reporting_year',
+    c('region_name', 'region_code', 'country_name', 'country_code', 'reporting_year',
       'reporting_level', 'survey_acronym', 'survey_coverage',
       'survey_year', 'welfare_type', 'survey_comparability',
       'comparable_spell', 'poverty_line',
