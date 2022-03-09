@@ -18,24 +18,15 @@ ui_hp_stacked <- function(povline = 1.9,
   ref_years <- ref_years[!ref_years %in% c(2018:2020)]
   ### TMP FIX END
 
-  out <- pip(
+  out <- pip_grp(
     country = "all",
     year = ref_years,
     povline = povline,
-    lkup = lkup,
-    fill_gaps = TRUE,
     group_by = "wb",
     reporting_level = "national",
-    censor = FALSE
+    censor = FALSE,
+    lkup = lkup
   )
-
-  # out <- pip_grp(
-  #   country = "all",
-  #   year = "all",
-  #   povline = povline,
-  #   group_by = "wb",
-  #   lkup = lkup
-  # )
 
   out <- out[, c(
     "region_code", "reporting_year",
@@ -113,6 +104,7 @@ ui_pc_charts <- function(country = c("AGO"),
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
   out$reporting_pop <- out$reporting_pop / pop_units
 
+  # DO WE NEED THIS CODE CHUNK?
   if (group_by != "none") {
     return(out)
   } else if (fill_gaps == FALSE) {
@@ -150,14 +142,13 @@ ui_pc_charts <- function(country = c("AGO"),
 #' @export
 ui_pc_regional <- function(povline = 1.9, pop_units = 1e6, lkup) {
 
-  out <- pip(country = "all",
-             year    = "all",
-             group_by = "wb",
-             reporting_level = "national",
-             fill_gaps = TRUE,
-             povline = povline,
-             lkup = lkup,
-             censor = TRUE)
+  out <- pip_grp(country = "all",
+                 year    = "all",
+                 group_by = "wb",
+                 reporting_level = "national",
+                 povline = povline,
+                 lkup = lkup,
+                 censor = TRUE)
 
   # Add pop_in_poverty and scale according to pop_units
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
