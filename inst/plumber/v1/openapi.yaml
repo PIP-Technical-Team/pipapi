@@ -96,7 +96,7 @@ paths:
              schema:
               type: number
               minimum: 0
-              maximum: 100
+              maximum: 10000
               example: 1.90
              description: Poverty line to be used to compute poverty mesures.
            - in: query
