@@ -109,6 +109,17 @@ test_that("year selection is working", {
   )
   check <- max(lkups$ref_lkup$reporting_year)
   expect_equal(tmp$reporting_year, check)
+
+  # Most recent year for all countries
+  tmp <- pip(
+    country = "all",
+    year = "mrv",
+    povline = 1.9,
+    lkup = lkups
+  )
+  check <- max(lkups$svy_lkup$reporting_year)
+  expect_equal(unique(tmp$reporting_year), check)
+
 })
 
 ## Welfare type ----

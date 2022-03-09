@@ -38,7 +38,11 @@ subset_lkup <- function(country,
   }
   # Select years
   if (year[1] == "mrv") {
-    max_year <- max(lkup[country_code == country]$reporting_year)
+    if (country[1] != "all") {
+      max_year <- max(lkup[country_code == country]$reporting_year)
+    } else {
+      max_year <- max(lkup$reporting_year)
+    }
     keep <- keep & lkup$reporting_year %in% max_year
   }
   if (!year[1] %in% c("all", "mrv")) {
@@ -392,7 +396,11 @@ subset_ctry_years <- function(country,
   }
   # Select years
   if (year[1] == "mrv") {
-    max_year <- max(lkup[country_code == country]$reporting_year)
+    if (country[1] != "all") {
+      max_year <- max(lkup[country_code == country]$reporting_year)
+    } else {
+      max_year <- max(lkup$reporting_year)
+    }
     keep <- keep & lkup$reporting_year %in% max_year
   }
   if (!year[1] %in% c("all", "mrv")) {
