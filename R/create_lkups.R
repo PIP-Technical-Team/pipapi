@@ -118,16 +118,13 @@ create_lkups <- function(data_dir, versions) {
     "%s/survey_data/%s.fst",
     data_dir, ref_lkup$cache_id
   )
+
   # TEMP fix to add country and region name
   ref_lkup <- merge(ref_lkup, countries[, c('country_code', 'country_name')],
                     by = 'country_code', all.x = TRUE)
   ref_lkup <- merge(ref_lkup, regions[, c('region_code', 'region_name')],
                     by = 'region_code', all.x = TRUE)
   # TEMP fix - END
-  # TEMP fix for ARG - START
-  # There is a bug in the pipeline causing ARG to have duplicated rows
-  ref_lkup <- ref_lkup[!(country_code == "ARG" & reporting_level == "national")]
-  # TEMP fix for ARG - END
 
   # Add data interpolation ID (unique combination of survey files used for one
   # or more reporting years)
