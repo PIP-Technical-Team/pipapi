@@ -12,11 +12,6 @@ ui_hp_stacked <- function(povline = 1.9,
 
   ref_years <- sort(unique(lkup$ref_lkup$reporting_year))
   ref_years <- ref_years[!ref_years %in% c(1981:1990)]
-  ### TMP FIX START
-  ### Ad hoc filtering of recent years
-  ### To be removed once full censoring is correctly implemented
-  ref_years <- ref_years[!ref_years %in% c(2018:2020)]
-  ### TMP FIX END
 
   out <- pip(
     country = "all",
@@ -123,7 +118,7 @@ ui_pc_charts <- function(country = c("AGO"),
       'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
       'region_code', 'survey_coverage', 'survey_comparability',
       'comparable_spell', 'survey_year',
-      'survey_mean_lcu', 'survey_mean_ppp', # Do we need these here?
+      # 'survey_mean_lcu', 'survey_mean_ppp', # Do we need these here?
       'reporting_pop', 'ppp', 'cpi', 'distribution_type',
       'is_interpolated', 'poverty_line', 'mean', 'headcount',
       'poverty_gap', 'poverty_severity', 'watts', 'pop_in_poverty'
@@ -175,7 +170,7 @@ ui_pc_regional <- function(povline = 1.9, pop_units = 1e6, lkup) {
 #' @return list
 #' @export
 ui_cp_key_indicators <- function(country = "AGO",
-                                 povline = 1.9,
+                                 povline = NULL,
                                  lkup) {
 
   # Select surveys to use for CP page
@@ -206,7 +201,19 @@ ui_cp_key_indicators_single <- function(country,
                                         povline,
                                         lkup) {
 
-  hc <- ui_cp_ki_headcount(country, povline, lkup)
+  if (is.null(povline)) {
+    poverty_lines <- lkup$pl_lkup$poverty_line
+    hc <- lapply(poverty_lines, function(pl) {
+      ui_cp_ki_headcount(country, pl, lkup)
+    })
+    hc <- data.table::rbindlist(hc)
+    # names(hc) <- poverty_lines
+  } else {
+    hc <- ui_cp_ki_headcount(country, povline, lkup)
+    # hc <- list(hc)
+    # names(hc) <- povline
+  }
+
   dl <- lapply(lkup$cp$key_indicators, function(x) {
     x[country_code == country]
   })
@@ -237,8 +244,15 @@ ui_cp_ki_headcount <- function(country, povline, lkup) {
   # rows where the reporting level is urban/rural, e.g ARG, SUR.
   # But we still need to sub-select only national rows for e.g CHN.
   res[, N := .N, by = list(country_code, reporting_year)]
-  res <- res[, subset_cp_rows(.SD),
+  res <- res[, cp_select_reporting_level(.SD),
              by = .(country_code, reporting_year)]
+  # Make sure keep only national rows for countries with multiple
+  # reporting levels, e.g URY
+  res[, N := ifelse(length(unique(reporting_level)) != 1
+                              & reporting_level != "national",
+                              length(unique(reporting_level)), 1),
+      by = .(country_code)]
+  res <- res[, cp_select_reporting_level(.SD), by = .(country_code)]
   res$N <- NULL
   ### TEMP FIX END
 
@@ -351,8 +365,16 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   # rows where the reporting level is urban/rural, e.g ARG, SUR.
   # But we still need to sub-select only national rows for e.g CHN.
   res_pov_trend[, N := .N, by = list(country_code, reporting_year)]
-  res_pov_trend <- res_pov_trend[, subset_cp_rows(.SD),
+  res_pov_trend <- res_pov_trend[, cp_select_reporting_level(.SD),
                                  by = .(country_code, reporting_year)]
+  # Make sure keep only national rows for countries with multiple
+  # reporting levels, e.g URY
+  res_pov_trend[, N := ifelse(length(unique(reporting_level)) != 1
+                              & reporting_level != "national",
+                              length(unique(reporting_level)), 1),
+                by = .(country_code)]
+  res_pov_trend <- res_pov_trend[, cp_select_reporting_level(.SD),
+                                 by = .(country_code)]
   res_pov_trend$N <- NULL
   ### TEMP FIX END
 
@@ -362,7 +384,8 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
     res_pov_trend[, c(
       "country_code", "reporting_year",  "poverty_line",
       "survey_acronym", "welfare_type", "survey_comparability",
-      "comparable_spell", "headcount", "pop_in_poverty"
+      "comparable_spell", "headcount", "pop_in_poverty",
+      "reporting_level"
     )]
 
   # Fetch data for poverty bar chart
@@ -387,15 +410,23 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   # rows where the reporting level is urban/rural, e.g ARG, SUR.
   # But we still need to sub-select only national rows for e.g CHN.
   res_pov_mrv[, N := .N, by = list(country_code, reporting_year)]
-  res_pov_mrv <- res_pov_mrv[, subset_cp_rows(.SD),
+  res_pov_mrv <- res_pov_mrv[, cp_select_reporting_level(.SD),
                              by = .(country_code, reporting_year)]
+  # Make sure keep only national rows for countries with multiple
+  # reporting levels, e.g URY
+  res_pov_mrv[, N := ifelse(length(unique(reporting_level)) != 1
+                              & reporting_level != "national",
+                              length(unique(reporting_level)), 1),
+              by = .(country_code)]
+  res_pov_mrv <- res_pov_mrv[, cp_select_reporting_level(.SD),
+                             by = .(country_code)]
   res_pov_mrv$N <- NULL
   ### TEMP FIX END
 
 
   res_pov_mrv <-
     res_pov_mrv[, .SD[which.max(reporting_year)],
-                by = country_code
+                by = .(country_code)
     ]
   selected_year <- res_pov_mrv[country_code == country]$reporting_year
   year_range <- c((selected_year - 3):(selected_year + 3))
@@ -404,7 +435,8 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   res_pov_mrv <-
     res_pov_mrv[, c(
       "country_code", "reporting_year",
-      "poverty_line", "headcount"
+      "poverty_line", "headcount",
+      "reporting_level"
     )]
   res_pov_mrv <-
     cp_pov_mrv_select_countries(res_pov_mrv, country)
@@ -418,12 +450,11 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
   return(out)
 }
 
-#' subset_cp_rows
-#' TEMP function to select only national rows for
-#' cases like CHN, IND etc.
+#' cp_select_reporting_level
+#' Select only national rows for cases like CHN, IND etc.
 #' @noRd
-subset_cp_rows <- function(x) {
-  if (any(x$N == 3)) {
+cp_select_reporting_level <- function(x) {
+  if (any(x$N != 1)) {
     x <- x[reporting_level == "national"]
   }
   return(x)

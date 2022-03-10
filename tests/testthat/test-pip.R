@@ -6,7 +6,7 @@ skip("Disable until a full set of anonymous package data has been created")
 
 # files <- sub("[.]fst", "", list.files("../testdata/app_data/20210401/survey_data/"))
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-lkups <- lkups$versions_paths$latest_release
+lkups <-lkups$versions_paths[[lkups$latest_release]]
 
 test_that("Reporting level filtering is working", {
   reporting_levels <- c("national", "urban", "rural", "all")
@@ -260,6 +260,40 @@ test_that("imputation is working for extrapolated aggregate distribution", {
   # expect_equal(tmp$headcount[tmp$reporting_level == "urban"], 0.1701744)
   # expect_equal(tmp$mean[tmp$reporting_level == "national"], 62.5904793524725 * 12 / 365)
 })
+
+test_that("Distributional stats are correct for interpolated/extrapolated reporting years",{
+
+  # Extrapolation (one year)
+  tmp1 <- pip("AGO", year = 1981, fill_gaps = TRUE, lkup = lkups)
+  tmp2 <- pip("AGO", year = 2000, fill_gaps = FALSE, lkup = lkups)
+  expect_equal(tmp1$gini, tmp2$gini)
+  expect_equal(tmp1$median, tmp2$median)
+  expect_equal(tmp1$mld, tmp2$mld)
+  expect_equal(tmp1$decile10, tmp2$decile10)
+
+  # Interpolation (one year)
+  tmp1 <- pip("AGO", year = 2004, fill_gaps = TRUE, lkup = lkups)
+  expect_equal(tmp1$gini, NA_real_)
+  expect_equal(tmp1$median ,NA_real_)
+  expect_equal(tmp1$mld, NA_real_)
+  expect_equal(tmp1$decile10, NA_real_)
+
+  # Extrapolation (multiple years)
+  tmp1 <- pip("AGO", year = 1981:1999, fill_gaps = TRUE, lkup = lkups)
+  expect_equal(unique(tmp1$gini), tmp2$gini)
+  expect_equal(unique(tmp1$median), tmp2$median)
+  expect_equal(unique(tmp1$mld), tmp2$mld)
+  expect_equal(unique(tmp1$decile10), tmp2$decile10)
+
+  # Interpolation (mulitiple year)
+  tmp1 <- pip("AGO", year = 2001:2007, fill_gaps = TRUE, lkup = lkups)
+  expect_equal(unique(tmp1$gini), NA_real_)
+  expect_equal(unique(tmp1$median), NA_real_)
+  expect_equal(unique(tmp1$mld), NA_real_)
+  expect_equal(unique(tmp1$decile10), NA_real_)
+
+})
+
 
 # Check regional aggregations ----
 test_that("Regional aggregations are working", {

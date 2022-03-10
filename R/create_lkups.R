@@ -10,14 +10,14 @@ create_versioned_lkups <- function(data_dir) {
   data_dirs <- extract_data_dirs(data_dir = data_dir)
 
   versions <- names(data_dirs)
-  versions[1] <- "latest_release"
+  # versions[1] <- "latest_release"
 
   versions_paths <- purrr::map(data_dirs, create_lkups, versions = versions)
-
   names(versions_paths) <- versions
 
   return(list(versions = versions,
-              versions_paths = versions_paths))
+              versions_paths = versions_paths,
+              latest_release = versions[1]))
 
 }
 
@@ -29,8 +29,7 @@ create_versioned_lkups <- function(data_dir) {
 #' @return character
 #' @export
 #'
-extract_data_dirs <- function(data_dir,
-                              version_length = 8) {
+extract_data_dirs <- function(data_dir, version_length = 8) {
   # List data directories under data_dir
   data_dirs <- list.dirs(data_dir, full.names = TRUE, recursive = FALSE)
   data_dirs <- data_dirs[!grepl(pattern = "\\.git$", x = data_dirs)]
@@ -83,6 +82,14 @@ create_lkups <- function(data_dir, versions) {
   paths <- list.files(paste0(data_dir, "/survey_data"))
   paths_ids <- tools::file_path_sans_ext(paths)
 
+  # TEMP FIX to add country and region name
+  countries <-  fst::read_fst(sprintf("%s/_aux/countries.fst", data_dir),
+                              as.data.table = TRUE)
+  regions <-  fst::read_fst(sprintf("%s/_aux/regions.fst", data_dir),
+                              as.data.table = TRUE)
+  regions %>% data.table::setnames('region', 'region_name')
+  # TEMP fix - END (see further code chunks below )
+
   # Clean svy_lkup
   svy_lkup <- fst::read_fst(sprintf("%s/estimations/prod_svy_estimation.fst", data_dir),
     as.data.table = TRUE
@@ -94,6 +101,12 @@ create_lkups <- function(data_dir, versions) {
     "%s/survey_data/%s.fst",
     data_dir, svy_lkup$cache_id
   )
+  # TEMP fix to add country and region name
+  svy_lkup <- merge(svy_lkup, countries[, c('country_code', 'country_name')],
+                    by = 'country_code', all.x = TRUE)
+  svy_lkup <- merge(svy_lkup, regions[, c('region_code', 'region_name')],
+                    by = 'region_code', all.x = TRUE)
+  # TEMP fix - END
   # Clean ref_lkup
   ref_lkup <- fst::read_fst(sprintf("%s/estimations/prod_ref_estimation.fst", data_dir),
     as.data.table = TRUE
@@ -105,6 +118,13 @@ create_lkups <- function(data_dir, versions) {
     "%s/survey_data/%s.fst",
     data_dir, ref_lkup$cache_id
   )
+
+  # TEMP fix to add country and region name
+  ref_lkup <- merge(ref_lkup, countries[, c('country_code', 'country_name')],
+                    by = 'country_code', all.x = TRUE)
+  ref_lkup <- merge(ref_lkup, regions[, c('region_code', 'region_name')],
+                    by = 'region_code', all.x = TRUE)
+  # TEMP fix - END
 
   # Add data interpolation ID (unique combination of survey files used for one
   # or more reporting years)
@@ -158,23 +178,24 @@ create_lkups <- function(data_dir, versions) {
 
   # Create pip return columns
   pip_cols <-
-    c('region_code', 'country_code', 'reporting_year',
-      'reporting_level','survey_acronym', 'survey_coverage',
+    c('region_name', 'region_code', 'country_name', 'country_code', 'reporting_year',
+      'reporting_level', 'survey_acronym', 'survey_coverage',
       'survey_year', 'welfare_type', 'survey_comparability',
       'comparable_spell', 'poverty_line',
       'headcount', 'poverty_gap', 'poverty_severity', 'watts',
       'mean', 'median', 'mld', 'gini', 'polarization',
       'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
       'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
-      'survey_mean_lcu', 'survey_mean_ppp', # Do we need these?
-      'predicted_mean_ppp', # Do we need this?
-      'cpi', 'cpi_data_level',
-      'ppp', 'ppp_data_level',
-      'reporting_pop', 'pop_data_level',
-      'reporting_gdp', 'gdp_data_level',
-      'reporting_pce', 'pce_data_level',
-      'is_interpolated', 'is_used_for_aggregation',
-      'distribution_type', 'estimation_type'
+       # 'survey_mean_lcu', 'survey_mean_ppp', # Do we need these?
+       # 'predicted_mean_ppp', # Do we need this?
+      'cpi', #'cpi_data_level',
+      'ppp', #'ppp_data_level',
+      'reporting_pop', #'pop_data_level',
+      'reporting_gdp', #'gdp_data_level',
+      'reporting_pce', #'pce_data_level',
+      'is_interpolated', # 'is_used_for_aggregation',
+      'distribution_type',
+      'estimation_type'
       # 'gd_type', 'path',
       # 'cache_id', 'survey_id', 'surveyid_year'
       # 'wb_region_code', 'interpolation_id'

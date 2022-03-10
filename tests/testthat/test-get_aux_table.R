@@ -1,6 +1,6 @@
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-data_folder_root <- lkups$versions_paths$latest_release$data_root
+data_folder_root <-lkups$versions_paths[[lkups$latest_release]]$data_root
 
 tables <- c("gdp", "pce", "pop", "cpi", "ppp")
 

@@ -1,5 +1,5 @@
 lkups <- pipapi::create_versioned_lkups(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
-lkups <- lkups$versions_paths$latest_release
+lkups <- lkups$versions_paths[[lkups$latest_release]]
 empty_response <- pip('AGO', 2000, lkup = lkups)[-1]
 reporting_level_list <- c("national", "rural", "urban")
 
