@@ -80,7 +80,8 @@ test_that("Regional aggregations are working", {
     year = 2000,
     group_by = "wb",
     povline = 3.5,
-    lkup = lkups
+    lkup = lkups,
+    censor = FALSE
   )
   expect_equal(nrow(tmp), 8)
 
