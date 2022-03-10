@@ -33,7 +33,7 @@ extract_data_dirs <- function(data_dir,
                               version_length = 8) {
   # List data directories under data_dir
   data_dirs <- list.dirs(data_dir, full.names = TRUE, recursive = FALSE)
-  data_dirs <- data_dirs[!grepl(pattern = "\\.git$", x = data_dirs)]
+  data_dirs <- data_dirs[grepl("^[0-9]{8}", sub(paste0(data_dir, "/"), "", data_dirs))]
 
   versions <- extract_versions(data_dirs = data_dirs,
                                version_length = version_length)
