@@ -18,7 +18,7 @@ function(req, res) {
       }
     }
   } else {
-    req$argsQuery$version <- "latest_release"
+    req$argsQuery$version <- lkups$latest_release
   }
   plumber::forward()
 }

@@ -8,6 +8,7 @@
 - Remove unnecessary columns from API response
 - Add estimation_type and distribution_type to the API response when `fill_gaps=TRUE`
 - Add country and region name to /pip response 
+- Make sure latest data version is available as a specific version (not just as "latest_relase")
 
 ## Bug fixes
 

@@ -10,14 +10,14 @@ create_versioned_lkups <- function(data_dir) {
   data_dirs <- extract_data_dirs(data_dir = data_dir)
 
   versions <- names(data_dirs)
-  versions[1] <- "latest_release"
+  # versions[1] <- "latest_release"
 
   versions_paths <- purrr::map(data_dirs, create_lkups, versions = versions)
-
   names(versions_paths) <- versions
 
   return(list(versions = versions,
-              versions_paths = versions_paths))
+              versions_paths = versions_paths,
+              latest_release = versions[1]))
 
 }
 
@@ -29,8 +29,7 @@ create_versioned_lkups <- function(data_dir) {
 #' @return character
 #' @export
 #'
-extract_data_dirs <- function(data_dir,
-                              version_length = 8) {
+extract_data_dirs <- function(data_dir, version_length = 8) {
   # List data directories under data_dir
   data_dirs <- list.dirs(data_dir, full.names = TRUE, recursive = FALSE)
   data_dirs <- data_dirs[!grepl(pattern = "\\.git$", x = data_dirs)]
