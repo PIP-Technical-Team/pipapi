@@ -65,10 +65,12 @@ pip <- function(country = "all",
                 debug = FALSE,
                 censor = TRUE) {
 
+  warning("argument group_by in pip() is deprecated; please use pip_grp() instead.",
+          call. = FALSE)
+
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
-
 
   # **** TO BE REMOVED **** REMOVAL STARTS HERE
   # Once `pip-grp` has been integrated in ingestion pipeline

@@ -113,12 +113,6 @@ paths:
               example: FALSE
              description: Whether to interpolate / extrapolate statistics for years without available survey data.
            - in: query
-             name: group_by
-             schema:
-              type: string
-              enum: [none, wb]
-             description: Aggregate results by pre-defined sub-groups.
-           - in: query
              name: welfare_type
              schema:
               type: string
