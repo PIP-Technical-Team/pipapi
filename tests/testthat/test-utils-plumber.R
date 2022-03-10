@@ -1,6 +1,6 @@
 if (Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") != "") {
   lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-  lkups <- lkups$versions_paths$latest_release
+  lkups <-lkups$versions_paths[[lkups$latest_release]]
 } else {
   # lkups$query_controls$version <- NULL
   # saveRDS(list(query_controls = lkups$query_controls),
