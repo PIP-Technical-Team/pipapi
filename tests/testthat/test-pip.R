@@ -6,7 +6,7 @@ skip("Disable until a full set of anonymous package data has been created")
 
 # files <- sub("[.]fst", "", list.files("../testdata/app_data/20210401/survey_data/"))
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-lkups <- lkups$versions_paths$latest_release
+lkups <-lkups$versions_paths[[lkups$latest_release]]
 
 test_that("Reporting level filtering is working", {
   reporting_levels <- c("national", "urban", "rural", "all")

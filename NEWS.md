@@ -13,6 +13,8 @@
 - Use `pip_grp()` to calculate aggregated statistics in UI functions; `ui_hp_stacked()` and `ui_pc_regional()`
 - Add unit tests for `pip_grp()`
 - Improve filtering of data version directories in `create_versioned_lkups()` 
+- Add country and region name to /pip response 
+- Make sure latest data version is available as a specific version (not just as "latest_relase")
 
 ## Bug fixes
 
