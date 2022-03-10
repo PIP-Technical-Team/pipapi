@@ -3,7 +3,7 @@ skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 
 # Constants
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-lkups <- lkups$versions_paths$latest_release
+lkups <- lkups$versions_paths[[lkups$latest_release]]
 censored <- readRDS("../testdata/censored.RDS")
 
 # Check output type
