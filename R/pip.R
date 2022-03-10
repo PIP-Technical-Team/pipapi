@@ -65,8 +65,7 @@ pip <- function(country = "all",
                 debug = FALSE,
                 censor = TRUE) {
 
-  warning("argument group_by in pip() is deprecated; please use pip_grp() instead.",
-          call. = FALSE)
+  message("Info: argument group_by in pip() is deprecated; please use pip_grp() instead.")
 
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
