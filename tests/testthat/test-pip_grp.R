@@ -57,10 +57,29 @@ test_that("returned columns are the same for all queries", {
   tmp1 <- pip_grp('all', 2000, lkup = lkups, group_by = "none")
   tmp2 <- pip_grp('all', 2000, lkup = lkups, group_by = "wb")
   tmp3 <- pip_grp('all', 2050, lkup = lkups, group_by = "wb")
+  tmp4 <- pip_grp('all', 2050, lkup = lkups, group_by = "none")
   expect_identical(names(tmp1), names(tmp2))
   expect_identical(names(tmp1), names(tmp3))
+  expect_identical(names(tmp1), names(tmp4))
   expect_identical(sapply(tmp1, class), sapply(tmp2, class))
   expect_identical(sapply(tmp1, class), sapply(tmp3, class))
+})
+
+# Check response names
+test_that("returned column names are correct", {
+  cols <- c('region_name', 'region_code', 'reporting_year', 'reporting_pop', 'poverty_line',
+            'headcount', 'poverty_gap', 'poverty_severity', 'watts', 'mean', 'pop_in_poverty')
+  tmp1 <- pip_grp('all', 2000, lkup = lkups, group_by = "none")
+  tmp2 <- pip_grp('all', 2000, lkup = lkups, group_by = "wb")
+  expect_identical(names(tmp1), cols)
+  expect_identical(names(tmp2), cols)
+})
+
+# Check custom region name
+test_that("returned region_name and region_code is correct for custom aggregations", {
+  tmp1 <- pip_grp('all', 2000, lkup = lkups, group_by = "none")
+  expect_identical(tmp1$region_name, 'CUSTOM')
+  expect_identical(tmp1$region_code, 'CUSTOM')
 })
 
 # Year selection
