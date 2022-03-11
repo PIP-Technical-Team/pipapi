@@ -6,6 +6,32 @@ lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
 lkups <- lkups$versions_paths[[lkups$latest_release]]
 censored <- readRDS("../testdata/censored.RDS")
 
+# Check pip_grp against current implementation
+# TO BE REMOVED ONCE pip() group_by OPTION is FULLY DEPRECATED
+test_that("output from pip_grp is the same as output from pip", {
+  out_pip <- pip(
+    country = "all",
+    year = "all",
+    group_by = "wb",
+    povline = 1.9,
+    lkup = lkups
+  )
+
+  out_pip_grp <- pip_grp(
+    country = "all",
+    year = "all",
+    group_by = "wb",
+    povline = 1.9,
+    lkup = lkups
+  )
+
+  expect_equal(class(out_pip), class(out_pip_grp))
+  expect_equal(names(out_pip), names(out_pip_grp))
+  expect_equal(nrow(out_pip), nrow(out_pip_grp))
+  expect_equal(out_pip, out_pip_grp)
+})
+
+
 # Check output type
 test_that("output type is correct", {
   tmp <- pip_grp(
