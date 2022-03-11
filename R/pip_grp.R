@@ -51,7 +51,7 @@ pip_grp <- function(country = "all",
 
   # return empty dataframe if no metadata is found
   if (nrow(out) == 0) {
-    return(pipapi::empty_resonse_grp)
+    return(pipapi::empty_response_grp)
   }
 
   # Handles aggregated distributions
