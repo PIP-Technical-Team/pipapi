@@ -45,7 +45,9 @@ Imports:
     wbpip,
     readr,
     glue,
-    logger
+    logger,
+    future, 
+    promises
 Remotes:
     PIP-Technical-Team/wbpip@master
 Depends: 

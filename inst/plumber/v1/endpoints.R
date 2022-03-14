@@ -145,6 +145,16 @@ function(req) {
       wbpip = packageDescription("wbpip")$GithubSHA1)
 }
 
+#* Return number of workers
+#* @get /api/v1/n-workers
+#* @serializer unboxedJSON
+function() {
+  list(
+    n_cores = unname(future::availableCores()),
+    n_workers = future::nbrOfWorkers(),
+    n_free_workers = future::nbrOfFreeWorkers()
+  )
+}
 
 #* Return PIP information
 #* @get /api/v1/pip-info
@@ -189,7 +199,13 @@ function(req) {
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
-  out <- do.call(pipapi::pip, params)
+    if (params$country == "all" && params$year == "all") {
+     out <- promises::future_promise({
+       do.call(pipapi::pip, params)
+     }, seed = TRUE)
+  } else {
+    out <- do.call(pipapi::pip, params)
+  }
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
@@ -214,7 +230,13 @@ function(req) {
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
-  out <- do.call(pipapi::pip_grp, params)
+  if (params$country == "all" && params$year == "all") {
+     out <- promises::future_promise({
+       do.call(pipapi::pip_grp, params)
+     }, seed = TRUE)
+  } else {
+     out <- do.call(pipapi::pip_grp, params)
+  }
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
