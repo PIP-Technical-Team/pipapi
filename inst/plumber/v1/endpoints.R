@@ -310,7 +310,9 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi:::ui_hp_stacked, params)
+  promises::future_promise({
+    do.call(pipapi:::ui_hp_stacked, params)
+  }, seed = TRUE)
 }
 
 #* Return data for home page country charts
@@ -342,7 +344,13 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi::ui_pc_charts, params)
+  if (params$country == "all" && params$year == "all") {
+    promises::future_promise({
+      do.call(pipapi::ui_pc_charts, params)
+    }, seed = TRUE)
+  } else {
+    do.call(pipapi::ui_pc_charts, params)
+  }
 }
 
 #* Return data for Poverty Calculator download
@@ -361,7 +369,13 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$pop_units <- 1
   params$version <- NULL
-  do.call(pipapi::ui_pc_charts, params)
+  if (params$country == "all" && params$year == "all") {
+    promises::future_promise({
+      do.call(pipapi::ui_pc_charts, params)
+    }, seed = TRUE)
+  } else {
+    do.call(pipapi::ui_pc_charts, params)
+  }
 }
 
 #* Return regional aggregations for all years
@@ -373,7 +387,9 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi::ui_pc_regional, params)
+  promises::future_promise({
+    do.call(pipapi::ui_pc_regional, params)
+  }, seed = TRUE)
 }
 
 # UI Endpoints: Country Profiles ----------------------------------------
@@ -402,7 +418,13 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi::ui_cp_charts, params)
+  if (params$country == "all") {
+    promises::future_promise({
+      do.call(pipapi::ui_cp_charts, params)
+    }, seed = TRUE)
+  } else {
+    do.call(pipapi::ui_cp_charts, params)
+  }
 }
 
 # UI Endpoints: Survey metadata  ------------------------------------------

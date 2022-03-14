@@ -67,6 +67,60 @@ test_that("Async parallel processing works for /pip-grp", {
   expect_gt(r[[1]]$date, r[[2]]$date)
 })
 
+
+test_that("Async parallel processing works for /hp-stacked", {
+  # Send API request
+  paths <- c("api/v1/hp-stacked", "api/v1/health-check")
+  r <- future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
+
+  # Check response
+  expect_equal(r[[1]]$status_code, 200)
+  expect_equal(r[[2]]$status_code, 200)
+
+  # Test that small query completes before all query
+  expect_gt(r[[1]]$date, r[[2]]$date)
+})
+
+test_that("Async parallel processing works for /pc-regional", {
+  # Send API request
+  paths <- c("api/v1/pc-regional-aggregates", "api/v1/health-check")
+  r <- future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
+
+  # Check response
+  expect_equal(r[[1]]$status_code, 200)
+  expect_equal(r[[2]]$status_code, 200)
+
+  # Test that small query completes before all query
+  expect_gt(r[[1]]$date, r[[2]]$date)
+})
+
+test_that("Async parallel processing works for /pc-charts", {
+  # Send API request
+  paths <- c("api/v1/pc-charts?country=all&year=all", "api/v1/pc-charts?country=ALB&year=all")
+  r <- future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
+
+  # Check response
+  expect_equal(r[[1]]$status_code, 200)
+  expect_equal(r[[2]]$status_code, 200)
+
+  # Test that small query completes before all query
+  expect_gt(r[[1]]$date, r[[2]]$date)
+})
+
+test_that("Async parallel processing works for /cp-charts", {
+  # Send API request
+  paths <- c("api/v1/cp-charts?country=all", "api/v1/cp-charts?country=ALB")
+  r <- future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
+
+  # Check response
+  expect_equal(r[[1]]$status_code, 200)
+  expect_equal(r[[2]]$status_code, 200)
+
+  # Test that small query completes before all query
+  expect_gt(r[[1]]$date, r[[2]]$date)
+})
+
+
 # Close workers by switching plan
 future::plan(future::sequential)
 
