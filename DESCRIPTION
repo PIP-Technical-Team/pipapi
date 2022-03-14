@@ -47,6 +47,8 @@ Imports:
     glue,
     logger,
     fs
+    future, 
+    promises
 Remotes:
     PIP-Technical-Team/wbpip@master
 Depends: 
