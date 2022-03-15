@@ -411,3 +411,28 @@ subset_ctry_years <- function(country,
 
   return(lkup)
 }
+
+#' Clear cache
+#' Clear cache directory if available
+#' @param cd A `cachem::cache_disk()` object
+#' @return list
+#' @keywords internal
+clear_cache <- function(cd) {
+  tryCatch({
+    if (cd$size() > 0) {
+      cd$reset()
+      n <- cd$size()
+      if (n == 0) {
+        out <- list(status = 'success', msg = 'Cache cleared.')
+      } else {
+        out <- list(status = 'error', msg = sprintf('Something went wrong. %n items remain in cache.', n))
+      }
+    } else {
+      out <- list(status = 'success', msg = 'Cache directory is empty. Nothing to clear.')
+    }
+    return(out)
+  }, error = function(e){
+    out <- list(status = 'error', msg = 'Cache directory not found.')
+    return(out)
+  })
+}
