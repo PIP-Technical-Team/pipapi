@@ -404,11 +404,11 @@ subset_ctry_years <- function(country,
 
 #' Clear cache
 #' Clear cache directory if available
-#' @param
+#' @param cd A `cachem::cache_disk()` object
 #' @return list
 #' @keywords internal
 clear_cache <- function(cd) {
-  if (any(grepl("cd", ls()))) {
+  tryCatch({
     if (cd$size() > 0) {
       cd$reset()
       n <- cd$size()
@@ -420,8 +420,9 @@ clear_cache <- function(cd) {
     } else {
       out <- list(status = 'success', msg = 'Cache directory is empty. Nothing to clear.')
     }
-  } else {
+    return(out)
+  }, error = function(e){
     out <- list(status = 'error', msg = 'Cache directory not found.')
-  }
-  return(out)
+    return(out)
+  })
 }
