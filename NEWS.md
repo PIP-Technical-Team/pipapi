@@ -5,6 +5,7 @@
 - Add /pip-grp as a new endpoint for aggregated statistics
 - Soft deprecate `group_by` argument in /pip
 - change parameter `version_length` for `vintage_pattern` in `extract_data_dirs()`. The algorithm for extracting valid versions has been modified. 
+- Add option to enable disk based caching of `pip()` and `pip_grp()`
  
 ## Enhancements
 

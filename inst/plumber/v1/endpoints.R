@@ -136,6 +136,29 @@ function(req) {
 #   )
 # }
 
+#* Return cache info
+#* @get /api/v1/cache-info
+#* @serializer unboxedJSON
+function() {
+  info <- cd$info()
+  info$missing <- NULL
+  c(n_items = cd$size(), info)
+}
+
+#* Return cache log
+#* @get /api/v1/cache-log
+#* @serializer print list(quote = FALSE)
+function(){
+  readLines(cd$info()$logfile)
+}
+
+#* Reset current cache
+#* @get /api/v1/cache-reset
+#* @serializer unboxedJSON
+function() {
+  pipapi:::clear_cache(cd)
+}
+
 #* Check timestamp for the data
 #* @get /api/v1/data-timestamp
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
