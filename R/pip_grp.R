@@ -81,7 +81,8 @@ pip_grp <- function(country = "all",
     out <- pip_aggregate(out)
   }
 
-  out <- out[, c("region_code",
+  out <- out[, c("region_name",
+                 "region_code",
                  "reporting_year",
                  "reporting_pop",
                  "poverty_line",
@@ -99,6 +100,7 @@ pip_grp <- function(country = "all",
 pip_aggregate <- function(df) {
   # Handle simple aggregation
   df <- df[, .(
+    region_name,
     region_code,
     reporting_year,
     poverty_line,
@@ -132,7 +134,7 @@ pip_aggregate <- function(df) {
   df <- df[pop, on = .(reporting_year, poverty_line)]
 
   df$region_code <- "CUSTOM"
-
+  df$region_name <- "CUSTOM"
 
   # Compute population living in poverty
   df <- df[, pop_in_poverty := round(headcount * reporting_pop, 0)]
@@ -150,6 +152,7 @@ pip_aggregate_by <- function(df, group_lkup) {
   df <- filter_for_aggregate_by(df)
 
   df <- df[, .(
+    region_name,
     region_code,
     reporting_year,
     poverty_line,
@@ -166,7 +169,7 @@ pip_aggregate_by <- function(df, group_lkup) {
 
   # Compute stats weighted average by groups
   rgn <- df[, lapply(.SD, stats::weighted.mean, w = reporting_pop, na.rm = TRUE),
-            by = .(region_code, reporting_year, poverty_line),
+            by = .(region_name, region_code, reporting_year, poverty_line),
             .SDcols = cols
   ]
 
@@ -205,6 +208,7 @@ compute_world_aggregates <- function(rgn, cols) {
 
   wld <- wld[tmp, on = .(reporting_year = reporting_year)]
   wld[["region_code"]] <- "WLD"
+  wld[["region_name"]] <- "World"
 
   return(wld)
 
