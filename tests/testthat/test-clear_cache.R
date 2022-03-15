@@ -2,7 +2,7 @@
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-lkups <- lkups$versions_paths$latest_release
+lkups <- lkups$versions_paths[[lkups$latest_release]
 
 # Tests depend on a specific temp cache directory. Skip if not found.
 cd <- readRDS('tests/testdata/cd-ex.RDS')
