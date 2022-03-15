@@ -1,19 +1,6 @@
 #' Compute various aggregations of PIP statistics
 #'
-#'
-#' @param country character: Country ISO 3 codes
-#' @param year integer: Reporting year
-#' @param povline numeric: Poverty line
-#' @param popshare numeric: Proportion of the population living below the
-#'   poverty line
-#' @param group_by character: Will return aggregated values for predefined
-#'   sub-groups
-#' @param welfare_type character: Welfare type
-#' @param reporting_level character: Geographical reporting level
-#' @param lkup list: A list of lkup tables
-#' @param debug logical: If TRUE poverty calculations from `wbpip` will run in
-#'   debug mode
-#'
+#' @inheritParams pip
 #' @return data.table
 #' @examples
 #' \dontrun{
@@ -36,7 +23,8 @@ pip_grp <- function(country = "all",
                     welfare_type = c("all", "consumption", "income"),
                     reporting_level = c("all", "national"),
                     lkup,
-                    debug = FALSE) {
+                    debug = FALSE,
+                    censor = TRUE) {
 
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
@@ -63,7 +51,7 @@ pip_grp <- function(country = "all",
 
   # return empty dataframe if no metadata is found
   if (nrow(out) == 0) {
-    return(out)
+    return(pipapi::empty_response_grp)
   }
 
   # Handles aggregated distributions
@@ -82,15 +70,19 @@ pip_grp <- function(country = "all",
       df = out,
       group_lkup = lkup[["pop_region"]]
     )
+
     # Censor regional values
-    out <- censor_rows(out, lkup[["censored"]], type = "region")
+    if (censor) {
+      out <- censor_rows(out, lkup[["censored"]], type = "regions")
+    }
 
   } else {
     # Handle simple aggregation
     out <- pip_aggregate(out)
   }
 
-  out <- out[, c("region_code",
+  out <- out[, c("region_name",
+                 "region_code",
                  "reporting_year",
                  "reporting_pop",
                  "poverty_line",
@@ -108,6 +100,7 @@ pip_grp <- function(country = "all",
 pip_aggregate <- function(df) {
   # Handle simple aggregation
   df <- df[, .(
+    region_name,
     region_code,
     reporting_year,
     poverty_line,
@@ -141,7 +134,7 @@ pip_aggregate <- function(df) {
   df <- df[pop, on = .(reporting_year, poverty_line)]
 
   df$region_code <- "CUSTOM"
-
+  df$region_name <- "CUSTOM"
 
   # Compute population living in poverty
   df <- df[, pop_in_poverty := round(headcount * reporting_pop, 0)]
@@ -159,6 +152,7 @@ pip_aggregate_by <- function(df, group_lkup) {
   df <- filter_for_aggregate_by(df)
 
   df <- df[, .(
+    region_name,
     region_code,
     reporting_year,
     poverty_line,
@@ -175,7 +169,7 @@ pip_aggregate_by <- function(df, group_lkup) {
 
   # Compute stats weighted average by groups
   rgn <- df[, lapply(.SD, stats::weighted.mean, w = reporting_pop, na.rm = TRUE),
-            by = .(region_code, reporting_year, poverty_line),
+            by = .(region_name, region_code, reporting_year, poverty_line),
             .SDcols = cols
   ]
 
@@ -214,6 +208,7 @@ compute_world_aggregates <- function(rgn, cols) {
 
   wld <- wld[tmp, on = .(reporting_year = reporting_year)]
   wld[["region_code"]] <- "WLD"
+  wld[["region_name"]] <- "World"
 
   return(wld)
 

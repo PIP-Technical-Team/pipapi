@@ -70,6 +70,16 @@ test_that("Interpolated PIP request is working", {
   expect_equal(tmp_resp[[1]]$reporting_year, 2012)
 })
 
+test_that("Aggregated PIP request is working", {
+  # Send API request
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/pip-grp?country=all&year=2012&group_by=wb")
+
+  # Check response
+  tmp_resp <- httr::content(r, encoding = "UTF-8")
+  expect_equal(tmp_resp[[1]]$reporting_year, 2012)
+  expect_equal(nrow(tmp_resp[[1]]), 8)
+})
+
 test_that("Serializer formats are working", {
   # Check json
   r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=AGO&year=2000&format=json")

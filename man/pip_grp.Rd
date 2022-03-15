@@ -13,7 +13,8 @@ pip_grp(
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national"),
   lkup,
-  debug = FALSE
+  debug = FALSE,
+  censor = TRUE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ sub-groups}
 
 \item{debug}{logical: If TRUE poverty calculations from \code{wbpip} will run in
 debug mode}
+
+\item{censor}{logical: Triggers censoring of country/year statistics}
 }
 \value{
 data.table

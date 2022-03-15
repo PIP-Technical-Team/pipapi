@@ -65,10 +65,11 @@ pip <- function(country = "all",
                 debug = FALSE,
                 censor = TRUE) {
 
+  message("Info: argument group_by in pip() is deprecated; please use pip_grp() instead.")
+
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
-
 
   # **** TO BE REMOVED **** REMOVAL STARTS HERE
   # Once `pip-grp` has been integrated in ingestion pipeline
@@ -114,6 +115,9 @@ pip <- function(country = "all",
   # Handles aggregated distributions
   if (reporting_level %in% c("national", "all")) {
     out <- add_agg_stats(out)
+    if (reporting_level == "national") {
+      out <- out[reporting_level == "national"]
+    }
   }
 
   # **** TO BE REMOVED **** REMOVAL STARTS HERE

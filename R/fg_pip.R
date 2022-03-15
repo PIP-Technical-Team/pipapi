@@ -99,6 +99,14 @@ fg_pip <- function(country,
   out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
 
+  # Modify cache_id
+  # * Ensures that cache_id is unique for both extrapolated and interpolated surveys
+  # * Ensures that cache_id can be kept as an output of fg_pip() while still removing duplicated rows
+  out$cache_id <-
+    ifelse(grepl("[|]", out$data_interpolation_id),
+           gsub(paste0("_", unique(out$reporting_level), collapse = '|'), '', out$data_interpolation_id),
+           out$cache_id)
+
   # Set collapse vars to NA (by type)
   vars_to_collapse_real <- c("survey_year",
                              "predicted_mean_ppp",
@@ -106,22 +114,23 @@ fg_pip <- function(country,
                              "survey_mean_ppp",
                              "survey_median_lcu",
                              "survey_median_ppp",
-                             "cpi")
+                             # "median",
+                             "cpi",
+                             "display_cp")
 
   vars_to_collapse_int <- c("surveyid_year",
                             "survey_comparability")
 
   vars_to_collapse_char <- c("survey_id",
-                             "cache_id",
+                             #"cache_id",
                              "survey_acronym",
                              "survey_coverage",
                              "comparable_spell",
                              "gd_type",
                              "interpolation_id",
-                             "estimation_type",
-                             "distribution_type",
+                             #"estimation_type",
+                             #"distribution_type",
                              "path")
-
   out[, vars_to_collapse_char] <- NA_character_
   out[, vars_to_collapse_int] <- NA_integer_
   out[, vars_to_collapse_real] <- NA_real_
