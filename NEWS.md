@@ -4,6 +4,7 @@
 
 - Add /pip-grp as a new endpoint for aggregated statistics
 - Soft deprecate `group_by` argument in /pip
+- Add option to enable disk based caching of `pip()` and `pip_grp()`
  
 ## Enhancements
 
