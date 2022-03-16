@@ -31,11 +31,15 @@ create_versioned_lkups <- function(data_dir) {
 #'
 extract_data_dirs <- function(data_dir, version_length = 8) {
   # List data directories under data_dir
-  data_dirs <- list.dirs(data_dir, full.names = TRUE, recursive = FALSE)
-  data_dirs <- data_dirs[grepl("^[0-9]{8}", sub(paste0(data_dir, "/"), "", data_dirs))]
 
-  versions <- extract_versions(data_dirs = data_dirs,
-                               version_length = version_length)
+  data_dirs  <- fs::dir_ls(data_dir, type = "directory")
+  dirs_names <- gsub("(.+/)([^/]+)", "\\2", data_dirs)
+
+  pattern   <- "\\d{8}_\\d{4}_\\d{1,2}_\\d{1,2}_[[:alpha:]]+"
+  valid_dir <- grepl(pattern, dirs_names)
+
+  data_dirs  <- data_dirs[valid_dir]
+  versions   <- dirs_names[valid_dir]
 
   names(data_dirs) <- versions
 
@@ -43,29 +47,6 @@ extract_data_dirs <- function(data_dir, version_length = 8) {
 
   return(data_dirs)
 }
-
-#' Extract data versions from vector of data directory paths
-#'
-#' @param data_dirs character: List of data directory paths
-#' @param version_length integer: Number of character of version ID
-#'
-#' @return character
-#' @export
-#'
-extract_versions <- function(data_dirs,
-                             version_length) {
-
-  data_dirs_length <- nchar(data_dirs)
-
-  versions <- purrr::map2_chr(data_dirs, data_dirs_length,
-                              ~ substr(x = .x,
-                                       start = .y - version_length + 1,
-                                       stop = .y))
-
-  return(versions)
-
-}
-
 
 
 #' Create look-up tables

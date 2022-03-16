@@ -4,7 +4,7 @@
 \alias{ui_cp_charts}
 \title{Country Profiles Charts}
 \usage{
-ui_cp_charts(country = "AGO", povline = 1.9, pop_units = 1e+06, lkup)
+ui_cp_charts(country = "AGO", povline = 1.9, pop_units = 1000000, lkup)
 }
 \arguments{
 \item{country}{character: Country ISO 3 codes}
