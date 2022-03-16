@@ -1,4 +1,5 @@
 # pipapi (development version)
+* change parameter `version_length` for `vintage_pattern` in `extract_data_dirs()`. The algorithm for extracting valid versions has been modified. 
 
 # pipapi 0.0.1.9000
 

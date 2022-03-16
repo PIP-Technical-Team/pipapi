@@ -30,8 +30,10 @@ create_versioned_lkups <- function(data_dir) {
 #' @return character
 #' @export
 #'
-extract_data_dirs <- function(data_dir,
-                              vintage_pattern = "\\d{8}_\\d{4}_\\d{1,2}_\\d{1,2}_(PROD|TEST|INT)$") {
+extract_data_dirs <-
+  function(data_dir,
+           vintage_pattern = "\\d{8}_\\d{4}_\\d{1,2}_\\d{1,2}_(PROD|TEST|INT)$"
+           ) {
   # List data directories under data_dir
 
   data_dirs  <- fs::dir_ls(data_dir, type = "directory")
@@ -44,7 +46,20 @@ extract_data_dirs <- function(data_dir,
 
   names(data_dirs) <- versions
 
-  data_dirs <- data_dirs[sort(names(data_dirs), decreasing = TRUE)]
+
+  # Sorting accoring to identity
+  versions_prod <- versions[grepl("PROD$", versions)]
+  versions_prod <- sort(versions_prod, decreasing = TRUE)
+
+  versions_test <- versions[grepl("TEST$", versions)]
+  versions_test <- sort(versions_test, decreasing = TRUE)
+
+  versions_int  <- versions[grepl("INT$",  versions)]
+  versions_int  <- sort(versions_int, decreasing = TRUE)
+
+  # sort directories
+  sorted_versions <- c(versions_prod, versions_int, versions_test)
+  data_dirs <- data_dirs[sorted_versions]
 
   return(data_dirs)
 }
