@@ -24,19 +24,20 @@ create_versioned_lkups <- function(data_dir) {
 #' Extract list of data sub-directories from main data directory
 #'
 #' @param data_dir character: Path to main data directory
-#' @param version_length integer: Number of character of version ID
+#' @param vintage_pattern character: regex that identifies the name pattern of
+#'   vintage folders
 #'
 #' @return character
 #' @export
 #'
-extract_data_dirs <- function(data_dir, version_length = 8) {
+extract_data_dirs <- function(data_dir,
+                              vintage_pattern = "\\d{8}_\\d{4}_\\d{1,2}_\\d{1,2}_(PROD|TEST|INT)$") {
   # List data directories under data_dir
 
   data_dirs  <- fs::dir_ls(data_dir, type = "directory")
   dirs_names <- gsub("(.+/)([^/]+)", "\\2", data_dirs)
 
-  pattern   <- "\\d{8}_\\d{4}_\\d{1,2}_\\d{1,2}_[[:alpha:]]+"
-  valid_dir <- grepl(pattern, dirs_names)
+  valid_dir <- grepl(vintage_pattern, dirs_names)
 
   data_dirs  <- data_dirs[valid_dir]
   versions   <- dirs_names[valid_dir]
