@@ -99,44 +99,98 @@ fg_pip <- function(country,
   out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
 
+  # Ensure that out does not have duplicates
+  out <- fg_remove_duplicates(out)
+
+  return(out)
+}
+
+#' Remove duplicated rows created during the interpolation process
+#'
+#' @param df data.table: Table of results created in `fg_pip()`
+#' @param cols character: Columns with potential duplicate values
+#'
+#' @return data.table
+#'
+
+fg_remove_duplicates <- function(df,
+                                 cols = c("comparable_spell",
+                                          "cpi",
+                                          "display_cp",
+                                          "gd_type",
+                                          "interpolation_id",
+                                          "path",
+                                          "predicted_mean_ppp",
+                                          "survey_acronym",
+                                          "survey_comparability",
+                                          "survey_coverage",
+                                          "survey_id",
+                                          "survey_mean_lcu",
+                                          "survey_mean_ppp",
+                                          "survey_median_lcu",
+                                          "survey_median_ppp",
+                                          "survey_time",
+                                          "survey_year",
+                                          "surveyid_year")) {
   # Modify cache_id
   # * Ensures that cache_id is unique for both extrapolated and interpolated surveys
   # * Ensures that cache_id can be kept as an output of fg_pip() while still removing duplicated rows
-  out$cache_id <-
-    ifelse(grepl("[|]", out$data_interpolation_id),
-           gsub(paste0("_", unique(out$reporting_level), collapse = '|'), '', out$data_interpolation_id),
-           out$cache_id)
-
+  df$cache_id <- fg_standardize_cache_id(cache_id = df$cache_id,
+                                         interpolation_id = df$data_interpolation_id,
+                                         reporting_level = df$reporting_level)
   # Set collapse vars to NA (by type)
-  vars_to_collapse_real <- c("survey_year",
-                             "predicted_mean_ppp",
-                             "survey_mean_lcu",
-                             "survey_mean_ppp",
-                             "survey_median_lcu",
-                             "survey_median_ppp",
-                             # "median",
-                             "cpi",
-                             "display_cp")
-
-  vars_to_collapse_int <- c("surveyid_year",
-                            "survey_comparability")
-
-  vars_to_collapse_char <- c("survey_id",
-                             #"cache_id",
-                             "survey_acronym",
-                             "survey_coverage",
-                             "comparable_spell",
-                             "gd_type",
-                             "interpolation_id",
-                             #"estimation_type",
-                             #"distribution_type",
-                             "path")
-  out[, vars_to_collapse_char] <- NA_character_
-  out[, vars_to_collapse_int] <- NA_integer_
-  out[, vars_to_collapse_real] <- NA_real_
+  df <- fg_assign_nas_values_to_dup_cols(df = df,
+                                         cols = cols)
 
   # Ensure that out does not have duplicates
-  out <- unique(out)
+  df <- unique(df)
 
+  return(df)
+}
+
+#' Standardize cache_id format to avoid duplication of rows
+#'
+#' @param cache_id character
+#' @param interpolation_id character
+#' @param reporting_level character
+#'
+#' @return character
+
+fg_standardize_cache_id <- function(cache_id,
+                                    interpolation_id,
+                                    reporting_level) {
+  out <- ifelse(grepl("[|]", interpolation_id),
+                gsub(paste0("_",
+                            unique(reporting_level),
+                            collapse = '|'),
+                     '',
+                     interpolation_id),
+                cache_id)
   return(out)
+}
+
+#' Coerce variable causing potential duplicates to NAs
+#'
+#' @inheritParams fg_remove_duplicates
+#'
+#' @return data.table
+
+fg_assign_nas_values_to_dup_cols <- function(df,
+                                             cols) {
+  cols_class <- unlist(lapply(df[, ..cols], typeof))
+  vars_to_collapse_char <- names(cols_class[cols_class == "character"])
+  vars_to_collapse_int <- names(cols_class[cols_class == "integer"])
+  vars_to_collapse_real <- names(cols_class[cols_class == "double"])
+
+  if (length(vars_to_collapse_char) > 0) {
+    df[, vars_to_collapse_char] <- NA_character_
+  }
+  if (length(vars_to_collapse_int) > 0) {
+    df[, vars_to_collapse_int]  <- NA_integer_
+  }
+  if (length(vars_to_collapse_real) > 0) {
+    df[, vars_to_collapse_real] <- NA_real_
+  }
+
+  return(df)
 }

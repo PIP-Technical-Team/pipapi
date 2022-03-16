@@ -65,7 +65,7 @@ test_that("ui_pc_regional() works as expected", {
   expect_identical(
     names(res),
     c(
-      "region_code", "reporting_year",
+      "region_name", "region_code", "reporting_year",
       "reporting_pop",  "poverty_line",
       "headcount", "poverty_gap",
       "poverty_severity", "watts",
