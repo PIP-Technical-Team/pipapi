@@ -137,6 +137,18 @@ pip <- function(country = "all",
       out <- censor_rows(out, lkup[["censored"]], type = "regions")
     }
 
+    out <- out[, c("region_name",
+                   "region_code",
+                   "reporting_year",
+                   "reporting_pop",
+                   "poverty_line",
+                   "headcount",
+                   "poverty_gap",
+                   "poverty_severity",
+                   "watts",
+                   "mean",
+                   "pop_in_poverty")]
+
     return(out)
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
