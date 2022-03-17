@@ -15,7 +15,9 @@ utils::globalVariables(
     "survey_mean_ppp", "survey_year", "watts",
     "wb_region_code", "weighted.mean",
     "welfare_type", "pcn_region_code",
-    "comparable_spell"
+    "comparable_spell","..cols", "N", "check",
+    "data_interpolation_id", "display_cp", "region_name",
+    "sessionInfo"
   )
 )
 

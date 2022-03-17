@@ -2,7 +2,6 @@
 
 export("%>%")
 export(add_dist_stats)
-export(create_lkups)
 export(create_versioned_lkups)
 export(extract_data_dirs)
 export(get_aux_table)
