@@ -180,13 +180,16 @@ add_dist_stats <- function(df, dist_stats) {
 #' @return data.table
 #' @noRd
 collapse_rows <- function(df, vars, na_var = NULL) {
-  tmp_vars <- lapply(df[, .SD, .SDcols = vars], unique, collapse = "|")
-  tmp_vars <- lapply(tmp_vars, paste, collapse = "|")
+  tmp_vars      <- lapply(df[, .SD, .SDcols = vars], unique, collapse = "|")
+  tmp_vars      <- lapply(tmp_vars, paste, collapse = "|")
   tmp_var_names <- names(df[, .SD, .SDcols = vars])
+
   if (!is.null(na_var)) df[[na_var]] <- NA_real_
+
   for (tmp_var in seq_along(tmp_vars)) {
     df[[tmp_var_names[tmp_var]]] <- tmp_vars[[tmp_var]]
   }
+
   df <- unique(df)
   return(df)
 }
@@ -351,19 +354,19 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
 
   # Create list of query controls
   query_controls <- list(
-    country = country,
-    year = year,
-    povline = povline,
-    popshare = popshare,
-    fill_gaps = fill_gaps,
-    aggregate = aggregate,
-    group_by = group_by,
-    welfare_type = welfare_type,
+    country         = country,
+    year            = year,
+    povline         = povline,
+    popshare        = popshare,
+    fill_gaps       = fill_gaps,
+    aggregate       = aggregate,
+    group_by        = group_by,
+    welfare_type    = welfare_type,
     reporting_level = reporting_level,
-    ppp = ppp,
-    version = version,
-    format = format,
-    parameter = parameter
+    ppp             = ppp,
+    version         = version,
+    format          = format,
+    parameter       = parameter
   )
 
   return(query_controls)
