@@ -32,7 +32,7 @@ create_versioned_lkups <- function(data_dir) {
 #'
 extract_data_dirs <-
   function(data_dir,
-           vintage_pattern = "\\d{8}_\\d{4}_\\d{1,2}_\\d{1,2}_(PROD|TEST|INT)$"
+           vintage_pattern = "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$"
            ) {
   # List data directories under data_dir
 
