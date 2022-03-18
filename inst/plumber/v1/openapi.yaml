@@ -17,7 +17,13 @@ paths:
       responses:
         default:
           description: Default response.
-      parameters: []
+      parameters:
+          - in: query
+            name: format
+            schema:
+              type: string
+              enum: [json, csv, rds]
+            description: Response format. Defaults to json.
   /api/v1/pip-info:
     get:
       summary: ' Return information about the API'
@@ -141,7 +147,7 @@ paths:
   /api/v1/pip-grp:
     get:
       summary: ' Return aggregations of PIP statistics'
-      description: Compute aggregated poverty and inequality statistics  
+      description: Compute aggregated poverty and inequality statistics
       parameters:
            - in: query
              name: country

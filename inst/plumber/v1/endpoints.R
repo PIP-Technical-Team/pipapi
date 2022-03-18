@@ -104,9 +104,12 @@ function() {
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
+  # browser()
   out <- lkups$versions
-  if (req$argsQuery$format == "csv") out <- data.frame(versions = out)
-  attr(out, "serialize_format") <- req$argsQuery$format
+  if (!is.null(req$argsQuery$format)) {
+    if (req$argsQuery$format == "csv") out <- data.frame(versions = out)
+    attr(out, "serialize_format") <- req$argsQuery$format
+  }
   out
 }
 
