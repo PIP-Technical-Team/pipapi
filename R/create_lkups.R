@@ -1,38 +1,40 @@
 #' Create one list of lookups per data version
 #'
 #' @param data_dir character: Path to the main data directory
-#'
+#' @param vintage_pattern character: regex that identifies the name pattern of
+#'   vintage folders
 #' @return list
 #' @export
 #'
-create_versioned_lkups <- function(data_dir) {
+create_versioned_lkups <-
+  function(data_dir,
+           vintage_pattern = get_vintage_pattern_regex()) {
 
-  data_dirs <- extract_data_dirs(data_dir = data_dir)
+    data_dirs <- extract_data_dirs(data_dir = data_dir,
+                                   vintage_pattern = vintage_pattern)
 
-  versions <- names(data_dirs)
-  # versions[1] <- "latest_release"
+    versions <- names(data_dirs)
+    # versions[1] <- "latest_release"
 
-  versions_paths <- purrr::map(data_dirs, create_lkups, versions = versions)
-  names(versions_paths) <- versions
+    versions_paths <- purrr::map(data_dirs, create_lkups, versions = versions)
+    names(versions_paths) <- versions
 
-  return(list(versions = versions,
-              versions_paths = versions_paths,
-              latest_release = versions[1]))
+    return(list(versions = versions,
+                versions_paths = versions_paths,
+                latest_release = versions[1]))
 
-}
+  }
 
 #' Extract list of data sub-directories from main data directory
 #'
-#' @param data_dir character: Path to main data directory
-#' @param vintage_pattern character: regex that identifies the name pattern of
-#'   vintage folders
+#' @inheritParams create_versioned_lkups
 #'
 #' @return character
 #' @export
 #'
 extract_data_dirs <-
   function(data_dir,
-           vintage_pattern = "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$"
+           vintage_pattern
            ) {
   # List data directories under data_dir
 
@@ -277,3 +279,13 @@ create_lkups <- function(data_dir, versions) {
 
   return(lkups)
 }
+
+#' Return regular expression needed for extracting data folders
+#' Helper function to facilitate testing
+#'
+#' @return character
+
+get_vintage_pattern_regex <- function() {
+  "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$"
+}
+

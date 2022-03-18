@@ -4,7 +4,7 @@
 \alias{ui_pc_regional}
 \title{Poverty Calculator regional aggregates}
 \usage{
-ui_pc_regional(povline = 1.9, pop_units = 1000000, lkup)
+ui_pc_regional(povline = 1.9, pop_units = 1e+06, lkup)
 }
 \arguments{
 \item{povline}{numeric: Poverty line}

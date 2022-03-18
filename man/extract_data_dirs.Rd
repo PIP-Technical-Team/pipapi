@@ -4,13 +4,10 @@
 \alias{extract_data_dirs}
 \title{Extract list of data sub-directories from main data directory}
 \usage{
-extract_data_dirs(
-  data_dir,
-  vintage_pattern = "\\\\d{8}_\\\\d{4}_\\\\d{1,2}_\\\\d{1,2}_(PROD|TEST|INT)$"
-)
+extract_data_dirs(data_dir, vintage_pattern)
 }
 \arguments{
-\item{data_dir}{character: Path to main data directory}
+\item{data_dir}{character: Path to the main data directory}
 
 \item{vintage_pattern}{character: regex that identifies the name pattern of
 vintage folders}
