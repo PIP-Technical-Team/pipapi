@@ -108,7 +108,7 @@ dir <- paste0(dir, "/20210401/")
 # fst::write_fst(svy_est, paste0(dir, "estimations/prod_svy_estimation.fst"))
 # fst::write_fst(ref_est, paste0(dir, "estimations/prod_ref_estimation.fst"))
 # fst::write_fst(dist_stats, paste0(dir, "estimations/dist_stats.fst"))
-# saveRDS(censored, paste0(dir, "estimations/censored.RDS"))
+# saveRDS(censored, paste0(dir, "estimations/censored.rds"))
 
 
 
