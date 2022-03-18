@@ -178,7 +178,7 @@ create_lkups <- function(data_dir, versions) {
   pop_region      <- fst::read_fst(pop_region_path,as.data.table = TRUE)
 
   # Load country profiles lkups
-  cp_lkups_path   <- fs::path(data_dir, "_aux/country_profiles.RDS")
+  cp_lkups_path   <- fs::path(data_dir, "_aux/country_profiles.rds")
   cp_lkups        <- readRDS(cp_lkups_path)
 
   # Load poverty lines table
@@ -186,7 +186,7 @@ create_lkups <- function(data_dir, versions) {
   pl_lkup         <- fst::read_fst(pl_lkup_path, as.data.table = TRUE)
 
   # Load list with censor tables
-  censored_path   <- fs::path(data_dir, "_aux/censored.RDS")
+  censored_path   <- fs::path(data_dir, "_aux/censored.rds")
   censored        <- readRDS(censored_path)
 
   # Create pip return columns

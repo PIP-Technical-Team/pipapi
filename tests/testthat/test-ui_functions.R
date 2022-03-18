@@ -9,8 +9,8 @@ lkups$pl_lkup <- lkups$pl_lkup[sample(nrow(lkups$pl_lkup), 10)]
 lkups2 <- lkups
 lkups2$svy_lkup <- lkups2$svy_lkup[country_code %in% c('AGO', 'ZWE')]
 lkups2$ref_lkup <- lkups2$ref_lkup[country_code %in% c('AGO', 'ZWE')]
-dt_lac <- readRDS("../testdata/pip_lac_resp.RDS")
-dt_sas <- readRDS("../testdata/pip_sas_resp.RDS")
+dt_lac <- readRDS("../testdata/pip_lac_resp.rds")
+dt_sas <- readRDS("../testdata/pip_sas_resp.rds")
 
 test_that("ui_hp_stacked() works as expected", {
   res <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
