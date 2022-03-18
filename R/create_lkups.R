@@ -42,7 +42,7 @@ extract_data_dirs <-
   dirs_names <- basename(data_dirs)
 
   valid_dir <- id_valid_dirs(dirs_names      = dirs_names,
-                             vintage_pattern = vintage_pattern)
+                             vintage_pattern = vintage_pattern$vintage_pattern)
 
   data_dirs  <- data_dirs[valid_dir]
   versions   <- dirs_names[valid_dir]
@@ -51,17 +51,11 @@ extract_data_dirs <-
 
 
   # Sorting according to identity
-  versions_prod <- versions[grepl("PROD$", versions)]
-  versions_prod <- sort(versions_prod, decreasing = TRUE)
-
-  versions_test <- versions[grepl("TEST$", versions)]
-  versions_test <- sort(versions_test, decreasing = TRUE)
-
-  versions_int  <- versions[grepl("INT$",  versions)]
-  versions_int  <- sort(versions_int, decreasing = TRUE)
-
+  sorted_versions <- sort_versions(versions = versions,
+                                   prod_regex = vintage_pattern$prod_regex,
+                                   int_regex  = vintage_pattern$int_regex,
+                                   test_regex = vintage_pattern$test_regex)
   # sort directories
-  sorted_versions <- c(versions_prod, versions_int, versions_test)
   data_dirs <- data_dirs[sorted_versions]
 
   return(data_dirs)
@@ -286,10 +280,15 @@ create_lkups <- function(data_dir, versions) {
 #' Return regular expression needed for extracting data folders
 #' Helper function to facilitate testing
 #'
-#' @return character
+#' @return list
 
 get_vintage_pattern_regex <- function() {
-  "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$"
+  list(
+    vintage_pattern = "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$",
+    prod_regex      = "PROD$",
+    int_regex       = "INT$",
+    test_regex      = "TEST$"
+    )
 }
 
 #' Identify valid data directories
@@ -299,4 +298,32 @@ get_vintage_pattern_regex <- function() {
 id_valid_dirs <- function(dirs_names,
                           vintage_pattern) {
   grepl(vintage_pattern, dirs_names)
+}
+
+#' Sort available data folders
+#' Helper function to facilitate unit testing
+#'
+#' @param versions character: vector of available versions
+#' @param prod_regex character: Regex expression to identify production versions
+#' @param int_regex character: Regex expression to identify internal versions
+#' @param test_regex character: Regex expression to identify test versions
+#'
+#' @return character
+sort_versions <- function(versions,
+                          prod_regex,
+                          int_regex,
+                          test_regex) {
+  versions_prod <- versions[grepl(prod_regex, versions)]
+  versions_prod <- sort(versions_prod, decreasing = TRUE)
+
+  versions_int  <- versions[grepl(int_regex,  versions)]
+  versions_int  <- sort(versions_int, decreasing = TRUE)
+
+  versions_test <- versions[grepl(test_regex, versions)]
+  versions_test <- sort(versions_test, decreasing = TRUE)
+
+  # sort directories
+  sorted_versions <- c(versions_prod, versions_int, versions_test)
+
+  return(sorted_versions)
 }

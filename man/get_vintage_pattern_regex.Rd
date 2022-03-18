@@ -8,7 +8,7 @@ Helper function to facilitate testing}
 get_vintage_pattern_regex()
 }
 \value{
-character
+list
 }
 \description{
 Return regular expression needed for extracting data folders
