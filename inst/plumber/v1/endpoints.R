@@ -99,10 +99,15 @@ function() {
   "PIP API is running"
 }
 
-#* Check status of API
+#* Return available data versions
 #* @get /api/v1/versions
-function() {
-  lkups$versions
+#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @serializer switch
+function(req) {
+  out <- lkups$versions
+  if (req$argsQuery$format == "csv") out <- data.frame(versions = out)
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
 }
 
 # #* Return system info
@@ -131,6 +136,7 @@ function() {
 #* Check timestamp for the data
 #* @get /api/v1/data-timestamp
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer unboxedJSON
 function(req) {
   dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
   readLines(sprintf("%s/data_update_timestamp.txt", dir))
@@ -155,7 +161,7 @@ function(req) {
 #* Return valid parameters
 #* @get /api/v1/valid-params
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
   # browser()
@@ -178,9 +184,8 @@ function(req) {
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
-#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
-#* for all available versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions for all available versions
+#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
   # Process request
@@ -204,7 +209,7 @@ function(req) {
 #* by pre-defined subgroups)
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* for all available versions
 #* @serializer switch
 function(req) {
@@ -223,7 +228,7 @@ function(req) {
 #* @get /api/v1/aux
 #* @param table:[chr] Auxiliary data table to be returned
 #* @param version:[chr] Data version. Defaults to latest versions. See api/v1/versions (add filter for version validation and default selection)
-#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
   # browser()
