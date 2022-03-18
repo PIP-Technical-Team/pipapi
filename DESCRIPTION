@@ -33,7 +33,9 @@ Suggests:
     purrr,
     callr,
     httr,
-    jsonlite
+    jsonlite,
+    future.callr,
+    future.apply
 Language: en-US
 Imports: 
     data.table,
