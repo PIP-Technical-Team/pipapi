@@ -1,6 +1,6 @@
 Package: pipapi
 Title: API for the Poverty and Inequality Platform
-Version: 0.0.1.9000
+Version: 0.0.1.9001
 Authors@R: 
     c(person(given = "Tony",
             family = "Fujs",
@@ -45,7 +45,8 @@ Imports:
     wbpip,
     readr,
     glue,
-    logger
+    logger,
+    fs
 Remotes:
     PIP-Technical-Team/wbpip@master
 Depends: 

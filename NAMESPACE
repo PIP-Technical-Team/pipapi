@@ -2,10 +2,8 @@
 
 export("%>%")
 export(add_dist_stats)
-export(create_lkups)
 export(create_versioned_lkups)
 export(extract_data_dirs)
-export(extract_versions)
 export(get_aux_table)
 export(get_param_values)
 export(get_pip_version)
