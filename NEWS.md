@@ -2,18 +2,9 @@
 
 ## New features
 
-- change parameter `version_length` for `vintage_pattern` in `extract_data_dirs()`. The algorithm for extracting valid versions has been modified. 
-
-## Enhancements
-
-- use `{fs}` functions rather than base R's. 
-
-# pipapi 0.0.1.9000
-
-## New features
-
 - Add /pip-grp as a new endpoint for aggregated statistics
 - Soft deprecate `group_by` argument in /pip
+- change parameter `version_length` for `vintage_pattern` in `extract_data_dirs()`. The algorithm for extracting valid versions has been modified. 
  
 ## Enhancements
 
@@ -25,6 +16,7 @@
 - Improve filtering of data version directories in `create_versioned_lkups()` 
 - Add country and region name to /pip response 
 - Make sure latest data version is available as a specific version (not just as "latest_relase")
+- use `{fs}` functions rather than base R's. 
 
 ## Bug fixes
 
