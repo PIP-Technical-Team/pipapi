@@ -41,7 +41,8 @@ extract_data_dirs <-
   data_dirs  <- fs::dir_ls(data_dir, type = "directory")
   dirs_names <- basename(data_dirs)
 
-  valid_dir <- grepl(vintage_pattern, dirs_names)
+  valid_dir <- id_valid_dirs(dirs_names      = dirs_names,
+                             vintage_pattern = vintage_pattern)
 
   data_dirs  <- data_dirs[valid_dir]
   versions   <- dirs_names[valid_dir]
@@ -49,7 +50,7 @@ extract_data_dirs <-
   names(data_dirs) <- versions
 
 
-  # Sorting accoring to identity
+  # Sorting according to identity
   versions_prod <- versions[grepl("PROD$", versions)]
   versions_prod <- sort(versions_prod, decreasing = TRUE)
 
@@ -74,7 +75,9 @@ extract_data_dirs <-
 #' @param data_dir character: Path to PIP data root folder.
 #' @param versions character: Available data versions
 #' @return list
+#'
 #' @export
+
 create_lkups <- function(data_dir, versions) {
 
   # Get survey paths
@@ -289,3 +292,11 @@ get_vintage_pattern_regex <- function() {
   "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$"
 }
 
+#' Identify valid data directories
+#' Helper function to facilitate testing
+#'
+#' @return logical
+id_valid_dirs <- function(dirs_names,
+                          vintage_pattern) {
+  grepl(vintage_pattern, dirs_names)
+}

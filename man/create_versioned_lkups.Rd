@@ -4,10 +4,7 @@
 \alias{create_versioned_lkups}
 \title{Create one list of lookups per data version}
 \usage{
-create_versioned_lkups(
-  data_dir,
-  vintage_pattern = "\\\\d{8}_\\\\d{4}_\\\\d{2}_\\\\d{2}_(PROD|TEST|INT)$"
-)
+create_versioned_lkups(data_dir, vintage_pattern = get_vintage_pattern_regex())
 }
 \arguments{
 \item{data_dir}{character: Path to the main data directory}
