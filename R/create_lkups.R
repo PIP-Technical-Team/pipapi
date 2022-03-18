@@ -39,7 +39,7 @@ extract_data_dirs <-
   # List data directories under data_dir
 
   data_dirs  <- fs::dir_ls(data_dir, type = "directory")
-  dirs_names <- gsub("(.+/)([^/]+)", "\\2", data_dirs)
+  dirs_names <- basename(data_dirs)
 
   valid_dir <- grepl(vintage_pattern, dirs_names)
 
