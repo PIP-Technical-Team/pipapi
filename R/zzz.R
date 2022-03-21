@@ -9,6 +9,6 @@
     pip <<- memoise::memoise(pip, cache = cd)
     pip_grp <<- memoise::memoise(pip_grp, cache = cd)
     assign("cd", cd, envir = .GlobalEnv)
-    message("Info: Disk based caching is enabled.")
+    packageStartupMessage("Info: Disk based caching is enabled.")
   }
 }
