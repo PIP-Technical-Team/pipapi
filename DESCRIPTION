@@ -49,6 +49,9 @@ Imports:
     glue,
     logger,
     fs,
+    memoise,
+    cachem,
+    rappdirs,
     future, 
     promises
 Remotes:
