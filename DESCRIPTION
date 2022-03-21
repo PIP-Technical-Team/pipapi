@@ -33,7 +33,9 @@ Suggests:
     purrr,
     callr,
     httr,
-    jsonlite
+    jsonlite,
+    future.callr,
+    future.apply
 Language: en-US
 Imports: 
     data.table,
@@ -46,7 +48,9 @@ Imports:
     readr,
     glue,
     logger,
-    fs
+    fs,
+    future, 
+    promises
 Remotes:
     PIP-Technical-Team/wbpip@master
 Depends: 
