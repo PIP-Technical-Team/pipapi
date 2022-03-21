@@ -177,6 +177,16 @@ function(req) {
       wbpip = packageDescription("wbpip")$GithubSHA1)
 }
 
+#* Return number of workers
+#* @get /api/v1/n-workers
+#* @serializer unboxedJSON
+function() {
+  list(
+    n_cores = unname(future::availableCores()),
+    n_workers = future::nbrOfWorkers(),
+    n_free_workers = future::nbrOfFreeWorkers()
+  )
+}
 
 #* Return PIP information
 #* @get /api/v1/pip-info
@@ -220,7 +230,13 @@ function(req) {
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
-  out <- do.call(pipapi::pip, params)
+    if (params$country == "all" && params$year == "all") {
+     out <- promises::future_promise({
+       do.call(pipapi::pip, params)
+     }, seed = TRUE)
+  } else {
+    out <- do.call(pipapi::pip, params)
+  }
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
@@ -245,7 +261,13 @@ function(req) {
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
-  out <- do.call(pipapi::pip_grp, params)
+  if (params$country == "all" && params$year == "all") {
+     out <- promises::future_promise({
+       do.call(pipapi::pip_grp, params)
+     }, seed = TRUE)
+  } else {
+     out <- do.call(pipapi::pip_grp, params)
+  }
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
@@ -311,7 +333,9 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi:::ui_hp_stacked, params)
+  promises::future_promise({
+    do.call(pipapi:::ui_hp_stacked, params)
+  }, seed = TRUE)
 }
 
 #* Return data for home page country charts
@@ -343,7 +367,13 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi::ui_pc_charts, params)
+  if (params$country == "all" && params$year == "all") {
+    promises::future_promise({
+      do.call(pipapi::ui_pc_charts, params)
+    }, seed = TRUE)
+  } else {
+    do.call(pipapi::ui_pc_charts, params)
+  }
 }
 
 #* Return data for Poverty Calculator download
@@ -362,7 +392,13 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$pop_units <- 1
   params$version <- NULL
-  do.call(pipapi::ui_pc_charts, params)
+  if (params$country == "all" && params$year == "all") {
+    promises::future_promise({
+      do.call(pipapi::ui_pc_charts, params)
+    }, seed = TRUE)
+  } else {
+    do.call(pipapi::ui_pc_charts, params)
+  }
 }
 
 #* Return regional aggregations for all years
@@ -374,7 +410,9 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi::ui_pc_regional, params)
+  promises::future_promise({
+    do.call(pipapi::ui_pc_regional, params)
+  }, seed = TRUE)
 }
 
 # UI Endpoints: Country Profiles ----------------------------------------
@@ -403,7 +441,13 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi::ui_cp_charts, params)
+  if (params$country == "all") {
+    promises::future_promise({
+      do.call(pipapi::ui_cp_charts, params)
+    }, seed = TRUE)
+  } else {
+    do.call(pipapi::ui_cp_charts, params)
+  }
 }
 
 # UI Endpoints: Survey metadata  ------------------------------------------
