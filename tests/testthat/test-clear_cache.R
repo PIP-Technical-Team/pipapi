@@ -5,7 +5,6 @@ lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
 lkups <- lkups$versions_paths[[lkups$latest_release]]
 
 # Tests depend on a specific temp cache directory. Skip if not found.
-# cd <- readRDS('tests/testdata/cd-ex.RDS')
 cd <- readRDS('../testdata/cd-ex.RDS')
 skip_if_not(dir.exists(cd$info()$dir),
             message = sprintf("The cache directory '%s' doesn't exist", cd$info()$dir))
