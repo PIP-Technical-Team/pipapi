@@ -46,7 +46,10 @@ Imports:
     readr,
     glue,
     logger,
-    fs
+    fs,
+    memoise,
+    cachem,
+    rappdirs
 Remotes:
     PIP-Technical-Team/wbpip@master
 Depends: 
