@@ -232,12 +232,14 @@ function(req) {
   params$version <- NULL
     if (params$country == "all" && params$year == "all") {
      out <- promises::future_promise({
-       do.call(pipapi::pip, params)
+       tmp <- do.call(pipapi::pip, params)
+       attr(tmp, "serialize_format") <- req$argsQuery$format
+       tmp
      }, seed = TRUE)
   } else {
     out <- do.call(pipapi::pip, params)
+    attr(out, "serialize_format") <- req$argsQuery$format
   }
-  attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
 
@@ -263,12 +265,15 @@ function(req) {
   params$version <- NULL
   if (params$country == "all" && params$year == "all") {
      out <- promises::future_promise({
-       do.call(pipapi::pip_grp, params)
+       tmp <- do.call(pipapi::pip_grp, params)
+       attr(tmp, "serialize_format") <- req$argsQuery$format
+       tmp
      }, seed = TRUE)
   } else {
      out <- do.call(pipapi::pip_grp, params)
+     attr(out, "serialize_format") <- req$argsQuery$format
   }
-  attr(out, "serialize_format") <- req$argsQuery$format
+
   out
 }
 
