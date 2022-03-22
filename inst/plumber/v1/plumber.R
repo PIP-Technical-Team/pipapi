@@ -1,4 +1,5 @@
 library(plumber)
+library(rapidoc)
 library(logger)
 library(glue)
 
@@ -36,4 +37,18 @@ plumber::pr(endpoints_path) %>%
     spec
   }) %>%
   plumber::pr_set_api_spec(
-    yaml::read_yaml(api_spec_path))
+    yaml::read_yaml(api_spec_path)) %>%
+  # Style doc page
+  plumber::pr_set_docs(
+    "rapidoc",
+    show_info = TRUE,
+    show_header = FALSE,
+    bg_color = "#FFFFF",
+    text_color = "#343A40",
+    primary_color = "#007BFF",
+    regular_font = "sans-serif",
+    mono_font = "monospace",
+    font_size = "default",
+    # render_style = "view",
+    # sort_endpoints_by = "none"
+  )
