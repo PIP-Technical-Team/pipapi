@@ -173,8 +173,8 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer unboxedJSON
 function(req) {
- list(pipapi = packageDescription("pipapi")$GithubSHA1,
-      wbpip = packageDescription("wbpip")$GithubSHA1)
+  list(pipapi = packageDescription("pipapi")$GithubSHA1,
+       wbpip = packageDescription("wbpip")$GithubSHA1)
 }
 
 #* Return number of workers
@@ -230,14 +230,16 @@ function(req) {
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
-    if (params$country == "all" && params$year == "all") {
-     out <- promises::future_promise({
-       do.call(pipapi::pip, params)
-     }, seed = TRUE)
+  if (params$country == "all" && params$year == "all") {
+    out <- promises::future_promise({
+      tmp <- do.call(pipapi::pip, params)
+      attr(tmp, "serialize_format") <- req$argsQuery$format
+      tmp
+    }, seed = TRUE)
   } else {
     out <- do.call(pipapi::pip, params)
+    attr(out, "serialize_format") <- req$argsQuery$format
   }
-  attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
 
@@ -262,13 +264,15 @@ function(req) {
   params$format <- NULL
   params$version <- NULL
   if (params$country == "all" && params$year == "all") {
-     out <- promises::future_promise({
-       do.call(pipapi::pip_grp, params)
-     }, seed = TRUE)
+    out <- promises::future_promise({
+      tmp <- do.call(pipapi::pip_grp, params)
+      attr(tmp, "serialize_format") <- req$argsQuery$format
+      tmp
+    }, seed = TRUE)
   } else {
-     out <- do.call(pipapi::pip_grp, params)
+    out <- do.call(pipapi::pip_grp, params)
+    attr(out, "serialize_format") <- req$argsQuery$format
   }
-  attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
 

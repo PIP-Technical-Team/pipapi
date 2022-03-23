@@ -2,23 +2,26 @@
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "" ||
           Sys.getenv("PIPAPI_TEST_PLUMBER") != "TRUE")
 
-library(callr)
+#library(callr)
 library(httr)
 library(future)
-library(future.callr)
 library(future.apply)
+library(future.callr)
+
 
 # Set plan
 future::plan("multisession", workers = 2) # n workers for unit tests script
 
 # Setup by starting APIs
 root_path <- "http://localhost"
-api1 <- future.callr::callr(function(){
+api1 <- future.callr::callr(function() {
+  library(pipapi)
   lkups <<- pipapi::create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
   pipapi::start_api(port = 8000)
-}, workers = 2) # n workers for API
-Sys.sleep(20)
-
+}, workers = 2, # n workers for API
+   #globals = list(lkups = lkups),
+   #packages = c("pipapi")
+)
 
 test_that("API is running", {
   # Send API request
@@ -36,8 +39,8 @@ test_that("Parallel processing is avaliable", {
   # Check response
   expect_equal(r$status_code, 200)
   tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(tmp_resp$n_workers, 2)
-  expect_equal(tmp_resp$n_free_workers, 2)
+  expect_equal(tmp_resp$n_workers, 2) # api1$workers
+  expect_equal(tmp_resp$n_free_workers, 2) # api1$workers
   expect_equal(tmp_resp$cores, future::availableCores())
 })
 
@@ -121,8 +124,28 @@ test_that("Async parallel processing works for /cp-charts", {
 })
 
 
+test_that("Serialization works in parallel mode'", {
+  # Check json
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=all&year=all&format=json")
+  expect_equal(httr::http_type(r), "application/json")
+
+  # Check that default is json
+  r2 <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=all&year=all")
+  expect_equal(httr::http_type(r), httr::http_type(r2))
+  expect_equal(httr::content(r, encoding = "UTF-8"), httr::content(r2, encoding = "UTF-8"))
+
+  # Check csv
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=all&year=all&format=csv")
+  expect_equal(httr::headers(r)$`content-type`, "text/csv; charset=UTF-8")
+
+  # Check rds
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/pip?country=all&year=all&format=rds")
+  expect_equal(httr::http_type(r), "application/rds")
+})
+
 # Close workers by switching plan
 future::plan(future::sequential)
 
 # Kill process
-api1$kill()
+rm(api1)
+# api1$kill()
