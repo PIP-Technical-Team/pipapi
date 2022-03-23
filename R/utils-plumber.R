@@ -66,20 +66,20 @@ check_param_lgl <- function(value) {
 
 #' Format error
 #' Format error if check_parameters() returns TRUE
-#' @param param character or numeric: Parsed parameters
-#' @param valid_values character or numeric: Accepted values for this parameter
+#' @param params character: Vector with parsed parameters
+#' @param query_controls list: Query controls
 #' @return list
 #' @noRd
-format_error <- function(param, valid_values) {
-  out <- list(
-    error = paste0(
-      "Invalid value for ", param, ". Please use one of",
-      paste(
-        "'", valid_values, "'",
-        sep = "", collapse = ", "
-      ), "."
-    )
-  )
+format_error <- function(params, query_controls) {
+  msg1 <- "You supplied an invalid value for %s. Please use one of the valid values."
+  msg2 <- "Invalid query arguments have been submitted."
+  # params <- names(params)
+  out <- lapply(params, function(x) {
+    list(msg = sprintf(msg1, x),
+              valid = query_controls[[x]]$values)
+  })
+  names(out) <- params
+  out <- list(error = msg2, details = out)
   return(out)
 }
 

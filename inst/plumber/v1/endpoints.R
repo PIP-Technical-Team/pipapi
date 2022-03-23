@@ -14,7 +14,13 @@ function(req, res) {
   if (!is.null(req$argsQuery$version) & !grepl("swagger", req$PATH_INFO)) {
     if (!is.null(req$argsQuery$version)) {
       if (!req$argsQuery$version %in% lkups$versions) {
-        return("Invalid version has been submitted. Please check valid versions with /versions")
+        res$status <- 404
+        out <- list(
+          error = "Invalid query arguments have been submitted.",
+          details = list(msg = "You supplied an invalid value for version. Please use one of the valid values.",
+                         valid = lkups$versions))
+        return(out)
+        #return("Invalid version has been submitted. Please check valid versions with /versions")
       }
     }
   } else {
@@ -41,10 +47,9 @@ function(req, res) {
   plumber::forward()
 }
 
-#* Protect against invalid country code and year
+#* Protect against invalid arguments
 #* @filter check_parameters
 function(req, res) {
-  # validate version
   # browser()
   lkups <- lkups$versions_paths[[req$argsQuery$version]]
   query_controls = lkups$query_controls
@@ -52,7 +57,11 @@ function(req, res) {
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     are_valid <- pipapi:::check_parameters(req, query_controls)
     if (any(are_valid == FALSE)) {
-      return("Invalid query parameters have been submitted")
+      res$status <- 404
+      invalid_params <- names(req$argsQuery)[!are_valid]
+      out <- pipapi:::format_error(invalid_params, query_controls)
+      return(out)
+      # return("Invalid query arguments have been submitted")
     }
   }
   plumber::forward()
