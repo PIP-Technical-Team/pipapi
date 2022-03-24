@@ -1,4 +1,4 @@
-.onAttach <- function(libname, pkgname) {
+.onLoad <- function(libname, pkgname) {
   if (Sys.getenv("PIPAPI_APPLY_CACHING") == "TRUE") {
     d <- rappdirs::user_cache_dir("pipapi")
     log <- sprintf("%s/cache.log", d)
