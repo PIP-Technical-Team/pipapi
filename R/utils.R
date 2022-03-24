@@ -267,10 +267,11 @@ censor_stats <- function(df, censored_table) {
 #' Create query controls
 #' @param syv_lkup data.table: Survey lkup table
 #' @param ref_lkup data.table: Reference lkup table
+#' @param aux_tables character: List of available aux tables
 #' @param versions character: List of available data versions
 #' @return list
 #' @noRd
-create_query_controls <- function(svy_lkup, ref_lkup, versions) {
+create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
 
   country <- list(
     values = c(
@@ -346,15 +347,17 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
   format <- list(values = c("json", "csv", "rds"),
                  type = "character")
 
+  table <- list(values = aux_tables, type = "character")
+
   parameter <-
     list(values = c("country", "year", "povline",
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format"),
+                    "format", "table"),
          type = "character")
 
-  # Create list of query controls
+    # Create list of query controls
   query_controls <- list(
     country         = country,
     year            = year,
@@ -368,6 +371,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
     ppp             = ppp,
     version         = version,
     format          = format,
+    table           = table,
     parameter       = parameter
   )
 
