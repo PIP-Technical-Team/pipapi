@@ -59,7 +59,7 @@ check_param_num <- function(value, valid_values) {
 #' @return logical
 #' @noRd
 check_param_lgl <- function(value) {
-  out <- is.logical(value)
+  out <- is.logical(value) & !is.na(value)
 
   return(out)
 }
