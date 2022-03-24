@@ -250,12 +250,12 @@ create_lkups <- function(data_dir, versions) {
   aux_tables <- tools::file_path_sans_ext(aux_tables)
   aux_tables <- sort(aux_tables)
 
-
   # Create list of query controls
   query_controls <-
     create_query_controls(
       svy_lkup = svy_lkup,
       ref_lkup = ref_lkup,
+      aux_tables = aux_tables,
       versions = versions)
 
   # Create list of lkups

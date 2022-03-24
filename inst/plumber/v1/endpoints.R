@@ -115,10 +115,12 @@ function() {
 function(req) {
   # browser()
   out <- lkups$versions
-  if (!is.null(req$argsQuery$format)) {
-    if (req$argsQuery$format == "csv") out <- data.frame(versions = out)
-    attr(out, "serialize_format") <- req$argsQuery$format
-  }
+  # if (!is.null(req$argsQuery$format)) {
+  #   if (req$argsQuery$format == "csv") out <- data.frame(versions = out)
+  #   attr(out, "serialize_format") <- req$argsQuery$format
+  # }
+  out <- data.frame(versions = out)
+  attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
 
@@ -299,7 +301,7 @@ function(req) {
   params$version <- NULL
 
   if (is.null(req$args$table)) {
-    out <- params$lkup$aux_tables
+    out <- data.frame(tables = params$lkup$aux_tables)
   } else {
     out <- pipapi::get_aux_table(
       data_dir = params$lkup$data_root,

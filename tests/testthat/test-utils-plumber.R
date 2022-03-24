@@ -157,4 +157,11 @@ test_that("format_error() works as expected", {
   expect_identical(names(tmp$details$povline), c("msg", "valid"))
   expect_identical(names(tmp$details$povline$valid), c("min", "max"))
 
+  req <- list(argsQuery = list(table = "tmp"))
+  params <- names(req$argsQuery)
+  tmp <- format_error(params, lkups$query_controls)
+  expect_identical(tmp$error, "Invalid query arguments have been submitted.")
+  expect_identical(names(tmp$details), c("table"))
+  expect_identical(names(tmp$details$table), c("msg", "valid"))
+  expect_identical(tmp$details$table$valid, lkups$aux_tables)
 })

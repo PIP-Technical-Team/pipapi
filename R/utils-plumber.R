@@ -101,6 +101,7 @@ validate_query_parameters <-
     "ppp",
     "version",
     "format",
+    "table",
     "parameter"
   )) {
     params$argsQuery <-
