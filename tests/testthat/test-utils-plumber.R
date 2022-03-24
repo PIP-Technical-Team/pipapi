@@ -1,6 +1,6 @@
 if (Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") != "") {
   lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-  lkups <-lkups$versions_paths[[lkups$latest_release]]
+  lkups <- lkups$versions_paths[[lkups$latest_release]]
 } else {
   # lkups$query_controls$version <- NULL
   # saveRDS(list(query_controls = lkups$query_controls),
@@ -145,9 +145,16 @@ test_that("check_parameters() works as expected", {
 })
 
 test_that("format_error() works as expected", {
-  tmp <- format_error("XYZ", c("AGO", "BOL"))
-  expect_identical(
-    tmp$error,
-    "Invalid value for XYZ. Please use one of'AGO', 'BOL'."
-  )
+
+  req <- list(argsQuery = list(country = "XXX", year = 2050, povline = 0))
+  params <- names(req$argsQuery)
+  tmp <- format_error(params, lkups$query_controls)
+  expect_identical(names(tmp), c("error", "details"))
+  expect_identical(tmp$error, "Invalid query arguments have been submitted.")
+  expect_identical(names(tmp$details), c("country", "year", "povline"))
+  expect_identical(names(tmp$details$country), c("msg", "valid"))
+  expect_identical(names(tmp$details$year), c("msg", "valid"))
+  expect_identical(names(tmp$details$povline), c("msg", "valid"))
+  expect_identical(names(tmp$details$povline$valid), c("min", "max"))
+
 })

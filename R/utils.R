@@ -334,7 +334,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
   )
 
   ppp <- list(
-    values = c(min = 0, max = 1000000), # CHECK THE VALUE OF MAX
+    values = c(min = 0.05, max = 1000000), # CHECK THE VALUE OF MAX
     type = "numeric"
   )
 
