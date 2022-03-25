@@ -71,6 +71,11 @@ pip_grp <- function(country = "all",
       group_lkup = lkup[["pop_region"]]
     )
 
+    # Remove WLD aggregates if country != all
+    if (country != "all") {
+      out <- out[region_code != "WLD"]
+    }
+
     # Censor regional values
     if (censor) {
       out <- censor_rows(out, lkup[["censored"]], type = "regions")
