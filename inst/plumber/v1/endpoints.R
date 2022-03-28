@@ -179,6 +179,25 @@ function(req) {
   readLines(sprintf("%s/data_update_timestamp.txt", dir))
 }
 
+#* Get information on directory contents
+#* @get /api/v1/dir-info
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+function(req) {
+  # browser()
+  dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
+  x <- fs::dir_info(dir, recurse = TRUE, type = "file")
+  x$file <- sub(".*/", "", x$path)
+  x <- x[c("path", "file", "size", "birth_time", "modification_time", "change_time", "access_time")]
+  list(
+    aux_files = x[grepl("aux", x$path),],
+    estimation_files = x[grepl("estimation", x$path),],
+    survey_data = x[grepl("survey_data", x$path),]
+  )
+}
+
+
+
+
 #* Check Github hash for the PIP packages
 #* @get /api/v1/gh-hash
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
