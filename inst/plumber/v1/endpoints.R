@@ -241,6 +241,14 @@ function(req) {
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
+
+  # Define default arguments
+  if (is.null(params$country))
+    params$country <- "all"
+  if (is.null(params$year))
+    params$year <- "all"
+
+  # Parallel processing for slow requests
   if (params$country == "all" && params$year == "all") {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::pip, params)
@@ -260,20 +268,39 @@ function(req) {
 #* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
 #* @param popshare:[dbl] Share of the population living below the poverty Line.
-#* @param group_by:[chr] Select type of aggregation (simple weighted average or
-#* by pre-defined subgroups)
+#* @param group_by:[chr] Select type of aggregation (simple weighted average or a pre-defined subgroup)
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* for all available versions
 #* @serializer switch
-function(req) {
+function(req, res) {
   # Process request
   # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
+
+  # Define default arguments
+  if (is.null(params$country))
+    params$country <- "all"
+  if (is.null(params$year))
+    params$year <- "all"
+  if (is.null(params$group_by))
+    params$group_by <- "none"
+
+  # Break if bad request
+  if (params$group_by != "none" && params$country != "all") {
+    res$status <- 400
+    out <- list(
+      error = "Invalid query arguments have been submitted.",
+      details = list(msg = "You cannot query individual countries when specifying a predefined sub-group.")
+    )
+    return(out)
+  }
+
+  # Parallel processing for slow requests
   if (params$country == "all" && params$year == "all") {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::pip_grp, params)
