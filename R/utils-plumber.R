@@ -177,3 +177,35 @@ serializer_switch <- function() {
     )
   }
 }
+
+#' Assign PIP API required parameters if missing
+#'
+#' @param req list: plumber `req` object
+#'
+#' @return list
+
+assign_required_params <- function(req) {
+
+  # Handle required names for /pip endpoint
+  endpoint <- extract_endpoint(req$PATH_INFO)
+  if (endpoint %in% c("pip", "pip-grp")) {
+    if (is.null(req$args$country)) {
+      req$args$country <- "all"
+      req$argsQuery$country <- "all"
+    }
+    if (is.null(req$args$year)) {
+      req$args$year <- "all"
+      req$argsQuery$year <- "all"
+    }
+  }
+  return(req)
+}
+
+#' helper function to extract endpoint from req$PATH_INFO object
+#'
+#' @param path character: Information returned by req$PATH_INFO
+#' @return character
+#'
+extract_endpoint <- function(path) {
+  stringr::str_extract(path, pattern = "([^/]+$)")
+}

@@ -55,13 +55,34 @@ function(req, res) {
   query_controls = lkups$query_controls
 
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
+    # STEP 1: Assign required parameters
+    # Non-provided parameters are typically assigned the underlying function
+    # arguments' default values. There is an exception to that however:
+    # The `country` & `year` parameters cannot be NULL in order for to pass
+    # the if condition that will decide whether or no the request should be
+    # treated asynchronously.
+    req <- assign_required_params(req)
+
+    # STEP 2: Validate individual query parameters
     are_valid <- pipapi:::check_parameters(req, query_controls)
     if (any(are_valid == FALSE)) {
       res$status <- 404
       invalid_params <- names(req$argsQuery)[!are_valid]
       out <- pipapi:::format_error(invalid_params, query_controls)
       return(out)
-      # return("Invalid query arguments have been submitted")
+    }
+    # STEP 3: Check for invalid combinations of query parameter values
+    # Break if bad request
+    endpoint <- extract_endpoint(req$PATH_INFO)
+    if (endpoint == "pip-grp") {
+      if (req$argsQuery$group_by != "none" && req$argsQuery$country != "all") {
+        res$status <- 400
+        out <- list(
+          error = "Invalid query arguments have been submitted.",
+          details = list(msg = "You cannot query individual countries when specifying a predefined sub-group. Please use country=all")
+        )
+        return(out)
+      }
     }
   }
   plumber::forward()
@@ -236,7 +257,7 @@ function(req) {
 #* @serializer switch
 function(req) {
   # Process request
-  browser()
+  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
@@ -289,16 +310,6 @@ function(req, res) {
     params$year <- "all"
   if (is.null(params$group_by))
     params$group_by <- "none"
-
-  # Break if bad request
-  if (params$group_by != "none" && params$country != "all") {
-    res$status <- 400
-    out <- list(
-      error = "Invalid query arguments have been submitted.",
-      details = list(msg = "You cannot query individual countries when specifying a predefined sub-group.")
-    )
-    return(out)
-  }
 
   # Parallel processing for slow requests
   if (params$country == "all" && params$year == "all") {
