@@ -165,3 +165,35 @@ test_that("format_error() works as expected", {
   expect_identical(names(tmp$details$table), c("msg", "valid"))
   expect_identical(tmp$details$table$valid, lkups$aux_tables)
 })
+
+test_that("assign_required_params works as expected for /pip endpoint", {
+
+  req <- list()
+  req$PATH_INFO <- "api/v1/pip"
+  req <- assign_required_params(req)
+
+  expect_identical(req$args$country, "all")
+  expect_identical(req$args$year, "all")
+  expect_identical(req$argsQuery$country, "all")
+  expect_identical(req$argsQuery$year, "all")
+})
+
+test_that("assign_required_params works as expected for /pip-grp endpoint", {
+
+  req <- list()
+  req$PATH_INFO <- "api/v1/pip-grp"
+  req <- assign_required_params(req)
+
+  expect_identical(req$args$country, "all")
+  expect_identical(req$args$year, "all")
+  expect_identical(req$argsQuery$country, "all")
+  expect_identical(req$argsQuery$year, "all")
+})
+
+test_that("extract_endpoint works as expected", {
+
+  expect_identical(extract_endpoint("api/v1/pip"), "pip")
+  expect_identical(extract_endpoint("/api//v1/pip"), "pip")
+  expect_identical(extract_endpoint("/api//v1//pip"), "pip")
+  expect_identical(extract_endpoint("api/v2/pip"), "pip")
+})
