@@ -236,17 +236,17 @@ function(req) {
 #* @serializer switch
 function(req) {
   # Process request
-  # browser()
+  browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
 
   # Define default arguments
-  if (is.null(params$country))
-    params$country <- "all"
-  if (is.null(params$year))
-    params$year <- "all"
+  # if (is.null(params$country))
+  #   params$country <- "all"
+  # if (is.null(params$year))
+  #   params$year <- "all"
 
   # Parallel processing for slow requests
   if (params$country == "all" && params$year == "all") {

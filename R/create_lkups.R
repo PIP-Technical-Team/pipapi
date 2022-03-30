@@ -71,7 +71,6 @@ extract_data_dirs <-
 #' @return list
 #'
 #' @export
-
 create_lkups <- function(data_dir, versions) {
 
   # Get survey paths
