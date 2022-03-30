@@ -31,8 +31,10 @@ pip_grp <- function(country = "all",
   group_by <- match.arg(group_by)
 
   # Custom aggregations only supported at the national level
+  # subgroups aggregations only supported for "all" countries
   if (group_by != "none") {
     reporting_level <- "all"
+    country <- "all"
   } else {
     reporting_level <- "national"
   }

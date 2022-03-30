@@ -76,7 +76,7 @@ format_error <- function(params, query_controls) {
   # params <- names(params)
   out <- lapply(params, function(x) {
     list(msg = sprintf(msg1, x),
-              valid = query_controls[[x]]$values)
+         valid = query_controls[[x]]$values)
   })
   names(out) <- params
   out <- list(error = msg2, details = out)
@@ -176,4 +176,43 @@ serializer_switch <- function() {
       }
     )
   }
+}
+
+#' Assign PIP API required parameters if missing
+#'
+#' @param req list: plumber `req` object
+#'
+#' @return list
+#' @noRd
+assign_required_params <- function(req) {
+
+  # Handle required names for /pip endpoint
+  endpoint <- extract_endpoint(req$PATH_INFO)
+  if (endpoint %in% c("pip", "pip-grp")) {
+    if (is.null(req$args$country)) {
+      req$args$country <- "all"
+      req$argsQuery$country <- "all"
+    }
+    if (is.null(req$args$year)) {
+      req$args$year <- "all"
+      req$argsQuery$year <- "all"
+    }
+    if (endpoint == "pip-grp") {
+      if (is.null(req$args$group_by)) {
+        req$args$group_by <- "none"
+        req$argsQuery$group_by <- "none"
+      }
+    }
+  }
+  return(req)
+}
+
+#' helper function to extract endpoint from req$PATH_INFO object
+#'
+#' @param path character: Information returned by req$PATH_INFO
+#' @return character
+#' @noRd
+extract_endpoint <- function(path) {
+  # stringr::str_extract(path, pattern = "([^/]+$)")
+  sub(".*[/]", "", path)
 }

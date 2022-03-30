@@ -28,10 +28,8 @@ create_versioned_lkups <-
 #' Extract list of data sub-directories from main data directory
 #'
 #' @inheritParams create_versioned_lkups
-#'
 #' @return character
-#' @export
-#'
+#' @noRd
 extract_data_dirs <-
   function(data_dir,
            vintage_pattern
@@ -68,10 +66,8 @@ extract_data_dirs <-
 #'
 #' @param data_dir character: Path to PIP data root folder.
 #' @param versions character: Available data versions
+#' @keywords internal
 #' @return list
-#'
-#' @export
-
 create_lkups <- function(data_dir, versions) {
 
   # Get survey paths
@@ -281,7 +277,7 @@ create_lkups <- function(data_dir, versions) {
 #' Helper function to facilitate testing
 #'
 #' @return list
-
+#' @noRd
 get_vintage_pattern_regex <- function() {
   list(
     vintage_pattern = "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$",
@@ -295,6 +291,7 @@ get_vintage_pattern_regex <- function() {
 #' Helper function to facilitate testing
 #'
 #' @return logical
+#' @noRd
 id_valid_dirs <- function(dirs_names,
                           vintage_pattern) {
   grepl(vintage_pattern, dirs_names)
@@ -309,6 +306,7 @@ id_valid_dirs <- function(dirs_names,
 #' @param test_regex character: Regex expression to identify test versions
 #'
 #' @return character
+#' @noRd
 sort_versions <- function(versions,
                           prod_regex,
                           int_regex,

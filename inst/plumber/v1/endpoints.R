@@ -55,13 +55,34 @@ function(req, res) {
   query_controls = lkups$query_controls
 
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
+    # STEP 1: Assign required parameters
+    # Non-provided parameters are typically assigned the underlying function
+    # arguments' default values. There is an exception to that however:
+    # The `country` & `year` parameters cannot be NULL in order for to pass
+    # the if condition that will decide whether or no the request should be
+    # treated asynchronously.
+    req <- pipapi:::assign_required_params(req)
+
+    # STEP 2: Validate individual query parameters
     are_valid <- pipapi:::check_parameters(req, query_controls)
     if (any(are_valid == FALSE)) {
       res$status <- 404
       invalid_params <- names(req$argsQuery)[!are_valid]
       out <- pipapi:::format_error(invalid_params, query_controls)
       return(out)
-      # return("Invalid query arguments have been submitted")
+    }
+    # STEP 3: Check for invalid combinations of query parameter values
+    # Break if bad request
+    endpoint <- pipapi:::extract_endpoint(req$PATH_INFO)
+    if (endpoint == "pip-grp") {
+      if (req$argsQuery$group_by != "none" && req$argsQuery$country != "all") {
+        res$status <- 400
+        out <- list(
+          error = "Invalid query arguments have been submitted.",
+          details = list(msg = "You cannot query individual countries when specifying a predefined sub-group. Please use country=all")
+        )
+        return(out)
+      }
     }
   }
   plumber::forward()
@@ -260,6 +281,14 @@ function(req) {
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
+
+  # Define default arguments
+  # if (is.null(params$country))
+  #   params$country <- "all"
+  # if (is.null(params$year))
+  #   params$year <- "all"
+
+  # Parallel processing for slow requests
   if (params$country == "all" && params$year == "all") {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::pip, params)
@@ -279,20 +308,21 @@ function(req) {
 #* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
 #* @param popshare:[dbl] Share of the population living below the poverty Line.
-#* @param group_by:[chr] Select type of aggregation (simple weighted average or
-#* by pre-defined subgroups)
+#* @param group_by:[chr] Select type of aggregation (simple weighted average or a pre-defined subgroup)
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* for all available versions
 #* @serializer switch
-function(req) {
+function(req, res) {
   # Process request
   # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
+
+  # Parallel processing for slow requests
   if (params$country == "all" && params$year == "all") {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::pip_grp, params)
