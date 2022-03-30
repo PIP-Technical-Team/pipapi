@@ -73,7 +73,7 @@ function(req, res) {
     }
     # STEP 3: Check for invalid combinations of query parameter values
     # Break if bad request
-    endpoint <- extract_endpoint(req$PATH_INFO)
+    endpoint <- pipapi:::extract_endpoint(req$PATH_INFO)
     if (endpoint == "pip-grp") {
       if (req$argsQuery$group_by != "none" && req$argsQuery$country != "all") {
         res$status <- 400
@@ -302,14 +302,6 @@ function(req, res) {
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
-
-  # Define default arguments
-  if (is.null(params$country))
-    params$country <- "all"
-  if (is.null(params$year))
-    params$year <- "all"
-  if (is.null(params$group_by))
-    params$group_by <- "none"
 
   # Parallel processing for slow requests
   if (params$country == "all" && params$year == "all") {

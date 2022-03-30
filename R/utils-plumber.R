@@ -76,7 +76,7 @@ format_error <- function(params, query_controls) {
   # params <- names(params)
   out <- lapply(params, function(x) {
     list(msg = sprintf(msg1, x),
-              valid = query_controls[[x]]$values)
+         valid = query_controls[[x]]$values)
   })
   names(out) <- params
   out <- list(error = msg2, details = out)
@@ -196,6 +196,12 @@ assign_required_params <- function(req) {
     if (is.null(req$args$year)) {
       req$args$year <- "all"
       req$argsQuery$year <- "all"
+    }
+    if (endpoint == "pip-grp") {
+      if (is.null(req$args$group_by)) {
+        req$args$group_by <- "none"
+        req$argsQuery$group_by <- "none"
+      }
     }
   }
   return(req)
