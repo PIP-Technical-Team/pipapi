@@ -61,7 +61,7 @@ function(req, res) {
     # The `country` & `year` parameters cannot be NULL in order for to pass
     # the if condition that will decide whether or no the request should be
     # treated asynchronously.
-    req <- assign_required_params(req)
+    req <- pipapi:::assign_required_params(req)
 
     # STEP 2: Validate individual query parameters
     are_valid <- pipapi:::check_parameters(req, query_controls)
