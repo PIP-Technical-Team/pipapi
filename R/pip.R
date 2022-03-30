@@ -65,8 +65,6 @@ pip <- function(country = "all",
                 debug = FALSE,
                 censor = TRUE) {
 
-  message("Info: argument group_by in pip() is deprecated; please use pip_grp() instead.")
-
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
@@ -76,6 +74,7 @@ pip <- function(country = "all",
   # Forces fill_gaps to TRUE when using group_by option
   if (group_by != "none") {
     fill_gaps <- TRUE
+    message("Info: argument group_by in pip() is deprecated; please use pip_grp() instead.")
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
