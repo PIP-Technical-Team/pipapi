@@ -19,7 +19,7 @@ api1$call(function() {
   lkups <<- pipapi::create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
   pipapi::start_api(port = 8000)
 })
-Sys.sleep(20)
+Sys.sleep(30)
 
 test_that("API is alive", {
   expect_true(api1$is_alive())
@@ -79,9 +79,10 @@ test_that("Aggregated PIP request is working", {
   r <- httr::GET(root_path, port = 8000, path = "api/v1/pip-grp?country=all&year=2012&group_by=wb")
 
   # Check response
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(tmp_resp[[1]]$reporting_year, 2012)
-  expect_equal(nrow(tmp_resp[[1]]), 8)
+  # tmp_resp <- httr::content(r, encoding = "UTF-8")
+  tmp_resp <- fromJSON(rawToChar(r$content))
+  expect_equal(unique(tmp_resp$reporting_year), 2012)
+  expect_equal(nrow(tmp_resp), 8)
 })
 
 test_that("/pip?country=all is working", {
