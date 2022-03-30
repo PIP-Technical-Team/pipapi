@@ -183,7 +183,7 @@ serializer_switch <- function() {
 #' @param req list: plumber `req` object
 #'
 #' @return list
-
+#' @noRd
 assign_required_params <- function(req) {
 
   # Handle required names for /pip endpoint
@@ -205,7 +205,8 @@ assign_required_params <- function(req) {
 #'
 #' @param path character: Information returned by req$PATH_INFO
 #' @return character
-#'
+#' @noRd
 extract_endpoint <- function(path) {
-  stringr::str_extract(path, pattern = "([^/]+$)")
+  # stringr::str_extract(path, pattern = "([^/]+$)")
+  sub(".*[/]", "", path)
 }

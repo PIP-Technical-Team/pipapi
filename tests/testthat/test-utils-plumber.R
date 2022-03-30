@@ -196,4 +196,8 @@ test_that("extract_endpoint works as expected", {
   expect_identical(extract_endpoint("/api//v1/pip"), "pip")
   expect_identical(extract_endpoint("/api//v1//pip"), "pip")
   expect_identical(extract_endpoint("api/v2/pip"), "pip")
+  expect_identical(extract_endpoint("api/v1/pip-grp"), "pip-grp")
+  expect_identical(extract_endpoint("api/v2/pip-grp"), "pip-grp")
+  expect_identical(extract_endpoint("api/v1/aux"), "aux")
+  expect_identical(extract_endpoint("api/v2/aux"), "aux")
 })
