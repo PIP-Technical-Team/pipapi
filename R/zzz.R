@@ -6,8 +6,10 @@
                              evict = "lru",
                              logfile = log,
                              max_size = as.numeric(Sys.getenv("PIPAPI_CACHE_MAX_SIZE")))
-    pip <<- memoise::memoise(pip, cache = cd)
-    pip_grp <<- memoise::memoise(pip_grp, cache = cd)
+    # pip <<- memoise::memoise(pip, cache = cd)
+    # pip_grp <<- memoise::memoise(pip_grp, cache = cd)
+    ui_cp_key_indicators <<- memoise::memoise(ui_cp_key_indicators, cache = cd)
+    ui_cp_charts <<- memoise::memoise(ui_cp_charts, cache = cd)
     assign("cd", cd, envir = .GlobalEnv)
     packageStartupMessage("Info: Disk based caching is enabled.")
   }
