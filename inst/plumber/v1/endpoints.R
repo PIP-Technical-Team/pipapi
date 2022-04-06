@@ -426,7 +426,7 @@ function(req) {
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer json
+#* @serializer json list(na = "null")
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
