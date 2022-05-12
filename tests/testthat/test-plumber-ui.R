@@ -42,6 +42,7 @@ test_that("Indicators master endpoint is working", {
       "indicator_name",
       "scale_data",
       "scale_display",
+      "scale_factor",
       "number_of_decimals",
       "indicator_definition_short",
       "indicator_definition_long",
@@ -108,7 +109,7 @@ test_that("Poverty calculator chart endpoint is working for survey years", {
     "region_code", "survey_coverage",
     "survey_comparability", "comparable_spell",
     "survey_year",
-    "survey_mean_lcu", "survey_mean_ppp",
+    # "survey_mean_lcu", "survey_mean_ppp",
     "reporting_pop", "ppp", "cpi",
     "distribution_type", "is_interpolated",
     "poverty_line", "mean", "headcount",
@@ -174,7 +175,7 @@ test_that("Poverty calculator download endpoint is working for survey years", {
     "region_code", "survey_coverage",
     "survey_comparability", "comparable_spell",
     "survey_year",
-    "survey_mean_lcu", "survey_mean_ppp",
+    # "survey_mean_lcu", "survey_mean_ppp",
     "reporting_pop", "ppp", "cpi",
     "distribution_type", "is_interpolated",
     "poverty_line", "mean", "headcount",
@@ -284,7 +285,8 @@ test_that("Country profile charts endpoint is working", {
     c(
       "country_code", "reporting_year", "poverty_line",
       "survey_acronym", "welfare_type", "survey_comparability",
-      "comparable_spell", "headcount", "pop_in_poverty"
+      "comparable_spell", "headcount", "pop_in_poverty",
+      "reporting_level"
     )
   )
 
@@ -294,7 +296,7 @@ test_that("Country profile charts endpoint is working", {
     c(
       "country_code", "reporting_year",
       "poverty_line", "headcount",
-      "sort_order"
+      "reporting_level", "sort_order"
     )
   )
 
@@ -306,7 +308,8 @@ test_that("Country profile charts endpoint is working", {
       "survey_acronym", "welfare_type",
       "survey_comparability",
       "comparable_spell",
-      "gini", "theil"
+      "gini", "theil",
+      "reporting_level"
     )
   )
 
@@ -319,7 +322,8 @@ test_that("Country profile charts endpoint is working", {
       "welfare_type", "gender",
       "agegroup", "education",
       "distribution",
-      "poverty_share_by_group"
+      "poverty_share_by_group",
+      "reporting_level"
     )
   )
 
@@ -335,7 +339,8 @@ test_that("Country profile charts endpoint is working", {
       "mpm_sanitation",
       "mpm_water",
       "mpm_monetary",
-      "mpm_headcount"
+      "mpm_headcount",
+      "reporting_level"
     )
   )
 
@@ -345,7 +350,7 @@ test_that("Country profile charts endpoint is working", {
     c(
       "country_code", "year_range",
       "welfare_type", "distribution",
-      "shared_prosperity"
+      "shared_prosperity", "reporting_level"
     )
   )
 })

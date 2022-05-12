@@ -1,6 +1,6 @@
 if (Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") != "") {
   lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-  lkups <- lkups$versions_paths$latest_release
+  lkups <- lkups$versions_paths[[lkups$latest_release]]
 } else {
   # lkups$query_controls$version <- NULL
   # saveRDS(list(query_controls = lkups$query_controls),
@@ -99,7 +99,7 @@ test_that("check_parameters() works as expected", {
   req <- list(argsQuery = list(povline = "all"))
   tmp <- check_parameters(req, lkups$query_controls)
   expect_false(tmp)
-  req <- list(argsQuery = list(povline = 200))
+  req <- list(argsQuery = list(povline = lkups$query_controls$povline$values[["max"]] + 1))
   tmp <- check_parameters(req, lkups$query_controls)
   expect_false(tmp)
 
@@ -145,9 +145,61 @@ test_that("check_parameters() works as expected", {
 })
 
 test_that("format_error() works as expected", {
-  tmp <- format_error("XYZ", c("AGO", "BOL"))
-  expect_identical(
-    tmp$error,
-    "Invalid value for XYZ. Please use one of'AGO', 'BOL'."
-  )
+
+  req <- list(argsQuery = list(country = "XXX", year = 2050, povline = 0))
+  params <- names(req$argsQuery)
+  tmp <- format_error(params, lkups$query_controls)
+  expect_identical(names(tmp), c("error", "details"))
+  expect_identical(tmp$error, "Invalid query arguments have been submitted.")
+  expect_identical(names(tmp$details), c("country", "year", "povline"))
+  expect_identical(names(tmp$details$country), c("msg", "valid"))
+  expect_identical(names(tmp$details$year), c("msg", "valid"))
+  expect_identical(names(tmp$details$povline), c("msg", "valid"))
+  expect_identical(names(tmp$details$povline$valid), c("min", "max"))
+
+  req <- list(argsQuery = list(table = "tmp"))
+  params <- names(req$argsQuery)
+  tmp <- format_error(params, lkups$query_controls)
+  expect_identical(tmp$error, "Invalid query arguments have been submitted.")
+  expect_identical(names(tmp$details), c("table"))
+  expect_identical(names(tmp$details$table), c("msg", "valid"))
+  expect_identical(tmp$details$table$valid, lkups$aux_tables)
+})
+
+test_that("assign_required_params works as expected for /pip endpoint", {
+
+  req <- list()
+  req$PATH_INFO <- "api/v1/pip"
+  req <- assign_required_params(req)
+
+  expect_identical(req$args$country, "all")
+  expect_identical(req$args$year, "all")
+  expect_identical(req$argsQuery$country, "all")
+  expect_identical(req$argsQuery$year, "all")
+})
+
+test_that("assign_required_params works as expected for /pip-grp endpoint", {
+
+  req <- list()
+  req$PATH_INFO <- "api/v1/pip-grp"
+  req <- assign_required_params(req)
+
+  expect_identical(req$args$country, "all")
+  expect_identical(req$args$year, "all")
+  expect_identical(req$args$group_by, "none")
+  expect_identical(req$argsQuery$country, "all")
+  expect_identical(req$argsQuery$year, "all")
+  expect_identical(req$argsQuery$group_by, "none")
+})
+
+test_that("extract_endpoint works as expected", {
+
+  expect_identical(extract_endpoint("api/v1/pip"), "pip")
+  expect_identical(extract_endpoint("/api//v1/pip"), "pip")
+  expect_identical(extract_endpoint("/api//v1//pip"), "pip")
+  expect_identical(extract_endpoint("api/v2/pip"), "pip")
+  expect_identical(extract_endpoint("api/v1/pip-grp"), "pip-grp")
+  expect_identical(extract_endpoint("api/v2/pip-grp"), "pip-grp")
+  expect_identical(extract_endpoint("api/v1/aux"), "aux")
+  expect_identical(extract_endpoint("api/v2/aux"), "aux")
 })

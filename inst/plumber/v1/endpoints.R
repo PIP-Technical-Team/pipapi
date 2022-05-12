@@ -14,11 +14,17 @@ function(req, res) {
   if (!is.null(req$argsQuery$version) & !grepl("swagger", req$PATH_INFO)) {
     if (!is.null(req$argsQuery$version)) {
       if (!req$argsQuery$version %in% lkups$versions) {
-        return("Invalid version has been submitted. Please check valid versions with /versions")
+        res$status <- 404
+        out <- list(
+          error = "Invalid query arguments have been submitted.",
+          details = list(msg = "You supplied an invalid value for version. Please use one of the valid values.",
+                         valid = lkups$versions))
+        return(out)
+        #return("Invalid version has been submitted. Please check valid versions with /versions")
       }
     }
   } else {
-    req$argsQuery$version <- "latest_release"
+    req$argsQuery$version <- lkups$latest_release
   }
   plumber::forward()
 }
@@ -41,18 +47,42 @@ function(req, res) {
   plumber::forward()
 }
 
-#* Protect against invalid country code and year
+#* Protect against invalid arguments
 #* @filter check_parameters
 function(req, res) {
-  # validate version
   # browser()
   lkups <- lkups$versions_paths[[req$argsQuery$version]]
   query_controls = lkups$query_controls
 
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
+    # STEP 1: Assign required parameters
+    # Non-provided parameters are typically assigned the underlying function
+    # arguments' default values. There is an exception to that however:
+    # The `country` & `year` parameters cannot be NULL in order for to pass
+    # the if condition that will decide whether or no the request should be
+    # treated asynchronously.
+    req <- pipapi:::assign_required_params(req)
+
+    # STEP 2: Validate individual query parameters
     are_valid <- pipapi:::check_parameters(req, query_controls)
     if (any(are_valid == FALSE)) {
-      return("Invalid query parameters have been submitted")
+      res$status <- 404
+      invalid_params <- names(req$argsQuery)[!are_valid]
+      out <- pipapi:::format_error(invalid_params, query_controls)
+      return(out)
+    }
+    # STEP 3: Check for invalid combinations of query parameter values
+    # Break if bad request
+    endpoint <- pipapi:::extract_endpoint(req$PATH_INFO)
+    if (endpoint == "pip-grp") {
+      if (req$argsQuery$group_by != "none" && req$argsQuery$country != "all") {
+        res$status <- 400
+        out <- list(
+          error = "Invalid query arguments have been submitted.",
+          details = list(msg = "You cannot query individual countries when specifying a predefined sub-group. Please use country=all")
+        )
+        return(out)
+      }
     }
   }
   plumber::forward()
@@ -99,10 +129,20 @@ function() {
   "PIP API is running"
 }
 
-#* Check status of API
+#* Return available data versions
 #* @get /api/v1/versions
-function() {
-  lkups$versions
+#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @serializer switch
+function(req) {
+  # browser()
+  out <- lkups$versions
+  # if (!is.null(req$argsQuery$format)) {
+  #   if (req$argsQuery$format == "csv") out <- data.frame(versions = out)
+  #   attr(out, "serialize_format") <- req$argsQuery$format
+  # }
+  out <- data.frame(versions = out)
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
 }
 
 # #* Return system info
@@ -128,23 +168,76 @@ function() {
 #   )
 # }
 
+#* Return cache info
+#* @get /api/v1/cache-info
+#* @serializer unboxedJSON
+function() {
+  info <- cd$info()
+  info$missing <- NULL
+  c(n_items = cd$size(), info)
+}
+
+#* Return cache log
+#* @get /api/v1/cache-log
+#* @serializer print list(quote = FALSE)
+function(){
+  readLines(cd$info()$logfile)
+}
+
+#* Reset current cache
+#* @get /api/v1/cache-reset
+#* @serializer unboxedJSON
+function() {
+  pipapi:::clear_cache(cd)
+}
+
 #* Check timestamp for the data
 #* @get /api/v1/data-timestamp
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer unboxedJSON
 function(req) {
   dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
   readLines(sprintf("%s/data_update_timestamp.txt", dir))
 }
+
+#* Get information on directory contents
+#* @get /api/v1/dir-info
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+function(req) {
+  # browser()
+  dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
+  x <- fs::dir_info(dir, recurse = TRUE, type = "file")
+  x$file <- sub(".*/", "", x$path)
+  x <- x[c("path", "file", "size", "birth_time", "modification_time", "change_time", "access_time")]
+  list(
+    aux_files = x[grepl("aux", x$path),],
+    estimation_files = x[grepl("estimation", x$path),],
+    survey_data = x[grepl("survey_data", x$path),]
+  )
+}
+
+
+
 
 #* Check Github hash for the PIP packages
 #* @get /api/v1/gh-hash
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer unboxedJSON
 function(req) {
- list(pipapi = packageDescription("pipapi")$GithubSHA1,
-      wbpip = packageDescription("wbpip")$GithubSHA1)
+  list(pipapi = packageDescription("pipapi")$GithubSHA1,
+       wbpip = packageDescription("wbpip")$GithubSHA1)
 }
 
+#* Return number of workers
+#* @get /api/v1/n-workers
+#* @serializer unboxedJSON
+function() {
+  list(
+    n_cores = unname(future::availableCores()),
+    n_workers = future::nbrOfWorkers(),
+    n_free_workers = future::nbrOfFreeWorkers()
+  )
+}
 
 #* Return PIP information
 #* @get /api/v1/pip-info
@@ -155,7 +248,7 @@ function(req) {
 #* Return valid parameters
 #* @get /api/v1/valid-params
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
   # browser()
@@ -178,9 +271,8 @@ function(req) {
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
-#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
-#* for all available versions
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions for all available versions
+#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
   # Process request
@@ -189,8 +281,24 @@ function(req) {
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
-  out <- do.call(pipapi::pip, params)
-  attr(out, "serialize_format") <- req$argsQuery$format
+
+  # Define default arguments
+  # if (is.null(params$country))
+  #   params$country <- "all"
+  # if (is.null(params$year))
+  #   params$year <- "all"
+
+  # Parallel processing for slow requests
+  if (params$country == "all" && params$year == "all") {
+    out <- promises::future_promise({
+      tmp <- do.call(pipapi::pip, params)
+      attr(tmp, "serialize_format") <- req$argsQuery$format
+      tmp
+    }, seed = TRUE)
+  } else {
+    out <- do.call(pipapi::pip, params)
+    attr(out, "serialize_format") <- req$argsQuery$format
+  }
   out
 }
 
@@ -200,22 +308,31 @@ function(req) {
 #* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
 #* @param popshare:[dbl] Share of the population living below the poverty Line.
-#* @param group_by:[chr] Select type of aggregation (simple weighted average or
-#* by pre-defined subgroups)
+#* @param group_by:[chr] Select type of aggregation (simple weighted average or a pre-defined subgroup)
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* for all available versions
 #* @serializer switch
-function(req) {
+function(req, res) {
   # Process request
   # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
-  out <- do.call(pipapi::pip_grp, params)
-  attr(out, "serialize_format") <- req$argsQuery$format
+
+  # Parallel processing for slow requests
+  if (params$country == "all" && params$year == "all") {
+    out <- promises::future_promise({
+      tmp <- do.call(pipapi::pip_grp, params)
+      attr(tmp, "serialize_format") <- req$argsQuery$format
+      tmp
+    }, seed = TRUE)
+  } else {
+    out <- do.call(pipapi::pip_grp, params)
+    attr(out, "serialize_format") <- req$argsQuery$format
+  }
   out
 }
 
@@ -223,7 +340,7 @@ function(req) {
 #* @get /api/v1/aux
 #* @param table:[chr] Auxiliary data table to be returned
 #* @param version:[chr] Data version. Defaults to latest versions. See api/v1/versions (add filter for version validation and default selection)
-#* @param format:[chr] Response format. Options are of "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
   # browser()
@@ -233,7 +350,7 @@ function(req) {
   params$version <- NULL
 
   if (is.null(req$args$table)) {
-    out <- params$lkup$aux_tables
+    out <- data.frame(tables = params$lkup$aux_tables)
   } else {
     out <- pipapi::get_aux_table(
       data_dir = params$lkup$data_root,
@@ -280,7 +397,9 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi:::ui_hp_stacked, params)
+  promises::future_promise({
+    do.call(pipapi:::ui_hp_stacked, params)
+  }, seed = TRUE)
 }
 
 #* Return data for home page country charts
@@ -307,12 +426,18 @@ function(req) {
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer json
+#* @serializer json list(na = "null")
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi::ui_pc_charts, params)
+  if (params$country == "all" && params$year == "all") {
+    promises::future_promise({
+      do.call(pipapi::ui_pc_charts, params)
+    }, seed = TRUE)
+  } else {
+    do.call(pipapi::ui_pc_charts, params)
+  }
 }
 
 #* Return data for Poverty Calculator download
@@ -331,7 +456,13 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$pop_units <- 1
   params$version <- NULL
-  do.call(pipapi::ui_pc_charts, params)
+  if (params$country == "all" && params$year == "all") {
+    promises::future_promise({
+      do.call(pipapi::ui_pc_charts, params)
+    }, seed = TRUE)
+  } else {
+    do.call(pipapi::ui_pc_charts, params)
+  }
 }
 
 #* Return regional aggregations for all years
@@ -343,7 +474,9 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi::ui_pc_regional, params)
+  promises::future_promise({
+    do.call(pipapi::ui_pc_regional, params)
+  }, seed = TRUE)
 }
 
 # UI Endpoints: Country Profiles ----------------------------------------
@@ -372,7 +505,13 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi::ui_cp_charts, params)
+  if (params$country == "all") {
+    promises::future_promise({
+      do.call(pipapi::ui_cp_charts, params)
+    }, seed = TRUE)
+  } else {
+    do.call(pipapi::ui_cp_charts, params)
+  }
 }
 
 # UI Endpoints: Survey metadata  ------------------------------------------

@@ -69,12 +69,12 @@ pip <- function(country = "all",
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
 
-
   # **** TO BE REMOVED **** REMOVAL STARTS HERE
   # Once `pip-grp` has been integrated in ingestion pipeline
   # Forces fill_gaps to TRUE when using group_by option
   if (group_by != "none") {
     fill_gaps <- TRUE
+    message("Info: argument group_by in pip() is deprecated; please use pip_grp() instead.")
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
@@ -114,6 +114,9 @@ pip <- function(country = "all",
   # Handles aggregated distributions
   if (reporting_level %in% c("national", "all")) {
     out <- add_agg_stats(out)
+    if (reporting_level == "national") {
+      out <- out[reporting_level == "national"]
+    }
   }
 
   # **** TO BE REMOVED **** REMOVAL STARTS HERE
@@ -132,6 +135,18 @@ pip <- function(country = "all",
     if (censor) {
       out <- censor_rows(out, lkup[["censored"]], type = "regions")
     }
+
+    out <- out[, c("region_name",
+                   "region_code",
+                   "reporting_year",
+                   "reporting_pop",
+                   "poverty_line",
+                   "headcount",
+                   "poverty_gap",
+                   "poverty_severity",
+                   "watts",
+                   "mean",
+                   "pop_in_poverty")]
 
     return(out)
   }

@@ -17,7 +17,13 @@ paths:
       responses:
         default:
           description: Default response.
-      parameters: []
+      parameters:
+          - in: query
+            name: format
+            schema:
+              type: string
+              enum: [json, csv, rds]
+            description: Response format. Defaults to json.
   /api/v1/pip-info:
     get:
       summary: ' Return information about the API'
@@ -113,10 +119,77 @@ paths:
               example: FALSE
              description: Whether to interpolate / extrapolate statistics for years without available survey data.
            - in: query
+             name: welfare_type
+             schema:
+              type: string
+              enum: [all, consumption, income]
+             description: Welfare measure
+           - in: query
+             name: reporting_level
+             schema:
+              type: string
+              enum: [all, national, rural, urban]
+             description: Reporting coverage.
+           - in: query
+             name: version
+             schema:
+              type: string
+             description: Data version. Defaults to most recent version. See api/v1/versions.
+           - in: query
+             name: format
+             schema:
+              type: string
+              enum: [json, csv, rds]
+             description: Response format. Defaults to json.
+      responses:
+       '200':
+         description: successful message
+  /api/v1/pip-grp:
+    get:
+      summary: ' Return aggregations of PIP statistics'
+      description: Compute aggregated poverty and inequality statistics
+      parameters:
+           - in: query
+             name: country
+             required: true
+             schema:
+              type: array
+              items:
+               type: string
+               enum: [all, AGO, ALB, COL]
+               example: all
+             description: The countries for which statistics are to be computed, specified as ISO3 codes.
+           - in: query
+             name: year
+             required: true
+             schema:
+              type: array
+              items:
+               type: integer
+               enum: [2008, 2018]
+               example: 2018
+             description: Year(s) for which statistics are to be computed, specified as YYYY.
+           - in: query
+             name: povline
+             schema:
+              type: number
+              minimum: 0
+              maximum: 10000
+              example: 1.90
+             description: Poverty line to be used to compute poverty mesures.
+           - in: query
+             name: popshare
+             schema:
+              type: number
+              minimum: 0
+              maximum: 1
+             description: Proportion of the population living below the poverty line. Will be ignored if povline is specified.
+           - in: query
              name: group_by
              schema:
               type: string
               enum: [none, wb]
+              example: wb
              description: Aggregate results by pre-defined sub-groups.
            - in: query
              name: welfare_type
@@ -128,7 +201,7 @@ paths:
              name: reporting_level
              schema:
               type: string
-              enum: [all, national, rural, urban]
+              enum: [all, national]
              description: Reporting coverage.
            - in: query
              name: version

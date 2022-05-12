@@ -15,7 +15,9 @@ utils::globalVariables(
     "survey_mean_ppp", "survey_year", "watts",
     "wb_region_code", "weighted.mean",
     "welfare_type", "pcn_region_code",
-    "comparable_spell"
+    "comparable_spell","..cols", "N", "check",
+    "data_interpolation_id", "display_cp", "region_name",
+    "sessionInfo"
   )
 )
 
@@ -38,7 +40,11 @@ subset_lkup <- function(country,
   }
   # Select years
   if (year[1] == "mrv") {
-    max_year <- max(lkup[country_code == country]$reporting_year)
+    if (country[1] != "all") {
+      max_year <- max(lkup[country_code == country]$reporting_year)
+    } else {
+      max_year <- max(lkup$reporting_year)
+    }
     keep <- keep & lkup$reporting_year %in% max_year
   }
   if (!year[1] %in% c("all", "mrv")) {
@@ -149,9 +155,10 @@ get_svy_data <- function(svy_id,
 add_dist_stats <- function(df, dist_stats) {
   # Keep only relevant columns
   cols <- c(
-    "country_code",
-    "reporting_year",
-    "welfare_type",
+    "cache_id",
+    # "country_code",
+    # "reporting_year",
+    # "welfare_type",
     "reporting_level",
     "gini",
     "polarization",
@@ -164,7 +171,7 @@ add_dist_stats <- function(df, dist_stats) {
   # data.table::setnames(dist_stats, "survey_median_ppp", "median")
 
   df <- dist_stats[df,
-                   on = .(country_code, reporting_year, welfare_type, reporting_level),
+                   on = .(cache_id, reporting_level), #.(country_code, reporting_year, welfare_type, reporting_level),
                    allow.cartesian = TRUE
   ]
 
@@ -174,15 +181,19 @@ add_dist_stats <- function(df, dist_stats) {
 #' Collapse rows
 #' @return data.table
 #' @noRd
-collapse_rows <- function(df, vars, na_var) {
-  tmp_vars <- lapply(df[, .SD, .SDcols = vars], unique, collapse = "|")
-  tmp_vars <- lapply(tmp_vars, paste, collapse = "|")
+collapse_rows <- function(df, vars, na_var = NULL) {
+  tmp_vars      <- lapply(df[, .SD, .SDcols = vars], unique, collapse = "|")
+  tmp_vars      <- lapply(tmp_vars, paste, collapse = "|")
   tmp_var_names <- names(df[, .SD, .SDcols = vars])
-  df[[na_var]] <- NA_real_
+
+  if (!is.null(na_var)) df[[na_var]] <- NA_real_
+
   for (tmp_var in seq_along(tmp_vars)) {
     df[[tmp_var_names[tmp_var]]] <- tmp_vars[[tmp_var]]
   }
+
   df <- unique(df)
+  return(df)
 }
 
 #' Censor rows
@@ -256,10 +267,11 @@ censor_stats <- function(df, censored_table) {
 #' Create query controls
 #' @param syv_lkup data.table: Survey lkup table
 #' @param ref_lkup data.table: Reference lkup table
+#' @param aux_tables character: List of available aux tables
 #' @param versions character: List of available data versions
 #' @return list
 #' @noRd
-create_query_controls <- function(svy_lkup, ref_lkup, versions) {
+create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
 
   country <- list(
     values = c(
@@ -284,7 +296,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
   )
 
   povline <- list(
-    values = c(min = 0, max = 100),
+    values = c(min = 0, max = 10000),
     type = "numeric"
   )
 
@@ -323,7 +335,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
   )
 
   ppp <- list(
-    values = c(min = 0, max = 1000000), # CHECK THE VALUE OF MAX
+    values = c(min = 0.05, max = 1000000), # CHECK THE VALUE OF MAX
     type = "numeric"
   )
 
@@ -335,29 +347,32 @@ create_query_controls <- function(svy_lkup, ref_lkup, versions) {
   format <- list(values = c("json", "csv", "rds"),
                  type = "character")
 
+  table <- list(values = aux_tables, type = "character")
+
   parameter <-
     list(values = c("country", "year", "povline",
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format"),
+                    "format", "table"),
          type = "character")
 
-  # Create list of query controls
+    # Create list of query controls
   query_controls <- list(
-    country = country,
-    year = year,
-    povline = povline,
-    popshare = popshare,
-    fill_gaps = fill_gaps,
-    aggregate = aggregate,
-    group_by = group_by,
-    welfare_type = welfare_type,
+    country         = country,
+    year            = year,
+    povline         = povline,
+    popshare        = popshare,
+    fill_gaps       = fill_gaps,
+    aggregate       = aggregate,
+    group_by        = group_by,
+    welfare_type    = welfare_type,
     reporting_level = reporting_level,
-    ppp = ppp,
-    version = version,
-    format = format,
-    parameter = parameter
+    ppp             = ppp,
+    version         = version,
+    format          = format,
+    table           = table,
+    parameter       = parameter
   )
 
   return(query_controls)
@@ -390,7 +405,11 @@ subset_ctry_years <- function(country,
   }
   # Select years
   if (year[1] == "mrv") {
-    max_year <- max(lkup[country_code == country]$reporting_year)
+    if (country[1] != "all") {
+      max_year <- max(lkup[country_code == country]$reporting_year)
+    } else {
+      max_year <- max(lkup$reporting_year)
+    }
     keep <- keep & lkup$reporting_year %in% max_year
   }
   if (!year[1] %in% c("all", "mrv")) {
@@ -400,4 +419,29 @@ subset_ctry_years <- function(country,
   lkup <- lkup[keep, ]
 
   return(lkup)
+}
+
+#' Clear cache
+#' Clear cache directory if available
+#' @param cd A `cachem::cache_disk()` object
+#' @return list
+#' @keywords internal
+clear_cache <- function(cd) {
+  tryCatch({
+    if (cd$size() > 0) {
+      cd$reset()
+      n <- cd$size()
+      if (n == 0) {
+        out <- list(status = 'success', msg = 'Cache cleared.')
+      } else {
+        out <- list(status = 'error', msg = sprintf('Something went wrong. %n items remain in cache.', n))
+      }
+    } else {
+      out <- list(status = 'success', msg = 'Cache directory is empty. Nothing to clear.')
+    }
+    return(out)
+  }, error = function(e){
+    out <- list(status = 'error', msg = 'Cache directory not found.')
+    return(out)
+  })
 }
