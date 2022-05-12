@@ -1,16 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/404.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/CONTRIBUTING.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/LICENSE-text.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/LICENSE.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/PULL_REQUEST_TEMPLATE.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/authors.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/index.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/news/index.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/add_dist_stats.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/clear_cache.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/create_lkups.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/create_versioned_lkups.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/empty_response.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/fg_assign_nas_values_to_dup_cols.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/fg_pip.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/fg_remove_duplicates.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/fg_standardize_cache_id.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/get_aux_table.html</loc>
@@ -25,7 +64,13 @@
     <loc>https://pip-technical-team.github.io/pipapi/reference/get_svy_data.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/index.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/pip.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/pip_grp.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/pipe.html</loc>
@@ -37,7 +82,13 @@
     <loc>https://pip-technical-team.github.io/pipapi/reference/rg_pip.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/select_reporting_level.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/start_api.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/subset_ctry_years.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/subset_lkup.html</loc>
