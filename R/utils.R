@@ -35,8 +35,6 @@ subset_lkup <- function(country,
                         lkup,
                         valid_regions) {
 
-
-
   keep <- TRUE
   # Select data files based on requested country, year, etc.
   # Select countries
