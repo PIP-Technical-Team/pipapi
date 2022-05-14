@@ -31,8 +31,8 @@ subset_lkup <- function(country,
                         welfare_type,
                         reporting_level,
                         lkup) {
-  svy_n <- nrow(lkup)
-  keep <- rep(TRUE, svy_n)
+
+  keep <- TRUE
   # Select data files based on requested country, year, etc.
   # Select countries
   if (country[1] != "all") {
@@ -84,8 +84,7 @@ select_reporting_level <- function(lkup,
 
   } else if (reporting_level == "national") {
     # Subnational levels necessary to compute national stats for aggregate distributions
-    keep <- keep & (lkup$reporting_level == reporting_level |
-                      lkup$is_used_for_aggregation == TRUE)
+    keep <- keep & (lkup$reporting_level == reporting_level | lkup$is_used_for_aggregation)
     return(keep)
 
   } else {
@@ -396,8 +395,8 @@ convert_empty <- function(string) {
 subset_ctry_years <- function(country,
                               year,
                               lkup) {
-  svy_n <- nrow(lkup)
-  keep <- rep(TRUE, svy_n)
+
+  keep <- TRUE
   # Select data files based on requested country, year, etc.
   # Select countries
   if (country[1] != "all") {
