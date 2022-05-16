@@ -1,4 +1,4 @@
-# pipapi 0.0.1.9001
+# pipapi 1.0.0
 
 ## New features
 
