@@ -1,5 +1,8 @@
 # pipapi (development version)
 
+## Enhancements
+- [Sort the rows by `country_code` and `reporting_year` in the pip response.](https://github.com/PIP-Technical-Team/pipapi/issues/248) 
+
 # pipapi 1.0.0
 
 ## New features
@@ -21,7 +24,6 @@
 - Add country and region name to /pip response 
 - Make sure latest data version is available as a specific version (not just as "latest_relase")
 - Use `{fs}` functions rather than base R's. 
-- [Sort the rows by `country_code` and `reporting_year` in the pip response.](https://github.com/PIP-Technical-Team/pipapi/issues/248) 
 
 ## Bug fixes
 
