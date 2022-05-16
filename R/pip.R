@@ -172,5 +172,8 @@ pip <- function(country = "all",
   # Select columns
   out <- out[, .SD, .SDcols = lkup$pip_cols]
 
+  #Order rows by country code and reporting year
+  out <- out[order(country_code, reporting_year)]
+
   return(out)
 }

@@ -13,7 +13,13 @@ create_lkups(data_dir, versions)
 }
 \value{
 list
+cpi_data_level',
+ppp_data_level',
+pop_data_level',
+gdp_data_level',
+pce_data_level',
 }
 \description{
 Create look-up tables that can be passed to \code{\link[=pip]{pip()}}.
 }
+\keyword{internal}
