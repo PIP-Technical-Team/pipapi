@@ -39,7 +39,7 @@ check_parameter <- function(values, valid_values, type) {
 #' @return logical
 #' @noRd
 check_param_chr <- function(values, valid_values) {
-  out <- all(values %in% valid_values)
+  out <- all(tolower(values) %in% tolower(valid_values))
 
   return(out)
 }
