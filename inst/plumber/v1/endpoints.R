@@ -538,3 +538,11 @@ function(req) {
   params$version <- NULL
   do.call(pipapi::ui_svy_meta, params)
 }
+
+#* Return valid years
+#* @get /api/v1/valid_years
+#* @param data_dir character: Path to the data in main data directory
+#* @serializer json list(na="null")
+function(req) {
+  valid_years(lkup$data_root)
+}
