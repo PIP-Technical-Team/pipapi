@@ -10,6 +10,6 @@
 #' valid_years(lkup$data_root)
 
 valid_years <- function(data_dir) {
-  tmp <- fst::read_fst(paste0(data_dir, '/_aux/interpolated_means.fst'))
+  tmp <- pipapi::get_aux_table(data_dir, 'interpolated_means')
   sort(unique(tmp$reporting_year))
 }
