@@ -1,7 +1,8 @@
 # pipapi (development version)
 
 ## Enhancements
-- [Sort the rows by `country_code` and `reporting_year` in the pip response.](https://github.com/PIP-Technical-Team/pipapi/issues/248) 
+- [Sort the rows by `country_code` and `reporting_year` in the pip response.](https://github.com/PIP-Technical-Team/pipapi/issues/248)
+
 
 # pipapi 1.0.0
 
