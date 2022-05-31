@@ -15,8 +15,3 @@ numeric vector of valid years
 \description{
 Return available valid years
 }
-\examples{
-lkups <- create_versioned_lkups(data_dir = "/pip-fake-data")
-lkup <- lkups$versions_paths$`20200101_2011_01_01_PROD`
-valid_years(lkup$data_root)
-}

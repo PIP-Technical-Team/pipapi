@@ -245,7 +245,7 @@ create_lkups <- function(data_dir, versions) {
   aux_tables <- list.files(fs::path(data_dir, "_aux"),pattern = "\\.fst$")
   aux_tables <- tools::file_path_sans_ext(aux_tables)
   aux_tables <- sort(aux_tables)
-
+  valid_years <- valid_years(data_dir)
   # Create list of query controls
   query_controls <-
     create_query_controls(
@@ -267,7 +267,8 @@ create_lkups <- function(data_dir, versions) {
     query_controls     = query_controls,
     data_root          = data_dir,
     aux_tables         = aux_tables,
-    interpolation_list = interpolation_list
+    interpolation_list = interpolation_list,
+    valid_years = valid_years
   )
 
   return(lkups)
