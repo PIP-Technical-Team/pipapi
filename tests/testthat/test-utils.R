@@ -30,3 +30,64 @@ test_that("select_reporting_level is working as expected", {
   # CHECK THAT THIS IS THE CORRECT BEHAVIOR
   expect_equal(sum(tmp), 18)
 })
+
+test_that("subset_lkup correctly selects all countries", {
+  tmp <- subset_lkup(country         = "all",
+                     year            = "all",
+                     welfare_type    = "all",
+                     reporting_level = "all",
+                     lkup            = ref_lkup)
+
+  expect_equal(nrow(tmp), nrow(ref_lkup))
+})
+
+test_that("subset_lkup correctly selects countries", {
+  selection <- c("AGO", "THA")
+  tmp <- subset_lkup(country         = selection,
+                     year            = "all",
+                     welfare_type    = "all",
+                     reporting_level = "all",
+                     lkup            = ref_lkup)
+
+  expect_equal(sort(unique(tmp$country_code)), sort(selection))
+})
+
+test_that("subset_lkup correctly selects single regions", {
+  selection <- "SSA"
+  tmp <- subset_lkup(country         = selection,
+                     year            = "all",
+                     welfare_type    = "all",
+                     reporting_level = "all",
+                     lkup            = ref_lkup)
+
+  expect_equal(sort(unique(tmp$wb_region_code)), sort(selection))
+})
+
+test_that("subset_lkup correctly selects multiple regions", {
+  selection <- c("LAC", "SSA")
+  tmp <- subset_lkup(country         = selection,
+                     year            = "all",
+                     welfare_type    = "all",
+                     reporting_level = "all",
+                     lkup            = ref_lkup)
+
+  expect_equal(sort(unique(tmp$wb_region_code)), sort(selection))
+})
+
+test_that("subset_lkup correctly selects countries and regions", {
+
+  region_selection <- "LAC"
+  country_selection <- c("AGO", "THA")
+  selection <- c(region_selection, country_selection)
+
+  tmp <- subset_lkup(country         = selection,
+                     year            = "all",
+                     welfare_type    = "all",
+                     reporting_level = "all",
+                     lkup            = ref_lkup)
+
+  # Regions are selected
+  expect_true(all(region_selection %in% (unique(tmp$wb_region_code))))
+  # Countries are selected
+  expect_true(all(country_selection %in% (unique(tmp$country_code))))
+})
