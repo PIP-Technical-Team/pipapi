@@ -17,6 +17,7 @@ return parameters that are relevant to the specified endpoint
 - Change parameter `version_length` for `vintage_pattern` in `extract_data_dirs()`. The algorithm for extracting valid versions has been modified. 
 - Add option to enable disk based caching of `pip()` and `pip_grp()`
 - Add asynchronous processing of slow API requests
+- [Add /valid_years as new endpoint to get the valid years information of the data](https://github.com/PIP-Technical-Team/pipapi/issues/182)
  
 ## Enhancements
 
