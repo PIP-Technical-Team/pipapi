@@ -36,7 +36,16 @@ subset_lkup <- function(country,
   # Select data files based on requested country, year, etc.
   # Select countries
   if (country[1] != "all") {
-    keep <- keep & lkup$country_code %in% country
+    valid_regions <- c("EAP", "ECA", "LAC", "MNA", "OHI", "SAS", "SSA")
+    # Select regions
+    if (any(country %in% valid_regions)) {
+      selected_regions <- country[country %in% valid_regions]
+      keep_regions <- lkup$wb_region_code %in% selected_regions
+    } else {
+      keep_regions <- rep(FALSE, length(lkup$country_code))
+    }
+    keep_countries <- lkup$country_code %in% country
+    keep <- keep & (keep_countries | keep_regions)
   }
   # Select years
   if (year[1] == "mrv") {
