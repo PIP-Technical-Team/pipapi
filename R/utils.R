@@ -24,7 +24,7 @@ utils::globalVariables(
 
 #' Subset look-up data
 #' @inheritParams pip
-#' @param valid_regions character: List iof valid region codes that can be used
+#' @param valid_regions character: List of valid region codes that can be used
 #' for region selection
 #' @return data.frame
 #' @keywords internal
@@ -418,19 +418,21 @@ convert_empty <- function(string) {
 #' Subset country-years table
 #' This is a table created at start time to facilitate imputations
 #' It part of the interpolated_list object
-#'
+#' @param valid_regions character: List of valid region codes that can be used
 #' @return data.frame
 #' @keywords internal
 subset_ctry_years <- function(country,
                               year,
-                              lkup) {
+                              lkup,
+                              valid_regions) {
   svy_n <- nrow(lkup)
   keep <- rep(TRUE, svy_n)
   # Select data files based on requested country, year, etc.
   # Select countries
-  if (country[1] != "all") {
+  if (!all(country %in% c("all", valid_regions))) {
     keep <- keep & lkup$country_code %in% country
   }
+
   # Select years
   if (year[1] == "mrv") {
     if (country[1] != "all") {

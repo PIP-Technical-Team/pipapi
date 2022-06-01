@@ -17,7 +17,7 @@ subset_lkup(country, year, welfare_type, reporting_level, lkup, valid_regions)
 
 \item{lkup}{list: A list of lkup tables}
 
-\item{valid_regions}{character: List iof valid region codes that can be used
+\item{valid_regions}{character: List of valid region codes that can be used
 for region selection}
 }
 \value{

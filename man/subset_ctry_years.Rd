@@ -6,7 +6,10 @@
 This is a table created at start time to facilitate imputations
 It part of the interpolated_list object}
 \usage{
-subset_ctry_years(country, year, lkup)
+subset_ctry_years(country, year, lkup, valid_regions)
+}
+\arguments{
+\item{valid_regions}{character: List of valid region codes that can be used}
 }
 \value{
 data.frame

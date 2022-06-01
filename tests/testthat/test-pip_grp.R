@@ -164,3 +164,67 @@ test_that("Censoring for regional aggregations is working", {
   id <- paste0(tmp$region_code, "_", tmp$reporting_year)
   expect_true(!censored$region$id %in% id)
 })
+
+# region selection
+test_that("region selection is working for single region", {
+  region <- "SSA"
+
+  out <- pip_grp(
+    country = region,
+    year = 2018,
+    group_by = "wb",
+    povline = 1.9,
+    lkup = lkups
+  )
+
+  expect_equal(nrow(out), length(region))
+  expect_equal(out$region_code, region)
+})
+
+test_that("region selection is working for multiple regions", {
+  region <- c("SSA", "MNA")
+
+  out <- pip_grp(
+    country = region,
+    year = 2018,
+    group_by = "wb",
+    povline = 1.9,
+    lkup = lkups
+  )
+
+  expect_equal(nrow(out), length(region))
+  expect_equal(sort(out$region_code), sort(region))
+})
+
+test_that("region selection is working for all countries", {
+  region <- "all"
+
+  out <- pip_grp(
+    country = region,
+    year = 2010,
+    group_by = "wb",
+    povline = 1.9,
+    lkup = lkups
+  )
+
+  expect_equal(nrow(out), length(lkup$query_controls$region$values) + 1)
+  expect_equal(sort(out$region_code), sort(c(lkup$query_controls$region$values, "WLD")))
+})
+
+test_that("region selection is working for multiple regions and country from other region", {
+  # ideally "COL" should be dropped
+  # but for the time being, all countries are being selected
+  # So this selection will effectively return country = "all"
+  region <- c("SSA", "MNA", "COL")
+
+  out <- pip_grp(
+    country = region,
+    year = 2010,
+    group_by = "wb",
+    povline = 1.9,
+    lkup = lkups
+  )
+
+  expect_equal(nrow(out), length(lkup$query_controls$region$values) + 1)
+  expect_equal(sort(out$region_code), sort(c(lkup$query_controls$region$values, "WLD")))
+})
