@@ -21,7 +21,8 @@ fg_pip <- function(country,
     year = year,
     welfare_type = welfare_type,
     reporting_level = reporting_level,
-    lkup = lkup[["ref_lkup"]]
+    lkup = lkup[["ref_lkup"]],
+    valid_regions = lkup$query_controls$region$values
   )
 
   # Return empty dataframe if no metadata is found

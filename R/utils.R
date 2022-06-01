@@ -24,23 +24,26 @@ utils::globalVariables(
 
 #' Subset look-up data
 #' @inheritParams pip
+#' @param valid_regions character: List iof valid region codes that can be used
+#' for region selection
 #' @return data.frame
 #' @keywords internal
 subset_lkup <- function(country,
                         year,
                         welfare_type,
                         reporting_level,
-                        lkup) {
+                        lkup,
+                        valid_regions) {
   svy_n <- nrow(lkup)
   keep <- rep(TRUE, svy_n)
+  # browser()
   # Select data files based on requested country, year, etc.
   # Select countries
   if (country[1] != "all") {
-    valid_regions <- c("EAP", "ECA", "LAC", "MNA", "OHI", "SAS", "SSA")
     # Select regions
     if (any(country %in% valid_regions)) {
       selected_regions <- country[country %in% valid_regions]
-      keep_regions <- lkup$wb_region_code %in% selected_regions
+      keep_regions <- lkup$region_code %in% selected_regions
     } else {
       keep_regions <- rep(FALSE, length(lkup$country_code))
     }
@@ -281,18 +284,33 @@ censor_stats <- function(df, censored_table) {
 #' @return list
 #' @noRd
 create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
+  # Countries and regions
+  countries <- unique(c(
+      svy_lkup$country_code,
+      ref_lkup$country_code
+    ))
+
+  regions <- unique(c(
+    svy_lkup$region_code,
+    ref_lkup$region_code
+  ))
 
   country <- list(
     values = c(
       "all",
-      sort(unique(c(
-        svy_lkup$country_code,
-        ref_lkup$country_code
-      )))
+      sort(c(
+        countries,
+        regions)
+      )
     ),
     type = "character"
   )
 
+  region <- list(
+    values = sort(regions),
+    type = "character"
+  )
+  # Year
   year <- list(
     values = c(
       "all", "mrv",
@@ -303,27 +321,27 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     ),
     type = "character"
   )
-
+  # Poverty line
   povline <- list(
     values = c(min = 0, max = 10000),
     type = "numeric"
   )
-
+  # Popshare
   popshare <- list(
     values = c(min = 0, max = 1),
     type = "numeric"
   )
-
+  # Fill gaps
   fill_gaps <- aggregate <- list(
     values = c(TRUE, FALSE),
     type = "logical"
   )
-
+  # Group by
   group_by <- list(
     values = c("none", "wb"),
     type = "character"
   )
-
+  # Welfare type
   welfare_type <- list(
     values = c("all", sort(unique(c(
       svy_lkup$welfare_type,
@@ -331,7 +349,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     )))),
     type = "character"
   )
-
+  # Reporting level
   reporting_level <- list(
     values = c(
       "all",
@@ -342,22 +360,22 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     ),
     type = "character"
   )
-
+  # PPPs
   ppp <- list(
     values = c(min = 0.05, max = 1000000), # CHECK THE VALUE OF MAX
     type = "numeric"
   )
-
+  # Versions
   version <- list(
     values = versions,
     type = "character"
   )
-
+  # Formats
   format <- list(values = c("json", "csv", "rds"),
                  type = "character")
-
+  # Tables
   table <- list(values = aux_tables, type = "character")
-
+  # parameters
   parameter <-
     list(values = c("country", "year", "povline",
                     "popshare", "fill_gaps", "aggregate",
@@ -369,6 +387,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     # Create list of query controls
   query_controls <- list(
     country         = country,
+    region          = region,
     year            = year,
     povline         = povline,
     popshare        = popshare,
