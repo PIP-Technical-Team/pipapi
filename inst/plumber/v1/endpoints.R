@@ -474,6 +474,7 @@ function(req) {
 #* Return regional aggregations for all years
 #* @get /api/v1/pc-regional-aggregates
 #* @param country:[chr] Region code
+#* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
