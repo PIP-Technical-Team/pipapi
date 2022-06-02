@@ -198,6 +198,8 @@ test_that("region selection is working for multiple regions", {
 
 test_that("region selection is working for all countries", {
   region <- "all"
+  expected_region_values <- lkup$query_controls$region$values
+  expected_region_values <- expected_region_values[expected_region_values != "all"]
 
   out <- pip_grp(
     country = region,
@@ -207,8 +209,8 @@ test_that("region selection is working for all countries", {
     lkup = lkups
   )
 
-  expect_equal(nrow(out), length(lkup$query_controls$region$values) + 1)
-  expect_equal(sort(out$region_code), sort(c(lkup$query_controls$region$values, "WLD")))
+  expect_equal(nrow(out), length(expected_region_values) + 1)
+  expect_equal(sort(out$region_code), sort(c(expected_region_values, "WLD")))
 })
 
 test_that("region selection is working for multiple regions and country from other region", {
@@ -216,6 +218,8 @@ test_that("region selection is working for multiple regions and country from oth
   # but for the time being, all countries are being selected
   # So this selection will effectively return country = "all"
   region <- c("SSA", "MNA", "COL")
+  expected_region_values <- lkup$query_controls$region$values
+  expected_region_values <- expected_region_values[expected_region_values != "all"]
 
   out <- pip_grp(
     country = region,
@@ -225,6 +229,6 @@ test_that("region selection is working for multiple regions and country from oth
     lkup = lkups
   )
 
-  expect_equal(nrow(out), length(lkup$query_controls$region$values) + 1)
-  expect_equal(sort(out$region_code), sort(c(lkup$query_controls$region$values, "WLD")))
+  expect_equal(nrow(out), length(expected_region_values) + 1)
+  expect_equal(sort(out$region_code), sort(c(expected_region_values, "WLD")))
 })
