@@ -1,9 +1,33 @@
 #' Get valid query parameter values
-#' Get vector of accepted query parameter values
+#' Get vector of accepted query parameter values for the API
 #' @param lkup list: A list of lkup tables
 #' @param version character: Data version. Defaults to most recent version.
+#' @param endpoint character: the endpoint for which to return valid parameters
 #' @export
-get_param_values <- function(lkup, version) {
+get_param_values <- function(lkup,
+                             version,
+                             endpoint = c("all",
+                                          "aux",
+                                          "pip",
+                                          "pip-grp",
+                                          "pip-info",
+                                          "valid-params")) {
+  endpoint <- endpoint[1] # Ensure it only passes one endpoint at a time
+  endpoint <- match.arg(endpoint)
+  # TO IMPROVE: Too much hard-coding here
+  endpoint_map <- c("all",
+                    "get_aux_table",
+                    "pip",
+                    "pip_grp",
+                    "get_pip_version",
+                    "get_param_values")
+  names(endpoint_map) <- c("all",
+                           "aux",
+                           "pip",
+                           "pip-grp",
+                           "pip-info",
+                           "valid-params")
+
   # Extract accepted data versions values
   data_version <- data.frame(
     param_names  = "version",
@@ -19,8 +43,22 @@ get_param_values <- function(lkup, version) {
   # Turn list into a dataframe
   out <- vector(mode = "list", length(query_controls))
   names(out) <- names(query_controls)
-  names_out <- names(out)
 
+  # Handles cases when the endpoint parameter is specified
+
+  if (endpoint != "all") {
+    # Only return the parameters for a specific endpoint
+    endpoint <- endpoint_map[endpoint]
+    out <- out[names(out) %in% formalArgs(endpoint)]
+    # Handle the exception for pip-grp (takes regional codes instead of country codes)
+    # Bad API design here. Needs review
+    if (endpoint == "pip_grp") {
+      query_controls$country <- query_controls$region
+    }
+    query_controls <- query_controls[names(query_controls) %in% names(out)]
+  }
+
+  names_out <- names(out)
   for (i in seq_along(out)) {
 
     param_values <- query_controls[[i]]$values

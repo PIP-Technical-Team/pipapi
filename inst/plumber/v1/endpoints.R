@@ -255,13 +255,16 @@ function(req) {
 #* @get /api/v1/valid-params
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @param endpoint:[chr] Endpoint for which to return the valid parameters
 #* @serializer switch
 function(req) {
   # browser()
   version <- req$argsQuery$version
+  endpoint <- req$argsQuery$endpoint
   out <- pipapi::get_param_values(
     lkup = lkups,
-    version = version)
+    version = version,
+    endpoint = endpoint)
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }

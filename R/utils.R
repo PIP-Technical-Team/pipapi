@@ -383,6 +383,15 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
                     "reporting_level", "ppp", "version",
                     "format", "table"),
          type = "character")
+  # Endpoint
+  endpoint <-
+    list(values = c("all",
+                    "aux",
+                    "pip",
+                    "pip-grp",
+                    "pip-info",
+                    "valid-params"),
+         type = "character")
 
     # Create list of query controls
   query_controls <- list(
@@ -400,7 +409,8 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     version         = version,
     format          = format,
     table           = table,
-    parameter       = parameter
+    parameter       = parameter,
+    endpoint        = endpoint
   )
 
   return(query_controls)
