@@ -307,7 +307,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
   )
 
   region <- list(
-    values = sort(regions),
+    values = sort(c("all", regions)),
     type = "character"
   )
   # Year

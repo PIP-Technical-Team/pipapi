@@ -75,12 +75,18 @@ function(req, res) {
     # Break if bad request
     endpoint <- pipapi:::extract_endpoint(req$PATH_INFO)
     if (endpoint == "pip-grp") {
-      if (req$argsQuery$group_by != "none" && req$argsQuery$country != "all") {
+      group_condition   <- req$argsQuery$group_by != "none"
+      country_condition <- !all(req$argsQuery$country %in% query_controls$region$values)
+      if (group_condition & country_condition) {
         res$status <- 400
-        out <- list(
-          error = "Invalid query arguments have been submitted.",
-          details = list(msg = "You cannot query individual countries when specifying a predefined sub-group. Please use country=all")
-        )
+        invalid_params <- "region"
+        out <- pipapi:::format_error("region", query_controls)
+        out$error <- "You supplied an invalid value for country. Please use one of the valid values."
+
+        # out <- list(
+        #   error = "Invalid query arguments have been submitted.",
+        #   details = list(msg = paste0("You cannot query individual countries when specifying a predefined sub-group. Please use  country=all")
+        # )
         return(out)
       }
     }
