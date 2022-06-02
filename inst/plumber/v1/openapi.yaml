@@ -39,6 +39,12 @@ paths:
           description: Default response.
       parameters:
           - in: query
+            name: endpoint
+            schema:
+              type: string
+              enum: [aux, pip, pip-grp, pip-info, valid-params, all]
+            description: Endpoint for which corresponding valid parameters will be returned
+          - in: query
             name: version
             schema:
               type: string
@@ -84,7 +90,7 @@ paths:
               type: array
               items:
                type: string
-               enum: [AGO, ALB, COL]
+               enum: [AGO, ALB, COL, SSA, all]
                example: AGO
              description: The countries for which statistics are to be computed, specified as ISO3 codes.
            - in: query
@@ -93,8 +99,8 @@ paths:
              schema:
               type: array
               items:
-               type: integer
-               enum: [2008, 2018]
+               type: string
+               enum: [2008, 2018, all]
                example: 2008
              description: Year(s) for which statistics are to be computed, specified as YYYY.
            - in: query
@@ -156,7 +162,7 @@ paths:
               type: array
               items:
                type: string
-               enum: [all, AGO, ALB, COL]
+               enum: [AGO, ALB, COL, all]
                example: all
              description: The countries for which statistics are to be computed, specified as ISO3 codes.
            - in: query
@@ -165,8 +171,8 @@ paths:
              schema:
               type: array
               items:
-               type: integer
-               enum: [2008, 2018]
+               type: string
+               enum: [2008, 2018, all]
                example: 2018
              description: Year(s) for which statistics are to be computed, specified as YYYY.
            - in: query
