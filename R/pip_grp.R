@@ -34,7 +34,9 @@ pip_grp <- function(country = "all",
   # subgroups aggregations only supported for "all" countries
   if (group_by != "none") {
     reporting_level <- "all"
-    country <- "all"
+    if (!all(country %in% c("all", lkup$query_controls$region$values))) {
+      country <- "all"
+    }
   } else {
     reporting_level <- "national"
   }
@@ -70,7 +72,8 @@ pip_grp <- function(country = "all",
 
     out <- pip_aggregate_by(
       df = out,
-      group_lkup = lkup[["pop_region"]]
+      group_lkup = lkup[["pop_region"]],
+      country = country
     )
 
     # Censor regional values
@@ -146,9 +149,12 @@ pip_aggregate <- function(df) {
 
 #' Aggregate by predefined groups
 #' @param df data.frame: Response from `fg_pip()` or `rg_pip()`.
-#' @param group_lkup data.frame Group lkup table (pop_region)
+#' @param group_lkup data.frame: Group lkup table (pop_region)
+#' @param country character: Selected countries / regions
 #' @noRd
-pip_aggregate_by <- function(df, group_lkup) {
+pip_aggregate_by <- function(df,
+                             group_lkup,
+                             country = "all") {
 
   # Keep only rows necessary for regional aggregates
   df <- filter_for_aggregate_by(df)
@@ -180,12 +186,16 @@ pip_aggregate_by <- function(df, group_lkup) {
                     allow.cartesian = TRUE
   ]
 
-  # Compute world aggregates
-  wld <- compute_world_aggregates(rgn = rgn,
-                                  cols = cols)
+  if (country[1] == "all") {
+    # Compute world aggregates
+    wld <- compute_world_aggregates(rgn = rgn,
+                                    cols = cols)
 
-  # Combine
-  out <- rbind(rgn, wld, fill = TRUE)
+    # Combine
+    out <- rbind(rgn, wld, fill = TRUE)
+  } else {
+    out <- rgn
+  }
 
   # Compute population living in poverty
   out <- out[, pop_in_poverty := round(headcount * reporting_pop, 0)]
