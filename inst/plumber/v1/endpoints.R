@@ -540,9 +540,11 @@ function(req) {
 }
 
 #* Return valid years
-#* @get /api/v1/valid_years
-#* @param data_dir:[chr] Path to the data in main data directory
+#* @get /api/v1/valid-years
+#* @param data_dir:[chr] Path to the main data directory
 #* @serializer json list(na="null")
 function(req) {
-  valid_years(lkup$data_root)
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[params$version]]
+  pipapi::valid_years(data_dir = params$lkup$data_root)
 }
