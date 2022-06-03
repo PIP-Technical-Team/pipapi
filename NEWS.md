@@ -6,6 +6,8 @@
 return all countries pertaining to the specified region
 - the `/valid-params` endpoint gains an `endpoint` parameter that allows to only
 return parameters that are relevant to the specified endpoint
+- New `/valid-years` endpoint returns available years for both survey and 
+interpolated years
 
 ## New features
 
