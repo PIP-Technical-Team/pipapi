@@ -7,6 +7,9 @@ return all countries pertaining to the specified region
 - the `/valid-params` endpoint gains an `endpoint` parameter that allows to only
 return parameters that are relevant to the specified endpoint
 
+## New features
+
+- [Add /valid_years as new endpoint to get the valid years information of the data](https://github.com/PIP-Technical-Team/pipapi/issues/182)
 
 # pipapi 1.0.0
 
