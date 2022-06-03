@@ -6,6 +6,16 @@
 #' @export
 
 valid_years <- function(data_dir) {
-  tmp <- pipapi::get_aux_table(data_dir, 'interpolated_means')
-  sort(unique(tmp$reporting_year))
+  ref <- pipapi::get_aux_table(data_dir, 'interpolated_means')
+  ref <- sort(unique(ref$reporting_year))
+
+  svy <- pipapi::get_aux_table(data_dir, 'survey_means')
+  svy <- sort(unique(svy$reporting_year))
+
+  return(
+    list(
+      valid_survey_years       = svy,
+      valid_interpolated_years = ref
+    )
+  )
 }
