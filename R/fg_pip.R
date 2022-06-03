@@ -15,13 +15,16 @@ fg_pip <- function(country,
                    lkup,
                    debug) {
 
+  valid_regions <- lkup$query_controls$region$values
+
   # Handle interpolation
   metadata <- subset_lkup(
     country = country,
     year = year,
     welfare_type = welfare_type,
     reporting_level = reporting_level,
-    lkup = lkup[["ref_lkup"]]
+    lkup = lkup[["ref_lkup"]],
+    valid_regions = valid_regions
   )
 
   # Return empty dataframe if no metadata is found
@@ -51,7 +54,8 @@ fg_pip <- function(country,
     # Extract unique combinations of country-year
     ctry_years <- subset_ctry_years(country = country,
                                     year = year,
-                                    lkup = interpolation_list[[unique_survey_files[svy_id]]]$ctry_years)
+                                    lkup = interpolation_list[[unique_survey_files[svy_id]]]$ctry_years,
+                                    valid_regions = valid_regions)
 
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 

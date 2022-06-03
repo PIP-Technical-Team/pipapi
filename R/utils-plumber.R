@@ -102,7 +102,8 @@ validate_query_parameters <-
     "version",
     "format",
     "table",
-    "parameter"
+    "parameter",
+    "endpoint"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]
@@ -137,7 +138,7 @@ parse_parameter <- function(param, param_name) {
 
   # CREATE GLOBALS TO AVOID HARD CODED VALUES HERE
   if (param_name %in% c("country", "year", "group_by", "welfare_type",
-                        "reporting_level", "format", "parameter")) {
+                        "reporting_level", "format", "parameter", "endpoint")) {
     param <- as.character(param)
   } else if (param_name %in% c("povline", "popshare", "ppp")) {
     param <- as.numeric(param)
