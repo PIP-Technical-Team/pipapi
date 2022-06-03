@@ -198,7 +198,7 @@ test_that("region selection is working for multiple regions", {
 
 test_that("region selection is working for all countries", {
   region <- "all"
-  expected_region_values <- lkup$query_controls$region$values
+  expected_region_values <- lkups$query_controls$region$values
   expected_region_values <- expected_region_values[expected_region_values != "all"]
 
   out <- pip_grp(
@@ -218,7 +218,7 @@ test_that("region selection is working for multiple regions and country from oth
   # but for the time being, all countries are being selected
   # So this selection will effectively return country = "all"
   region <- c("SSA", "MNA", "COL")
-  expected_region_values <- lkup$query_controls$region$values
+  expected_region_values <- lkups$query_controls$region$values
   expected_region_values <- expected_region_values[expected_region_values != "all"]
 
   out <- pip_grp(
