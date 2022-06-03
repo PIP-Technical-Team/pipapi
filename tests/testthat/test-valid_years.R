@@ -1,3 +1,4 @@
+
 test_that("valid_years returns expected output type", {
   tmp <- valid_years('../testdata/app_data/20210401/')
   expect_equal(class(tmp), "list")
