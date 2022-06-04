@@ -8,6 +8,7 @@ return all countries pertaining to the specified region
 return parameters that are relevant to the specified endpoint
 - New `/valid-years` endpoint returns available years for both survey and 
 interpolated years
+- [Add unit tests for newly created fg_remove_duplicates() and sub-functions](https://github.com/PIP-Technical-Team/pipapi/issues/226)
 
 ## New features
 
