@@ -8,7 +8,6 @@
 return all countries pertaining to the specified region
 - the `/valid-params` endpoint gains an `endpoint` parameter that allows to only
 return parameters that are relevant to the specified endpoint
-- [Fix casing making pip call case insensitive](https://github.com/PIP-Technical-Team/pipapi/issues/120)
 
 ## New features
 
