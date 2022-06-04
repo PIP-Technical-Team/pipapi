@@ -9,8 +9,8 @@
 return all countries pertaining to the specified region
 - the `/valid-params` endpoint gains an `endpoint` parameter that allows to only
 return parameters that are relevant to the specified endpoint
-- [New /valid-years endpoint returns available years for both survey and 
-interpolated years](https://github.com/PIP-Technical-Team/pipapi/issues/182)
+- [Add /valid_years as new endpoint to get the valid years information of the data](https://github.com/PIP-Technical-Team/pipapi/issues/182)
+- [Add unit tests for newly created fg_remove_duplicates() and sub-functions](https://github.com/PIP-Technical-Team/pipapi/issues/226)
 
 # pipapi 1.0.0
 
