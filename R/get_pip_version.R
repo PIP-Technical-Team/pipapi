@@ -1,6 +1,6 @@
 #' Return the versions of the pip packages used for computations
 #'
-#' @param pip_packages character: Custom packages powering the API
+#' @param pip_package character: Custom packages powering the API
 #' @inheritParams pip
 #' @return list
 #' @export

@@ -1,3 +1,7 @@
+globals <- list(char_values = c("country", "year", "group_by", "welfare_type","reporting_level", "format", "parameter", "endpoint"),
+                num_values = c("povline", "popshare", "ppp"),
+                logical_values = c("fill_gaps", "aggregate"))
+
 #' Check validity of query parameters
 #'
 #' @param req req: plumber request environment
@@ -136,13 +140,11 @@ parse_parameter <- function(param, param_name) {
   param <- strsplit(param, ",")
   param <- unlist(param)
 
-  # CREATE GLOBALS TO AVOID HARD CODED VALUES HERE
-  if (param_name %in% c("country", "year", "group_by", "welfare_type",
-                        "reporting_level", "format", "parameter", "endpoint")) {
+  if (param_name %in% globals$char_values) {
     param <- as.character(param)
-  } else if (param_name %in% c("povline", "popshare", "ppp")) {
+  } else if (param_name %in% globals$num_values) {
     param <- as.numeric(param)
-  } else if (param_name %in% c("fill_gaps", "aggregate")) {
+  } else if (param_name %in% globals$logical_values) {
     param <- as.logical(param)
   }
 

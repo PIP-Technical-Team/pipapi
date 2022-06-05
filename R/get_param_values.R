@@ -49,7 +49,7 @@ get_param_values <- function(lkup,
   if (endpoint != "all") {
     # Only return the parameters for a specific endpoint
     endpoint <- endpoint_map[endpoint]
-    out <- out[names(out) %in% formalArgs(endpoint)]
+    out <- out[names(out) %in% methods::formalArgs(endpoint)]
     # Handle the exception for pip-grp (takes regional codes instead of country codes)
     # Bad API design here. Needs review
     if (endpoint == "pip_grp") {
