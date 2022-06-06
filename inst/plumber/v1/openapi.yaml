@@ -223,3 +223,15 @@ paths:
       responses:
        '200':
          description: successful message
+  /api/v1/valid-years:
+    get:
+      summary: 'Return Return available valid years'
+      responses:
+        default:
+          description: Default response.
+      parameters:
+          - in: query
+            name: data_dir
+            schema:
+              type: string
+            description: Path to the main data directory.

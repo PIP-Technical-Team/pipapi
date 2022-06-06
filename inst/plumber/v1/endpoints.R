@@ -542,7 +542,7 @@ function(req) {
 #* Return valid years
 #* @get /api/v1/valid-years
 #* @param data_dir:[chr] Path to the main data directory
-#* @serializer json list(na="null")
+#* @serializer switch
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
