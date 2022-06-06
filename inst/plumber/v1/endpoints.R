@@ -542,7 +542,7 @@ function(req) {
 #* Return valid years
 #* @get /api/v1/valid-years
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer json list(na="null")
+#* @serializer switch
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
