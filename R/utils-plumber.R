@@ -1,7 +1,3 @@
-globals <- list(char_values = c("country", "year", "group_by", "welfare_type","reporting_level", "format", "parameter", "endpoint"),
-                num_values = c("povline", "popshare", "ppp"),
-                logical_values = c("fill_gaps", "aggregate"))
-
 #' Check validity of query parameters
 #'
 #' @param req req: plumber request environment
@@ -121,34 +117,9 @@ validate_query_parameters <-
 #' @return character
 #' @noRd
 parse_parameters <- function(params) {
-  for (i in seq_along(params)) {
-    params[[i]] <- parse_parameter(
-      param = params[[i]],
-      param_name = names(params)[i]
-    )
-  }
+  params <- type.convert(params, as.is = TRUE)
+
   return(params)
-}
-
-#' Parse parameters
-#' @param param character: Query parameter to be parsed
-#' @param param_name character: Parameter name
-#' @return character
-#' @noRd
-parse_parameter <- function(param, param_name) {
-  param <- urltools::url_decode(param)
-  param <- strsplit(param, ",")
-  param <- unlist(param)
-
-  if (param_name %in% globals$char_values) {
-    param <- as.character(param)
-  } else if (param_name %in% globals$num_values) {
-    param <- as.numeric(param)
-  } else if (param_name %in% globals$logical_values) {
-    param <- as.logical(param)
-  }
-
-  return(param)
 }
 
 #' Switch serializer

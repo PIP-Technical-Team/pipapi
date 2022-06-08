@@ -52,7 +52,7 @@ test_that("parse_parameters() works as expected", {
   )
   tmp <- parse_parameters(params)
   expect_type(tmp$country, "character")
-  expect_type(tmp$year, "character")
+  expect_type(tmp$year, "integer")
   expect_true(is.numeric(tmp$povline))
   expect_type(tmp$fill_gaps, "logical")
   expect_type(tmp$aggregate, "logical")

@@ -8,7 +8,7 @@ return all countries pertaining to the specified region
 return parameters that are relevant to the specified endpoint
 - New `/valid-years` endpoint returns available years for both survey and 
 interpolated years
-- [Create global varibales for query parameter.](https://github.com/PIP-Technical-Team/pipapi/issues/241)
+- [auto convert parameters to their respective types in `parse_parameters`](https://github.com/PIP-Technical-Team/pipapi/issues/241)
 
 ## New features
 
