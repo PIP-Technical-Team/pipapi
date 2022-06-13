@@ -7,10 +7,13 @@
 #' @export
 #'
 get_aux_table <- function(data_dir, table) {
+  # Strip all "non-word" characters from user input
+  sanitize_table_name <- gsub("\\W", "", table)
+
   out <- fst::read_fst(sprintf(
     "%s/_aux/%s.fst",
     data_dir,
-    table
+    sanitize_table_name
   ))
 
   return(out)

@@ -8,6 +8,7 @@ return all countries pertaining to the specified region
 return parameters that are relevant to the specified endpoint
 - New `/valid-years` endpoint returns available years for both survey and 
 interpolated years
+- [Sanitize user inputs in get_aux_table](https://github.com/PIP-Technical-Team/pipapi/issues/259)
 
 ## New features
 
