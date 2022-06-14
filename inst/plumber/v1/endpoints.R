@@ -541,7 +541,7 @@ function(req) {
 
 #* Return valid years
 #* @get /api/v1/valid-years
-#* @param data_dir:[chr] Path to the main data directory
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req) {
   params <- req$argsQuery
