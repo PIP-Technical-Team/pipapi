@@ -331,3 +331,20 @@ test_that("pop_share option is working", {
   expect_equal(nrow(tmp), 1)
 })
 
+#Check pip country name case insensitive
+
+test_that("pip country name case insensitive", {
+  #Run it on pip-fake-data
+  tmp1 <- pip(country = "nga",year = "ALL", povline = 1.9, lkup = lkup)
+  tmp2 <- pip(country = "NGA",year = "all", povline = 1.9, lkup = lkup)
+  tmp3 <- pip(country = "All",year = "ALL", povline = 1.9, lkup = lkup)
+  tmp4 <- pip(country = "chn",year = "1981", povline = 1.9, lkup = lkup)
+  tmp5 <- pip(country = "chn",year = "ALL", povline = 1.9, lkup = lkup)
+
+  expect_equal(nrow(tmp1), 1)
+  expect_equal(nrow(tmp2), 1)
+  expect_equal(nrow(tmp3), 22)
+  expect_equal(nrow(tmp4), 3)
+  expect_equal(nrow(tmp5), 6)
+})
+

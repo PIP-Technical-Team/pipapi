@@ -11,73 +11,6 @@ paths:
         default:
           description: Default response.
       parameters: []
-  /api/v1/versions:
-    get:
-      summary: ' Return available data versions'
-      responses:
-        default:
-          description: Default response.
-      parameters:
-          - in: query
-            name: format
-            schema:
-              type: string
-              enum: [json, csv, rds]
-            description: Response format. Defaults to json.
-  /api/v1/pip-info:
-    get:
-      summary: ' Return information about the API'
-      responses:
-        default:
-          description: Default response.
-      parameters: []
-  /api/v1/valid-params:
-    get:
-      summary: ' Return valid query parameters'
-      responses:
-        default:
-          description: Default response.
-      parameters:
-          - in: query
-            name: endpoint
-            schema:
-              type: string
-              enum: [aux, pip, pip-grp, pip-info, valid-params, all]
-            description: Endpoint for which corresponding valid parameters will be returned
-          - in: query
-            name: version
-            schema:
-              type: string
-            description: Data version. Defaults to most recent version. See api/v1/versions.
-          - in: query
-            name: format
-            schema:
-              type: string
-              enum: [json, csv, rds]
-            description: Response format. Defaults to json.
-  /api/v1/aux:
-    get:
-      summary: ' Return auxiliary data tables'
-      responses:
-        default:
-          description: Default response.
-      parameters:
-          - in: query
-            name: table
-            schema:
-              type: string
-            description: Auxiliary data table to be returned.
-          - in: query
-            name: version
-            schema:
-              type: string
-            description: Data version. Defaults to most recent version. See api/v1/versions.
-          - in: query
-            name: format
-            schema:
-              type: string
-              enum: [json, csv, rds]
-            description: Response format. Defaults to json.
   /api/v1/pip:
     get:
       summary: ' Return main poverty and inequality statistics'
@@ -162,7 +95,7 @@ paths:
               type: array
               items:
                type: string
-               enum: [AGO, ALB, COL, all]
+               enum: [AGO, ALB, COL, SSA, all]
                example: all
              description: The countries for which statistics are to be computed, specified as ISO3 codes.
            - in: query
@@ -223,15 +156,82 @@ paths:
       responses:
        '200':
          description: successful message
-  /api/v1/valid-years:
+  /api/v1/aux:
     get:
-      summary: 'Return Return available valid years'
+      summary: ' Return auxiliary data tables'
       responses:
         default:
           description: Default response.
       parameters:
           - in: query
-            name: data_dir
+            name: table
             schema:
               type: string
-            description: Path to the main data directory.
+            description: Auxiliary data table to be returned.
+          - in: query
+            name: version
+            schema:
+              type: string
+            description: Data version. Defaults to most recent version. See api/v1/versions.
+          - in: query
+            name: format
+            schema:
+              type: string
+              enum: [json, csv, rds]
+            description: Response format. Defaults to json.
+  /api/v1/valid-years:
+    get:
+      summary: ' Return valid years for surveys and interpolated years'
+      responses:
+        default:
+          description: Default response.
+      parameters:
+          - in: query
+            name: version
+            schema:
+              type: string
+            description: Data version. Defaults to most recent version. See api/v1/versions.
+  /api/v1/valid-params:
+    get:
+      summary: ' Return valid query parameters'
+      responses:
+        default:
+          description: Default response.
+      parameters:
+          - in: query
+            name: endpoint
+            schema:
+              type: string
+              enum: [aux, pip, pip-grp, pip-info, valid-params, all]
+            description: Endpoint for which corresponding valid parameters will be returned
+          - in: query
+            name: version
+            schema:
+              type: string
+            description: Data version. Defaults to most recent version. See api/v1/versions.
+          - in: query
+            name: format
+            schema:
+              type: string
+              enum: [json, csv, rds]
+            description: Response format. Defaults to json.
+  /api/v1/versions:
+    get:
+      summary: ' Return available data versions'
+      responses:
+        default:
+          description: Default response.
+      parameters:
+          - in: query
+            name: format
+            schema:
+              type: string
+              enum: [json, csv, rds]
+            description: Response format. Defaults to json.
+  /api/v1/pip-info:
+    get:
+      summary: ' Return information about the API'
+      responses:
+        default:
+          description: Default response.
+      parameters: []
