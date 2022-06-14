@@ -1,16 +1,14 @@
 # pipapi (development version)
 
 ## Enhancements
-
 - [Sort the rows by `country_code` and `reporting_year` in the pip response.](https://github.com/PIP-Technical-Team/pipapi/issues/248)
+- [Fix casing making pip call case insensitive](https://github.com/PIP-Technical-Team/pipapi/issues/120)
+
+## New features
 - Region codes can now be passed directly to the `country` query parameter to 
 return all countries pertaining to the specified region
 - the `/valid-params` endpoint gains an `endpoint` parameter that allows to only
 return parameters that are relevant to the specified endpoint
-- [Fix casing making pip call case insensitive](https://github.com/PIP-Technical-Team/pipapi/issues/120)
-
-## New features
-
 - [New /valid-years endpoint returns available years for both survey and 
 interpolated years](https://github.com/PIP-Technical-Team/pipapi/issues/182)
 
