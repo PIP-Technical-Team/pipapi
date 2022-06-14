@@ -14,7 +14,6 @@ return parameters that are relevant to the specified endpoint
 - [Add /valid_years endpoint that returns available years for both survey and 
 interpolated years](https://github.com/PIP-Technical-Team/pipapi/issues/182)
 
-
 # pipapi 1.0.0
 
 ## New features
