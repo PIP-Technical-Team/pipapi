@@ -2,17 +2,17 @@
 
 ## Enhancements
 - [Sort the rows by `country_code` and `reporting_year` in the pip response.](https://github.com/PIP-Technical-Team/pipapi/issues/248)
+- [Fix casing making pip call case insensitive](https://github.com/PIP-Technical-Team/pipapi/issues/120)
+- [Add unit tests for newly created fg_remove_duplicates() and sub-functions](https://github.com/PIP-Technical-Team/pipapi/issues/226)
+- [auto convert parameters to their respective types in `parse_parameters`](https://github.com/PIP-Technical-Team/pipapi/issues/241)
+
+## New features
 - Region codes can now be passed directly to the `country` query parameter to 
 return all countries pertaining to the specified region
 - the `/valid-params` endpoint gains an `endpoint` parameter that allows to only
 return parameters that are relevant to the specified endpoint
 - New `/valid-years` endpoint returns available years for both survey and 
 interpolated years
-- [auto convert parameters to their respective types in `parse_parameters`](https://github.com/PIP-Technical-Team/pipapi/issues/241)
-
-## New features
-
-- [Add /valid_years as new endpoint to get the valid years information of the data](https://github.com/PIP-Technical-Team/pipapi/issues/182)
 
 # pipapi 1.0.0
 
@@ -35,7 +35,6 @@ interpolated years
 - Add country and region name to /pip response 
 - Make sure latest data version is available as a specific version (not just as "latest_relase")
 - Use `{fs}` functions rather than base R's. 
-- [Sort the rows by `country_code` and `reporting_year` in the pip response.](https://github.com/PIP-Technical-Team/pipapi/issues/248) 
 
 ## Bug fixes
 

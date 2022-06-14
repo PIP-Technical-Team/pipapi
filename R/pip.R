@@ -68,7 +68,11 @@ pip <- function(country = "all",
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
-
+  #Make country case insensitive
+  country <- tolower(country)
+  country <- if(country == "all") country else toupper(country)
+  #Make year case insensitive as well. Allow all, ALL, All etc.
+  year <- tolower(year)
   # **** TO BE REMOVED **** REMOVAL STARTS HERE
   # Once `pip-grp` has been integrated in ingestion pipeline
   # Forces fill_gaps to TRUE when using group_by option
@@ -174,6 +178,7 @@ pip <- function(country = "all",
 
   #Order rows by country code and reporting year
   out <- out[order(country_code, reporting_year)]
+
 
   return(out)
 }
