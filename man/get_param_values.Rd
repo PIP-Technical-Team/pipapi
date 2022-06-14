@@ -3,16 +3,22 @@
 \name{get_param_values}
 \alias{get_param_values}
 \title{Get valid query parameter values
-Get vector of accepted query parameter values}
+Get vector of accepted query parameter values for the API}
 \usage{
-get_param_values(lkup, version)
+get_param_values(
+  lkup,
+  version,
+  endpoint = c("all", "aux", "pip", "pip-grp", "pip-info", "valid-params")
+)
 }
 \arguments{
 \item{lkup}{list: A list of lkup tables}
 
 \item{version}{character: Data version. Defaults to most recent version.}
+
+\item{endpoint}{character: the endpoint for which to return valid parameters}
 }
 \description{
 Get valid query parameter values
-Get vector of accepted query parameter values
+Get vector of accepted query parameter values for the API
 }

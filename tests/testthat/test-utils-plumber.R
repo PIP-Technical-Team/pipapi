@@ -131,7 +131,7 @@ test_that("check_parameters() works as expected", {
   # Invalid reporting_level parameter
   req <- list(argsQuery = list(reporting_level = "ALL"))
   tmp <- check_parameters(req, lkups$query_controls)
-  expect_false(tmp)
+  expect_true(tmp)
 
   # Invalid ppp parameter
   req <- list(argsQuery = list(ppp = "NULL"))
