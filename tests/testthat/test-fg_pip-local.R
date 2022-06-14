@@ -99,7 +99,7 @@ test_that("Imputation is working for interpolated aggregate distribution", {
 
 
 test_that("Check classes of function fg_assign_nas_values_to_dup_cols", {
-  tmp <- data.table::data.table(a = rnorm(5), b = letters[1:5], c = 1:5, d = rnorm(5))
+  df <- data.table::data.table(a = rnorm(5), b = letters[1:5], c = 1:5, d = rnorm(5))
   tmp <- fg_assign_nas_values_to_dup_cols(df, c('a', 'b', 'c'))
 
   expect_type(tmp$a, "double")
@@ -130,5 +130,5 @@ test_that("fg_remove_duplicates test", {
 
   res <- fg_remove_duplicates(df, c('data_interpolation_id'))
   expect_equal(nrow(res), 2)
-  expect_type(tmp$data_interpolation_id, "character")
+  expect_type(res$data_interpolation_id, "character")
 })
