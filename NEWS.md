@@ -5,6 +5,7 @@
 - [Fix casing making pip call case insensitive](https://github.com/PIP-Technical-Team/pipapi/issues/120)
 - [Add unit tests for newly created fg_remove_duplicates() and sub-functions](https://github.com/PIP-Technical-Team/pipapi/issues/226)
 - [Sanitize user inputs in get_aux_table](https://github.com/PIP-Technical-Team/pipapi/issues/259)
+- [Add unit tests for newly created fg_remove_duplicates() and sub-functions](https://github.com/PIP-Technical-Team/pipapi/issues/226)
 
 ## New features
 - Region codes can now be passed directly to the `country` query parameter to 
