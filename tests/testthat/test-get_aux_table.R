@@ -10,3 +10,8 @@ test_that("get_aux_table() works", {
   })
   expect_equal(length(dl), length(tables))
 })
+
+test_that("get_aux_table() returns an error", {
+  expect_error(pipapi::get_aux_table(data_folder_root, "../survey_data/ARG_1980_EPH_D2_INC_GROUP.fst"),
+               "Error opening fst file for reading, please check access rights and file availability")
+}
