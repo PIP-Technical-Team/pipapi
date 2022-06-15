@@ -52,8 +52,9 @@ Imports:
     memoise,
     cachem,
     rappdirs,
-    future, 
-    promises
+    future,
+    promises,
+    methods
 Remotes:
     PIP-Technical-Team/wbpip@master
 Depends: 
