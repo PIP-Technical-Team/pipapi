@@ -6,7 +6,7 @@
 add_agg_stats <- function(df) {
   # Keep only Urban / Rural observations that will be aggregated at the
   # national level
-  aggregated <- df[df$is_used_for_aggregation == TRUE, ]
+  aggregated <- df[df$is_used_for_aggregation, ]
 
   if (nrow(aggregated) > 0) {
     aggregated_list <- split(aggregated,

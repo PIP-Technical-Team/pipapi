@@ -235,4 +235,3 @@ paths:
         default:
           description: Default response.
       parameters: []
-
