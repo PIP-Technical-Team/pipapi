@@ -7,9 +7,9 @@
 get_pip_version(pip_package = c("pipapi"), lkup)
 }
 \arguments{
-\item{lkup}{list: A list of lkup tables}
+\item{pip_package}{character: Custom packages powering the API}
 
-\item{pip_packages}{character: Custom packages powering the API}
+\item{lkup}{list: A list of lkup tables}
 }
 \value{
 list

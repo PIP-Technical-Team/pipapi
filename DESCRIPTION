@@ -30,7 +30,6 @@ Suggests:
     rmarkdown,
     markdown,
     assertthat,
-    purrr,
     callr,
     httr,
     jsonlite,
