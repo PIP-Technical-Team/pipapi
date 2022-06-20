@@ -335,11 +335,11 @@ test_that("pop_share option is working", {
 
 test_that("pip country name case insensitive", {
   #Run it on pip-fake-data
-  tmp1 <- pip(country = "nga",year = "ALL", povline = 1.9, lkup = lkup)
-  tmp2 <- pip(country = "NGA",year = "all", povline = 1.9, lkup = lkup)
-  tmp3 <- pip(country = "All",year = "ALL", povline = 1.9, lkup = lkup)
-  tmp4 <- pip(country = "chn",year = "1981", povline = 1.9, lkup = lkup)
-  tmp5 <- pip(country = "chn",year = "ALL", povline = 1.9, lkup = lkup)
+  tmp1 <- pip(country = "nga",year = "ALL", povline = 1.9, lkup = lkups)
+  tmp2 <- pip(country = "NGA",year = "all", povline = 1.9, lkup = lkups)
+  tmp3 <- pip(country = "All",year = "ALL", povline = 1.9, lkup = lkups)
+  tmp4 <- pip(country = "chn",year = "1981", povline = 1.9, lkup = lkups)
+  tmp5 <- pip(country = "chn",year = "ALL", povline = 1.9, lkup = lkups)
 
   expect_equal(nrow(tmp1), 1)
   expect_equal(nrow(tmp2), 1)
@@ -348,3 +348,14 @@ test_that("pip country name case insensitive", {
   expect_equal(nrow(tmp5), 6)
 })
 
+
+#Better error message when more than one data set is passed.
+
+test_that("error when more than one dataset is passed", {
+  lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+
+  expect_error(pip(country = "all", year = "all", povline = 1.9, lkup = lkups),
+               "You are probably passing more than one dataset as lkup argument.
+  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD",
+  fixed = TRUE)
+})

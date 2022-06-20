@@ -7,6 +7,7 @@
 - [auto convert parameters to their respective types in `parse_parameters`](https://github.com/PIP-Technical-Team/pipapi/issues/241)
 - [Sanitize user inputs in get_aux_table](https://github.com/PIP-Technical-Team/pipapi/issues/259)
 - Removed `purrr` dependency
+- [Better error message when passing more than one dataset as `lkup` in `pip` call](https://github.com/PIP-Technical-Team/pipapi/issues/263)
 
 ## New features
 - Region codes can now be passed directly to the `country` query parameter to 
