@@ -68,7 +68,8 @@ pip <- function(country = "all",
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
-  if(length(lkup) <= 5)
+  #If svy_lkup and ref_lkup are not part of lkup throw an error.
+  if(!all(c('svy_lkup', 'ref_lkup') %in% names(lkup)))
     stop("You are probably passing more than one dataset as lkup argument.
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
   #Make country case insensitive
