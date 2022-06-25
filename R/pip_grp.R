@@ -73,7 +73,8 @@ pip_grp <- function(country = "all",
     out <- pip_aggregate_by(
       df = out,
       group_lkup = lkup[["pop_region"]],
-      country = country
+      country = country,
+      group_by = group_by
     )
 
     # Censor regional values
@@ -151,26 +152,27 @@ pip_aggregate <- function(df) {
 #' @param df data.frame: Response from `fg_pip()` or `rg_pip()`.
 #' @param group_lkup data.frame: Group lkup table (pop_region)
 #' @param country character: Selected countries / regions
+#' @param group_by character: keyword to extract grouping columns
 #' @noRd
 pip_aggregate_by <- function(df,
                              group_lkup,
-                             country = "all") {
+                             country = "all", group_by) {
 
   # Keep only rows necessary for regional aggregates
   df <- filter_for_aggregate_by(df)
+  group_cols <- get_grouping_cols(group_by)
 
-  df <- df[, .(
-    region_name,
-    region_code,
-    reporting_year,
-    poverty_line,
-    mean,
-    headcount,
-    poverty_gap,
-    poverty_severity,
-    watts,
-    reporting_pop
-  )]
+  df <- df[, c(
+    group_cols,
+    "reporting_year",
+    "poverty_line",
+    "mean",
+    "headcount",
+    "poverty_gap",
+    "poverty_severity",
+    "watts",
+    "reporting_pop"
+  ), with = FALSE]
 
   cols <- c("headcount", "poverty_gap", "poverty_severity", "watts", "mean")
   group_lkup <- group_lkup[, c("region_code", "reporting_year", "reporting_pop")]
@@ -242,4 +244,12 @@ filter_for_aggregate_by <- function(df) {
 
   return(out)
 
+}
+
+#' Get the grouping columns
+#' @param group_by character: keyword to extract grouping columns
+#' @noRd
+get_grouping_cols <- function(group_by) {
+  group_lookup <- list(wb = c('region_name', 'region_code'))
+  group_lookup[[group_by]]
 }
