@@ -483,3 +483,9 @@ clear_cache <- function(cd) {
     return(out)
   })
 }
+
+
+fun <- function(x) x ^ 2
+
+#' @export
+fun_lim <- ratelimitr::limit_rate(fun, ratelimitr::rate(n = 2, period = 60))
