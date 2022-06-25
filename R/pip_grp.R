@@ -29,7 +29,6 @@ pip_grp <- function(country = "all",
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
-
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
   if (group_by != "none") {
@@ -179,7 +178,7 @@ pip_aggregate_by <- function(df,
 
   # Compute stats weighted average by groups
   rgn <- df[, lapply(.SD, stats::weighted.mean, w = reporting_pop, na.rm = TRUE),
-            by = .(region_name, region_code, reporting_year, poverty_line),
+            by = c(group_cols, "reporting_year", "poverty_line"),
             .SDcols = cols
   ]
 
