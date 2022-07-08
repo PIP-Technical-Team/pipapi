@@ -289,6 +289,9 @@ ui_cp_charts <- function(country = "AGO",
                          povline = 1.9,
                          pop_units = 1e6,
                          lkup) {
+  # Only supports single country selection
+  # Make it explicit
+  country <- country[1]
 
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
