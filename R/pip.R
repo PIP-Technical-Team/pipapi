@@ -75,6 +75,7 @@ pip <- function(country = "all",
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
 
   # Make country case insensitive
+
   country <- tolower(country)
   country <- if (country == "all") country else toupper(country)
   # Make year case insensitive as well. Allow all, ALL, All etc.
