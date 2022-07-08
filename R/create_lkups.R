@@ -16,7 +16,7 @@ create_versioned_lkups <-
     versions <- names(data_dirs)
     # versions[1] <- "latest_release"
 
-    versions_paths <- purrr::map(data_dirs, create_lkups, versions = versions)
+    versions_paths <- lapply(data_dirs, create_lkups, versions = versions)
     names(versions_paths) <- versions
 
     return(list(versions = versions,

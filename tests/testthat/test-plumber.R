@@ -186,7 +186,7 @@ test_that("Indicator names are correct", {
   r <- httr::GET(root_path, port = 8000, path = "api/v1/indicators")
   # Check response
   ind_resp <- httr::content(r, encoding = "UTF-8")
-  ind_code <- purrr::map_chr(ind_resp, "indicator_code")
+  ind_code <- y <- vapply(ind_resp, `[[`, "indicator_code", FUN.VALUE = character(1))
   expect_equal(sum(names(pip_resp[[1]]) %in% ind_code), 21)
 })
 
