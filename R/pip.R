@@ -68,10 +68,17 @@ pip <- function(country = "all",
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
-  #Make country case insensitive
+
+  # If svy_lkup and ref_lkup are not part of lkup throw an error.
+  if (!all(c('svy_lkup', 'ref_lkup') %in% names(lkup)))
+    stop("You are probably passing more than one dataset as lkup argument.
+  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
+
+  # Make country case insensitive
+
   country <- tolower(country)
-  country <- if(country == "all") country else toupper(country)
-  #Make year case insensitive as well. Allow all, ALL, All etc.
+  country <- if (country == "all") country else toupper(country)
+  # Make year case insensitive as well. Allow all, ALL, All etc.
   year <- tolower(year)
   # **** TO BE REMOVED **** REMOVAL STARTS HERE
   # Once `pip-grp` has been integrated in ingestion pipeline
