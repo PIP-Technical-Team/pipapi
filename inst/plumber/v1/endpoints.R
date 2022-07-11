@@ -41,6 +41,7 @@ function(req, res) {
 #* Parse query parameters of incoming request
 #* @filter parse_parameters
 function(req, res) {
+  # browser()
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     req$argsQuery <- pipapi:::parse_parameters(req$argsQuery)
   }
@@ -482,6 +483,7 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
+  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL

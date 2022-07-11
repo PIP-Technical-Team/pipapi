@@ -38,7 +38,7 @@ subset_lkup <- function(country,
   keep <- TRUE
   # Select data files based on requested country, year, etc.
   # Select countries
-  if (country[1] != "all") {
+  if (!any(c("all", "WLD") %in% country)) {
     # Select regions
     if (any(country %in% valid_regions)) {
       selected_regions <- country[country %in% valid_regions]
@@ -51,7 +51,7 @@ subset_lkup <- function(country,
   }
   # Select years
   if (year[1] == "mrv") {
-    if (country[1] != "all") {
+    if (!any(c("all", "WLD") %in% country)) {
       max_year <- max(lkup[country_code == country]$reporting_year)
     } else {
       max_year <- max(lkup$reporting_year)
@@ -296,6 +296,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
   country <- list(
     values = c(
       "all",
+      "WLD",
       sort(c(
         countries,
         regions)
@@ -305,7 +306,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
   )
 
   region <- list(
-    values = sort(c("all", regions)),
+    values = sort(c("all", "WLD", regions)),
     type = "character"
   )
   # Year
@@ -437,9 +438,21 @@ subset_ctry_years <- function(country,
   keep <- TRUE
   # Select data files based on requested country, year, etc.
   # Select countries
-  if (!all(country %in% c("all", valid_regions))) {
-    keep <- keep & lkup$country_code %in% country
+  if (!any(c("all", "WLD") %in% country)) {
+    # Select regions
+    if (any(country %in% valid_regions)) {
+      selected_regions <- country[country %in% valid_regions]
+      keep_regions <- lkup$region_code %in% selected_regions
+    } else {
+      keep_regions <- rep(FALSE, length(lkup$country_code))
+    }
+    keep_countries <- lkup$country_code %in% country
+    keep <- keep & (keep_countries | keep_regions)
   }
+
+  # if (!all(country %in% c("all", valid_regions))) {
+  #   keep <- keep & lkup$country_code %in% country
+  # }
 
   # Select years
   if (year[1] == "mrv") {
