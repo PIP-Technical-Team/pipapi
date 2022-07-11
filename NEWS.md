@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.1.0
 
 ## Enhancements
 - [Sort the rows by `country_code` and `reporting_year` in the pip response.](https://github.com/PIP-Technical-Team/pipapi/issues/248)
@@ -16,6 +16,7 @@ return all countries pertaining to the specified region
 return parameters that are relevant to the specified endpoint
 - [Add /valid-years endpoint that returns available years for both survey and 
 interpolated years](https://github.com/PIP-Technical-Team/pipapi/issues/182)
+- [Add direct selection for WLD aggregate](https://github.com/PIP-Technical-Team/pipapi/pull/268)
 
 # pipapi 1.0.0
 
