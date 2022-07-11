@@ -64,6 +64,34 @@ test_that("parse_parameters() works as expected", {
   expect_type(tmp$format, "character")
 })
 
+test_that("parse_parameter() correctly parses query parameter values", {
+  # Single character
+  out <- parse_parameter(param = "AGO")
+  expect_equal(out, "AGO")
+  # Multiple character
+  out <- parse_parameter(param = "SSA,LAC,WLD")
+  expect_equal(out, c("SSA", "LAC", "WLD"))
+  # Single integer
+  out <- parse_parameter(param = "2018")
+  expect_equal(out, 2018L)
+  # Multiple integers
+  out <- parse_parameter(param = "2018,2020")
+  expect_equal(out, c(2018L, 2020L))
+  # Single numeric
+  out <- parse_parameter(param = "1.9")
+  expect_equal(out, 1.9)
+  # Multiple numerics
+  out <- parse_parameter(param = "1.9,3.2")
+  expect_equal(out, c(1.9, 3.2))
+  # Single logical
+  out <- parse_parameter(param = "TRUE")
+  expect_equal(out, TRUE)
+  # Multiple logicals
+  out <- parse_parameter(param = c("TRUE", "FALSE"))
+  expect_equal(out, c(TRUE, FALSE))
+
+})
+
 test_that("check_parameters() works as expected", {
 
   # Test that all pip() parameters are accepted

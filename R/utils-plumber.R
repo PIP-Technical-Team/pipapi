@@ -117,33 +117,27 @@ validate_query_parameters <-
 #' @return character
 #' @noRd
 parse_parameters <- function(params) {
-  params <- type.convert(params, as.is = TRUE)
-
+  for (i in seq_along(params)) {
+    params[[i]] <- parse_parameter(
+      param = params[[i]]
+    )
+  }
   return(params)
 }
 
 #' #' Parse parameters
 #' #' @param param character: Query parameter to be parsed
-#' #' @param param_name character: Parameter name
 #' #' @return character
 #' #' @noRd
-#' parse_parameter <- function(param, param_name) {
-#'   param <- urltools::url_decode(param)
-#'   param <- strsplit(param, ",")
-#'   param <- unlist(param)
-#'
-#'   # CREATE GLOBALS TO AVOID HARD CODED VALUES HERE
-#'   if (param_name %in% c("country", "year", "group_by", "welfare_type",
-#'                         "reporting_level", "format", "parameter", "endpoint")) {
-#'     param <- as.character(param)
-#'   } else if (param_name %in% c("povline", "popshare", "ppp")) {
-#'     param <- as.numeric(param)
-#'   } else if (param_name %in% c("fill_gaps", "aggregate")) {
-#'     param <- as.logical(param)
-#'   }
-#'
-#'   return(param)
-#' }
+parse_parameter <- function(param) {
+  param <- urltools::url_decode(param)
+  param <- strsplit(param, ",")
+  param <- unlist(param)
+
+  param <- type.convert(param, as.is = TRUE)
+
+  return(param)
+}
 
 #' Switch serializer
 #' @return A plumber response
