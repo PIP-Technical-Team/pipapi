@@ -74,13 +74,6 @@ pip <- function(country = "all",
     stop("You are probably passing more than one dataset as lkup argument.
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
 
-  # Make country case insensitive
-  country <- toupper(country)
-  if (length(country[country == "ALL"]) > 0) {
-    country[country == "ALL"] <- "all"
-  }
-  # Make year case insensitive as well. Allow all, ALL, All etc.
-  year <- tolower(year)
   # **** TO BE REMOVED **** REMOVAL STARTS HERE
   # Once `pip-grp` has been integrated in ingestion pipeline
   # Forces fill_gaps to TRUE when using group_by option

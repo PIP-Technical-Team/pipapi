@@ -119,20 +119,35 @@ validate_query_parameters <-
 parse_parameters <- function(params) {
   for (i in seq_along(params)) {
     params[[i]] <- parse_parameter(
-      param = params[[i]]
+      param = params[[i]],
+      param_name = names(params)[i]
     )
   }
   return(params)
 }
 
-#' #' Parse parameters
-#' #' @param param character: Query parameter to be parsed
-#' #' @return character
-#' #' @noRd
-parse_parameter <- function(param) {
+#' Parse parameters
+#' @param param character: Query parameter to be parsed
+#' @param param_name character: Parameter name
+#' @return character
+#' @noRd
+parse_parameter <- function(param,
+                            param_name) {
   param <- urltools::url_decode(param)
   param <- strsplit(param, ",")
   param <- unlist(param)
+
+  # Make API case insensitive
+  if (param_name %in% c("country", "fill_gaps", "version")) {
+    param <- toupper(param)
+    if (param_name == "country") {
+      if (length(param[param == "ALL"]) > 0) {
+        param[param == "ALL"] <- "all"
+      }
+    }
+  } else {
+    param <- tolower(param)
+  }
 
   param <- type.convert(param, as.is = TRUE)
 
