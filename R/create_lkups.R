@@ -16,7 +16,7 @@ create_versioned_lkups <-
     versions <- names(data_dirs)
     # versions[1] <- "latest_release"
 
-    versions_paths <- purrr::map(data_dirs, create_lkups, versions = versions)
+    versions_paths <- lapply(data_dirs, create_lkups, versions = versions)
     names(versions_paths) <- versions
 
     return(list(versions = versions,
@@ -149,8 +149,11 @@ create_lkups <- function(data_dir, versions) {
     cache_ids       <- unique(tmp_metadata[["cache_id"]])
     reporting_level <- unique(tmp_metadata[["reporting_level"]])
     paths           <- unique(tmp_metadata$path)
-    ctry_years      <- unique(tmp_metadata[, c("country_code", "reporting_year",
-                                               "reporting_level", "interpolation_id"
+    ctry_years      <- unique(tmp_metadata[, c("region_code",
+                                               "country_code",
+                                               "reporting_year",
+                                               "reporting_level",
+                                               "interpolation_id"
                                                )
                                            ])
 
@@ -245,7 +248,7 @@ create_lkups <- function(data_dir, versions) {
   aux_tables <- list.files(fs::path(data_dir, "_aux"),pattern = "\\.fst$")
   aux_tables <- tools::file_path_sans_ext(aux_tables)
   aux_tables <- sort(aux_tables)
-
+  valid_years <- valid_years(data_dir)
   # Create list of query controls
   query_controls <-
     create_query_controls(
@@ -267,7 +270,8 @@ create_lkups <- function(data_dir, versions) {
     query_controls     = query_controls,
     data_root          = data_dir,
     aux_tables         = aux_tables,
-    interpolation_list = interpolation_list
+    interpolation_list = interpolation_list,
+    valid_years = valid_years
   )
 
   return(lkups)

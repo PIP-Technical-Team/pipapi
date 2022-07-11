@@ -20,7 +20,8 @@ rg_pip <- function(country,
     year = year,
     welfare_type = welfare_type,
     reporting_level = reporting_level,
-    lkup = lkup[["svy_lkup"]]
+    lkup = lkup[["svy_lkup"]],
+    valid_regions = lkup$query_controls$region$values
   )
 
   # return empty dataframe if no metadata is found

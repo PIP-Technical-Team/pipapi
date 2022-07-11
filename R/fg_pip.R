@@ -15,13 +15,16 @@ fg_pip <- function(country,
                    lkup,
                    debug) {
 
+  valid_regions <- lkup$query_controls$region$values
+
   # Handle interpolation
   metadata <- subset_lkup(
     country = country,
     year = year,
     welfare_type = welfare_type,
     reporting_level = reporting_level,
-    lkup = lkup[["ref_lkup"]]
+    lkup = lkup[["ref_lkup"]],
+    valid_regions = valid_regions
   )
 
   # Return empty dataframe if no metadata is found
@@ -40,7 +43,6 @@ fg_pip <- function(country,
 
   #NEW: iterate over survey files
   for (svy_id in seq_along(unique_survey_files)) {
-
     # Extract country-years for which stats will be computed from the same files
     # tmp_metadata <- interpolation_list[[unique_survey_files[svy_id]]]$tmp_metadata
     svy_data <- get_svy_data(interpolation_list[[unique_survey_files[svy_id]]]$cache_ids,
@@ -51,7 +53,8 @@ fg_pip <- function(country,
     # Extract unique combinations of country-year
     ctry_years <- subset_ctry_years(country = country,
                                     year = year,
-                                    lkup = interpolation_list[[unique_survey_files[svy_id]]]$ctry_years)
+                                    lkup = interpolation_list[[unique_survey_files[svy_id]]]$ctry_years,
+                                    valid_regions = valid_regions)
 
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 
@@ -159,7 +162,8 @@ fg_remove_duplicates <- function(df,
 fg_standardize_cache_id <- function(cache_id,
                                     interpolation_id,
                                     reporting_level) {
-  out <- ifelse(grepl("[|]", interpolation_id),
+
+  out <- ifelse(grepl("|", interpolation_id, fixed = TRUE),
                 gsub(paste0("_",
                             unique(reporting_level),
                             collapse = '|'),
@@ -177,20 +181,7 @@ fg_standardize_cache_id <- function(cache_id,
 
 fg_assign_nas_values_to_dup_cols <- function(df,
                                              cols) {
-  cols_class <- unlist(lapply(df[, ..cols], typeof))
-  vars_to_collapse_char <- names(cols_class[cols_class == "character"])
-  vars_to_collapse_int <- names(cols_class[cols_class == "integer"])
-  vars_to_collapse_real <- names(cols_class[cols_class == "double"])
-
-  if (length(vars_to_collapse_char) > 0) {
-    df[, vars_to_collapse_char] <- NA_character_
-  }
-  if (length(vars_to_collapse_int) > 0) {
-    df[, vars_to_collapse_int]  <- NA_integer_
-  }
-  if (length(vars_to_collapse_real) > 0) {
-    df[, vars_to_collapse_real] <- NA_real_
-  }
-
+  #Classes are maintained by default.
+  df[, (cols) := NA]
   return(df)
 }

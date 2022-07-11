@@ -153,10 +153,14 @@ ui_pc_charts <- function(country = c("AGO"),
 #' @inheritParams ui_pc_charts
 #' @return data.table
 #' @export
-ui_pc_regional <- function(povline = 1.9, pop_units = 1e6, lkup) {
+ui_pc_regional <- function(country = "all",
+                           year = "all",
+                           povline = 1.9,
+                           pop_units = 1e6,
+                           lkup) {
 
-  out <- pip_grp(country = "all",
-                 year    = "all",
+  out <- pip_grp(country = country,
+                 year    = year,
                  group_by = "wb",
                  reporting_level = "national",
                  povline = povline,
@@ -285,6 +289,9 @@ ui_cp_charts <- function(country = "AGO",
                          povline = 1.9,
                          pop_units = 1e6,
                          lkup) {
+  # Only supports single country selection
+  # Make it explicit
+  country <- country[1]
 
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]

@@ -24,23 +24,34 @@ utils::globalVariables(
 
 #' Subset look-up data
 #' @inheritParams pip
+#' @param valid_regions character: List of valid region codes that can be used
+#' for region selection
 #' @return data.frame
 #' @keywords internal
 subset_lkup <- function(country,
                         year,
                         welfare_type,
                         reporting_level,
-                        lkup) {
-  svy_n <- nrow(lkup)
-  keep <- rep(TRUE, svy_n)
+                        lkup,
+                        valid_regions) {
+
+  keep <- TRUE
   # Select data files based on requested country, year, etc.
   # Select countries
-  if (country[1] != "all") {
-    keep <- keep & lkup$country_code %in% country
+  if (!any(c("all", "WLD") %in% country)) {
+    # Select regions
+    if (any(country %in% valid_regions)) {
+      selected_regions <- country[country %in% valid_regions]
+      keep_regions <- lkup$region_code %in% selected_regions
+    } else {
+      keep_regions <- rep(FALSE, length(lkup$country_code))
+    }
+    keep_countries <- lkup$country_code %in% country
+    keep <- keep & (keep_countries | keep_regions)
   }
   # Select years
   if (year[1] == "mrv") {
-    if (country[1] != "all") {
+    if (!any(c("all", "WLD") %in% country)) {
       max_year <- max(lkup[country_code == country]$reporting_year)
     } else {
       max_year <- max(lkup$reporting_year)
@@ -84,8 +95,7 @@ select_reporting_level <- function(lkup,
 
   } else if (reporting_level == "national") {
     # Subnational levels necessary to compute national stats for aggregate distributions
-    keep <- keep & (lkup$reporting_level == reporting_level |
-                      lkup$is_used_for_aggregation == TRUE)
+    keep <- keep & (lkup$reporting_level == reporting_level | lkup$is_used_for_aggregation)
     return(keep)
 
   } else {
@@ -272,18 +282,34 @@ censor_stats <- function(df, censored_table) {
 #' @return list
 #' @noRd
 create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
+  # Countries and regions
+  countries <- unique(c(
+      svy_lkup$country_code,
+      ref_lkup$country_code
+    ))
+
+  regions <- unique(c(
+    svy_lkup$region_code,
+    ref_lkup$region_code
+  ))
 
   country <- list(
     values = c(
       "all",
-      sort(unique(c(
-        svy_lkup$country_code,
-        ref_lkup$country_code
-      )))
+      "WLD",
+      sort(c(
+        countries,
+        regions)
+      )
     ),
     type = "character"
   )
 
+  region <- list(
+    values = sort(c("all", "WLD", regions)),
+    type = "character"
+  )
+  # Year
   year <- list(
     values = c(
       "all", "mrv",
@@ -294,27 +320,27 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     ),
     type = "character"
   )
-
+  # Poverty line
   povline <- list(
     values = c(min = 0, max = 10000),
     type = "numeric"
   )
-
+  # Popshare
   popshare <- list(
     values = c(min = 0, max = 1),
     type = "numeric"
   )
-
+  # Fill gaps
   fill_gaps <- aggregate <- list(
     values = c(TRUE, FALSE),
     type = "logical"
   )
-
+  # Group by
   group_by <- list(
     values = c("none", "wb"),
     type = "character"
   )
-
+  # Welfare type
   welfare_type <- list(
     values = c("all", sort(unique(c(
       svy_lkup$welfare_type,
@@ -322,7 +348,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     )))),
     type = "character"
   )
-
+  # Reporting level
   reporting_level <- list(
     values = c(
       "all",
@@ -333,22 +359,22 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     ),
     type = "character"
   )
-
+  # PPPs
   ppp <- list(
     values = c(min = 0.05, max = 1000000), # CHECK THE VALUE OF MAX
     type = "numeric"
   )
-
+  # Versions
   version <- list(
     values = versions,
     type = "character"
   )
-
+  # Formats
   format <- list(values = c("json", "csv", "rds"),
                  type = "character")
-
+  # Tables
   table <- list(values = aux_tables, type = "character")
-
+  # parameters
   parameter <-
     list(values = c("country", "year", "povline",
                     "popshare", "fill_gaps", "aggregate",
@@ -356,10 +382,20 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
                     "reporting_level", "ppp", "version",
                     "format", "table"),
          type = "character")
+  # Endpoint
+  endpoint <-
+    list(values = c("all",
+                    "aux",
+                    "pip",
+                    "pip-grp",
+                    "pip-info",
+                    "valid-params"),
+         type = "character")
 
     # Create list of query controls
   query_controls <- list(
     country         = country,
+    region          = region,
     year            = year,
     povline         = povline,
     popshare        = popshare,
@@ -372,7 +408,8 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     version         = version,
     format          = format,
     table           = table,
-    parameter       = parameter
+    parameter       = parameter,
+    endpoint        = endpoint
   )
 
   return(query_controls)
@@ -390,19 +427,33 @@ convert_empty <- function(string) {
 #' Subset country-years table
 #' This is a table created at start time to facilitate imputations
 #' It part of the interpolated_list object
-#'
+#' @param valid_regions character: List of valid region codes that can be used
 #' @return data.frame
 #' @keywords internal
 subset_ctry_years <- function(country,
                               year,
-                              lkup) {
-  svy_n <- nrow(lkup)
-  keep <- rep(TRUE, svy_n)
+                              lkup,
+                              valid_regions) {
+
+  keep <- TRUE
   # Select data files based on requested country, year, etc.
   # Select countries
-  if (country[1] != "all") {
-    keep <- keep & lkup$country_code %in% country
+  if (!any(c("all", "WLD") %in% country)) {
+    # Select regions
+    if (any(country %in% valid_regions)) {
+      selected_regions <- country[country %in% valid_regions]
+      keep_regions <- lkup$region_code %in% selected_regions
+    } else {
+      keep_regions <- rep(FALSE, length(lkup$country_code))
+    }
+    keep_countries <- lkup$country_code %in% country
+    keep <- keep & (keep_countries | keep_regions)
   }
+
+  # if (!all(country %in% c("all", valid_regions))) {
+  #   keep <- keep & lkup$country_code %in% country
+  # }
+
   # Select years
   if (year[1] == "mrv") {
     if (country[1] != "all") {

@@ -1,3 +1,23 @@
+# pipapi 1.1.0
+
+## Enhancements
+- [Sort the rows by `country_code` and `reporting_year` in the pip response.](https://github.com/PIP-Technical-Team/pipapi/issues/248)
+- [Fix casing making pip call case insensitive](https://github.com/PIP-Technical-Team/pipapi/issues/120)
+- [Add unit tests for newly created fg_remove_duplicates() and sub-functions](https://github.com/PIP-Technical-Team/pipapi/issues/226)
+- [auto convert parameters to their respective types in `parse_parameters`](https://github.com/PIP-Technical-Team/pipapi/issues/241)
+- [Sanitize user inputs in get_aux_table](https://github.com/PIP-Technical-Team/pipapi/issues/259)
+- Removed `purrr` dependency
+- [Better error message when passing more than one dataset as `lkup` in `pip` call](https://github.com/PIP-Technical-Team/pipapi/issues/263)
+
+## New features
+- Region codes can now be passed directly to the `country` query parameter to 
+return all countries pertaining to the specified region
+- the `/valid-params` endpoint gains an `endpoint` parameter that allows to only
+return parameters that are relevant to the specified endpoint
+- [Add /valid-years endpoint that returns available years for both survey and 
+interpolated years](https://github.com/PIP-Technical-Team/pipapi/issues/182)
+- [Add direct selection for WLD aggregate](https://github.com/PIP-Technical-Team/pipapi/pull/268)
+
 # pipapi 1.0.0
 
 ## New features

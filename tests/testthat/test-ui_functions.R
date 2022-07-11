@@ -3,7 +3,7 @@ skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 
 # constants
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-lkups <-lkups$versions_paths[[lkups$latest_release]]
+lkups <- lkups$versions_paths[[lkups$latest_release]]
 set.seed(42)
 lkups$pl_lkup <- lkups$pl_lkup[sample(nrow(lkups$pl_lkup), 10)]
 lkups2 <- lkups
@@ -50,7 +50,6 @@ test_that("ui_pc_charts() works as expected", {
   # Regular query (fill_gaps = TRUE)
   res <- ui_pc_charts(country = "AGO", povline = 1.9, fill_gaps = TRUE, lkup = lkups)
   expect_equal(nrow(res), length(unique(lkups$ref_lkup$reporting_year)))
-  expect_equal(length(names(res)), 12)
 
   # Group by
   res <- ui_pc_charts(country = "AGO", group_by = "wb", povline = 1.9, lkup = lkups)
@@ -315,7 +314,9 @@ test_that("ui_cp_charts() works as expected", {
 
     # All countries
   dl3 <- ui_cp_charts(country = "all", povline = 1.9, lkup = lkups)
-  expect_length(dl3, length(lkups$query_controls$country$values) - 1) # All countries
+
+  expect_length(dl3, length(lkups$query_controls$country$values) -
+                  length(lkups$query_controls$region$values)) # All countries
   expect_length(dl3[[2]], 5) # 5 chart objects (2 inside pov_charts)
   expect_length(dl3[[2]]$pov_charts, 1) # 1 poverty line
   expect_identical(names(dl3[[2]]), c(
@@ -335,42 +336,42 @@ test_that("ui_cp_charts() works as expected", {
 
 })
 
+test_that("ui_cp_charts() only returns first country if multiple countries are passed", {
+  # A single poverty line
+  dl1 <- ui_cp_charts(country = c("AGO", "AFG"), povline = 1.9, lkup = lkups)
+  expect_length(dl1, 1) # 1 country
+  expect_equal(names(dl1), "AGO")
+})
+
 test_that("ui_svy_meta() works as expected", {
+  expected_names <- c("country_code", "reporting_year" , "survey_year",
+                      "survey_title", "survey_conductor",  "survey_coverage",
+                      "welfare_type",    "distribution_type", "metadata")
+  expected_metadata <- c(
+    "surveyid_year", "survey_acronym",
+    "year_start", "year_end",
+    "authoring_entity_name", "abstract",
+    "collection_dates_cycle", "collection_dates_start",
+    "collection_dates_end", "sampling_procedure",
+    "collection_mode", "coll_situation", "weight",
+    "cleaning_operations"
+  )
+
   res <- ui_svy_meta(country = "AGO", lkup = lkups)
   expect_equal(unique(res$country_code), "AGO")
   expect_equal(names(res),
-               c("country_code", "reporting_year" ,
-                 "survey_title", "survey_conductor",  "survey_coverage",
-                 "welfare_type",    "distribution_type", "metadata"))
+               expected_names)
   expect_equal(
     names(res$metadata[[1]]),
-    c(
-      "surveyid_year", "survey_acronym",
-      "year_start", "year_end",
-      "authoring_entity_name", "abstract",
-      "collection_dates_cycle", "collection_dates_start",
-      "collection_dates_end", #"survey_coverage",
-      "sampling_procedure", "collection_mode",
-      "coll_situation", "weight", "cleaning_operations"
-    )
+    expected_metadata
   )
   res <- ui_svy_meta(country = "all", lkup = lkups)
   expect_true(all(unique(res$country_code) %in%
                     lkups$query_controls$country$values))
   expect_equal(names(res),
-               c("country_code", "reporting_year" ,
-                 "survey_title", "survey_conductor",  "survey_coverage",
-                 "welfare_type",    "distribution_type", "metadata"))
+               expected_names)
   expect_equal(
     names(res$metadata[[1]]),
-    c(
-      "surveyid_year", "survey_acronym",
-      "year_start", "year_end",
-      "authoring_entity_name", "abstract",
-      "collection_dates_cycle", "collection_dates_start",
-      "collection_dates_end", #"survey_coverage",
-      "sampling_procedure", "collection_mode",
-      "coll_situation", "weight", "cleaning_operations"
-    )
+    expected_metadata
   )
 })

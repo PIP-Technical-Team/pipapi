@@ -39,7 +39,7 @@ check_parameter <- function(values, valid_values, type) {
 #' @return logical
 #' @noRd
 check_param_chr <- function(values, valid_values) {
-  out <- all(values %in% valid_values)
+  out <- all(tolower(values) %in% tolower(valid_values))
 
   return(out)
 }
@@ -102,7 +102,8 @@ validate_query_parameters <-
     "version",
     "format",
     "table",
-    "parameter"
+    "parameter",
+    "endpoint"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]
@@ -130,20 +131,25 @@ parse_parameters <- function(params) {
 #' @param param_name character: Parameter name
 #' @return character
 #' @noRd
-parse_parameter <- function(param, param_name) {
+parse_parameter <- function(param,
+                            param_name) {
   param <- urltools::url_decode(param)
   param <- strsplit(param, ",")
   param <- unlist(param)
 
-  # CREATE GLOBALS TO AVOID HARD CODED VALUES HERE
-  if (param_name %in% c("country", "year", "group_by", "welfare_type",
-                        "reporting_level", "format", "parameter")) {
-    param <- as.character(param)
-  } else if (param_name %in% c("povline", "popshare", "ppp")) {
-    param <- as.numeric(param)
-  } else if (param_name %in% c("fill_gaps", "aggregate")) {
-    param <- as.logical(param)
+  # Make API case insensitive
+  if (param_name %in% c("country", "fill_gaps", "version", "aggregate")) {
+    param <- toupper(param)
+    if (param_name == "country") {
+      if (length(param[param == "ALL"]) > 0) {
+        param[param == "ALL"] <- "all"
+      }
+    }
+  } else {
+    param <- tolower(param)
   }
+
+  param <- type.convert(param, as.is = TRUE)
 
   return(param)
 }

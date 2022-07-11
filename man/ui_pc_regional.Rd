@@ -4,9 +4,19 @@
 \alias{ui_pc_regional}
 \title{Poverty Calculator regional aggregates}
 \usage{
-ui_pc_regional(povline = 1.9, pop_units = 1e+06, lkup)
+ui_pc_regional(
+  country = "all",
+  year = "all",
+  povline = 1.9,
+  pop_units = 1e+06,
+  lkup
+)
 }
 \arguments{
+\item{country}{character: Country ISO 3 codes}
+
+\item{year}{integer: Reporting year}
+
 \item{povline}{numeric: Poverty line}
 
 \item{pop_units}{numeric: Units used to express population numbers (default

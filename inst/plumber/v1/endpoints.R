@@ -41,6 +41,7 @@ function(req, res) {
 #* Parse query parameters of incoming request
 #* @filter parse_parameters
 function(req, res) {
+  # browser()
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     req$argsQuery <- pipapi:::parse_parameters(req$argsQuery)
   }
@@ -75,12 +76,18 @@ function(req, res) {
     # Break if bad request
     endpoint <- pipapi:::extract_endpoint(req$PATH_INFO)
     if (endpoint == "pip-grp") {
-      if (req$argsQuery$group_by != "none" && req$argsQuery$country != "all") {
+      group_condition   <- req$argsQuery$group_by != "none"
+      country_condition <- !all(req$argsQuery$country %in% query_controls$region$values)
+      if (group_condition & country_condition) {
         res$status <- 400
-        out <- list(
-          error = "Invalid query arguments have been submitted.",
-          details = list(msg = "You cannot query individual countries when specifying a predefined sub-group. Please use country=all")
-        )
+        invalid_params <- "region"
+        out <- pipapi:::format_error("region", query_controls)
+        out$error <- "You supplied an invalid value for country. Please use one of the valid values."
+
+        # out <- list(
+        #   error = "Invalid query arguments have been submitted.",
+        #   details = list(msg = paste0("You cannot query individual countries when specifying a predefined sub-group. Please use  country=all")
+        # )
         return(out)
       }
     }
@@ -249,13 +256,16 @@ function(req) {
 #* @get /api/v1/valid-params
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @param endpoint:[chr] Endpoint for which to return the valid parameters
 #* @serializer switch
 function(req) {
   # browser()
   version <- req$argsQuery$version
+  endpoint <- req$argsQuery$endpoint
   out <- pipapi::get_param_values(
     lkup = lkups,
-    version = version)
+    version = version,
+    endpoint = endpoint)
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
@@ -467,10 +477,13 @@ function(req) {
 
 #* Return regional aggregations for all years
 #* @get /api/v1/pc-regional-aggregates
+#* @param country:[chr] Region code
+#* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
+  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
@@ -526,4 +539,14 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
   do.call(pipapi::ui_svy_meta, params)
+}
+
+#* Return valid years
+#* @get /api/v1/valid-years
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer switch
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[params$version]]
+  pipapi::valid_years(data_dir = params$lkup$data_root)
 }

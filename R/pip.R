@@ -69,6 +69,11 @@ pip <- function(country = "all",
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
 
+  # If svy_lkup and ref_lkup are not part of lkup throw an error.
+  if (!all(c('svy_lkup', 'ref_lkup') %in% names(lkup)))
+    stop("You are probably passing more than one dataset as lkup argument.
+  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
+
   # **** TO BE REMOVED **** REMOVAL STARTS HERE
   # Once `pip-grp` has been integrated in ingestion pipeline
   # Forces fill_gaps to TRUE when using group_by option
@@ -171,6 +176,10 @@ pip <- function(country = "all",
 
   # Select columns
   out <- out[, .SD, .SDcols = lkup$pip_cols]
+
+  #Order rows by country code and reporting year
+  out <- out[order(country_code, reporting_year)]
+
 
   return(out)
 }

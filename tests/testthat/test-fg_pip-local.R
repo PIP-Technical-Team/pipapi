@@ -96,3 +96,39 @@ test_that("Imputation is working for interpolated aggregate distribution", {
 
   expect_equal(nrow(tmp), 2)
 })
+
+
+test_that("Check classes of function fg_assign_nas_values_to_dup_cols", {
+  df <- data.table::data.table(a = rnorm(5), b = letters[1:5], c = 1:5, d = rnorm(5))
+  tmp <- fg_assign_nas_values_to_dup_cols(df, c('a', 'b', 'c'))
+
+  expect_type(tmp$a, "double")
+  expect_type(tmp$b, "character")
+  expect_type(tmp$c, "integer")
+})
+
+
+test_that("Test fg_standardize_cache_id", {
+  x <- c("CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+         "CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+         "CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP")
+  y <- fg_standardize_cache_id(x, x, '')
+
+  expect_length(y, length(x))
+  expect_identical(x, y)
+})
+
+
+test_that("fg_remove_duplicates test", {
+  df <- data.table::data.table(cache_id = c("CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+                                            "CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+                                            "CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP"),
+                               data_interpolation_id = c("CHN_1981_CRHS-CUHS_D2_INC_GROUP_rural", "CHN_1981_CRHS-CUHS_D2_INC_GROUP_rural",
+                                                         "CHN_1981_CRHS-CUHS_D2_INC_GROUP_rural", "CHN_1981_CRHS-CUHS_D2_INC_GROUP_urban",
+                                                         "CHN_1981_CRHS-CUHS_D2_INC_GROUP_urban", "CHN_1981_CRHS-CUHS_D2_INC_GROUP_urban"),
+                               reporting_level = c("rural", "rural", "rural", "urban", "urban", "urban"))
+
+  res <- fg_remove_duplicates(df, c('data_interpolation_id'))
+  expect_equal(nrow(res), 2)
+  expect_type(res$data_interpolation_id, "character")
+})
