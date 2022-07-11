@@ -159,17 +159,17 @@ pip_aggregate_by <- function(df,
   # Keep only rows necessary for regional aggregates
   df <- filter_for_aggregate_by(df)
 
-  df <- df[, .(
-    region_name,
-    region_code,
-    reporting_year,
-    poverty_line,
-    mean,
-    headcount,
-    poverty_gap,
-    poverty_severity,
-    watts,
-    reporting_pop
+  df <- df[, c(
+    "region_name",
+    "region_code",
+    "reporting_year",
+    "poverty_line",
+    "mean",
+    "headcount",
+    "poverty_gap",
+    "poverty_severity",
+    "watts",
+    "reporting_pop"
   )]
 
   cols <- c("headcount", "poverty_gap", "poverty_severity", "watts", "mean")
@@ -186,19 +186,24 @@ pip_aggregate_by <- function(df,
                     allow.cartesian = TRUE
   ]
 
-  if (country[1] == "all") {
+  if (country[1] %in% c("all", "WLD")) {
     # Compute world aggregates
     wld <- compute_world_aggregates(rgn = rgn,
                                     cols = cols)
-
-    # Combine
-    out <- rbind(rgn, wld, fill = TRUE)
+    if (country[1] == "WLD") {
+      # Return only world aggregate
+      out <- wld
+    } else {
+      # Combine with other regional aggregates
+      out <- rbind(rgn, wld, fill = TRUE)
+    }
   } else {
+    # Return only selected regions
     out <- rgn
   }
 
   # Compute population living in poverty
-  out <- out[, pop_in_poverty := round(headcount * reporting_pop, 0)]
+  out$pop_in_poverty <- round(out$headcount * out$reporting_pop, 0)
 
   return(out)
 }
