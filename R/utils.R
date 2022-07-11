@@ -38,7 +38,7 @@ subset_lkup <- function(country,
   keep <- TRUE
   # Select data files based on requested country, year, etc.
   # Select countries
-  if (!country[1] %in% c("all", "WLD")) {
+  if (!any(c("all", "WLD") %in% country)) {
     # Select regions
     if (any(country %in% valid_regions)) {
       selected_regions <- country[country %in% valid_regions]
@@ -51,7 +51,7 @@ subset_lkup <- function(country,
   }
   # Select years
   if (year[1] == "mrv") {
-    if (!country[1] %in% c("all", "WLD")) {
+    if (!any(c("all", "WLD") %in% country)) {
       max_year <- max(lkup[country_code == country]$reporting_year)
     } else {
       max_year <- max(lkup$reporting_year)

@@ -186,21 +186,31 @@ pip_aggregate_by <- function(df,
                     allow.cartesian = TRUE
   ]
 
-  if (country[1] %in% c("all", "WLD")) {
+  if (any(c("all", "WLD") %in% country)) {
     # Compute world aggregates
     wld <- compute_world_aggregates(rgn = rgn,
                                     cols = cols)
-    if (country[1] == "WLD") {
-      # Return only world aggregate
-      out <- wld
+    if (length(country) == 1) {
+      if (country == "WLD") {
+        # Return only world aggregate
+        out <- wld
+      } else if (country == "all") {
+        # Combine with other regional aggregates
+        out <- rbind(rgn, wld, fill = TRUE)
+      }
     } else {
       # Combine with other regional aggregates
       out <- rbind(rgn, wld, fill = TRUE)
+      # Return selection only
+      if (!"all" %in% country) {
+        out <- out[region_code %in% country, ]
+      }
     }
   } else {
     # Return only selected regions
     out <- rgn
   }
+
 
   # Compute population living in poverty
   out$pop_in_poverty <- round(out$headcount * out$reporting_pop, 0)
