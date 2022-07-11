@@ -209,8 +209,8 @@ test_that("region selection is working for all countries", {
     lkup = lkups
   )
 
-  expect_equal(nrow(out), length(expected_region_values) + 1)
-  expect_equal(sort(out$region_code), sort(c(expected_region_values, "WLD")))
+  expect_equal(nrow(out), length(expected_region_values))
+  expect_equal(sort(out$region_code), sort(expected_region_values))
 })
 
 test_that("region selection is working for multiple regions and country from other region", {
@@ -229,6 +229,6 @@ test_that("region selection is working for multiple regions and country from oth
     lkup = lkups
   )
 
-  expect_equal(nrow(out), length(expected_region_values) + 1)
-  expect_equal(sort(out$region_code), sort(c(expected_region_values, "WLD")))
+  expect_equal(nrow(out), length(expected_region_values))
+  expect_equal(sort(out$region_code), sort(expected_region_values))
 })

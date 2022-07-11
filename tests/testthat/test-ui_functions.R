@@ -3,7 +3,7 @@ skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
 
 # constants
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-lkups <-lkups$versions_paths[[lkups$latest_release]]
+lkups <- lkups$versions_paths[[lkups$latest_release]]
 set.seed(42)
 lkups$pl_lkup <- lkups$pl_lkup[sample(nrow(lkups$pl_lkup), 10)]
 lkups2 <- lkups
@@ -314,10 +314,9 @@ test_that("ui_cp_charts() works as expected", {
 
     # All countries
   dl3 <- ui_cp_charts(country = "all", povline = 1.9, lkup = lkups)
-  # Return non country iso3 codes
-  # lkups$query_controls$country$values[!lkups$query_controls$country$values %in% names(dl3)]
-  aggregate_country_codes <- 8
-  expect_length(dl3, length(lkups$query_controls$country$values) - aggregate_country_codes) # All countries
+
+  expect_length(dl3, length(lkups$query_controls$country$values) -
+                  length(lkups$query_controls$region$values)) # All countries
   expect_length(dl3[[2]], 5) # 5 chart objects (2 inside pov_charts)
   expect_length(dl3[[2]]$pov_charts, 1) # 1 poverty line
   expect_identical(names(dl3[[2]]), c(
