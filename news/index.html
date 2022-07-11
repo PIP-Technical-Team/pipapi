@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">pipapi</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -47,6 +47,26 @@
       <small>Source: <a href="https://github.com/PIP-Technical-Team/pipapi/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="1.1.0" id="pipapi-110">pipapi 1.1.0<a class="anchor" aria-label="anchor" href="#pipapi-110"></a></h2>
+<div class="section level3">
+<h3 id="enhancements-1-1-0">Enhancements<a class="anchor" aria-label="anchor" href="#enhancements-1-1-0"></a></h3>
+<ul><li><a href="https://github.com/PIP-Technical-Team/pipapi/issues/248" class="external-link">Sort the rows by <code>country_code</code> and <code>reporting_year</code> in the pip response.</a></li>
+<li><a href="https://github.com/PIP-Technical-Team/pipapi/issues/120" class="external-link">Fix casing making pip call case insensitive</a></li>
+<li><a href="https://github.com/PIP-Technical-Team/pipapi/issues/226" class="external-link">Add unit tests for newly created fg_remove_duplicates() and sub-functions</a></li>
+<li><a href="https://github.com/PIP-Technical-Team/pipapi/issues/241" class="external-link">auto convert parameters to their respective types in <code>parse_parameters</code></a></li>
+<li><a href="https://github.com/PIP-Technical-Team/pipapi/issues/259" class="external-link">Sanitize user inputs in get_aux_table</a></li>
+<li>Removed <code>purrr</code> dependency</li>
+<li><a href="https://github.com/PIP-Technical-Team/pipapi/issues/263" class="external-link">Better error message when passing more than one dataset as <code>lkup</code> in <code>pip</code> call</a></li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-1-1-0">New features<a class="anchor" aria-label="anchor" href="#new-features-1-1-0"></a></h3>
+<ul><li>Region codes can now be passed directly to the <code>country</code> query parameter to return all countries pertaining to the specified region</li>
+<li>the <code>/valid-params</code> endpoint gains an <code>endpoint</code> parameter that allows to only return parameters that are relevant to the specified endpoint</li>
+<li><a href="https://github.com/PIP-Technical-Team/pipapi/issues/182" class="external-link">Add /valid-years endpoint that returns available years for both survey and interpolated years</a></li>
+<li><a href="https://github.com/PIP-Technical-Team/pipapi/pull/268" class="external-link">Add direct selection for WLD aggregate</a></li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="1.0.0" id="pipapi-100">pipapi 1.0.0<a class="anchor" aria-label="anchor" href="#pipapi-100"></a></h2>
 <div class="section level3">
@@ -112,7 +132,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

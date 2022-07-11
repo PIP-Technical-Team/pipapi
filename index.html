@@ -34,7 +34,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">pipapi</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -77,8 +77,8 @@
 </h2>
 <p>You can install the development version from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># install.packages("devtools")</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"PIP-Technical-Team/pipapi"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"PIP-Technical-Team/pipapi"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
@@ -101,38 +101,38 @@
 <span id="cb2-11"><a href="#cb2-11"></a>│  ├─ <span class="ex">...</span></span>
 <span id="cb2-12"><a href="#cb2-12"></a>│  ├─ <span class="ex">survey_n.fst</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Create a list of look-up tables from the root data folder</span>
-<span class="va">lkups</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_lkups.html">create_lkups</a></span><span class="op">(</span><span class="st">"&lt;data-folder&gt;"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Create a list of look-up tables from the root data folder</span></span>
+<span><span class="va">lkups</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_lkups.html">create_lkups</a></span><span class="op">(</span><span class="st">"&lt;data-folder&gt;"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h3>
 <p>Pass the <code>lkups</code> list to the main <code><a href="reference/pip.html">pip()</a></code> function to compute poverty and inequality statistics in your <code>R</code> session.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://pip-technical-team.github.io/pipapi">pipapi</a></span><span class="op">)</span>
-
-<span class="fu"><a href="reference/pip.html">pip</a></span><span class="op">(</span>country <span class="op">=</span> <span class="st">"AGO"</span>,
-    year <span class="op">=</span> <span class="fl">2000</span>,
-    povline <span class="op">=</span> <span class="fl">1.9</span>,
-    lkup <span class="op">=</span> <span class="va">lkups</span><span class="op">)</span>
-<span class="co">#&gt;    region_code country_code reporting_year survey_acronym survey_coverage</span>
-<span class="co">#&gt; 1:         SSA          AGO           2000            HBS        national</span>
-<span class="co">#&gt;    survey_year welfare_type survey_comparability comparable_spell poverty_line</span>
-<span class="co">#&gt; 1:     2000.21  consumption                    0             2000          1.9</span>
-<span class="co">#&gt;    headcount poverty_gap poverty_severity     mean   median       mld      gini</span>
-<span class="co">#&gt; 1: 0.3637448   0.1636806       0.09982393 4.100014 2.593394 0.5125765 0.5195689</span>
-<span class="co">#&gt;    polarization     watts    decile1    decile2    decile3    decile4</span>
-<span class="co">#&gt; 1:    0.4643401 0.2811239 0.00983246 0.02195307 0.03342455 0.04495307</span>
-<span class="co">#&gt;       decile5    decile6    decile7   decile8  decile9  decile10</span>
-<span class="co">#&gt; 1: 0.05662774 0.07048758 0.08808485 0.1134946 0.158687 0.4024552</span>
-<span class="co">#&gt;    survey_mean_lcu survey_mean_ppp predicted_mean_ppp        cpi cpi_data_level</span>
-<span class="co">#&gt; 1:        11.23264        4.100014                 NA 0.03385145       national</span>
-<span class="co">#&gt;        ppp ppp_data_level reporting_pop pop_data_level reporting_gdp</span>
-<span class="co">#&gt; 1: 80.9318       national      16395473       national      2195.631</span>
-<span class="co">#&gt;    gdp_data_level reporting_pce pce_data_level is_interpolated</span>
-<span class="co">#&gt; 1:       national            NA       national           FALSE</span>
-<span class="co">#&gt;    is_used_for_aggregation distribution_type estimation_type</span>
-<span class="co">#&gt; 1:                   FALSE             micro          survey</span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://pip-technical-team.github.io/pipapi">pipapi</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/pip.html">pip</a></span><span class="op">(</span>country <span class="op">=</span> <span class="st">"AGO"</span>,</span>
+<span>    year <span class="op">=</span> <span class="fl">2000</span>,</span>
+<span>    povline <span class="op">=</span> <span class="fl">1.9</span>,</span>
+<span>    lkup <span class="op">=</span> <span class="va">lkups</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    region_code country_code reporting_year survey_acronym survey_coverage</span></span>
+<span><span class="co">#&gt; 1:         SSA          AGO           2000            HBS        national</span></span>
+<span><span class="co">#&gt;    survey_year welfare_type survey_comparability comparable_spell poverty_line</span></span>
+<span><span class="co">#&gt; 1:     2000.21  consumption                    0             2000          1.9</span></span>
+<span><span class="co">#&gt;    headcount poverty_gap poverty_severity     mean   median       mld      gini</span></span>
+<span><span class="co">#&gt; 1: 0.3637448   0.1636806       0.09982393 4.100014 2.593394 0.5125765 0.5195689</span></span>
+<span><span class="co">#&gt;    polarization     watts    decile1    decile2    decile3    decile4</span></span>
+<span><span class="co">#&gt; 1:    0.4643401 0.2811239 0.00983246 0.02195307 0.03342455 0.04495307</span></span>
+<span><span class="co">#&gt;       decile5    decile6    decile7   decile8  decile9  decile10</span></span>
+<span><span class="co">#&gt; 1: 0.05662774 0.07048758 0.08808485 0.1134946 0.158687 0.4024552</span></span>
+<span><span class="co">#&gt;    survey_mean_lcu survey_mean_ppp predicted_mean_ppp        cpi cpi_data_level</span></span>
+<span><span class="co">#&gt; 1:        11.23264        4.100014                 NA 0.03385145       national</span></span>
+<span><span class="co">#&gt;        ppp ppp_data_level reporting_pop pop_data_level reporting_gdp</span></span>
+<span><span class="co">#&gt; 1: 80.9318       national      16395473       national      2195.631</span></span>
+<span><span class="co">#&gt;    gdp_data_level reporting_pce pce_data_level is_interpolated</span></span>
+<span><span class="co">#&gt; 1:       national            NA       national           FALSE</span></span>
+<span><span class="co">#&gt;    is_used_for_aggregation distribution_type estimation_type</span></span>
+<span><span class="co">#&gt; 1:                   FALSE             micro          survey</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -198,7 +198,7 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer>

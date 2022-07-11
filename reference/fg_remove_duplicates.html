@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">pipapi</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -53,26 +53,31 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">fg_remove_duplicates</span><span class="op">(</span>
-  <span class="va">df</span>,
-  cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"comparable_spell"</span>, <span class="st">"cpi"</span>, <span class="st">"display_cp"</span>, <span class="st">"gd_type"</span>, <span class="st">"interpolation_id"</span>,
-    <span class="st">"path"</span>, <span class="st">"predicted_mean_ppp"</span>, <span class="st">"survey_acronym"</span>, <span class="st">"survey_comparability"</span>,
-    <span class="st">"survey_coverage"</span>, <span class="st">"survey_id"</span>, <span class="st">"survey_mean_lcu"</span>, <span class="st">"survey_mean_ppp"</span>,
-    <span class="st">"survey_median_lcu"</span>, <span class="st">"survey_median_ppp"</span>, <span class="st">"survey_time"</span>, <span class="st">"survey_year"</span>,
-    <span class="st">"surveyid_year"</span><span class="op">)</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">fg_remove_duplicates</span><span class="op">(</span></span>
+<span>  <span class="va">df</span>,</span>
+<span>  cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"comparable_spell"</span>, <span class="st">"cpi"</span>, <span class="st">"display_cp"</span>, <span class="st">"gd_type"</span>, <span class="st">"interpolation_id"</span>,</span>
+<span>    <span class="st">"path"</span>, <span class="st">"predicted_mean_ppp"</span>, <span class="st">"survey_acronym"</span>, <span class="st">"survey_comparability"</span>,</span>
+<span>    <span class="st">"survey_coverage"</span>, <span class="st">"survey_id"</span>, <span class="st">"survey_mean_lcu"</span>, <span class="st">"survey_mean_ppp"</span>,</span>
+<span>    <span class="st">"survey_median_lcu"</span>, <span class="st">"survey_median_ppp"</span>, <span class="st">"survey_time"</span>, <span class="st">"survey_year"</span>,</span>
+<span>    <span class="st">"surveyid_year"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>df</dt>
 <dd><p>data.table: Table of results created in <code><a href="fg_pip.html">fg_pip()</a></code></p></dd>
+
+
 <dt>cols</dt>
 <dd><p>character: Columns with potential duplicate values</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>data.table</p>
+    
+
+<p>data.table</p>
     </div>
 
   </div>
@@ -87,7 +92,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>
