@@ -138,7 +138,7 @@ parse_parameter <- function(param,
   param <- unlist(param)
 
   # Make API case insensitive
-  if (param_name %in% c("country", "fill_gaps", "version")) {
+  if (param_name %in% c("country", "fill_gaps", "version", "aggregate")) {
     param <- toupper(param)
     if (param_name == "country") {
       if (length(param[param == "ALL"]) > 0) {
