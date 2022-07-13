@@ -1,7 +1,8 @@
 ref_lkup <- fst::read_fst("../testdata/app_data/20210401/estimations/interpolated_means.fst")
 ref_lkup$region_code <- ref_lkup$wb_region_code
 valid_regions <- sort(unique(ref_lkup$region_code))
-# ref_lkup <- fst::read_fst("./tests/testdata/app_data/20210401/estimations/interpolated_means.fst")
+#Using fake dataset
+fake_data <- fst::read_fst("../pip-fake-data/20200101_2011_01_01_PROD/estimations/interpolated_means.fst")
 
 test_that("select_reporting_level is working as expected", {
   keep <- rep(TRUE, nrow(ref_lkup))
@@ -97,4 +98,32 @@ test_that("subset_lkup correctly selects countries and regions", {
   expect_true(all(region_selection %in% (unique(tmp$region_code))))
   # Countries are selected
   expect_true(all(country_selection %in% (unique(tmp$country_code))))
+})
+
+## Writing tests using fake dataset, probably we'll need to change this tests later to use ref_lkup instead
+test_that("select_country returns correct logical values", {
+  keep <- select_country(fake_data, "ARG", c("LAC", "SSA"))
+  expect_equal(keep, rep(c(FALSE, TRUE, FALSE), c(145, 10, 54)))
+
+  keep <- select_country(fake_data, "WLD", c("LAC", "SSA"))
+  expect_true(keep)
+
+  keep <- select_country(fake_data, c("SSA","EAP"), c("LAC", "SSA", "EAP"))
+  expect_equal(keep, rep(c(TRUE, FALSE, TRUE), c(145, 46, 18)))
+})
+
+
+test_that("select_years returns correct logical values", {
+  keep <- select_country(fake_data, "ARG", c("LAC", "SSA"))
+  keep <- select_years(fake_data, keep, 1945, "ARG")
+  expect_false(any(keep))
+
+  keep <- select_country(fake_data, "WLD", c("LAC", "SSA"))
+  keep <- select_years(fake_data, keep, 2000, "WLD")
+  expect_equal(keep, rep(c(FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE), c(41, 1, 77, 1, 4, 1, 84)))
+
+  keep <- select_country(fake_data, c("SSA","EAP"), c("LAC", "SSA", "EAP"))
+  keep <- select_years(fake_data, keep, 2000:2010, c("SSA","EAP"))
+  expect_equal(keep, rep(c(FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE),
+                         c(41L, 15L, 63L, 3L, 2L, 8L, 59L, 14L, 4L)))
 })

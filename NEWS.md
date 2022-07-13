@@ -4,6 +4,8 @@
 
 ## Enhancements
 
+- [Create a separate function for year and country selection and add unit tests for them](https://github.com/PIP-Technical-Team/pipapi/issues/267)
+
 # pipapi 1.1.0
 
 ## Enhancements
