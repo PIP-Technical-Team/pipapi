@@ -319,7 +319,7 @@ test_that("Regional aggregations are working", {
   expect_equal(nrow(tmp), 3) # Should be changed if lkups are updated. Full set of regions is 8.
 })
 
-# Check pop_share
+# Check pop_share ----
 test_that("pop_share option is working", {
   tmp <- pip(
     country = "AGO",
@@ -329,6 +329,204 @@ test_that("pop_share option is working", {
   )
 
   expect_equal(nrow(tmp), 1)
+})
+
+test_that("pop_share option is returning consisten results for single microdata distributions", {
+  # Average poverty line
+  povline <- 2.0
+
+  pl <- pip(
+    country = "AGO",
+    year = 2008,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "AGO",
+    year = 2008,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+  # Low poverty line
+  # Fails for lower poverty lines
+  povline <- .3
+
+  pl <- pip(
+    country = "AGO",
+    year = 2008,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "AGO",
+    year = 2008,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+
+  # High poverty line
+  # Fails for higher poverty lines
+  povline <- 33
+
+  pl <- pip(
+    country = "AGO",
+    year = 2008,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "AGO",
+    year = 2008,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
+  expect_equal(povline, round(ps$poverty_line, 0))
+})
+
+test_that("pop_share option is returning consisten results for single grouped distributions", {
+  # Average poverty line
+  povline <- 2.0
+
+  pl <- pip(
+    country = "MNG",
+    year = 1995,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "MNG",
+    year = 1995,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+  # Low poverty line
+  # Fails for lower poverty lines
+  povline <- .3
+
+  pl <- pip(
+    country = "MNG",
+    year = 1995,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "MNG",
+    year = 1995,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+
+  # High poverty line
+  # Fails for higher poverty lines
+  povline <- 20
+
+  pl <- pip(
+    country = "MNG",
+    year = 1995,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "MNG",
+    year = 1995,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
+  expect_equal(povline, round(ps$poverty_line, 0))
+})
+
+test_that("pop_share option is returning consisten results for single aggregate distributions", {
+  skip("popshare not working for aggregate distributions")
+  # Average poverty line
+  povline <- 2.0
+  country <- "CHN"
+  year <- 2018
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+  # Low poverty line
+  # Fails for lower poverty lines
+  povline <- .9
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+
+  # High poverty line
+  # Fails for higher poverty lines
+  povline <- 20
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
+  expect_equal(povline, round(ps$poverty_line, 0))
 })
 
 #Check pip country name case insensitive
