@@ -75,6 +75,29 @@ subset_lkup <- function(country,
   return(lkup)
 }
 
+#' Helper to filter metadata
+#' aggregate distribution need to be filtered out when popshare is not null
+#' This is a temporary function until a full fix is implemented, and popshare is
+#' supported for all distributions
+#'
+#' @param metadata data.frame: Output of `subset_lkup()`
+#' @param popshare numeric: popshare value passed to `pip()`
+#'
+#' @return data.frame
+
+filter_lkup <- function(metadata,
+                        popshare) {
+  # popshare option not supported for aggregate distributions
+  if (!is.null(popshare)) {
+    return(
+      metadata[metadata$distribution_type != "aggregate", ]
+    )
+  } else {
+    return(metadata)
+  }
+
+}
+
 
 #' helper function to correctly filter look up table according to requested
 #' reporting level
