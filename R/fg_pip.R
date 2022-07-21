@@ -26,7 +26,7 @@ fg_pip <- function(country,
     lkup = lkup[["ref_lkup"]],
     valid_regions = valid_regions
   )
-  # Remove aggregate distribution is popshare is specified
+  # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
   metadata <- filter_lkup(metadata = metadata,
                           popshare = popshare)
