@@ -281,7 +281,8 @@ function(req) {
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
-#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions for all available versions
+#* @param data-version:[chr] date when the data was published, available in YYYYMMDD format
+#* @param ppp-version:[chr] ppp year to be used
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
