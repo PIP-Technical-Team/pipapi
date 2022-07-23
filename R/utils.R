@@ -496,3 +496,29 @@ clear_cache <- function(cd) {
     return(out)
   })
 }
+
+
+#' Create folder id from data and ppp version
+#'
+#' @param data_version date when the data was published, available in YYYYMMDD format
+#' @param ppp_version ppp year to be used
+#'
+#' @return character
+#'
+#' @noRd
+#'
+create_folder_id <- function(data_version , ppp_version, versions_available) {
+  #From the available versions subset the ones for this data and ppp versions
+  selected_version <- grep(sprintf('^%s_%s', data_version, ppp_version), versions_available, value = TRUE)
+  if(length(selected_version) == 0)
+    stop('The selected data or ppp version is not available')
+  else if(length(selected_version) == 1)
+    return(selected_version)
+  else return(select_max_version(selected_version))
+}
+
+select_max_version <- function(version) {
+  #With sub extract the ppp date from version number, change it to date,
+  #get the max index and return the corresponding version
+  version[which.max(as.Date(sub('\\d+_(\\d{4}_\\d{2}_\\d{2})_PROD', '\\1', version), '%Y_%m_%d'))]
+}
