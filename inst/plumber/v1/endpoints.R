@@ -41,7 +41,6 @@ function(req, res) {
 #* Parse query parameters of incoming request
 #* @filter parse_parameters
 function(req, res) {
-  # browser()
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     req$argsQuery <- pipapi:::parse_parameters(req$argsQuery)
   }
@@ -51,7 +50,6 @@ function(req, res) {
 #* Protect against invalid arguments
 #* @filter check_parameters
 function(req, res) {
-  # browser()
   lkups <- lkups$versions_paths[[req$argsQuery$version]]
   query_controls = lkups$query_controls
 
@@ -141,7 +139,6 @@ function() {
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
-  # browser()
   out <- lkups$versions
   # if (!is.null(req$argsQuery$format)) {
   #   if (req$argsQuery$format == "csv") out <- data.frame(versions = out)
@@ -211,7 +208,6 @@ function(req) {
 #* @get /api/v1/dir-info
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 function(req) {
-  # browser()
   dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
   x <- fs::dir_info(dir, recurse = TRUE, type = "file")
   x$file <- sub(".*/", "", x$path)
@@ -259,7 +255,6 @@ function(req) {
 #* @param endpoint:[chr] Endpoint for which to return the valid parameters
 #* @serializer switch
 function(req) {
-  # browser()
   version <- req$argsQuery$version
   endpoint <- req$argsQuery$endpoint
   out <- pipapi::get_param_values(
@@ -326,7 +321,6 @@ function(req) {
 #* @serializer switch
 function(req, res) {
   # Process request
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
@@ -353,7 +347,6 @@ function(req, res) {
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
@@ -483,7 +476,6 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
