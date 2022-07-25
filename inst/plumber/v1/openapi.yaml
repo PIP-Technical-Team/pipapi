@@ -169,10 +169,16 @@ paths:
               type: string
             description: Auxiliary data table to be returned.
           - in: query
-            name: version
+            name: data_version
             schema:
               type: string
-            description: Data version. Defaults to most recent version. See api/v1/versions.
+            description: Data version. date when the data was published in YYYYMMDD format
+          - in: query
+            name: ppp_version
+            schema:
+              type: string
+            description: ppp year to be used
+
           - in: query
             name: format
             schema:

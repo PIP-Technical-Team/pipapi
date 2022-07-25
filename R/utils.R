@@ -511,7 +511,8 @@ create_folder_id <- function(data_version , ppp_version, versions_available) {
   #From the available versions subset the ones for this data and ppp versions
   selected_version <- grep(sprintf('^%s_%s', data_version, ppp_version), versions_available, value = TRUE)
   if(length(selected_version) == 0)
-    stop('The selected data or ppp version is not available')
+    #Since the function returns character values
+    return("404")
   else if(length(selected_version) == 1)
     return(selected_version)
   else return(select_max_version(selected_version))

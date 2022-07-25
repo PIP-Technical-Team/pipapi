@@ -9,19 +9,19 @@ library(pipapi)
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
-  # tictoc::tic("filters")
-  # browser()
-  if (!is.null(req$argsQuery$version) & !grepl("swagger", req$PATH_INFO)) {
-    if (!is.null(req$argsQuery$version)) {
-      if (!req$argsQuery$version %in% lkups$versions) {
+  #Data version and ppp version are not NULL
+  if (!is.null(req$argsQuery$data_version) && !is.null(req$argsQuery$ppp_version) && !grepl("swagger", req$PATH_INFO)) {
+    version <- create_folder_id(req$argsQuery$data_version, req$argsQuery$ppp_version, lkups$versions)
+    #If the version is correct or not is checked in create_folder_id function so we don't need to do it here again.
+    if(version == "404") {
         res$status <- 404
         out <- list(
           error = "Invalid query arguments have been submitted.",
-          details = list(msg = "You supplied an invalid value for version. Please use one of the valid values.",
+          details = list(msg = "The selected data or ppp version is not available. Please select one of the valid values",
                          valid = lkups$versions))
         return(out)
-        #return("Invalid version has been submitted. Please check valid versions with /versions")
-      }
+    } else {
+      req$argsQuery$version <- version
     }
   } else {
     req$argsQuery$version <- lkups$latest_release
@@ -281,13 +281,12 @@ function(req) {
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
-#* @param data-version:[chr] date when the data was published, available in YYYYMMDD format
-#* @param ppp-version:[chr] ppp year to be used
+#* @param data_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
   # Process request
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
