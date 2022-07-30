@@ -1,6 +1,7 @@
 # pipapi (development version)
 
 ## New features
+- [Add a separate data and ppp version arguments](https://github.com/PIP-Technical-Team/pipapi/issues/265)
 
 ## Enhancements
 
