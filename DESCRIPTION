@@ -53,7 +53,8 @@ Imports:
     rappdirs,
     future,
     promises,
-    methods
+    methods, 
+    qs
 Remotes:
     PIP-Technical-Team/wbpip@master
 Depends: 

@@ -76,19 +76,19 @@ create_lkups <- function(data_dir, versions) {
   paths_ids <- tools::file_path_sans_ext(paths)
 
   # TEMP FIX to add country and region name
-  cts_path <- fs::path(data_dir, "_aux/countries.fst")
-  reg_path <- fs::path(data_dir, "_aux/regions.fst")
+  cts_path <- fs::path(data_dir, "_aux/countries.qs")
+  reg_path <- fs::path(data_dir, "_aux/regions.qs")
 
-  countries <-  fst::read_fst(cts_path,as.data.table = TRUE)
-  regions   <-  fst::read_fst(reg_path,as.data.table = TRUE)
+  countries <-  qs::qread(cts_path)
+  regions   <-  qs::qread(reg_path)
 
   data.table::setnames(regions, 'region', 'region_name')
 
   # TEMP fix - END (see further code chunks below )
 
   # Clean svy_lkup
-  svy_lkup_path <- fs::path(data_dir, "estimations/prod_svy_estimation.fst")
-  svy_lkup      <- fst::read_fst(svy_lkup_path, as.data.table = TRUE)
+  svy_lkup_path <- fs::path(data_dir, "estimations/prod_svy_estimation.qs")
+  svy_lkup      <- qs::qread(svy_lkup_path)
 
   # TEMP cleaning - START
   svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
@@ -103,8 +103,8 @@ create_lkups <- function(data_dir, versions) {
                     by = 'region_code', all.x = TRUE)
   # TEMP fix - END
   # Clean ref_lkup
-  ref_lkup_path <- fs::path(data_dir, "estimations/prod_ref_estimation.fst")
-  ref_lkup      <- fst::read_fst(ref_lkup_path, as.data.table = TRUE)
+  ref_lkup_path <- fs::path(data_dir, "estimations/prod_ref_estimation.qs")
+  ref_lkup      <- qs::qread(ref_lkup_path)
 
 
   # TEMP cleaning - START
@@ -169,24 +169,24 @@ create_lkups <- function(data_dir, versions) {
   names(interpolation_list) <- unique_survey_files
 
   # Load dist_stats
-  dist_stats_path <- fs::path(data_dir, "estimations/dist_stats.fst")
-  dist_stats      <- fst::read_fst(dist_stats_path, as.data.table = TRUE)
+  dist_stats_path <- fs::path(data_dir, "estimations/dist_stats.qs")
+  dist_stats      <- qs::qread(dist_stats_path)
 
   # Load pop_region
-  pop_region_path <- fs::path(data_dir, "_aux/pop_region.fst")
-  pop_region      <- fst::read_fst(pop_region_path,as.data.table = TRUE)
+  pop_region_path <- fs::path(data_dir, "_aux/pop_region.qs")
+  pop_region      <- qs::qread(pop_region_path)
 
   # Load country profiles lkups
-  cp_lkups_path   <- fs::path(data_dir, "_aux/country_profiles.rds")
-  cp_lkups        <- readRDS(cp_lkups_path)
+  cp_lkups_path   <- fs::path(data_dir, "_aux/country_profiles.qs")
+  cp_lkups        <- qs::qread(cp_lkups_path)
 
   # Load poverty lines table
-  pl_lkup_path    <- fs::path(data_dir, "_aux/poverty_lines.fst")
-  pl_lkup         <- fst::read_fst(pl_lkup_path, as.data.table = TRUE)
+  pl_lkup_path    <- fs::path(data_dir, "_aux/poverty_lines.qs")
+  pl_lkup         <- qs::qread(pl_lkup_path)
 
   # Load list with censor tables
-  censored_path   <- fs::path(data_dir, "_aux/censored.rds")
-  censored        <- readRDS(censored_path)
+  censored_path   <- fs::path(data_dir, "_aux/censored.qs")
+  censored        <- qs::qread(censored_path)
 
   # Create pip return columns
   pip_cols <-
@@ -245,7 +245,7 @@ create_lkups <- function(data_dir, versions) {
     )
 
   # Create list of available auxiliary data tables
-  aux_tables <- list.files(fs::path(data_dir, "_aux"),pattern = "\\.fst$")
+  aux_tables <- list.files(fs::path(data_dir, "_aux"),pattern = "\\.qs$")
   aux_tables <- tools::file_path_sans_ext(aux_tables)
   aux_tables <- sort(aux_tables)
   valid_years <- valid_years(data_dir)

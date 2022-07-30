@@ -10,8 +10,8 @@ get_aux_table <- function(data_dir, table) {
   # Strip all "non-word" characters from user input
   sanitized_table <- gsub("\\W", "", table)
 
-  out <- fst::read_fst(sprintf(
-    "%s/_aux/%s.fst",
+  out <- qs::qread(sprintf(
+    "%s/_aux/%s.qs",
     data_dir,
     sanitized_table
   ))
