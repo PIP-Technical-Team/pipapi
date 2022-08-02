@@ -2,11 +2,14 @@
 
 ## New features
 
+- [Read data in `_aux` folder from qs files](https://github.com/PIP-Technical-Team/pipapi/issues/271)
+
 ## Enhancements
 
 # pipapi 1.1.0
 
 ## Enhancements
+
 - [Sort the rows by `country_code` and `reporting_year` in the pip response.](https://github.com/PIP-Technical-Team/pipapi/issues/248)
 - [Fix casing making pip call case insensitive](https://github.com/PIP-Technical-Team/pipapi/issues/120)
 - [Add unit tests for newly created fg_remove_duplicates() and sub-functions](https://github.com/PIP-Technical-Team/pipapi/issues/226)
@@ -16,6 +19,7 @@
 - [Better error message when passing more than one dataset as `lkup` in `pip` call](https://github.com/PIP-Technical-Team/pipapi/issues/263)
 
 ## New features
+
 - Region codes can now be passed directly to the `country` query parameter to 
 return all countries pertaining to the specified region
 - the `/valid-params` endpoint gains an `endpoint` parameter that allows to only
