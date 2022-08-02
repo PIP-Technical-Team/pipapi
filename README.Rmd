@@ -49,8 +49,8 @@ The folder structure looks like this:
 ```{bash eval=FALSE, echo=TRUE}
 data-folder-root/
 ├─ _aux/
-│  ├─ pop_regions.fst
-│  ├─ pop.fst
+│  ├─ pop_regions.qs
+│  ├─ pop.qs
 │  ├─ ...
 ├─ estimations/
 │  ├─ prod_svy_estimation.fst

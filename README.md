@@ -40,8 +40,8 @@ In order to use `pip()` you’ll need to have access to a PIP
 ``` bash
 data-folder-root/
 ├─ _aux/
-│  ├─ pop_regions.fst
-│  ├─ pop.fst
+│  ├─ pop_regions.qs
+│  ├─ pop.qs
 │  ├─ ...
 ├─ estimations/
 │  ├─ prod_svy_estimation.fst
