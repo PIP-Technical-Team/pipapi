@@ -12,7 +12,7 @@ function(req, res) {
   #If no arguments are passed, use the latest version
   if(is.null(req$argsQuery$release_version) && is.null(req$argsQuery$ppp_version) &&
      is.null(req$argsQuery$version) && is.null(req$argsQuery$identity)) {
-      req$argsQuery$version <- lkups$latest_release
+      version <- lkups$latest_release
   } else {
     version <- return_correct_version(req$argsQuery$version, req$argsQuery$release_version, req$argsQuery$ppp_version, req$argsQuery$identity, lkups$versions)
   }
