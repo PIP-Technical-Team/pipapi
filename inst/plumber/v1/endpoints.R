@@ -21,7 +21,7 @@ function(req, res) {
         res$status <- 404
         out <- list(
           error = "Invalid query arguments have been submitted.",
-          details = list(msg = "The selected data or ppp version is not available. Please select one of the valid values",
+          details = list(msg = "The selected value is not available. Please select one of the valid values",
                          valid = lkups$versions))
     } else req$argsQuery$version <- version
 
