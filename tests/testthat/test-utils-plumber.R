@@ -231,3 +231,21 @@ test_that("extract_endpoint works as expected", {
   expect_identical(extract_endpoint("api/v1/aux"), "aux")
   expect_identical(extract_endpoint("api/v2/aux"), "aux")
 })
+
+
+test_that("select_max_version_from_ppp works as expected", {
+  x1 <- c("20211212_2011_01_01_PROD", "20211212_2011_03_01_PROD", "20221212_2017_03_01_PROD")
+  x2 <- c("20200101_2011_10_11_PROD", "20200101_2011_10_10_PROD", "20211212_2011_03_01_PROD")
+
+  expect_equal(select_max_version_from_ppp(x1), "20221212_2017_03_01_PROD")
+  expect_equal(select_max_version_from_ppp(x2), "20200101_2011_10_11_PROD")
+})
+
+
+test_that("select_max_version_from_release_version works as expected", {
+  x1 <- c("20211212_2011_01_01_PROD", "20211212_2011_03_01_PROD", "20221212_2017_03_01_PROD")
+  x2 <- c("20200101_2011_10_11_PROD", "20200101_2011_10_10_PROD", "20211212_2011_03_01_PROD")
+
+  expect_equal(select_max_version_from_release_version(x1), "20221212_2017_03_01_PROD")
+  expect_equal(select_max_version_from_release_version(x2), "20211212_2011_03_01_PROD")
+})

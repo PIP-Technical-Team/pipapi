@@ -222,3 +222,56 @@ extract_endpoint <- function(path) {
   # stringr::str_extract(path, pattern = "([^/]+$)")
   sub(".*[/]", "", path)
 }
+
+
+#' Return the version of the data
+#'
+#' @param version Data version. Defaults to most recent version. See api/v1/versions
+#' @param release_version date when the data was published in YYYYMMDD format
+#' @param ppp_version ppp year to be used
+#' @param identity One of "PROD" (production), "INT" (internal) and "TEST"
+#' @param versions_available character vector of all the versions available
+#'
+#' @return character
+#'
+#' @noRd
+#'
+return_correct_version <- function(version = NULL, release_version = NULL, ppp_version = NULL, identity = 'PROD', versions_available) {
+  #If version is passed return it directly.
+  if(!is.null(version)) return(version)
+
+  if(!is.null(release_version) && !is.null(ppp_version) && !is.null(identity)) {
+    selected_version <- grep(sprintf('^%s_%s_\\d{2}_\\d{2}_%s$', release_version, ppp_version, identity), versions_available, value = TRUE)
+  } else if(!is.null(release_version) && !is.null(ppp_version)) {
+    #This probably would never be executed since identity would never be NULL.
+    selected_version <- grep(sprintf('^%s_%s_\\d{2}_\\d{2}_[A-Z]+$', release_version, ppp_version), versions_available, value = TRUE)
+  } else if(!is.null(release_version) && !is.null(identity)) {
+    selected_version <- grep(sprintf('^%s_\\d{4}_\\d{2}_\\d{2}_%s$', release_version, identity), versions_available, value = TRUE)
+  } else if(!is.null(ppp_version) && !is.null(identity)) {
+    selected_version <- grep(sprintf('\\d{6}_%s_\\d{2}_\\d{2}_%s$', ppp_version, identity), versions_available, value = TRUE)
+  }
+  #If no matching version is found
+  if(length(selected_version) == 0)
+    #Since the function returns character values
+    return("404")
+  #If only 1 value matches
+  else if(length(selected_version) == 1)
+    return(selected_version)
+  #If more than 1 value matches
+  #If release_version is not null get the max version from ppp date
+  if(!is.null(release_version)) return(select_max_version_from_ppp(selected_version))
+  else return(select_max_version_from_release_version(selected_version))
+}
+
+select_max_version_from_ppp <- function(version) {
+  #With sub extract the ppp date from version number, change it to date,
+  #get the max index and return the corresponding version
+  version[which.max(as.Date(sub('\\d+_(\\d{4}_\\d{2}_\\d{2})_[A-Z]+', '\\1', version), '%Y_%m_%d'))]
+}
+
+
+select_max_version_from_release_version <- function(version) {
+  #With sub extract the release version, change it to date,
+  #get the max index and return the corresponding version
+  version[which.max(as.Date(sub('(\\d+)_\\d{4}_\\d{2}_\\d{2}_[A-Z]+', '\\1', version), '%Y%m%d'))]
+}
