@@ -5,7 +5,6 @@
 #'   vintage folders
 #' @return list
 #' @export
-#'
 create_versioned_lkups <-
   function(data_dir,
            vintage_pattern = NULL) {
