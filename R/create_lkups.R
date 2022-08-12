@@ -282,12 +282,29 @@ create_lkups <- function(data_dir, versions) {
 #'
 #' @return list
 #' @noRd
-get_vintage_pattern_regex <- function() {
+get_vintage_pattern_regex <- function(vintage_pattern = NULL,
+                                      prod_regex      = NULL,
+                                      int_regex       = NULL,
+                                      test_regex      = NULL
+                                      ) {
+
   list(
-    vintage_pattern = "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$",
-    prod_regex      = "PROD$",
-    int_regex       = "INT$",
-    test_regex      = "TEST$"
+
+    vintage_pattern = ifelse(is.null(vintage_pattern),
+                             "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$",
+                             vintage_pattern),
+
+    prod_regex      = ifelse(is.null(prod_regex),
+                             "PROD$",
+                             prod_regex),
+
+    int_regex       = ifelse(is.null(int_regex),
+                             "INT$",
+                             int_regex),
+
+    test_regex      = ifelse(is.null(test_regex),
+                             "TEST$",
+                             test_regex)
     )
 }
 
