@@ -9,23 +9,23 @@ library(pipapi)
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
-  #Data version and ppp version are not NULL
-  if (!is.null(req$argsQuery$data_version) && !is.null(req$argsQuery$ppp_version) && !grepl("swagger", req$PATH_INFO)) {
-    version <- create_folder_id(req$argsQuery$data_version, req$argsQuery$ppp_version, lkups$versions)
-    #If the version is correct or not is checked in create_folder_id function so we don't need to do it here again.
-    if(version == "404") {
+
+  #If no arguments are passed, use the latest version
+  if (is.null(req$argsQuery$release_version) && is.null(req$argsQuery$ppp_version) &&
+     is.null(req$argsQuery$version) && is.null(req$argsQuery$identity)) {
+      version <- lkups$latest_release
+  } else {
+    version <- return_correct_version(req$argsQuery$version, req$argsQuery$release_version, req$argsQuery$ppp_version, req$argsQuery$identity, lkups$versions)
+  }
+    #If the version is not found (404) or it is not present in valid versions vector return an error.
+    if (version == "404" || !version %in% lkups$versions) {
         res$status <- 404
         out <- list(
           error = "Invalid query arguments have been submitted.",
-          details = list(msg = "The selected data or ppp version is not available. Please select one of the valid values",
+          details = list(msg = "The selected value is not available. Please select one of the valid values",
                          valid = lkups$versions))
-        return(out)
-    } else {
-      req$argsQuery$version <- version
-    }
-  } else {
-    req$argsQuery$version <- lkups$latest_release
-  }
+    } else req$argsQuery$version <- version
+
   plumber::forward()
 }
 
@@ -276,8 +276,10 @@ function(req) {
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
-#* @param data_version:[chr] date when the data was published in YYYYMMDD format
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @param identity:[chr] One of "PROD" (production), "INT" (internal) and "TEST"
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
