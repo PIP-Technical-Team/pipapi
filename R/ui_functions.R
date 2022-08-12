@@ -539,3 +539,31 @@ ui_svy_meta <- function(country = "all", lkup) {
   }
 }
 
+#' Country Profile Key Indicators download
+#'
+#' Helper function to download Country Profile data
+#'
+#' @inheritParams ui_cp_download
+#' @return list
+#' @keywords internal
+ui_cp_download_single <- function(country,
+                                  povline = 1.9,
+                                  lkup) {
+
+  hc <- ui_cp_ki_headcount(country, povline, lkup)
+
+  indicators <- lkup$cp$key_indicators[lkup$cp$key_indicators != "shared_prosperity"]
+  dl <- lapply(indicators, function(x) {
+    x[country_code == country]
+  })
+
+  out <- Reduce(function(df1, df2) {
+    merge(df1, df2,
+          by = c("country_code", "reporting_year"),
+          all.x = TRUE)
+  },
+  dl)
+
+  # out <- data.table::rbindlist(dl)
+  return(out)
+}
