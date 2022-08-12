@@ -6,6 +6,35 @@ dirs_names <- c("00000001",
                 "20220408",
                 "20220408_2011_02_02_PROD")
 
+
+test_that("pattern list is created correctly", {
+
+  vp <- get_vintage_pattern_regex()
+
+  expect_equal(object = vp,
+               expected =  list(
+                 vintage_pattern = "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$",
+                 prod_regex = "PROD$",
+                 int_regex = "INT$",
+                 test_regex = "TEST$")
+               )
+
+
+  vp <- get_vintage_pattern_regex(vintage_pattern = "\\.*",
+                                  int_regex = "foo$")
+
+  expect_equal(object = vp,
+               expected =  list(
+                 vintage_pattern = "\\.*",
+                 prod_regex = "PROD$",
+                 int_regex = "foo$",
+                 test_regex = "TEST$")
+               )
+
+})
+
+
+
 vintage_patterns <- get_vintage_pattern_regex()
 
 test_that("id_valid_dirs correctly identifies valid directories", {
