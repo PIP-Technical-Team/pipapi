@@ -15,7 +15,7 @@ function(req, res) {
      is.null(req$argsQuery$version) && is.null(req$argsQuery$identity)) {
       version <- lkups$latest_release
   } else {
-    version <- return_correct_version(req$argsQuery$version, req$argsQuery$release_version, req$argsQuery$ppp_version, req$argsQuery$identity, lkups$versions)
+    version <- pipapi::return_correct_version(req$argsQuery$version, req$argsQuery$release_version, req$argsQuery$ppp_version, req$argsQuery$identity, lkups$versions)
   }
     #If the version is not found (404) or it is not present in valid versions vector return an error.
     if (version == "404" || !version %in% lkups$versions) {
