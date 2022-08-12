@@ -31,7 +31,46 @@ test_that("pattern list is created correctly", {
                  test_regex = "TEST$")
                )
 
+
 })
+
+
+test_that("create vintanger pattern call is working fine", {
+
+  # test NULL
+  vintage_pattern <- NULL
+  cvp <- create_vintage_pattern_call(vintage_pattern)
+  vp  <- get_vintage_pattern_regex()
+  expect_equal(cvp, vp)
+
+  # Test list
+  vintage_pattern <- list("r.*", "", "^hjkhj\\.d")
+  cvp <- create_vintage_pattern_call(vintage_pattern)
+  expect_equal(cvp, list(vintage_pattern = "r.*",
+                         prod_regex = "",
+                         int_regex = "^hjkhj\\.d",
+                         test_regex = "TEST$"))
+
+
+  # Test unnamed character vector
+  vintage_pattern <- c("r.*", "", "^hjkhj\\.d")
+  cvp <- create_vintage_pattern_call(vintage_pattern)
+  expect_equal(cvp, list(vintage_pattern = "r.*",
+                         prod_regex = "",
+                         int_regex = "^hjkhj\\.d",
+                         test_regex = "TEST$"))
+
+
+  # test named chacter vector
+  vintage_pattern <- c(vintage_pattern = "r.*", test_regex = "", int_regex =  "^hjkhj\\.d")
+  cvp <- create_vintage_pattern_call(vintage_pattern)
+  expect_equal(cvp, list(vintage_pattern = "r.*",
+                         prod_regex = "PROD$",
+                         int_regex = "^hjkhj\\.d",
+                         test_regex = ""))
+
+})
+
 
 
 

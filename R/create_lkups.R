@@ -8,7 +8,10 @@
 #'
 create_versioned_lkups <-
   function(data_dir,
-           vintage_pattern = get_vintage_pattern_regex()) {
+           vintage_pattern = NULL) {
+
+    vintage_pattern <- create_vintage_pattern_call(vintage_pattern)
+
 
     data_dirs <- extract_data_dirs(data_dir = data_dir,
                                    vintage_pattern = vintage_pattern)
@@ -307,6 +310,87 @@ get_vintage_pattern_regex <- function(vintage_pattern = NULL,
                              test_regex)
     )
 }
+
+
+#' create vintage call to be parsed into `get_vintage_pattern_regex()`
+#'
+#' @param vintage_pattern either NULL, chracter with regex or list of arguments
+#'   for `get_vintage_pattern_regex()`
+#'
+#' @return list to be parses t `get_vintage_pattern_regex()`
+#' @examples
+#' vintage_pattern <- NULL
+#' create_vintage_pattern_call(vintage_pattern)
+#'
+#' vintage_pattern <- list("r.*", "", "^hjkhj\\.d")
+#' create_vintage_pattern_call(vintage_pattern)
+#'
+#' vintage_pattern <- c("r.*", "", "^hjkhj\\.d")
+#' create_vintage_pattern_call(vintage_pattern)
+#'
+#' vintage_pattern <- c(vintage_pattern = "r.*", test_regex = "", int_regex =  "^hjkhj\\.d")
+#' create_vintage_pattern_call(vintage_pattern)
+create_vintage_pattern_call <- function(vintage_pattern = NULL) {
+
+  #   ______________________________________________________________________
+  #   on.exit                                               ####
+  on.exit({
+
+  })
+
+  #   ____________________________________________________________________________
+  #   Defenses                                                                ####
+  stopifnot( exprs = {
+    class(vintage_pattern) %in% c("NULL",  "list",  "character")
+  }
+  )
+
+  #   _______________________________________________________________________
+  #   Early returns                                             ####
+  if (FALSE) {
+    return()
+  }
+
+  #   ______________________________________________________________________
+  #   Computations                                                      ####
+  vp <-
+    if (is.null(vintage_pattern)) {
+
+      get_vintage_pattern_regex()
+
+    } else {
+
+
+      lf <-
+        formals(get_vintage_pattern_regex) |>
+        names() |>
+        length()
+
+      l <- length(vintage_pattern)
+
+      stopifnot(l>=1 && l <= lf)
+
+      if (inherits(vintage_pattern, "list")) { # if list
+
+        do.call(get_vintage_pattern_regex,
+                vintage_pattern)
+
+
+      } else { # if character
+        do.call(get_vintage_pattern_regex,
+                as.list(vintage_pattern))
+      }
+
+    }
+
+
+  #   ____________________________________________________________
+  #   Return                                                     ####
+  return(vp)
+
+}
+
+
 
 #' Identify valid data directories
 #' Helper function to facilitate testing
