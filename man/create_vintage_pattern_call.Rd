@@ -17,6 +17,7 @@ list to be parses t \code{get_vintage_pattern_regex()}
 create vintage call to be parsed into \code{get_vintage_pattern_regex()}
 }
 \examples{
+\dontrun{
 vintage_pattern <- NULL
 create_vintage_pattern_call(vintage_pattern)
 
@@ -28,4 +29,5 @@ create_vintage_pattern_call(vintage_pattern)
 
 vintage_pattern <- c(vintage_pattern = "r.*", test_regex = "", int_regex =  "^hjkhj\\\\.d")
 create_vintage_pattern_call(vintage_pattern)
+}
 }

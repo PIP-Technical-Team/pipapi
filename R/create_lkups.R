@@ -318,6 +318,7 @@ get_vintage_pattern_regex <- function(vintage_pattern = NULL,
 #'
 #' @return list to be parses t `get_vintage_pattern_regex()`
 #' @examples
+#' \dontrun{
 #' vintage_pattern <- NULL
 #' create_vintage_pattern_call(vintage_pattern)
 #'
@@ -329,6 +330,7 @@ get_vintage_pattern_regex <- function(vintage_pattern = NULL,
 #'
 #' vintage_pattern <- c(vintage_pattern = "r.*", test_regex = "", int_regex =  "^hjkhj\\.d")
 #' create_vintage_pattern_call(vintage_pattern)
+#' }
 create_vintage_pattern_call <- function(vintage_pattern = NULL) {
 
   #   ______________________________________________________________________
