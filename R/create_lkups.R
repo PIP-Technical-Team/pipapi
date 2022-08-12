@@ -84,7 +84,7 @@ create_lkups <- function(data_dir, versions) {
   countries <-  fst::read_fst(cts_path,as.data.table = TRUE)
   regions   <-  fst::read_fst(reg_path,as.data.table = TRUE)
 
-  data.table::setnames(regions, 'region', 'region_name')
+  data.table::setnames(countries, 'region', 'region_name')
 
   # TEMP fix - END (see further code chunks below )
 
@@ -99,10 +99,10 @@ create_lkups <- function(data_dir, versions) {
   svy_lkup$path <- fs::path(data_dir,"survey_data", svy_lkup$cache_id, ext = "fst")
 
   # TEMP fix to add country and region name
-  svy_lkup <- merge(svy_lkup, countries[, c('country_code', 'country_name')],
-                    by = 'country_code', all.x = TRUE)
-  svy_lkup <- merge(svy_lkup, regions[, c('region_code', 'region_name')],
-                    by = 'region_code', all.x = TRUE)
+  svy_lkup <- merge(svy_lkup, countries,
+                    by = 'country_code',
+                    all.x = TRUE)
+
   # TEMP fix - END
   # Clean ref_lkup
   ref_lkup_path <- fs::path(data_dir, "estimations/prod_ref_estimation.fst")
