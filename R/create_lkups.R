@@ -98,6 +98,12 @@ create_lkups <- function(data_dir, versions) {
   # TEMP cleaning - END
   svy_lkup$path <- fs::path(data_dir,"survey_data", svy_lkup$cache_id, ext = "fst")
 
+  # TEMP: Ideally, region should come from one single place
+  if ("region_code" %in% names(svy_lkup)) {
+    svy_lkup[,
+             region_code := NULL]
+  }
+
   # TEMP fix to add country and region name
   svy_lkup <- merge(svy_lkup, countries,
                     by = 'country_code',
@@ -111,18 +117,23 @@ create_lkups <- function(data_dir, versions) {
 
   # TEMP cleaning - START
   ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
+  # TEMP: Ideally, region should come from one single place
+  if ("region_code" %in% names(ref_lkup)) {
+    ref_lkup[,
+             region_code := NULL]
+  }
+
 
   # TEMP cleaning - END
-
   ref_lkup$path <-
     fs::path(data_dir, "survey_data", ref_lkup$cache_id, ext = "fst")
 
 
   # TEMP fix to add country and region name
-  ref_lkup <- merge(ref_lkup, countries[, c('country_code', 'country_name')],
-                    by = 'country_code', all.x = TRUE)
-  ref_lkup <- merge(ref_lkup, regions[, c('region_code', 'region_name')],
-                    by = 'region_code', all.x = TRUE)
+  ref_lkup <-  merge(ref_lkup, countries,
+                     by = 'country_code',
+                     all.x = TRUE)
+
   # TEMP fix - END
 
   # Add data interpolation ID (unique combination of survey files used for one
