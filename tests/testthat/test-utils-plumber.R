@@ -232,10 +232,10 @@ test_that("extract_endpoint works as expected", {
   expect_identical(extract_endpoint("api/v2/aux"), "aux")
 })
 
-test_that("return_correct_version works as expected", {
-  x <- c("20220609_2011_02_02_PROD", "20220504_2017_01_02_PROD", "20211212_2011_01_01_PROD",
-         "20200101_2011_01_01_PROD", "20220602_2017_01_02_INT", "20220504_2017_01_02_INT", "20211212_2011_02_01_PROD")
+x <- c("20220609_2011_02_02_PROD", "20220504_2017_01_02_PROD", "20211212_2011_01_01_PROD",
+       "20200101_2011_01_01_PROD", "20220602_2017_01_02_INT", "20220504_2017_01_02_INT", "20211212_2011_02_01_PROD")
 
+test_that("return_correct_version works as expected", {
   expect_equal(return_correct_version(ppp_version = 2017, versions_available = x), "20220504_2017_01_02_PROD")
   expect_equal(return_correct_version(ppp_version = 2017, identity = "INT", versions_available = x), "20220602_2017_01_02_INT")
   expect_equal(return_correct_version(release_version = 20220504, versions_available = x), "20220504_2017_01_02_PROD")
@@ -246,10 +246,32 @@ test_that("return_correct_version works as expected", {
   expect_equal(return_correct_version(release_version = 20211212, ppp_version = 2011, versions_available = x), "20211212_2011_02_01_PROD")
 })
 
+test_that("rpi_version works as expected", {
+    expect_equal(rpi_version("20220602", "2017", "INT", x), "20220602_2017_01_02_INT")
+    expect_equal(rpi_version("20220504", "2017", "PROD", x), "20220504_2017_01_02_PROD")
+})
+
+test_that("rp_version works as expected", {
+  expect_equal(rp_version("20220504", "2017", x), c("20220504_2017_01_02_PROD", "20220504_2017_01_02_INT"))
+  expect_equal(rp_version("20220609", "2011", x), "20220609_2011_02_02_PROD")
+})
+
+test_that("ri_version works as expected", {
+  expect_equal(ri_version("20220602", "INT", x), "20220602_2017_01_02_INT")
+  expect_equal(ri_version("20220504", "PROD", x), "20220504_2017_01_02_PROD")
+})
+
+test_that("pi_version works as expected", {
+  expect_equal(pi_version("2017", "INT", x), c("20220602_2017_01_02_INT", "20220504_2017_01_02_INT"))
+  expect_equal(pi_version("2011", "PROD", x), c("20220609_2011_02_02_PROD", "20211212_2011_01_01_PROD",
+                                                "20200101_2011_01_01_PROD", "20211212_2011_02_01_PROD"))
+})
+
+x1 <- c("20211212_2011_01_01_PROD", "20211212_2011_03_01_PROD", "20221212_2017_03_01_PROD")
+x2 <- c("20200101_2011_10_11_PROD", "20200101_2011_10_10_PROD", "20211212_2011_03_01_PROD")
 
 test_that("select_max_version_from_ppp works as expected", {
-  x1 <- c("20211212_2011_01_01_PROD", "20211212_2011_03_01_PROD", "20221212_2017_03_01_PROD")
-  x2 <- c("20200101_2011_10_11_PROD", "20200101_2011_10_10_PROD", "20211212_2011_03_01_PROD")
+
 
   expect_equal(select_max_version_from_ppp(x1), "20221212_2017_03_01_PROD")
   expect_equal(select_max_version_from_ppp(x2), "20200101_2011_10_11_PROD")
@@ -257,8 +279,6 @@ test_that("select_max_version_from_ppp works as expected", {
 
 
 test_that("select_max_version_from_release_version works as expected", {
-  x1 <- c("20211212_2011_01_01_PROD", "20211212_2011_03_01_PROD", "20221212_2017_03_01_PROD")
-  x2 <- c("20200101_2011_10_11_PROD", "20200101_2011_10_10_PROD", "20211212_2011_03_01_PROD")
 
   expect_equal(select_max_version_from_release_version(x1), "20221212_2017_03_01_PROD")
   expect_equal(select_max_version_from_release_version(x2), "20211212_2011_03_01_PROD")
