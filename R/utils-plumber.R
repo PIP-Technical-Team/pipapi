@@ -241,14 +241,14 @@ return_correct_version <- function(version = NULL, release_version = NULL, ppp_v
   if(!is.null(version)) return(version)
 
   if(!is.null(release_version) && !is.null(ppp_version) && !is.null(identity)) {
-    selected_version <- grep(sprintf('^%s_%s_\\d{2}_\\d{2}_%s$', release_version, ppp_version, identity), versions_available, value = TRUE)
+    selected_version <- rpi_version(release_version, ppp_version, identity, versions_available)
   } else if(!is.null(release_version) && !is.null(ppp_version)) {
-    #This probably would never be executed since identity would never be NULL.
-    selected_version <- grep(sprintf('^%s_%s_\\d{2}_\\d{2}_[A-Z]+$', release_version, ppp_version), versions_available, value = TRUE)
+    #This probably would never be executed since identity would never be NULL unless explicitly specified.
+    selected_version <- rp_version(release_version, ppp_version, versions_available)
   } else if(!is.null(release_version) && !is.null(identity)) {
-    selected_version <- grep(sprintf('^%s_\\d{4}_\\d{2}_\\d{2}_%s$', release_version, identity), versions_available, value = TRUE)
+    selected_version <- ri_version(release_version, identity, versions_available)
   } else if(!is.null(ppp_version) && !is.null(identity)) {
-    selected_version <- grep(sprintf('\\d{6}_%s_\\d{2}_\\d{2}_%s$', ppp_version, identity), versions_available, value = TRUE)
+    selected_version <- pi_version(ppp_version, identity, versions_available)
   }
   #If no matching version is found
   if(length(selected_version) == 0)
@@ -274,4 +274,20 @@ select_max_version_from_release_version <- function(version) {
   #With sub extract the release version, change it to date,
   #get the max index and return the corresponding version
   version[which.max(as.Date(sub('(\\d+)_\\d{4}_\\d{2}_\\d{2}_[A-Z]+', '\\1', version), '%Y%m%d'))]
+}
+
+rpi_version <- function(release_version, ppp_version, identity, versions_available) {
+  grep(sprintf('^%s_%s_\\d{2}_\\d{2}_%s$', release_version, ppp_version, identity), versions_available, value = TRUE)
+}
+
+rp_version <- function(release_version, ppp_version, versions_available) {
+  grep(sprintf('^%s_%s_\\d{2}_\\d{2}_[A-Z]+$', release_version, ppp_version), versions_available, value = TRUE)
+}
+
+ri_version <- function(release_version, identity, versions_available) {
+  grep(sprintf('^%s_\\d{4}_\\d{2}_\\d{2}_%s$', release_version, identity), versions_available, value = TRUE)
+}
+
+pi_version <- function(ppp_version, identity, versions_available) {
+  grep(sprintf('\\d{6}_%s_\\d{2}_\\d{2}_%s$', ppp_version, identity), versions_available, value = TRUE)
 }
