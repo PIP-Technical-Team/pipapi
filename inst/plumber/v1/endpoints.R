@@ -136,16 +136,11 @@ function() {
 
 #* Return available data versions
 #* @get /api/v1/versions
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
-#* @serializer switch
 function(req) {
-  out <- lkups$versions
-  # if (!is.null(req$argsQuery$format)) {
-  #   if (req$argsQuery$format == "csv") out <- data.frame(versions = out)
-  #   attr(out, "serialize_format") <- req$argsQuery$format
-  # }
-  out <- data.frame(versions = out)
-  attr(out, "serialize_format") <- req$argsQuery$format
+  versions <- lkups$versions
+  ppp_version <- unique(format(pipapi::extract_ppp_date(versions), '%Y'))
+  release_version <- unique(format(pipapi::extract_release_date(versions), "%Y%m%d"))
+  out <- list(versions = versions, ppp_version = ppp_version, release_version = release_version)
   out
 }
 
