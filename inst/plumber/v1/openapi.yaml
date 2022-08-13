@@ -69,11 +69,27 @@ paths:
               type: string
               enum: [all, national, rural, urban]
              description: Reporting coverage.
+          - in: query
+             name: release_version
+             schema:
+              type: string
+             description: date when the data was published in YYYYMMDD format
+          - in: query
+             name: ppp_version
+             schema:
+              type: string
+             description: ppp year to be used
            - in: query
              name: version
              schema:
               type: string
              description: Data version. Defaults to most recent version. See api/v1/versions.
+           - in: query
+             name: identity
+             schema:
+              type: string
+              enum: [PROD, INT, TEST]
+             description: One of PROD (production), INT (internal) and TEST
            - in: query
              name: format
              schema:
