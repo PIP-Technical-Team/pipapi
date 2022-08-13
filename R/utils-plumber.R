@@ -268,16 +268,38 @@ return_correct_version <- function(version = NULL,
 }
 
 select_max_version_from_ppp <- function(version) {
-  #With sub extract the ppp date from version number, change it to date,
-  #get the max index and return the corresponding version
-  version[which.max(as.Date(sub('\\d+_(\\d{4}_\\d{2}_\\d{2})_[A-Z]+', '\\1', version), '%Y_%m_%d'))]
+  #Extract ppp date, get the max index and return the corresponding version
+  version[which.max(extract_ppp_date(version))]
 }
 
 
 select_max_version_from_release_version <- function(version) {
-  #With sub extract the release version, change it to date,
-  #get the max index and return the corresponding version
-  version[which.max(as.Date(sub('(\\d+)_\\d{4}_\\d{2}_\\d{2}_[A-Z]+', '\\1', version), '%Y%m%d'))]
+  #Extract release date, get the max index and return the corresponding version
+  version[which.max(extract_release_date(version))]
+}
+
+#' Return the ppp date from the version of the data
+#'
+#' @param version Data version
+#'
+#' @return Date of ppp
+#'
+#' @export
+#'
+extract_ppp_date <- function(version) {
+  as.Date(sub('\\d+_(\\d{4}_\\d{2}_\\d{2})_[A-Z]+', '\\1', version), '%Y_%m_%d')
+}
+
+#' Return the release date from the version of the data
+#'
+#' @param version Data version
+#'
+#' @return Date of release
+#'
+#' @export
+#'
+extract_release_date <- function(version) {
+  as.Date(sub('(\\d+)_\\d{4}_\\d{2}_\\d{2}_[A-Z]+', '\\1', version), '%Y%m%d')
 }
 
 rpi_version <- function(release_version, ppp_version, identity, versions_available) {

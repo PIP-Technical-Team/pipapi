@@ -246,6 +246,19 @@ test_that("return_correct_version works as expected", {
   expect_equal(return_correct_version(release_version = 20211212, ppp_version = 2011, versions_available = x), "20211212_2011_02_01_PROD")
 })
 
+
+test_that("extract_release_date works as expected", {
+  val <- extract_release_date(x)
+  expect_equal(val, as.Date(c("2022-06-09", "2022-05-04", "2021-12-12", "2020-01-01", "2022-06-02", "2022-05-04", "2021-12-12")))
+  expect_s3_class(val, "Date")
+})
+
+test_that("extract_ppp_date works as expected", {
+  val <- extract_ppp_date(x)
+  expect_equal(val, as.Date(c("2011-02-02","2017-01-02","2011-01-01","2011-01-01","2017-01-02","2017-01-02","2011-02-01")))
+  expect_s3_class(val, "Date")
+})
+
 test_that("rpi_version works as expected", {
     expect_equal(rpi_version("20220602", "2017", "INT", x), "20220602_2017_01_02_INT")
     expect_equal(rpi_version("20220504", "2017", "PROD", x), "20220504_2017_01_02_PROD")

@@ -3,6 +3,8 @@
 export("%>%")
 export(add_dist_stats)
 export(create_versioned_lkups)
+export(extract_ppp_date)
+export(extract_release_date)
 export(get_aux_table)
 export(get_param_values)
 export(get_pip_version)
