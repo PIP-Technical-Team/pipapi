@@ -234,11 +234,15 @@ extract_endpoint <- function(path) {
 #'
 #' @return character
 #'
-#' @noRd
+#' @export
 #'
-return_correct_version <- function(version = NULL, release_version = NULL, ppp_version = NULL, identity = 'PROD', versions_available) {
-  #If version is passed return it directly.
-  if(!is.null(version)) return(version)
+return_correct_version <- function(version = NULL,
+                                   release_version = NULL,
+                                   ppp_version = NULL,
+                                   identity = 'PROD',
+                                   versions_available) {
+  # If version is passed return it directly.
+  if (!is.null(version)) return(version)
 
   if(!is.null(release_version) && !is.null(ppp_version) && !is.null(identity)) {
     selected_version <- rpi_version(release_version, ppp_version, identity, versions_available)
@@ -251,15 +255,15 @@ return_correct_version <- function(version = NULL, release_version = NULL, ppp_v
     selected_version <- pi_version(ppp_version, identity, versions_available)
   }
   #If no matching version is found
-  if(length(selected_version) == 0)
+  if (length(selected_version) == 0)
     #Since the function returns character values
     return("404")
   #If only 1 value matches
-  else if(length(selected_version) == 1)
+  else if (length(selected_version) == 1)
     return(selected_version)
   #If more than 1 value matches
   #If release_version is not null get the max version from ppp date
-  if(!is.null(release_version)) return(select_max_version_from_ppp(selected_version))
+  if (!is.null(release_version)) return(select_max_version_from_ppp(selected_version))
   else return(select_max_version_from_release_version(selected_version))
 }
 
