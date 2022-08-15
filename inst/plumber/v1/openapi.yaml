@@ -69,12 +69,12 @@ paths:
               type: string
               enum: [all, national, rural, urban]
              description: Reporting coverage.
-          - in: query
+           - in: query
              name: release_version
              schema:
               type: string
              description: date when the data was published in YYYYMMDD format
-          - in: query
+           - in: query
              name: ppp_version
              schema:
               type: string
@@ -185,10 +185,10 @@ paths:
               type: string
             description: Auxiliary data table to be returned.
           - in: query
-            name: data_version
+            name: release_version
             schema:
               type: string
-            description: Data version. date when the data was published in YYYYMMDD format
+            description: Date when the data was published in YYYYMMDD format
           - in: query
             name: ppp_version
             schema:

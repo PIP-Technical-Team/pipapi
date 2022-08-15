@@ -140,7 +140,9 @@ function(req) {
   versions <- lkups$versions
   ppp_version <- unique(format(pipapi::extract_ppp_date(versions), '%Y'))
   release_version <- unique(format(pipapi::extract_release_date(versions), "%Y%m%d"))
-  out <- list(versions = versions, ppp_version = ppp_version, release_version = release_version)
+  out <- list(versions = versions,
+              ppp_version = ppp_version,
+              release_version = release_version)
   out
 }
 
