@@ -334,7 +334,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     type = "numeric"
   )
   # Fill gaps
-  fill_gaps <- aggregate <- list(
+  fill_gaps <- aggregate <- long_format <- list(
     values = c(TRUE, FALSE),
     type = "logical"
   )
@@ -383,7 +383,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format", "table"),
+                    "format", "table", "long_format"),
          type = "character")
   # Endpoint
   endpoint <-
@@ -404,6 +404,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     popshare        = popshare,
     fill_gaps       = fill_gaps,
     aggregate       = aggregate,
+    long_format     = long_format,
     group_by        = group_by,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
