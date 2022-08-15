@@ -1,0 +1,115 @@
+---
+title: "Create Testing Data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Create Testing Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Setup
+
+Load data.table and select the version to be tested
+```{r setup}
+library(data.table)
+ver <- "20220810_2017_01_02_TEST"
+```
+
+# Folders
+
+The official path of the PIP repository is in `Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_SERVER")`. The folder where you want to copy the data to is  in `Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL")`
+
+
+```{r define-folders}
+sdir <- 
+  Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_SERVER") |> 
+  fs::path(ver) 
+
+ldir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |> 
+  fs::path(ver)
+```
+
+# Copy data
+
+## Copy auxiliary data
+
+```{r copy-aux-estimations}
+## Auxiliary data
+fs::dir_copy(path     = fs::path(sdir, "_aux"), 
+             new_path = fs::path(ldir, "_aux"),  
+             overwrite = TRUE)
+
+
+## Estimations data
+fs::dir_copy(path     = fs::path(sdir, "estimations"), 
+             new_path = fs::path(ldir, "estimations"),  
+             overwrite = TRUE)
+
+```
+
+## Copy survey Data
+
+We copy just 1% of each area (urban/rural) in each file. 
+
+```{r set-survey-data}
+## Survey data
+
+ssv_dir <- fs::path(sdir, "survey_data")
+lsv_dir <- fs::path(ldir, "survey_data")
+fs::dir_create(lsv_dir)
+
+sv_file_paths <- 
+  fs::dir_ls(ssv_dir, 
+             type = "file", 
+             regexp = "fst$") |> 
+  sort()
+
+
+sv_files <- 
+  fs::path_file(sv_file_paths) |> 
+  fs::path_ext_remove()
+
+names(sv_file_paths) <- sv_files
+
+pr <- 0.01 # 1 %
+
+```
+
+```{r survey-data, eval=FALSE}
+purrr::walk(sv_file_paths,
+            ~{
+              df <- fst::read_fst(.x, as.data.table = TRUE)
+              
+              # Take pr for each area
+              dt <- df[, .SD[sample(.N, size = floor(.N*pr))], by = area]
+              
+              filename <- fs::path_file(.x)
+              
+              npath <- fs::path(lsv_dir,filename)
+              fst::write_fst(x = dt, 
+                             path = npath)
+              
+            })
+
+```
+
+## check destination  folder
+
+in destination folder `lsv_dir` file are copied ok. Randome sample of  20 files. 
+
+```{r it-works}
+lsv_dir  |> 
+  fs::dir_ls(type = "file", 
+             regexp = "fst$") |> 
+  fs::path_file() |> 
+  sample(size = 20) |> 
+  sort() 
+
+```
