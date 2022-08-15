@@ -301,25 +301,39 @@ get_vintage_pattern_regex <- function(vintage_pattern = NULL,
                                       test_regex      = NULL
                                       ) {
 
+
   list(
 
-    vintage_pattern = ifelse(is.null(vintage_pattern),
-                             "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$",
-                             vintage_pattern),
+    vintage_pattern = ifel_isnull(vintage_pattern,
+                                 "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$"),
 
-    prod_regex      = ifelse(is.null(prod_regex),
-                             "PROD$",
-                             prod_regex),
+    prod_regex      = ifel_isnull(prod_regex,
+                             "PROD$"),
 
-    int_regex       = ifelse(is.null(int_regex),
-                             "INT$",
-                             int_regex),
+    int_regex       = ifel_isnull(int_regex,
+                             "INT$"),
 
-    test_regex      = ifelse(is.null(test_regex),
-                             "TEST$",
-                             test_regex)
+    test_regex      = ifel_isnull(test_regex,
+                             "TEST$")
     )
 }
+
+#' Efficient "if" "else" evaluation of null.
+#'
+#' @param x object to evaluate
+#' @param y in case x null. If X is not null, then x.
+#'
+#' @return object of class(x)
+ifel_isnull <- function(x, y) {
+
+  if(is.null(x)) {
+    y
+  } else {
+    x
+  }
+
+}
+
 
 
 #' create vintage call to be parsed into `get_vintage_pattern_regex()`

@@ -7,7 +7,7 @@
 ui_hp_countries(
   country = c("BGD", "CIV"),
   povline = 1.9,
-  pop_units = 1e+06,
+  pop_units = 1000000,
   lkup
 )
 }
