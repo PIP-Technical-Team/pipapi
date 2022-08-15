@@ -41,7 +41,7 @@ function(req, res) {
 #* Parse query parameters of incoming request
 #* @filter parse_parameters
 function(req, res) {
-  # browser()
+  #browser()
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     req$argsQuery <- pipapi:::parse_parameters(req$argsQuery)
   }
@@ -51,7 +51,7 @@ function(req, res) {
 #* Protect against invalid arguments
 #* @filter check_parameters
 function(req, res) {
-  # browser()
+  #browser()
   lkups <- lkups$versions_paths[[req$argsQuery$version]]
   query_controls = lkups$query_controls
 
@@ -350,21 +350,24 @@ function(req, res) {
 #* @get /api/v1/aux
 #* @param table:[chr] Auxiliary data table to be returned
 #* @param version:[chr] Data version. Defaults to latest versions. See api/v1/versions (add filter for version validation and default selection)
+#* @param long_format:[bool] Data in long format
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
+  #Set default value as FALSE if long_format is not passed.
+  if(is.null(params$long_format)) params$long_format <- FALSE
 
   if (is.null(req$args$table)) {
     out <- data.frame(tables = params$lkup$aux_tables)
   } else {
     out <- pipapi::get_aux_table(
       data_dir = params$lkup$data_root,
-      table = req$args$table)
+      table = req$args$table,
+      long_format = params$long_format)
   }
   attr(out, "serialize_format") <- req$argsQuery$format
   out

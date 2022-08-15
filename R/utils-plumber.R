@@ -103,7 +103,8 @@ validate_query_parameters <-
     "format",
     "table",
     "parameter",
-    "endpoint"
+    "endpoint",
+    "long_format"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]
@@ -138,7 +139,7 @@ parse_parameter <- function(param,
   param <- unlist(param)
 
   # Make API case insensitive
-  if (param_name %in% c("country", "fill_gaps", "version", "aggregate")) {
+  if (param_name %in% c("country", "fill_gaps", "version", "aggregate", "long_format")) {
     param <- toupper(param)
     if (param_name == "country") {
       if (length(param[param == "ALL"]) > 0) {

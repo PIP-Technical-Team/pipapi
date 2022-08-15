@@ -2,6 +2,8 @@
 
 ## New features
 
+- [Allow /aux endpoint to return data in long format](https://github.com/PIP-Technical-Team/pipapi/issues/272)
+ 
 ## Enhancements
 
 # pipapi 1.1.0

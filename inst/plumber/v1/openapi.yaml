@@ -174,6 +174,12 @@ paths:
               type: string
             description: Data version. Defaults to most recent version. See api/v1/versions.
           - in: query
+            name: long_format
+            schema:
+              type: boolean
+              example: FALSE
+            description: If the response should be in long format.
+          - in: query
             name: format
             schema:
               type: string
