@@ -87,15 +87,18 @@ purrr::walk(sv_file_paths,
             ~{
               df <- fst::read_fst(.x, as.data.table = TRUE)
               
-              # Take pr for each area
-              dt <- df[, .SD[sample(.N, size = floor(.N*pr))], by = area]
+              if (nrow(df) < 100) {
+                dt <- copy(df)  # Group data.
+              } else {
+                # Take pr for each area
+              dt <- df[, .SD[sample(.N, size = floor(.N*pr))], by = area]  
+              }
               
               filename <- fs::path_file(.x)
               
               npath <- fs::path(lsv_dir,filename)
               fst::write_fst(x = dt, 
                              path = npath)
-              
             })
 
 ```
