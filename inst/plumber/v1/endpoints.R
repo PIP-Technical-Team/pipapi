@@ -15,6 +15,7 @@ function(req, res) {
      is.null(req$argsQuery$version) && is.null(req$argsQuery$identity)) {
       version <- lkups$latest_release
   } else {
+    if(is.null(req$argsQuery$identity)) req$argsQuery$identity <- 'PROD'
     version <- pipapi::return_correct_version(req$argsQuery$version, req$argsQuery$release_version, req$argsQuery$ppp_version, req$argsQuery$identity, lkups$versions)
   }
     #If the version is not found (404) or it is not present in valid versions vector return an error.
@@ -24,6 +25,7 @@ function(req, res) {
           error = "Invalid query arguments have been submitted.",
           details = list(msg = "The selected value is not available. Please select one of the valid values",
                          valid = lkups$versions))
+        return(out)
     } else req$argsQuery$version <- version
 
   plumber::forward()
