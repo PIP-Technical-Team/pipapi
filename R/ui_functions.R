@@ -539,6 +539,38 @@ ui_svy_meta <- function(country = "all", lkup) {
   }
 }
 
+
+#' Country Profiles Key Indicators download
+#'
+#' Helper function to download Country Profile data
+#'
+#' @inheritParams pip
+#' @return list
+#' @export
+ui_cp_download <- function(country = "AGO",
+                                 povline = NULL,
+                                 lkup) {
+
+  # Select surveys to use for CP page
+  lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
+
+  if (country == "all") {
+    country_codes <- unique(lkup$svy_lkup$country_code)
+    dl <- lapply(country_codes, function(country)
+      ui_cp_download_single(
+        country = country, povline = povline, lkup = lkup))
+    dl <- data.table::rbindlist(dl)
+    dl <- dl[order(country_code, -reporting_year), ]
+  } else {
+    dl <- ui_cp_download_single(
+      country = country, povline = povline, lkup = lkup)
+  }
+  return(dl)
+
+}
+
+
+
 #' Country Profile Key Indicators download
 #'
 #' Helper function to download Country Profile data
@@ -552,10 +584,16 @@ ui_cp_download_single <- function(country,
 
   hc <- ui_cp_ki_headcount(country, povline, lkup)
 
-  indicators <- lkup$cp$key_indicators[lkup$cp$key_indicators != "shared_prosperity"]
+  # Remove "shared_prosperity" since the column names are not consitent with the
+  # other data frames
+  indicators <- lkup$cp$key_indicators[!names(lkup$cp$key_indicators) %in% c("shared_prosperity", "reporting_pop")]
   dl <- lapply(indicators, function(x) {
-    x[country_code == country]
+    out <- x[country_code == country, ]
+    out[["latest"]] <- NULL
+    return(out)
   })
+
+  dl <- c(headcount = list(hc), dl)
 
   out <- Reduce(function(df1, df2) {
     merge(df1, df2,
@@ -564,6 +602,8 @@ ui_cp_download_single <- function(country,
   },
   dl)
 
-  # out <- data.table::rbindlist(dl)
+  # Re-scale headcount_national to be consistent with headcount
+  out$headcount_national <- out$headcount_national / 100
+
   return(out)
 }
