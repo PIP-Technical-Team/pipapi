@@ -259,6 +259,14 @@ test_that("extract_ppp_date works as expected", {
   expect_s3_class(val, "Date")
 })
 
+test_that("extract_identity works as expected", {
+  val <- extract_identity(x)
+  expect_equal(val, c("PROD", "PROD", "PROD", "PROD", "INT", "INT", "PROD"))
+  expect_type(val, "character")
+  expect_length(val, length(x))
+})
+
+
 test_that("rpi_version works as expected", {
     expect_equal(rpi_version("20220602", "2017", "INT", x), "20220602_2017_01_02_INT")
     expect_equal(rpi_version("20220504", "2017", "PROD", x), "20220504_2017_01_02_PROD")

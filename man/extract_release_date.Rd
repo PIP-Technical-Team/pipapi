@@ -7,7 +7,7 @@
 extract_release_date(version)
 }
 \arguments{
-\item{version}{Data version}
+\item{version}{character vector of data version}
 }
 \value{
 Date of release
