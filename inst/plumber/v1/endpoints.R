@@ -527,6 +527,31 @@ function(req) {
   }
 }
 
+#* Return Country Profile - Downloads
+#* @get /api/v1/cp-download
+#* @param country:[chr] Country ISO3 code
+#* @param povline:[dbl] Poverty Line
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer switch
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  params$version <- NULL
+  params$format  <- NULL
+
+  if (params$country == "all") {
+    out <- promises::future_promise({
+      tmp <- do.call(pipapi::ui_cp_download, params)
+      attr(tmp, "serialize_format") <- req$argsQuery$format
+      tmp
+    }, seed = TRUE)
+  } else {
+    out <- do.call(pipapi::ui_cp_download, params)
+    attr(out, "serialize_format") <- req$argsQuery$format
+  }
+  out
+}
+
 # UI Endpoints: Survey metadata  ------------------------------------------
 
 #* Return data for the Data Sources page

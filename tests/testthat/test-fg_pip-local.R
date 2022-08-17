@@ -1,7 +1,7 @@
 skip_if(Sys.getenv('WBPIP_RUN_LOCAL_TESTS') != "TRUE")
-# Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
-lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+# Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
+lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
 lkups <-lkups$versions_paths[[lkups$latest_release]]
 
 # aggregated distribution ----
