@@ -24,7 +24,7 @@ function(req, res) {
         out <- list(
           error = "Invalid query arguments have been submitted.",
           details = list(msg = "The selected value is not available. Please select one of the valid values",
-                         valid = lkups$versions))
+                         valid = pipapi::version_dataframe(lkups$versions)))
         return(out)
     } else req$argsQuery$version <- version
 
@@ -139,11 +139,7 @@ function() {
 #* Return available data versions
 #* @get /api/v1/versions
 function(req) {
-  versions <- lkups$versions
-  ppp_version <- format(pipapi::extract_ppp_date(versions), '%Y')
-  release_version <- format(pipapi::extract_release_date(versions), "%Y%m%d")
-  identity <- pipapi::extract_identity(versions)
-  out <- data.frame(versions, release_version, ppp_version, identity)
+  out <- pipapi::version_dataframe(lkups$versions)
   out
 }
 
