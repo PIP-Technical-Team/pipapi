@@ -1,5 +1,5 @@
-if (Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") != "") {
-  lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+if (Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") != "") {
+  lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
   lkups <- lkups$versions_paths[[lkups$latest_release]]
 } else {
   # lkups$query_controls$version <- NULL
