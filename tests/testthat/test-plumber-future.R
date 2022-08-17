@@ -1,5 +1,5 @@
-# Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "" ||
+# Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "" ||
           Sys.getenv("PIPAPI_TEST_PLUMBER") != "TRUE")
 
 #library(callr)
@@ -16,7 +16,7 @@ future::plan("multisession", workers = 2) # n workers for unit tests script
 root_path <- "http://localhost"
 api1 <- future.callr::callr(function() {
   library(pipapi)
-  lkups <<- pipapi::create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+  lkups <<- pipapi::create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
   pipapi::start_api(port = 8000)
 }, workers = 2, # n workers for API
    #globals = list(lkups = lkups),
