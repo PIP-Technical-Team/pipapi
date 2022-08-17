@@ -284,8 +284,6 @@ select_max_version_from_release_version <- function(version) {
 #'
 #' @return Date of ppp
 #'
-#' @export
-#'
 extract_ppp_date <- function(version) {
   as.Date(sub('\\d+_(\\d{4}_\\d{2}_\\d{2})_[A-Z]+', '\\1', version), '%Y_%m_%d')
 }
@@ -295,8 +293,6 @@ extract_ppp_date <- function(version) {
 #' @param version character vector of data version
 #'
 #' @return Date of release
-#'
-#' @export
 #'
 extract_release_date <- function(version) {
   as.Date(sub('(\\d+)_\\d{4}_\\d{2}_\\d{2}_[A-Z]+', '\\1', version), '%Y%m%d')
@@ -308,12 +304,28 @@ extract_release_date <- function(version) {
 #'
 #' @return character vector of identity
 #'
-#' @export
 #'
 extract_identity <- function(version) {
   #Extract everything till last underscore
   sub('.*_', '', version)
 }
+
+#' Return versions of the data available.
+#'
+#' @param version character vector of data version
+#'
+#' @return Dataframe with 4 columns, versions, release_version, ppp_version and identity
+#'
+#' @export
+#'
+version_dataframe <- function(versions) {
+  ppp_version <- format(extract_ppp_date(versions), '%Y')
+  release_version <- format(extract_release_date(versions), "%Y%m%d")
+  identity <- extract_identity(versions)
+  out <- data.frame(versions, release_version, ppp_version, identity)
+  return(out)
+}
+
 
 
 rpi_version <- function(release_version, ppp_version, identity, versions_available) {

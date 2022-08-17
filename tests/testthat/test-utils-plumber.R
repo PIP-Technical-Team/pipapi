@@ -266,6 +266,13 @@ test_that("extract_identity works as expected", {
   expect_length(val, length(x))
 })
 
+test_that("version_dataframe works as expected", {
+  out <- version_dataframe(x)
+  expect_s3_class(out, "data.frame")
+  expect_equal(dim(out), c(7, 4))
+  expect_true(all(sapply(out, class) == "character"))
+})
+
 
 test_that("rpi_version works as expected", {
     expect_equal(rpi_version("20220602", "2017", "INT", x), "20220602_2017_01_02_INT")
