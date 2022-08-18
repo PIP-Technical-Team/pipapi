@@ -314,7 +314,10 @@ version_dataframe <- function(versions) {
   ppp_version <- format(extract_ppp_date(versions), '%Y')
   release_version <- format(extract_release_date(versions), "%Y%m%d")
   identity <- extract_identity(versions)
-  out <- data.frame(versions, release_version, ppp_version, identity)
+  out <- data.frame(version = versions,
+                    release_version = release_version,
+                    ppp_version = ppp_version,
+                    identify = identity)
   return(out)
 }
 
