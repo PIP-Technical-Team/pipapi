@@ -287,12 +287,6 @@ function(req) {
   params$format <- NULL
   params$version <- NULL
 
-  # Define default arguments
-  if (is.null(params$country))
-    params$country <- "all"
-  if (is.null(params$year))
-    params$year <- "all"
-
   # Parallel processing for slow requests
   if (params$country == "all" && params$year == "all") {
     out <- promises::future_promise({
