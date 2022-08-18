@@ -241,27 +241,31 @@ return_correct_version <- function(version = NULL,
                                    ppp_version = NULL,
                                    identity = 'PROD',
                                    versions_available) {
-  # If version is passed return it directly.
+  # STEP 1 -If the full `version` ID is passed return it directly.
   if (!is.null(version)) return(version)
-
-  if(!is.null(release_version) && !is.null(ppp_version) && !is.null(identity)) {
+  # STEP 2 - If at least a partial version ID is passed, infer the full version ID
+  # STEP 2.1 - All partial IDs are passed. Combined them into a full version ID
+  if (!is.null(release_version) & !is.null(ppp_version) & !is.null(identity)) {
     selected_version <- rpi_version(release_version, ppp_version, identity, versions_available)
-  } else if(!is.null(release_version) && !is.null(ppp_version)) {
-    #This probably would never be executed since identity would never be NULL unless explicitly specified.
+  } else if (!is.null(release_version) & !is.null(ppp_version)) {
+  # STEP 2.2 - If identity is NULL, return closest matching version if it exists
+    # This probably would never be executed since identity would never be NULL unless explicitly specified.
     selected_version <- rp_version(release_version, ppp_version, versions_available)
-  } else if(!is.null(release_version) && !is.null(identity)) {
+  # STEP 2.3 - If ppp_version is NULL, return closest matching version if it exists
+  } else if (!is.null(release_version) & !is.null(identity)) {
     selected_version <- ri_version(release_version, identity, versions_available)
-  } else if(!is.null(ppp_version) && !is.null(identity)) {
+  # STEP 2.4 - If release_version is NULL, return closest matching version if it exists
+  } else if (!is.null(ppp_version) & !is.null(identity)) {
     selected_version <- pi_version(ppp_version, identity, versions_available)
   }
-  #If no matching version is found
+  # STEP 3 - If no matching version is found return error
   if (length(selected_version) == 0)
     #Since the function returns character values
     return("404")
-  #If only 1 value matches
+  # STEP 4 - If only 1 value matches return it
   else if (length(selected_version) == 1)
     return(selected_version)
-  #If more than 1 value matches return the max version value
+  # STEP 5 - If multiple match, the most recent version (max version value)
   else return(max(selected_version))
 }
 
