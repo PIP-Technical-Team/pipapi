@@ -261,22 +261,10 @@ return_correct_version <- function(version = NULL,
   #If only 1 value matches
   else if (length(selected_version) == 1)
     return(selected_version)
-  #If more than 1 value matches
-  #If release_version is not null get the max version from ppp date
-  if (!is.null(release_version)) return(select_max_version_from_ppp(selected_version))
-  else return(select_max_version_from_release_version(selected_version))
+  #If more than 1 value matches return the max version value
+  else return(max(selected_version))
 }
 
-select_max_version_from_ppp <- function(version) {
-  #Extract ppp date, get the max index and return the corresponding version
-  version[which.max(extract_ppp_date(version))]
-}
-
-
-select_max_version_from_release_version <- function(version) {
-  #Extract release date, get the max index and return the corresponding version
-  version[which.max(extract_release_date(version))]
-}
 
 #' Return the ppp date from the version of the data
 #'
