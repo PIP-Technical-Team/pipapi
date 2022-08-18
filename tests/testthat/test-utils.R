@@ -99,17 +99,3 @@ test_that("subset_lkup correctly selects countries and regions", {
   expect_true(all(country_selection %in% (unique(tmp$country_code))))
 })
 
-test_that("create_folder_id selects approporiate version", {
-  x1 <- c("20211212_2011_01_01_PROD", "20200101_2011_01_01_PROD")
-
-  expect_equal(create_folder_id('20211212', '2011', x1), "20211212_2011_01_01_PROD")
-  expect_equal(create_folder_id('20211212', '2012', x1), "404")
-})
-
-test_that("select_max_version select the max version correctly", {
-  x1 <- c("20211212_2011_01_01_PROD", "20211212_2011_03_01_PROD")
-  x2 <- c("20200101_2011_10_11_PROD", "20200101_2011_10_10_PROD")
-
-  expect_equal(select_max_version(x1), "20211212_2011_03_01_PROD")
-  expect_equal(select_max_version(x2), "20200101_2011_10_11_PROD")
-})
