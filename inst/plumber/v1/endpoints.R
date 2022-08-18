@@ -9,16 +9,21 @@ library(pipapi)
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
-  #If no arguments are passed, use the latest version
-  if(is.null(req$argsQuery$release_version) && is.null(req$argsQuery$ppp_version) &&
-     is.null(req$argsQuery$version) && is.null(req$argsQuery$identity)) {
+
+  # STEP 1 - If no arguments are passed, use the latest version
+  if (is.null(req$argsQuery$release_version) & is.null(req$argsQuery$ppp_version) &
+     is.null(req$argsQuery$version) & is.null(req$argsQuery$identity)) {
       version <- lkups$latest_release
+  # STEP 2 - If partial version information is passed, use selection algorithm
   } else {
-    if(is.null(req$argsQuery$identity)) req$argsQuery$identity <- 'PROD'
-    version <- pipapi::return_correct_version(req$argsQuery$version, req$argsQuery$release_version, req$argsQuery$ppp_version, req$argsQuery$identity, lkups$versions)
+    if (is.null(req$argsQuery$identity)) req$argsQuery$identity <- 'PROD'
+    version <- pipapi::return_correct_version(req$argsQuery$version,
+                                              req$argsQuery$release_version,
+                                              req$argsQuery$ppp_version,
+                                              req$argsQuery$identity, lkups$versions)
   }
-    #If the version is not found (404) or it is not present in valid versions vector return an error.
-    if(version == "404" || !version %in% lkups$versions) {
+    # If the version is not found (404) or it is not present in valid versions vector return an error.
+    if (!version %in% lkups$versions) {
         res$status <- 404
         out <- list(
           error = "Invalid query arguments have been submitted.",
