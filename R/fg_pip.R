@@ -19,12 +19,12 @@ fg_pip <- function(country,
 
   # Handle interpolation
   metadata <- subset_lkup(
-    country = country,
-    year = year,
-    welfare_type = welfare_type,
+    country         = country,
+    year            = year,
+    welfare_type    = welfare_type,
     reporting_level = reporting_level,
-    lkup = lkup[["ref_lkup"]],
-    valid_regions = valid_regions
+    lkup            = lkup[["ref_lkup"]],
+    valid_regions   = valid_regions
   )
 
   # Return empty dataframe if no metadata is found
@@ -45,15 +45,16 @@ fg_pip <- function(country,
   for (svy_id in seq_along(unique_survey_files)) {
     # Extract country-years for which stats will be computed from the same files
     # tmp_metadata <- interpolation_list[[unique_survey_files[svy_id]]]$tmp_metadata
-    svy_data <- get_svy_data(interpolation_list[[unique_survey_files[svy_id]]]$cache_ids,
-                             reporting_level = interpolation_list[[unique_survey_files[svy_id]]]$reporting_level,
-                             path = interpolation_list[[unique_survey_files[svy_id]]]$paths
-    )
+    iteration           <- interpolation_list[[unique_survey_files[svy_id]]]
+
+    svy_data <- get_svy_data(svy_id          = iteration$cache_ids,
+                             reporting_level = iteration$reporting_level,
+                             path            = iteration$paths)
 
     # Extract unique combinations of country-year
-    ctry_years <- subset_ctry_years(country = country,
-                                    year = year,
-                                    lkup = interpolation_list[[unique_survey_files[svy_id]]]$ctry_years,
+    ctry_years <- subset_ctry_years(country       = country,
+                                    year          = year,
+                                    lkup          = iteration$ctry_years,
                                     valid_regions = valid_regions)
 
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
@@ -66,18 +67,18 @@ fg_pip <- function(country,
       # Compute estimated statistics using the fill_gap method
       if (debug) debugonce(wbpip:::prod_fg_compute_pip_stats)
       tmp_stats <- wbpip:::prod_fg_compute_pip_stats(
-        request_year = ctry_years[["reporting_year"]][ctry_year_id],
-        data = svy_data,
+        request_year           = ctry_years[["reporting_year"]][ctry_year_id],
+        data                   = svy_data,
         predicted_request_mean = tmp_metadata[["predicted_mean_ppp"]],
-        svy_mean_lcu = tmp_metadata[["survey_mean_lcu"]],
-        svy_median_lcu = tmp_metadata$survey_median_lcu,
-        svy_median_ppp = tmp_metadata$survey_median_ppp,
-        survey_year = tmp_metadata[["survey_year"]],
-        default_ppp = tmp_metadata[["ppp"]],
-        ppp = ppp,
-        distribution_type = tmp_metadata[["distribution_type"]],
-        poverty_line = povline,
-        popshare = popshare
+        svy_mean_lcu           = tmp_metadata[["survey_mean_lcu"]],
+        svy_median_lcu         = tmp_metadata$survey_median_lcu,
+        svy_median_ppp         = tmp_metadata$survey_median_ppp,
+        survey_year            = tmp_metadata[["survey_year"]],
+        default_ppp            = tmp_metadata[["ppp"]],
+        ppp                    = ppp,
+        distribution_type      = tmp_metadata[["distribution_type"]],
+        poverty_line           = povline,
+        popshare               = popshare
       )
 
       # Handle multiple distribution types (for aggregated distributions)

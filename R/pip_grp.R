@@ -15,20 +15,20 @@
 #'         lkup = lkups)
 #' }
 #' @export
-pip_grp <- function(country = "all",
-                    year = "all",
-                    povline = 1.9,
-                    popshare = NULL,
-                    group_by = c("none", "wb"),
-                    welfare_type = c("all", "consumption", "income"),
+pip_grp <- function(country         = "all",
+                    year            = "all",
+                    povline         = 1.9,
+                    popshare        = NULL,
+                    group_by        = c("none", "wb"),
+                    welfare_type    = c("all", "consumption", "income"),
                     reporting_level = c("all", "national"),
                     lkup,
-                    debug = FALSE,
-                    censor = TRUE) {
+                    debug           = FALSE,
+                    censor          = TRUE) {
 
-  welfare_type <- match.arg(welfare_type)
+  welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
-  group_by <- match.arg(group_by)
+  group_by        <- match.arg(group_by)
 
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
@@ -42,15 +42,15 @@ pip_grp <- function(country = "all",
   }
 
   out <- fg_pip(
-    country = country,
-    year = year,
-    povline = povline,
-    popshare = popshare,
-    welfare_type = welfare_type,
+    country         = country,
+    year            = year,
+    povline         = povline,
+    popshare        = popshare,
+    welfare_type    = welfare_type,
     reporting_level = reporting_level,
-    lkup = lkup,
-    ppp = NULL,
-    debug = debug
+    lkup            = lkup,
+    ppp             = NULL,
+    debug           = debug
   )
 
   # return empty dataframe if no metadata is found
