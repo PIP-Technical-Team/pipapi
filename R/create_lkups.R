@@ -212,10 +212,15 @@ create_lkups <- function(data_dir, versions) {
   cl_lkup_path    <- fs::path(data_dir, "_aux/country_list.fst")
   country_list     <- fst::read_fst(cl_lkup_path, as.data.table = TRUE)
 
+  # Population
+  pop_path    <- fs::path(data_dir, "_aux/pop.fst")
+  pop         <- fst::read_fst(pop_path, as.data.table = TRUE)
+
   aux_files <- list(missing_data = missing_data,
                     country_list = country_list,
                     countries    = countries,
-                    regions      = regions)
+                    regions      = regions,
+                    pop          = pop)
 
   # Create pip return columns
   pip_cols <-

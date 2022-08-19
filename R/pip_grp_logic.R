@@ -103,10 +103,68 @@ pip_grp_logic <- function(country         = "all",
     sv_ctr  <- ctr_agg  # survey countries
   }
 
-  ## Get Fill gaps call ------
-
   #   ______________________________________________________________
   #   computations                                         ####
+
+  ## regional aggregates to be imputed -------
+  grp <-
+    pip_grp(country       =  rg_country,
+          year            =  rg_year,
+          povline         =  povline,
+          popshare        =  popshare,
+          group_by        =  "wb",
+          welfare_type    =  welfare_type,
+          reporting_level =  reporting_level,
+          lkup            =  lkup,
+          debug           =  debug,
+          censor          =  censor)
+
+  ### Prepare grp to be merge with pop_md
+  grp[,
+      c("reporting_pop", "pop_in_poverty") := NULL]
+
+
+  ### Merge population with Missing data table ---------
+  pop   <- lkup$aux_files$pop
+  pop   <-
+    data.table::melt(pop,
+                     id.vars = c('country_code', 'data_level'),
+                     variable.name = "year",
+                     value.name = "pop",
+                     variable.factor = FALSE,
+                     value.factor = FALSE)
+
+  pop <- pop[data_level == "national"
+             ][,
+               data_level := NULL
+               ][,
+                 year := as.numeric(year)]
+  pop_md <-
+    pop[md,
+      on = c("country_code", "year")]
+
+  data.table::setnames(pop_md, "year", "reporting_year")
+
+
+
+  ### Merge with pop_md ------
+
+  pop_md_grp <- joyn::merge(pop_md, grp,
+                            by = c("region_code", "reporting_year"),
+                            match_type = "m:1",
+                            reportvar = FALSE)
+
+
+  ### Merge other region codes -----------
+  pop_md_grp[,
+             region_code := NULL]
+
+  pop_md_grp <- joyn::merge(pop_md_grp, cl,
+                            by = "country_code",
+                            match_type = "m:1",
+                            keep = "left",
+                            reportvar = FALSE)
+
 
   ## Fill gaps estimates with countries with Survey -----
   fg <- fg_pip(
@@ -121,6 +179,30 @@ pip_grp_logic <- function(country         = "all",
     debug           = debug
   )
 
+  # fix poverty line rounding
+
+  l_fg <- vector(mode = "list", length = length(gt_code))
+
+  for (i in seq_along(gt_code)) {
+    gt_var    <- gt_code[i]
+    filter_fg <- paste0(gt_var, " %in% country")
+    filter_fg <- parse(text = filter_fg)
+    dt        <- fg[eval(filter_fg)]
+
+    l_fg[[i]] <- dt
+  }
+  debugonce(pip_aggregate)
+
+  ## Append with countries with missing data -----
+  dt <- l_fg[[1]]
+
+  dd <- data.table::rbindlist(list(dt, pop_md_grp),
+                              use.names = TRUE,
+                              fill = TRUE)
+
+
+
+  de <- pip_aggregate(dd, gt_code[1])
 
 
 

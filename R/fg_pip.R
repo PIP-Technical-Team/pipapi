@@ -106,6 +106,11 @@ fg_pip <- function(country,
   # Ensure that out does not have duplicates
   out <- fg_remove_duplicates(out)
 
+  # Fix issue with rounding of poverty lines
+  out[,
+      poverty_line := round(poverty_line, digits = 3) ]
+
+
   return(out)
 }
 
