@@ -223,3 +223,119 @@ extract_endpoint <- function(path) {
   # stringr::str_extract(path, pattern = "([^/]+$)")
   sub(".*[/]", "", path)
 }
+
+
+#' Return the version of the data
+#'
+#' @param version Data version. Defaults to most recent version. See api/v1/versions
+#' @param release_version date when the data was published in YYYYMMDD format
+#' @param ppp_version ppp year to be used
+#' @param identity One of "PROD" (production), "INT" (internal) and "TEST"
+#' @param versions_available character vector of all the versions available
+#'
+#' @return character
+#'
+#' @export
+#'
+return_correct_version <- function(version = NULL,
+                                   release_version = NULL,
+                                   ppp_version = NULL,
+                                   identity = 'PROD',
+                                   versions_available) {
+  # STEP 1 -If the full `version` ID is passed return it directly.
+  if (!is.null(version)) return(version)
+  # STEP 2 - If at least a partial version ID is passed, infer the full version ID
+  # STEP 2.1 - All partial IDs are passed. Combined them into a full version ID
+  if (!is.null(release_version) & !is.null(ppp_version) & !is.null(identity)) {
+    selected_version <- rpi_version(release_version, ppp_version, identity, versions_available)
+  } else if (!is.null(release_version) & !is.null(ppp_version)) {
+  # STEP 2.2 - If identity is NULL, return closest matching version if it exists
+    # This probably would never be executed since identity would never be NULL unless explicitly specified.
+    selected_version <- rp_version(release_version, ppp_version, versions_available)
+  # STEP 2.3 - If ppp_version is NULL, return closest matching version if it exists
+  } else if (!is.null(release_version) & !is.null(identity)) {
+    selected_version <- ri_version(release_version, identity, versions_available)
+  # STEP 2.4 - If release_version is NULL, return closest matching version if it exists
+  } else if (!is.null(ppp_version) & !is.null(identity)) {
+    selected_version <- pi_version(ppp_version, identity, versions_available)
+  }
+  # STEP 3 - If no matching version is found return error
+  if (length(selected_version) == 0)
+    #Since the function returns character values
+    return("404")
+  # STEP 4 - If only 1 value matches return it
+  else if (length(selected_version) == 1)
+    return(selected_version)
+  # STEP 5 - If multiple match, the most recent version (max version value)
+  else return(max(selected_version))
+}
+
+
+#' Return the ppp date from the version of the data
+#'
+#' @param version character vector of data version
+#'
+#' @return Date of ppp
+#'
+extract_ppp_date <- function(version) {
+  as.Date(sub('\\d+_(\\d{4}_\\d{2}_\\d{2})_[A-Z]+', '\\1', version), '%Y_%m_%d')
+}
+
+#' Return the release date from the version of the data
+#'
+#' @param version character vector of data version
+#'
+#' @return Date of release
+#'
+extract_release_date <- function(version) {
+  as.Date(sub('(\\d+)_\\d{4}_\\d{2}_\\d{2}_[A-Z]+', '\\1', version), '%Y%m%d')
+}
+
+#' Return identity from the version of the data
+#'
+#' @param version character vector of data version
+#'
+#' @return character vector of identity
+#'
+#'
+extract_identity <- function(version) {
+  #Extract everything till last underscore
+  sub('.*_', '', version)
+}
+
+#' Return versions of the data available.
+#'
+#' @param version character vector of data version
+#'
+#' @return Dataframe with 4 columns, versions, release_version, ppp_version and identity
+#'
+#' @export
+#'
+version_dataframe <- function(versions) {
+  ppp_version <- format(extract_ppp_date(versions), '%Y')
+  release_version <- format(extract_release_date(versions), "%Y%m%d")
+  identity <- extract_identity(versions)
+  out <- data.frame(version = versions,
+                    release_version = release_version,
+                    ppp_version = ppp_version,
+                    identify = identity)
+  return(out)
+}
+
+
+
+rpi_version <- function(release_version, ppp_version, identity, versions_available) {
+  grep(sprintf('^%s_%s_\\d{2}_\\d{2}_%s$', release_version, ppp_version, identity), versions_available, value = TRUE)
+}
+
+rp_version <- function(release_version, ppp_version, versions_available) {
+  grep(sprintf('^%s_%s_\\d{2}_\\d{2}_[A-Z]+$', release_version, ppp_version), versions_available, value = TRUE)
+}
+
+ri_version <- function(release_version, identity, versions_available) {
+  grep(sprintf('^%s_\\d{4}_\\d{2}_\\d{2}_%s$', release_version, identity), versions_available, value = TRUE)
+}
+
+pi_version <- function(ppp_version, identity, versions_available) {
+  grep(sprintf('\\d{6}_%s_\\d{2}_\\d{2}_%s$', ppp_version, identity), versions_available, value = TRUE)
+}

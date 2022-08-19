@@ -98,3 +98,4 @@ test_that("subset_lkup correctly selects countries and regions", {
   # Countries are selected
   expect_true(all(country_selection %in% (unique(tmp$country_code))))
 })
+
