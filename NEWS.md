@@ -1,6 +1,8 @@
 # pipapi (development version)
 
 ## New features
+- [Add new endpoint to support country profile downloads](https://github.com/PIP-Technical-Team/pipapi/pull/283)
+- [Add separate arguments to select release and ppp version](https://github.com/PIP-Technical-Team/pipapi/issues/265)
 
 ## Enhancements
 

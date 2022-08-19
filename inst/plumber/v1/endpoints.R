@@ -9,23 +9,29 @@ library(pipapi)
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
-  # tictoc::tic("filters")
-  # browser()
-  if (!is.null(req$argsQuery$version) & !grepl("swagger", req$PATH_INFO)) {
-    if (!is.null(req$argsQuery$version)) {
-      if (!req$argsQuery$version %in% lkups$versions) {
+
+  # STEP 1 - If no arguments are passed, use the latest version
+  if (is.null(req$argsQuery$release_version) & is.null(req$argsQuery$ppp_version) &
+     is.null(req$argsQuery$version) & is.null(req$argsQuery$identity)) {
+      version <- lkups$latest_release
+  # STEP 2 - If partial version information is passed, use selection algorithm
+  } else {
+    if (is.null(req$argsQuery$identity)) req$argsQuery$identity <- 'PROD'
+    version <- pipapi::return_correct_version(req$argsQuery$version,
+                                              req$argsQuery$release_version,
+                                              req$argsQuery$ppp_version,
+                                              req$argsQuery$identity, lkups$versions)
+  }
+    # If the version is not found (404) or it is not present in valid versions vector return an error.
+    if (!version %in% lkups$versions) {
         res$status <- 404
         out <- list(
           error = "Invalid query arguments have been submitted.",
-          details = list(msg = "You supplied an invalid value for version. Please use one of the valid values.",
-                         valid = lkups$versions))
+          details = list(msg = "The selected value is not available. Please select one of the valid values",
+                         valid = pipapi::version_dataframe(lkups$versions)))
         return(out)
-        #return("Invalid version has been submitted. Please check valid versions with /versions")
-      }
-    }
-  } else {
-    req$argsQuery$version <- lkups$latest_release
-  }
+    } else req$argsQuery$version <- version
+
   plumber::forward()
 }
 
@@ -41,7 +47,6 @@ function(req, res) {
 #* Parse query parameters of incoming request
 #* @filter parse_parameters
 function(req, res) {
-  # browser()
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     req$argsQuery <- pipapi:::parse_parameters(req$argsQuery)
   }
@@ -51,7 +56,6 @@ function(req, res) {
 #* Protect against invalid arguments
 #* @filter check_parameters
 function(req, res) {
-  # browser()
   lkups <- lkups$versions_paths[[req$argsQuery$version]]
   query_controls = lkups$query_controls
 
@@ -138,17 +142,8 @@ function() {
 
 #* Return available data versions
 #* @get /api/v1/versions
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
-#* @serializer switch
 function(req) {
-  # browser()
-  out <- lkups$versions
-  # if (!is.null(req$argsQuery$format)) {
-  #   if (req$argsQuery$format == "csv") out <- data.frame(versions = out)
-  #   attr(out, "serialize_format") <- req$argsQuery$format
-  # }
-  out <- data.frame(versions = out)
-  attr(out, "serialize_format") <- req$argsQuery$format
+  out <- pipapi::version_dataframe(lkups$versions)
   out
 }
 
@@ -211,7 +206,6 @@ function(req) {
 #* @get /api/v1/dir-info
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 function(req) {
-  # browser()
   dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
   x <- fs::dir_info(dir, recurse = TRUE, type = "file")
   x$file <- sub(".*/", "", x$path)
@@ -259,7 +253,6 @@ function(req) {
 #* @param endpoint:[chr] Endpoint for which to return the valid parameters
 #* @serializer switch
 function(req) {
-  # browser()
   version <- req$argsQuery$version
   endpoint <- req$argsQuery$endpoint
   out <- pipapi::get_param_values(
@@ -281,22 +274,18 @@ function(req) {
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
-#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions for all available versions
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @param identity:[chr] One of "PROD" (production) (default), "INT" (internal) and "TEST"
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
   # Process request
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
-
-  # Define default arguments
-  # if (is.null(params$country))
-  #   params$country <- "all"
-  # if (is.null(params$year))
-  #   params$year <- "all"
 
   # Parallel processing for slow requests
   if (params$country == "all" && params$year == "all") {
@@ -326,7 +315,6 @@ function(req) {
 #* @serializer switch
 function(req, res) {
   # Process request
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
@@ -353,7 +341,6 @@ function(req, res) {
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
@@ -483,7 +470,6 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
@@ -525,6 +511,31 @@ function(req) {
   } else {
     do.call(pipapi::ui_cp_charts, params)
   }
+}
+
+#* Return Country Profile - Downloads
+#* @get /api/v1/cp-download
+#* @param country:[chr] Country ISO3 code
+#* @param povline:[dbl] Poverty Line
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer switch
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  params$version <- NULL
+  params$format  <- NULL
+
+  if (params$country == "all") {
+    out <- promises::future_promise({
+      tmp <- do.call(pipapi::ui_cp_download, params)
+      attr(tmp, "serialize_format") <- req$argsQuery$format
+      tmp
+    }, seed = TRUE)
+  } else {
+    out <- do.call(pipapi::ui_cp_download, params)
+    attr(out, "serialize_format") <- req$argsQuery$format
+  }
+  out
 }
 
 # UI Endpoints: Survey metadata  ------------------------------------------

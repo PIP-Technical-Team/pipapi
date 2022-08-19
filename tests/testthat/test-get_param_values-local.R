@@ -1,6 +1,6 @@
-# Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
-lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+# Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
+lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
 
 res <- get_param_values(lkup = lkups, version = "latest_release")
 
