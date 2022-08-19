@@ -100,6 +100,7 @@ test_that("subset_lkup correctly selects countries and regions", {
   expect_true(all(country_selection %in% (unique(tmp$country_code))))
 })
 
+
 ## Writing tests using fake dataset, probably we'll need to change this tests later to use ref_lkup instead
 test_that("select_country returns correct logical values", {
   keep <- select_country(fake_data, "ARG", c("LAC", "SSA"))

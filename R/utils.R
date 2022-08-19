@@ -445,7 +445,6 @@ clear_cache <- function(cd) {
   })
 }
 
-
 #' @inheritParams subset_lkup
 #' @return logical vector
 select_country <- function(lkup, country, valid_regions) {

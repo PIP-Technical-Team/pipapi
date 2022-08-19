@@ -277,7 +277,7 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param identity:[chr] One of "PROD" (production), "INT" (internal) and "TEST"
+#* @param identity:[chr] One of "PROD" (production) (default), "INT" (internal) and "TEST"
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
