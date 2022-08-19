@@ -35,32 +35,9 @@ subset_lkup <- function(country,
                         lkup,
                         valid_regions) {
 
-  keep <- TRUE
-  # Select data files based on requested country, year, etc.
-  # Select countries
-  if (!any(c("all", "WLD") %in% country)) {
-    # Select regions
-    if (any(country %in% valid_regions)) {
-      selected_regions <- country[country %in% valid_regions]
-      keep_regions <- lkup$region_code %in% selected_regions
-    } else {
-      keep_regions <- rep(FALSE, length(lkup$country_code))
-    }
-    keep_countries <- lkup$country_code %in% country
-    keep <- keep & (keep_countries | keep_regions)
-  }
-  # Select years
-  if (year[1] == "mrv") {
-    if (!any(c("all", "WLD") %in% country)) {
-      max_year <- max(lkup[country_code == country]$reporting_year)
-    } else {
-      max_year <- max(lkup$reporting_year)
-    }
-    keep <- keep & lkup$reporting_year %in% max_year
-  }
-  if (!year[1] %in% c("all", "mrv")) {
-    keep <- keep & lkup$reporting_year %in% year
-  }
+  keep <- select_country(lkup, country, valid_regions)
+  keep <- select_years(lkup, keep, year, country)
+
   # Select welfare_type
   if (welfare_type[1] != "all") {
     keep <- keep & lkup$welfare_type == welfare_type
@@ -497,3 +474,41 @@ clear_cache <- function(cd) {
   })
 }
 
+#' @inheritParams subset_lkup
+#' @return logical vector
+select_country <- function(lkup, country, valid_regions) {
+  keep <- TRUE
+  # Select data files based on requested country, year, etc.
+  # Select countries
+  if (!any(c("all", "WLD") %in% country)) {
+    # Select regions
+    if (any(country %in% valid_regions)) {
+      selected_regions <- country[country %in% valid_regions]
+      keep_regions <- lkup$region_code %in% selected_regions
+    } else {
+      keep_regions <- rep(FALSE, length(lkup$country_code))
+    }
+    keep_countries <- lkup$country_code %in% country
+    keep <- keep & (keep_countries | keep_regions)
+  }
+  return(keep)
+}
+
+#' @inheritParams subset_lkup
+#' @keep params logical vector
+#' @return logical vector
+select_years <- function(lkup, keep, year, country) {
+  # Select years
+  if (year[1] == "mrv") {
+    if (!any(c("all", "WLD") %in% country)) {
+      max_year <- max(lkup[country_code == country]$reporting_year)
+    } else {
+      max_year <- max(lkup$reporting_year)
+    }
+    keep <- keep & lkup$reporting_year %in% max_year
+  }
+  if (!year[1] %in% c("all", "mrv")) {
+    keep <- keep & lkup$reporting_year %in% year
+  }
+  return(keep)
+}
