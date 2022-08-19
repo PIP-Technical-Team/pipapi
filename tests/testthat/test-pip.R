@@ -111,14 +111,17 @@ test_that("year selection is working", {
   expect_equal(tmp$reporting_year, check)
 
   # Most recent year for all countries
+  # Should return the most recent for each country
+  # Therefore we expect having more than one year in the response
+  # Not a great unit test... To be improved
   tmp <- pip(
     country = "all",
     year = "mrv",
     povline = 1.9,
     lkup = lkup
   )
-  check <- max(lkup$svy_lkup$reporting_year)
-  expect_equal(unique(tmp$reporting_year), check)
+
+  expect_true(length(unique(tmp$reporting_year)) > 1)
 
 })
 
