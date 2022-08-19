@@ -201,6 +201,11 @@ create_lkups <- function(data_dir, versions) {
   censored_path   <- fs::path(data_dir, "_aux/censored.rds")
   censored        <- readRDS(censored_path)
 
+  # Countries with Missing data
+  msd_lkup_path    <- fs::path(data_dir, "_aux/missing_data.fst")
+  missing_data     <- fst::read_fst(msd_lkup_path, as.data.table = TRUE)
+
+
   # Create pip return columns
   pip_cols <-
     c(
@@ -279,12 +284,13 @@ create_lkups <- function(data_dir, versions) {
     cp_lkups           = cp_lkups,
     pl_lkup            = pl_lkup,
     censored           = censored,
+    missing_data       = missing_data,
     pip_cols           = pip_cols,
     query_controls     = query_controls,
     data_root          = data_dir,
     aux_tables         = aux_tables,
     interpolation_list = interpolation_list,
-    valid_years = valid_years
+    valid_years        = valid_years
   )
 
   return(lkups)
