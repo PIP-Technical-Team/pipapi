@@ -477,7 +477,10 @@ clear_cache <- function(cd) {
   })
 }
 
+#' select_country
+#' Helper function for subset_lkup()
 #' @inheritParams subset_lkup
+#' @param keep logical vector
 #' @return logical vector
 select_country <- function(lkup, keep, country, valid_regions) {
   # Select data files based on requested country, year, etc.
@@ -496,8 +499,10 @@ select_country <- function(lkup, keep, country, valid_regions) {
   return(keep)
 }
 
+#' select_years
+#' Helper function for subset_lkup()
 #' @inheritParams subset_lkup
-#' @keep params logical vector
+#' @param keep logical vector
 #' @return logical vector
 select_years <- function(lkup, keep, year, country) {
   year <- toupper(year)
