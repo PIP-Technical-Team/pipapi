@@ -44,12 +44,14 @@ pip_grp_logic <- function(country         = "all",
   #   Get Data Availability                                       ####
 
   ## Regions available ----------
-  regs   <- lkup$aux_files$regions
-  # reg_av <- regs$region_code
+  aggs    <- lkup$aux_files$regions  ## all aggregates
+  off_reg <- lkup$query_controls$region$values # Official regions
+
+  # reg_av <- aggs$region_code
   region_code <- country_code <- NULL
 
   ## Get grouping type ----
-  grouping_type <- regs[region_code %in% country,
+  grouping_type <- aggs[region_code %in% country,
                         unique(grouping_type)]
 
   ### Early return -----------
@@ -59,13 +61,44 @@ pip_grp_logic <- function(country         = "all",
             year            =  year,
             povline         =  povline,
             popshare        =  popshare,
-            group_by        =  group_by,
+            group_by        =  "wb",
             welfare_type    =  welfare_type,
             reporting_level =  reporting_level,
             lkup            =  lkup,
             debug           =  debug,
             censor          =  censor)
     return(res)
+  }
+
+  ## Estimates for official aggregates
+
+  if ("region" %in% grouping_type) {
+    # working grouping_type
+    gt <- grouping_type[grouping_type != "region"]
+
+    # official regions selected by the user
+    off_regs_user <- off_reg[off_reg %in% country]
+
+    # Estimates of official regions
+    off_ret <-
+      pip_grp(country         =  off_regs_user,
+              year            =  year,
+              povline         =  povline,
+              popshare        =  popshare,
+              group_by        =  "wb",
+              welfare_type    =  welfare_type,
+              reporting_level =  reporting_level,
+              lkup            =  lkup,
+              debug           =  debug,
+              censor          =  censor)
+
+    alt_agg <- country[!country %in% off_reg]
+
+
+  } else {
+    gt      <- grouping_type
+    off_ret <- NULL
+    alt_agg <- country
   }
 
   ## Countries in aggregate --------
@@ -75,8 +108,8 @@ pip_grp_logic <- function(country         = "all",
 
   cl        <- lkup$aux_files$country_list
 
-  gt_code   <- paste0(grouping_type, "_code")
-  filter_cl <- paste0(gt_code, " %in% country", collapse = " | ")
+  gt_code   <- paste0(gt, "_code")
+  filter_cl <- paste0(gt_code, " %in% alt_agg", collapse = " | ")
   filter_cl <- parse(text = filter_cl)
 
   ctr_agg   <- cl[eval(filter_cl), country_code]
@@ -89,13 +122,11 @@ pip_grp_logic <- function(country         = "all",
   # of the missing countries in AFE because we need the explicit SSA estimates.
 
 
-  ctr_alt_agg   <-
-    # Get aggregates different to region
-    grouping_type[grouping_type != "region"] |>
+  ctr_alt_agg   <- gt |>
     # add "_code" suffix
     paste0("_code") |>
     # Create filter for data.table
-    paste0(" %in% country", collapse =  " | ") |>
+    paste0(" %in% alt_agg", collapse =  " | ") |>
     # parse the filter as unevaluated expression
     {\(.) parse(text = .) }() |>
     # filter and get country codes
@@ -111,16 +142,22 @@ pip_grp_logic <- function(country         = "all",
     if (is.character(year)) {
       md[country_code %in% ctr_alt_agg]
     } else {
-      nyear <- year
+      nyear <- year # to avoid conflicts in variable names
       md[country_code %in% ctr_alt_agg & year %in% nyear]
     }
 
-  ## Get regional aggregate for countries with missing data ----
 
+  # Get countries for which we want to input
   yes_md <- nrow(md) > 0
   if (yes_md) {
     rg_country <- md[, unique(region_code)]
     rg_year    <- md[, unique(year)]
+
+    if (!is.null(off_ret)) {
+      # TODO: filter rg_country and rg_year based on what have already been
+      # estimated
+
+    }
 
     md_ctrs <- md[, unique(country_code)] # missing data countries
     sv_ctr  <- ctr_agg[which(!ctr_agg %in% md_ctrs)] # survey countries
@@ -130,10 +167,13 @@ pip_grp_logic <- function(country         = "all",
     sv_ctr  <- ctr_agg  # survey countries
   }
 
-  #   ______________________________________________________________
-  #   computations                                         ####
+  #   ________________________________________________________
+  #   computations                                      ####
 
   ## regional aggregates to be imputed -------
+
+  # There might be some redundancy for estimating the same region twice. We need
+  # to fix this with some conditionals
   grp <-
     pip_grp(country       =  rg_country,
           year            =  rg_year,
@@ -178,21 +218,31 @@ pip_grp_logic <- function(country         = "all",
 
   ### Merge with pop_md ------
 
-  pop_md_grp <- joyn::merge(pop_md, grp,
-                            by = c("region_code", "reporting_year"),
-                            match_type = "m:1",
-                            reportvar = FALSE)
+  md_grp <- joyn::merge(pop_md, grp,
+                        by = c("region_code", "reporting_year"),
+                        match_type = "m:1")
+
+  # Remove those countries for which there is no official aggregate because of
+  # lack of coverage in the region. Eg. There is not data for SAS in 2000, so
+  # for countries like AFG 2000 we can't input estimates
+
+  # TODO Make sure that we don't need the information of the countries excluded.
+  # Eg. AFG 2000
+  report <- NULL
+  md_grp <- md_grp[report == "x & y"
+                   ][, report := NULL]
+
 
 
   ### Merge other region codes -----------
-  pop_md_grp[,
-             region_code := NULL]
+  md_grp[,
+         region_code := NULL]
 
-  pop_md_grp <- joyn::merge(pop_md_grp, cl,
-                            by = "country_code",
-                            match_type = "m:1",
-                            keep = "left",
-                            reportvar = FALSE)
+  md_grp <- joyn::merge(md_grp, cl,
+                        by = "country_code",
+                        match_type = "m:1",
+                        keep = "left",
+                        reportvar = FALSE)
 
 
   ## Fill gaps estimates with countries with Survey -----
@@ -215,36 +265,44 @@ pip_grp_logic <- function(country         = "all",
   for (i in seq_along(gt_code)) {
     gt_var    <- gt_code[i]
     filter_fg <-
-      paste0(gt_var, " %in% country") |>
+      paste0(gt_var, " %in% alt_agg") |>
       {\(.) parse(text = .) }()
 
-    dt        <- fg[eval(filter_fg)]
+    # Filter both datasets
+    fdt        <- fg[eval(filter_fg)]
+    mdt        <- md_grp[eval(filter_fg)]
 
-    l_fg[[i]] <- dt
-  }
-
+    # Find common variables
+    common_vars <- intersect(names(fdt), names(mdt))
+    fdt         <- fdt[, ..common_vars]
+    mdt         <- mdt[, ..common_vars]
 
   ## Append with countries with missing data -----
-  dt <- l_fg[[1]]
-  dd <- data.table::rbindlist(list(dt, pop_md_grp),
-                              use.names = TRUE,
-                              fill = TRUE)
+    l_fg[[i]] <- data.table::rbindlist(list(fdt, mdt),
+                                       use.names = TRUE,
+                                       fill = TRUE)
+  }
+
+  # Estimate poverty for aggregates
+  de <- purrr::map2_df(.x = l_fg,
+                       .y = gt_code,
+                       .f = pip_aggregate)
 
 
+  # Append official regions with Alt aggregates ---------
 
-  # debugonce(pip_aggregate)
-  de <- pip_aggregate(dd, gt_code[1])
+  if (!is.null(off_ret)) {
+    ret <- data.table::rbindlist(list(de, off_ret),
+                                 use.names = TRUE,
+                                 fill = TRUE)
 
-
-
-
-
-
-
+  } else {
+    ret <- de
+  }
 
   #   ____________________________________________________________________
   #   Return                                                         ####
-  return(TRUE)
+  return(ret)
 
 }
 
@@ -300,9 +358,12 @@ check_inputs_pip_grp_logic <- function(country,
   regs   <- lkup$aux_files$regions
   reg_av <- regs$region_code
 
-  if (!country %in% reg_av) {
+  not_av <- country[!country %in% reg_av]
+
+  if (length(not_av) > 0) {
     msg     <- c(
-      "region {.field {country}} is not available",
+      "region{?s} {.file {not_av}} in paraneter {.field country}
+      {?is/are} not available",
       "*" = "It must be one of the following, {.file {reg_av}}")
     cli::cli_abort(msg, class = "pipapi_error")
   }
