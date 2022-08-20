@@ -147,7 +147,7 @@ de[, .(region_code, reporting_year, poverty_line, headcount, pop_in_poverty)]
 
 The results for the official aggregations remain the same as with `pip_grp()`
 
-```{r compare-with-grp}
+```{r compare-with-grp2}
 de2 <- de[region_code %in% c("SSA", "LAC")]
 data.table::setcolorder(de2, names(dc))
 
