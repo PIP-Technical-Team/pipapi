@@ -54,6 +54,7 @@ pip_grp_logic <- function(country         = "all",
 
   ### Early return -----------
   if (all(grouping_type %in% "region")) {
+    res <-
     pip_grp(country         =  country,
             year            =  year,
             povline         =  povline,
@@ -64,9 +65,13 @@ pip_grp_logic <- function(country         = "all",
             lkup            =  lkup,
             debug           =  debug,
             censor          =  censor)
+    return(res)
   }
 
   ## Countries in aggregate --------
+
+  #Find out all the countries that belong to
+  #the aggregates requested by the user
 
   cl        <- lkup$aux_files$country_list
 
@@ -76,16 +81,38 @@ pip_grp_logic <- function(country         = "all",
 
   ctr_agg   <- cl[eval(filter_cl), country_code]
 
+  # Get countries that belong to aggregates requested by the user that are NOT
+  # official but alternative aggregates. We need to find out missing data
+  # estimates only for those countries. For instance, if the user requested LAC
+  # and AFE, we don't care about the the countries with missing data in the LAC
+  # because their estimates are done implicitly. We DO care about the estimates
+  # of the missing countries in AFE because we need the explicit SSA estimates.
+
+
+  ctr_alt_agg   <-
+    # Get aggregates different to region
+    grouping_type[grouping_type != "region"] |>
+    # add "_code" suffix
+    paste0("_code") |>
+    # Create filter for data.table
+    paste0(" %in% country", collapse =  " | ") |>
+    # parse the filter as unevaluated expression
+    {\(.) parse(text = .) }() |>
+    # filter and get country codes
+    {\(.) cl[eval(.), country_code] }()
+
+
+
   ## Countries with  missing data ----
   md <- lkup$aux_files$missing_data
 
   ### Filter by year  -----
   md <-
     if (is.character(year)) {
-      md[country_code %in% ctr_agg]
+      md[country_code %in% ctr_alt_agg]
     } else {
       nyear <- year
-      md[country_code %in% ctr_agg & year %in% nyear]
+      md[country_code %in% ctr_alt_agg & year %in% nyear]
     }
 
   ## Get regional aggregate for countries with missing data ----
@@ -128,17 +155,19 @@ pip_grp_logic <- function(country         = "all",
   pop   <- lkup$aux_files$pop
   pop   <-
     data.table::melt(pop,
-                     id.vars = c('country_code', 'data_level'),
-                     variable.name = "year",
-                     value.name = "pop",
+                     id.vars         = c('country_code', 'data_level'),
+                     variable.name   = "year",
+                     value.name      = "reporting_pop",
                      variable.factor = FALSE,
-                     value.factor = FALSE)
+                     value.factor    = FALSE)
 
   pop <- pop[data_level == "national"
              ][,
                data_level := NULL
                ][,
                  year := as.numeric(year)]
+
+  # Filter pop with missing data countries
   pop_md <-
     pop[md,
       on = c("country_code", "year")]
@@ -179,29 +208,31 @@ pip_grp_logic <- function(country         = "all",
     debug           = debug
   )
 
-  # fix poverty line rounding
-
   l_fg <- vector(mode = "list", length = length(gt_code))
+
+  ### Split fg estimates by grouping type ============
 
   for (i in seq_along(gt_code)) {
     gt_var    <- gt_code[i]
-    filter_fg <- paste0(gt_var, " %in% country")
-    filter_fg <- parse(text = filter_fg)
+    filter_fg <-
+      paste0(gt_var, " %in% country") |>
+      {\(.) parse(text = .) }()
+
     dt        <- fg[eval(filter_fg)]
 
     l_fg[[i]] <- dt
   }
-  debugonce(pip_aggregate)
+
 
   ## Append with countries with missing data -----
   dt <- l_fg[[1]]
-
   dd <- data.table::rbindlist(list(dt, pop_md_grp),
                               use.names = TRUE,
                               fill = TRUE)
 
 
 
+  # debugonce(pip_aggregate)
   de <- pip_aggregate(dd, gt_code[1])
 
 
