@@ -8,7 +8,7 @@ ui_pc_regional(
   country = "all",
   year = "all",
   povline = 1.9,
-  pop_units = 1000000,
+  pop_units = 1e+06,
   lkup
 )
 }

@@ -1,0 +1,181 @@
+---
+title: "Logic of alternative aggregations"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Logic of alternative aggregations}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Set up
+
+Make sure you update your local folder (`PIPAPI_DATA_ROOT_FOLDER_LOCAL`) by following the steps in `vignette("two-create-testing-data.Rmd")`. 
+
+
+```{r setup}
+library(pipapi)
+options(joyn.verbose = FALSE)
+data_dir <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+
+lkups <- create_versioned_lkups(data_dir = data_dir,  
+                                vintage_pattern = "TEST$")
+
+lkup <-  lkups$versions_paths$`20220810_2017_01_02_TEST`
+
+# default parameters
+year             <- c(1990, 2000, 2020)
+povline          <-  2.25
+popshare         <-  NULL
+group_by         <-  c("wb")
+welfare_type     <-  c("all")
+reporting_level  <-  c("all")
+debug            <-  FALSE
+censor           <-  TRUE
+
+```
+
+# Examples
+
+
+## regular official regions
+
+The estimates of `pip_grp_logic()` are the same as `pip_grp()` when all the regions selected belong to the official regions.
+```{r}
+country <- c("SSA", "LAC")
+
+de <- 
+pip_grp_logic(
+    country         =  country,
+    year            =  year,
+    povline         =  povline,
+    popshare        =  popshare,
+    group_by        =  group_by,
+    welfare_type    =  welfare_type,
+    reporting_level =  reporting_level,
+    lkup            =  lkup,
+    debug           =  debug,
+    censor          =  censor
+  )
+
+de[, .(region_code, reporting_year, poverty_line, headcount, pop_in_poverty)]
+
+
+dc <- 
+  pip_grp(
+    country         =  country,
+    year            =  year,
+    povline         =  povline,
+    popshare        =  popshare,
+    group_by        =  group_by,
+    welfare_type    =  welfare_type,
+    reporting_level =  reporting_level,
+    lkup            =  lkup,
+    debug           =  debug,
+    censor          =  censor
+  )
+
+waldo::compare(de, dc)
+
+```
+
+# One alternative aggregate within one  official  region
+
+In this case "AFE" is part of "SSA", so the estimates of "SSA" will be inputed the countries with missing data in "AFE". Also, the estimates of "LAC" are calculated independently from the rest and then appended to the final outcome.
+
+```{r alt-witih-official}
+country <- c("AFE", "SSA", "LAC")
+
+de <- 
+pip_grp_logic(
+    country         =  country,
+    year            =  year,
+    povline         =  povline,
+    popshare        =  popshare,
+    group_by        =  group_by,
+    welfare_type    =  welfare_type,
+    reporting_level =  reporting_level,
+    lkup            =  lkup,
+    debug           =  debug,
+    censor          =  censor
+  )
+
+de[, .(region_code, reporting_year, poverty_line, headcount, pop_in_poverty)]
+
+```
+
+The results for the official aggregations remain the same as with `pip_grp()`
+
+```{r compare-with-grp}
+de2 <- de[region_code %in% c("SSA", "LAC")]
+data.table::setcolorder(de2, names(dc))
+
+waldo::compare(de2, dc)
+
+```
+
+
+## multiple alternative aggregations  and official  aggregation
+
+
+```{r multiple-grouping-type}
+country <- c("AFE", "SSA", "LAC", "AFW", "LIC")
+
+de <- 
+pip_grp_logic(
+    country         =  country,
+    year            =  year,
+    povline         =  povline,
+    popshare        =  popshare,
+    group_by        =  group_by,
+    welfare_type    =  welfare_type,
+    reporting_level =  reporting_level,
+    lkup            =  lkup,
+    debug           =  debug,
+    censor          =  censor
+  )
+
+de[, .(region_code, reporting_year, poverty_line, headcount, pop_in_poverty)]
+```
+
+
+The results for the official aggregations remain the same as with `pip_grp()`
+
+```{r compare-with-grp2}
+de2 <- de[region_code %in% c("SSA", "LAC")]
+data.table::setcolorder(de2, names(dc))
+
+waldo::compare(de2, dc)
+
+```
+
+
+## Just alternative aggregattons
+
+```{r just-alt-aggr}
+country <- c("AFE", "AFW", "LIC", "IDX")
+
+de <- 
+pip_grp_logic(
+    country         =  country,
+    year            =  year,
+    povline         =  povline,
+    popshare        =  popshare,
+    group_by        =  group_by,
+    welfare_type    =  welfare_type,
+    reporting_level =  reporting_level,
+    lkup            =  lkup,
+    debug           =  debug,
+    censor          =  censor
+  )
+
+de[, .(region_code, reporting_year, poverty_line, headcount, pop_in_poverty)]
+```
+
+

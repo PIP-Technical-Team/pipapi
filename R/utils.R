@@ -42,12 +42,12 @@ subset_lkup <- function(country,
     # Select regions
     if (any(country %in% valid_regions)) {
       selected_regions <- country[country %in% valid_regions]
-      keep_regions <- lkup$region_code %in% selected_regions
+      keep_regions     <- lkup$region_code %in% selected_regions
     } else {
       keep_regions <- rep(FALSE, length(lkup$country_code))
     }
     keep_countries <- lkup$country_code %in% country
-    keep <- keep & (keep_countries | keep_regions)
+    keep           <- keep & (keep_countries | keep_regions)
   }
   # Select years
   if (year[1] == "mrv") {
