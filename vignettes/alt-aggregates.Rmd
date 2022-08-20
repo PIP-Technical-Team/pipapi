@@ -1,0 +1,72 @@
+---
+title: "Logic of alternative aggregations"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Logic of alternative aggregations}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(pipapi)
+data_dir <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+
+lkups <- create_versioned_lkups(data_dir = data_dir,  
+                                vintage_pattern = "TEST$")
+
+lkup <-  lkups$versions_paths$`20220810_2017_01_02_TEST`
+
+# default parameters
+year             <- c(1990, 2000, 2020)
+povline          <-  2.25
+popshare         <-  NULL
+group_by         <-  c("none")
+welfare_type     <-  c("all")
+reporting_level  <-  c("all")
+debug            <-  FALSE
+censor           <-  TRUE
+
+```
+
+
+```{r}
+country <- c("SSA", "LAC")
+
+de <- 
+pip_grp_logic(
+    country         =  country,
+    year            =  year,
+    povline         =  povline,
+    popshare        =  popshare,
+    group_by        =  group_by,
+    welfare_type    =  welfare_type,
+    reporting_level =  reporting_level,
+    lkup            =  lkup,
+    debug           =  debug,
+    censor          =  censor
+  )
+
+de[, .(region_code, reporting_year, poverty_line, headcount, pop_in_poverty)]
+
+```
+
+
+
+```{r}
+country <- c("AFE", "SSA", "LAC")
+
+```
+
+
+
+```{r multiple-grouping-type}
+country <- c("AFE", "SSA", "LAC", "AFW", "LIC")
+```
+
