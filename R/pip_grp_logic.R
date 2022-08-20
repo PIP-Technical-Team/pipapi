@@ -186,6 +186,8 @@ pip_grp_logic <- function(country         = "all",
           debug           =  debug,
           censor          =  censor)
 
+  names_grp <- names(grp)
+
   ### Prepare grp to be merge with pop_md
   grp[,
       c("reporting_pop", "pop_in_poverty") := NULL]
@@ -299,6 +301,7 @@ pip_grp_logic <- function(country         = "all",
   } else {
     ret <- de
   }
+  data.table::setcolorder(ret, names_grp)
 
   #   ____________________________________________________________________
   #   Return                                                         ####
