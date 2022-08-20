@@ -336,14 +336,24 @@ check_inputs_pip_grp_logic <- function(country,
     }
   } else if (is.numeric(year)) {
     ref_years <- lkup$valid_years$valid_interpolated_years
-    if (!any(year %in% ref_years)) {
 
+    no_year <- year[!year %in%  ref_years]
+    any_year <- any(year %in%  ref_years)
+
+    if (!any_year) {
       msg     <- c(
         "{.file {as.character(year)}} {?is/are} an invalid value for
         {.field year}",
         "x" = "If {.field year} is numeric, at least one of its elements
         should belong to this list, \n {.file {ref_years}}")
       cli::cli_abort(msg,class = "pipapi_error")
+    } else if (length(no_year) > 0) {
+      msg     <- c(
+        "{.file {as.character(no_year)}} {?is/are} outside the valid
+        range for {.field year}",
+        "x" = "If {.field year} is numeric, at least one of its elements
+        should belong to this list, \n {.file {ref_years}}")
+      cli::cli_warn(msg)
     }
   } else {
     msg     <- c(
