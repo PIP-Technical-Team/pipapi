@@ -45,7 +45,11 @@ pip_grp_logic <- function(country         = "all",
 
   ## Regions available ----------
   aggs    <- lkup$aux_files$regions  ## all aggregates
-  off_reg <- lkup$query_controls$region$values # Official regions
+
+  # TODO change for lkup$aux_files$regions
+  off_reg <- lkup$aux_files$regions[grouping_type == "region",
+                               region_code]
+  off_reg <- c("all", off_reg, "WLD")
 
   # reg_av <- aggs$region_code
   region_code <- country_code <- NULL
