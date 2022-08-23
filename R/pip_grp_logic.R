@@ -46,7 +46,7 @@ pip_grp_logic <- function(country         = "all",
   ## Regions available ----------
   aggs    <- lkup$aux_files$regions  ## all aggregates
 
-  # TODO change for lkup$aux_files$regions
+  # Official valid region codes
   off_reg <- lkup$aux_files$regions[grouping_type == "region",
                                region_code]
   off_reg <- c("all", off_reg, "WLD")
@@ -77,7 +77,7 @@ pip_grp_logic <- function(country         = "all",
   ## Estimates for official aggregates
 
   if ("region" %in% grouping_type) {
-    # working grouping_type
+    # Non-official grouping_type
     gt <- grouping_type[grouping_type != "region"]
 
     # official regions selected by the user
@@ -107,16 +107,10 @@ pip_grp_logic <- function(country         = "all",
 
   ## Countries in aggregate --------
 
-  #Find out all the countries that belong to
-  #the aggregates requested by the user
-
   cl        <- lkup$aux_files$country_list
 
-  gt_code   <- paste0(gt, "_code")
-  filter_cl <- paste0(gt_code, " %in% alt_agg", collapse = " | ")
-  filter_cl <- parse(text = filter_cl)
-
-  ctr_agg   <- cl[eval(filter_cl), country_code]
+  #Find out all the countries that belong to
+  #ALTERNATIVE aggregates requested by the user
 
   # Get countries that belong to aggregates requested by the user that are NOT
   # official but alternative aggregates. We need to find out missing data
@@ -125,10 +119,9 @@ pip_grp_logic <- function(country         = "all",
   # because their estimates are done implicitly. We DO care about the estimates
   # of the missing countries in AFE because we need the explicit SSA estimates.
 
+  gt_code   <- paste0(gt, "_code")
 
-  ctr_alt_agg   <- gt |>
-    # add "_code" suffix
-    paste0("_code") |>
+  ctr_alt_agg   <- gt_code |>
     # Create filter for data.table
     paste0(" %in% alt_agg", collapse =  " | ") |>
     # parse the filter as unevaluated expression
@@ -158,17 +151,48 @@ pip_grp_logic <- function(country         = "all",
     rg_year    <- md[, unique(year)]
 
     if (!is.null(off_ret)) {
-      # TODO: filter rg_country and rg_year based on what have already been
+      # filter rg_country and rg_year based on what have already been
       # estimated
 
+      grp_computed <-
+        unique(off_ret[, .(region_code, reporting_year)])
+
+      grp_to_compute <-
+        expand.grid(region_code      = rg_country,
+                    reporting_year   = rg_year,
+                    stringsAsFactors = FALSE)  |>
+        data.table::as.data.table()
+
+      grp_to_compute <-
+        grp_to_compute[!grp_computed,
+                     on = c("region_code", "reporting_year")]
+
+      # filter region code and year to calculate
+      rg_country <- grp_to_compute[, unique(region_code)]
+      rg_year    <- grp_to_compute[, unique(year)]
+
+      if (length(rg_country) > 0) {
+        # If length of `rg_country` is still positive, we need to append the
+        # results previously calculated
+        grp_use <- "append"
+      } else {
+        # If length of `rg_country` is zero, we don't need to do any additional
+        # calculation, so the previously done calculation is used alone
+        grp_use <- "alone"
+      }
+
+    } else {
+      # If there is no previous calculation, there is nothing to use from
+      # before.
+      grp_use <- "not"
     }
 
     md_ctrs <- md[, unique(country_code)] # missing data countries
-    sv_ctr  <- ctr_agg[which(!ctr_agg %in% md_ctrs)] # survey countries
+    sv_ctr  <- ctr_alt_agg[which(!ctr_alt_agg %in% md_ctrs)] # survey countries
 
   } else {
     md_ctrs <- NULL # missing data countries
-    sv_ctr  <- ctr_agg  # survey countries
+    sv_ctr  <- ctr_alt_agg  # survey countries
   }
 
   #   ________________________________________________________
@@ -176,19 +200,32 @@ pip_grp_logic <- function(country         = "all",
 
   ## regional aggregates to be imputed -------
 
-  # There might be some redundancy for estimating the same region twice. We need
-  # to fix this with some conditionals
-  grp <-
-    pip_grp(country       =  rg_country,
-          year            =  rg_year,
-          povline         =  povline,
-          popshare        =  popshare,
-          group_by        =  "wb",
-          welfare_type    =  welfare_type,
-          reporting_level =  reporting_level,
-          lkup            =  lkup,
-          debug           =  debug,
-          censor          =  censor)
+  # If we want to append previous calculations or there is no previous
+  # calculation of off regions but we still have to input to missing data
+  # countries, we estimate official region estimates for such countries
+
+  if (grp_use %in% c("append", "not")) {
+
+    grp <-
+      pip_grp(country       =  rg_country,
+            year            =  rg_year,
+            povline         =  povline,
+            popshare        =  popshare,
+            group_by        =  "wb",
+            welfare_type    =  welfare_type,
+            reporting_level =  reporting_level,
+            lkup            =  lkup,
+            debug           =  debug,
+            censor          =  censor)
+
+    if (grp_use == "append") {
+      grp <- data.table::rbindlist(list(off_ret, grp))
+    }
+
+  } else {
+    # If previous estimations are enough, we don't need to do any estimation.
+    grp <- off_ret
+  }
 
   names_grp <- names(grp)
 
