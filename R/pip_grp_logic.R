@@ -46,7 +46,7 @@ pip_grp_logic <- function(country         = "all",
   ## Regions available ----------
   aggs    <- lkup$aux_files$regions  ## all aggregates
 
-  # TODO change for lkup$aux_files$regions
+  # Official valid region codes
   off_reg <- lkup$aux_files$regions[grouping_type == "region",
                                region_code]
   off_reg <- c("all", off_reg, "WLD")
@@ -77,7 +77,7 @@ pip_grp_logic <- function(country         = "all",
   ## Estimates for official aggregates
 
   if ("region" %in% grouping_type) {
-    # working grouping_type
+    # Non-official grouping_type
     gt <- grouping_type[grouping_type != "region"]
 
     # official regions selected by the user
@@ -108,15 +108,15 @@ pip_grp_logic <- function(country         = "all",
   ## Countries in aggregate --------
 
   #Find out all the countries that belong to
-  #the aggregates requested by the user
+  #ALTERNATIVE aggregates requested by the user
 
   cl        <- lkup$aux_files$country_list
 
   gt_code   <- paste0(gt, "_code")
-  filter_cl <- paste0(gt_code, " %in% alt_agg", collapse = " | ")
-  filter_cl <- parse(text = filter_cl)
-
-  ctr_agg   <- cl[eval(filter_cl), country_code]
+  # filter_cl <- paste0(gt_code, " %in% alt_agg", collapse = " | ")
+  # filter_cl <- parse(text = filter_cl)
+  #
+  # ctr_alt_agg   <- cl[eval(filter_cl), country_code]
 
   # Get countries that belong to aggregates requested by the user that are NOT
   # official but alternative aggregates. We need to find out missing data
@@ -126,9 +126,7 @@ pip_grp_logic <- function(country         = "all",
   # of the missing countries in AFE because we need the explicit SSA estimates.
 
 
-  ctr_alt_agg   <- gt |>
-    # add "_code" suffix
-    paste0("_code") |>
+  ctr_alt_agg   <- gt_code |>
     # Create filter for data.table
     paste0(" %in% alt_agg", collapse =  " | ") |>
     # parse the filter as unevaluated expression
@@ -164,11 +162,11 @@ pip_grp_logic <- function(country         = "all",
     }
 
     md_ctrs <- md[, unique(country_code)] # missing data countries
-    sv_ctr  <- ctr_agg[which(!ctr_agg %in% md_ctrs)] # survey countries
+    sv_ctr  <- ctr_alt_agg[which(!ctr_alt_agg %in% md_ctrs)] # survey countries
 
   } else {
     md_ctrs <- NULL # missing data countries
-    sv_ctr  <- ctr_agg  # survey countries
+    sv_ctr  <- ctr_alt_agg  # survey countries
   }
 
   #   ________________________________________________________
