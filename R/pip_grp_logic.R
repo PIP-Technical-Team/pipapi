@@ -114,7 +114,7 @@ pip_grp_logic <- function(country         = "all",
 
   } else {
     # If previous estimations are enough, we don't need to do any estimation.
-    grp <- off_ret
+    grp <- data.table::copy(off_ret)
   }
 
   names_grp <- names(grp)
@@ -145,7 +145,7 @@ pip_grp_logic <- function(country         = "all",
                   all.x = TRUE)
 
 
-  ## Fill gaps estimates with countries with Survey -----
+  ## Fill gaps estimates with countries with Survey  -----
   fg <- fg_pip(
     country         = lcv$fg_ctrs,
     year            = year,
@@ -199,6 +199,8 @@ pip_grp_logic <- function(country         = "all",
   de <- data.table::rbindlist(ld, use.names = TRUE)
   rm(ld)
 
+  vars_to_keep <- names(off_ret)
+  # de[, ]
 
   # Append official regions with Alt aggregates ---------
 

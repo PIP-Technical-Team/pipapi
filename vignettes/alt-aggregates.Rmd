@@ -30,7 +30,7 @@ lkups <- create_versioned_lkups(data_dir = data_dir,
 lkup <-  lkups$versions_paths$`20220810_2017_01_02_TEST`
 
 # default parameters
-year             <- c(1990, 2000, 2020)
+year             <- c(1990, 2000, 2018)
 povline          <-  2.25
 popshare         <-  NULL
 group_by         <-  c("wb")
