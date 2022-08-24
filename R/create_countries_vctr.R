@@ -11,8 +11,6 @@
 create_countries_vctr <- function(country,
                                   year,
                                   lkup) {
-#   ____________________________________________________________________________
-#   Computations                                                            ####
   #   ___________________________________________________________________
   #   Get Data Availability                                       ####
 
@@ -57,9 +55,25 @@ create_countries_vctr <- function(country,
     alt_agg       <- country
   }
 
+
+  # Early Return ---------
+  if (off_alt_agg == "off") {
+    lret <- list(md_ctrs          = NULL,
+                 fg_ctrs          = NULL,
+                 off_regs_to_input = NULL,
+                 years_to_input   = NULL,
+                 off_alt_agg      = NULL,
+                 grp_use          = NULL,
+                 missing_data     = NULL,
+                 gt_code          = NULL,
+                 off_regs_user    = off_regs_user,
+                 alt_agg_user     = alt_agg
+                 )
+    return(lret)
+  }
+
   ## Countries in aggregate --------
 
-  cl        <- lkup$aux_files$country_list
 
   #Find out all the countries that belong to
   #ALTERNATIVE aggregates requested by the user
@@ -71,6 +85,7 @@ create_countries_vctr <- function(country,
   # because their estimates are done implicitly. We DO care about the estimates
   # of the missing countries in AFE because we need the explicit SSA estimates.
 
+  cl        <- lkup$aux_files$country_list
   gt_code   <- paste0(gt, "_code")
 
   ctr_alt_agg   <- gt_code |>
@@ -102,12 +117,15 @@ create_countries_vctr <- function(country,
     rg_country <- md[, unique(region_code)]
     rg_year    <- md[, unique(year)]
 
-    if (!is.null(off_ret)) {
+    if (off_alt_agg == "both") {
       # filter rg_country and rg_year based on what have already been
       # estimated
 
       grp_computed <-
-        unique(off_ret[, .(region_code, reporting_year)])
+        expand.grid(region_code      = off_regs_user,
+                    reporting_year   = year,
+                    stringsAsFactors = FALSE) |>
+        data.table::as.data.table()
 
       grp_to_compute <-
         expand.grid(region_code      = rg_country,
@@ -140,18 +158,31 @@ create_countries_vctr <- function(country,
     }
 
     md_ctrs <- md[, unique(country_code)] # missing data countries
-    sv_ctr  <- ctr_alt_agg[which(!ctr_alt_agg %in% md_ctrs)] # survey countries
+    fg_ctrs <- ctr_alt_agg[which(!ctr_alt_agg %in% md_ctrs)] # survey countries
 
-  } else {
-    md_ctrs <- NULL # missing data countries
-    sv_ctr  <- ctr_alt_agg  # survey countries
+  } else { # if yes_md == FALSE
+    md_ctrs    <- NULL # missing data countries
+    fg_ctrs     <- ctr_alt_agg  # survey countries
+    rg_country <- NULL
+    rg_year    <- NULL
   }
 
 
 
-
-#   ____________________________________________________________________________
-#   Return                                                                  ####
-  return(TRUE)
+#   _____________________________________________________________________
+#   Return                                                           ####
+  lret <- list(
+    md_ctrs          = md_ctrs,
+    fg_ctrs          = fg_ctrs,
+    off_regs_to_input = rg_country,
+    years_to_input   = rg_year,
+    off_alt_agg      = off_alt_agg,
+    grp_use          = grp_use,
+    missing_data     = md,
+    gt_code          = gt_code,
+    off_regs_user    = off_regs_user,
+    alt_agg_user     = alt_agg
+  )
+  return(lret)
 
 }
