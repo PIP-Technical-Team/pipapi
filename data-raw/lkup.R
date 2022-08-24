@@ -110,3 +110,7 @@ lkups <- create_versioned_lkups(data_dir = data_dir,
 lkup <-  lkups$versions_paths[[ver]]
 
 usethis::use_data(lkup, overwrite = TRUE)
+
+saveRDS(lkup, "tests/testthat/testdata/lkup.rds")
+
+
