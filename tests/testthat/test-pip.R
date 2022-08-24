@@ -107,13 +107,16 @@ test_that("year selection is working", {
     fill_gaps = TRUE,
     lkup = lkup
   )
-  check <- max(lkup$ref_lkup$reporting_year)
+  check <- max(lkup$ref_lkup[country_code == "AGO"]$reporting_year)
   expect_equal(tmp$reporting_year, check)
 
   # Most recent year for all countries
   # Should return the most recent for each country
   # Therefore we expect having more than one year in the response
-  # Not a great unit test... To be improved
+  # Not a great unit test... be cause it will not be always true.
+  # The possibility exists that all countries will have the same maximum
+  # reporting year?
+  # To be improved
   tmp <- pip(
     country = "all",
     year = "mrv",
