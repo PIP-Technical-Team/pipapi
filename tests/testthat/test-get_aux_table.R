@@ -13,6 +13,9 @@ test_that("get_aux_table() works", {
     get_aux_table(data_folder_root, table = x)
   })
   expect_equal(length(dl), length(tables))
+
+  gdp_long <- pipapi::get_aux_table(data_folder_root, "gdp", long_format = TRUE)
+  expect_equal(ncol(gdp_long), 4)
 })
 
 test_that("get_aux_table() returns an error", {

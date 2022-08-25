@@ -3,8 +3,10 @@
 ## New features
 - [Add new endpoint to support country profile downloads](https://github.com/PIP-Technical-Team/pipapi/pull/283)
 - [Add separate arguments to select release and ppp version](https://github.com/PIP-Technical-Team/pipapi/issues/265)
-
+ 
 ## Enhancements
+- [Disable popshare option for pip_grp and aggregate distributions](https://github.com/PIP-Technical-Team/pipapi/pull/274)
+- [Allow /aux endpoint to return data in long format](https://github.com/PIP-Technical-Team/pipapi/issues/272)
 
 # pipapi 1.1.0
 

@@ -35,37 +35,17 @@ subset_lkup <- function(country,
                         lkup,
                         valid_regions) {
 
-  keep <- TRUE
-  # Select data files based on requested country, year, etc.
-  # Select countries
-  if (!any(c("all", "WLD") %in% country)) {
-    # Select regions
-    if (any(country %in% valid_regions)) {
-      selected_regions <- country[country %in% valid_regions]
-      keep_regions     <- lkup$region_code %in% selected_regions
-    } else {
-      keep_regions <- rep(FALSE, length(lkup$country_code))
-    }
-    keep_countries <- lkup$country_code %in% country
-    keep           <- keep & (keep_countries | keep_regions)
-  }
-  # Select years
-  if (year[1] == "mrv") {
-    if (!any(c("all", "WLD") %in% country)) {
-      max_year <- max(lkup[country_code == country]$reporting_year)
-    } else {
-      max_year <- max(lkup$reporting_year)
-    }
-    keep <- keep & lkup$reporting_year %in% max_year
-  }
-  if (!year[1] %in% c("all", "mrv")) {
-    keep <- keep & lkup$reporting_year %in% year
-  }
-  # Select welfare_type
+  # STEP 1 - Keep every row by default
+  keep <- rep(TRUE, nrow(lkup))
+  # STEP 2 - Select countries
+  keep <- select_country(lkup, keep, country, valid_regions)
+  # STEP 3 - Select years
+  keep <- select_years(lkup, keep, year, country)
+  # STEP 4 - Select welfare_type
   if (welfare_type[1] != "all") {
     keep <- keep & lkup$welfare_type == welfare_type
   }
-  # Select survey coverage
+  # STEP 5 - Select reporting_level
   keep <- select_reporting_level(lkup = lkup,
                                  keep = keep,
                                  reporting_level = reporting_level[1])
@@ -73,6 +53,29 @@ subset_lkup <- function(country,
   lkup <- lkup[keep, ]
 
   return(lkup)
+}
+
+#' Helper to filter metadata
+#' aggregate distribution need to be filtered out when popshare is not null
+#' This is a temporary function until a full fix is implemented, and popshare is
+#' supported for all distributions
+#'
+#' @param metadata data.frame: Output of `subset_lkup()`
+#' @param popshare numeric: popshare value passed to `pip()`
+#'
+#' @return data.frame
+
+filter_lkup <- function(metadata,
+                        popshare) {
+  # popshare option not supported for aggregate distributions
+  if (!is.null(popshare)) {
+    return(
+      metadata[metadata$distribution_type != "aggregate", ]
+    )
+  } else {
+    return(metadata)
+  }
+
 }
 
 
@@ -331,7 +334,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     type = "numeric"
   )
   # Fill gaps
-  fill_gaps <- aggregate <- list(
+  fill_gaps <- aggregate <- long_format <- list(
     values = c(TRUE, FALSE),
     type = "logical"
   )
@@ -380,7 +383,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format", "table"),
+                    "format", "table", "long_format"),
          type = "character")
   # Endpoint
   endpoint <-
@@ -401,6 +404,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     popshare        = popshare,
     fill_gaps       = fill_gaps,
     aggregate       = aggregate,
+    long_format     = long_format,
     group_by        = group_by,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
@@ -497,3 +501,59 @@ clear_cache <- function(cd) {
   })
 }
 
+#' select_country
+#' Helper function for subset_lkup()
+#' @inheritParams subset_lkup
+#' @param keep logical vector
+#' @return logical vector
+select_country <- function(lkup, keep, country, valid_regions) {
+  # Select data files based on requested country, year, etc.
+  # Select countries
+  if (!any(c("ALL", "WLD") %in% toupper(country))) {
+    # Select regions
+    if (any(country %in% valid_regions)) {
+      selected_regions <- country[country %in% valid_regions]
+      keep_regions <- lkup$region_code %in% selected_regions
+    } else {
+      keep_regions <- rep(FALSE, length(lkup$country_code))
+    }
+    keep_countries <- lkup$country_code %in% country
+    keep <- keep & (keep_countries | keep_regions)
+  }
+  return(keep)
+}
+
+#' select_years
+#' Helper function for subset_lkup()
+#' @inheritParams subset_lkup
+#' @param keep logical vector
+#' @return logical vector
+select_years <- function(lkup, keep, year, country) {
+  year <- toupper(year)
+  country <- toupper(country)
+  keep_years <- rep(TRUE, nrow(lkup))
+  # STEP 1 - If Most Recent Value requested
+  if ("MRV" %in% year) {
+    # STEP 1.1 - If all countries selected. Select MRV for each country
+    if (any(c("ALL", "WLD") %in% country)) {
+      lkup[,
+           max_year := reporting_year == max(reporting_year),
+           by = country_code]
+    } else {
+      # STEP 1.2 - If only some countries selected. Select MRV for each selected country
+      lkup[lkup$country_code %in% country,
+           max_year := reporting_year == max(reporting_year),
+           by = country_code]
+    }
+    keep_years <- keep_years & as.logical(lkup[["max_year"]]) # Not sure why max_year is being created as a character vector...?
+  }
+  # STEP 2 - If specific years are specified. Filter for these years
+  if (!any(c("ALL", "MRV") %in% year)) {
+    keep_years <- keep_years & lkup$reporting_year %in% year
+
+  }
+
+  # STEP 3 - Otherwise return all years
+  keep <- keep & keep_years
+  return(keep)
+}
