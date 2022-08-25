@@ -338,20 +338,21 @@ function(req, res) {
 #* @get /api/v1/aux
 #* @param table:[chr] Auxiliary data table to be returned
 #* @param version:[chr] Data version. Defaults to latest versions. See api/v1/versions (add filter for version validation and default selection)
+#* @param long_format:[bool] Data in long format
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
   params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[params$version]]
-  params$format <- NULL
-  params$version <- NULL
-
   if (is.null(req$args$table)) {
-    out <- data.frame(tables = params$lkup$aux_tables)
+    # return all available tables if none selected
+    list_of_tables <- lkups$versions_paths[[params$version]]$aux_tables
+    out <- data.frame(tables = list_of_tables)
   } else {
-    out <- pipapi::get_aux_table(
-      data_dir = params$lkup$data_root,
-      table = req$args$table)
+    # Return only requested table
+    params$data_dir <- lkups$versions_paths[[params$version]]$data_root
+    params$format <- NULL
+    params$version <- NULL
+    out <- do.call(pipapi::get_aux_table, params)
   }
   attr(out, "serialize_format") <- req$argsQuery$format
   out
