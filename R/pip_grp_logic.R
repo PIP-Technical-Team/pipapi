@@ -27,18 +27,18 @@ pip_grp_logic <- function(country         = "all",
 
   #   ______________________________________________________________
   #   Defenses                                                ####
-  check_inputs_pip_grp_logic(
-    country         =  country,
-    year            =  year,
-    povline         =  povline,
-    popshare        =  popshare,
-    group_by        =  group_by,
-    welfare_type    =  welfare_type,
-    reporting_level =  reporting_level,
-    lkup            =  lkup,
-    debug           =  debug,
-    censor          =  censor
-  )
+  # check_inputs_pip_grp_logic(
+  #   country         =  country,
+  #   year            =  year,
+  #   povline         =  povline,
+  #   popshare        =  popshare,
+  #   group_by        =  group_by,
+  #   welfare_type    =  welfare_type,
+  #   reporting_level =  reporting_level,
+  #   lkup            =  lkup,
+  #   debug           =  debug,
+  #   censor          =  censor
+  # )
 
   #   ___________________________________________________________________
   #   filter countries and years                                 ####
@@ -217,83 +217,5 @@ pip_grp_logic <- function(country         = "all",
   #   ____________________________________________________________________
   #   Return                                                         ####
   return(ret)
-
-}
-
-
-#' Check parameters of pip_grp_logic
-#'
-#' @inheritParams pip_grp_logic
-#' @return `invsible(TRUE)`
-check_inputs_pip_grp_logic <- function(country,
-                                       year,
-                                       povline,
-                                       popshare,
-                                       group_by,
-                                       welfare_type,
-                                       reporting_level,
-                                       lkup,
-                                       debug,
-                                       censor) {
-
-# Year ---------
-  if (is.character(year)) {
-    if (!year %in% c("all", "WLD")) {
-      msg     <- c(
-        "{.file {year}} is an invalid value for {.field year}",
-        "x" = "If {.field year} is character, it must be either
-        {.file all} or {.file WLD}")
-      cli::cli_abort(msg,class = "pipapi_error")
-    }
-  } else if (is.numeric(year)) {
-    ref_years <- lkup$valid_years$valid_interpolated_years
-
-    no_year <- year[!year %in%  ref_years]
-    any_year <- any(year %in%  ref_years)
-
-    if (!any_year) {
-      msg     <- c(
-        "{.file {as.character(year)}} {?is/are} an invalid value for
-        {.field year}",
-        "x" = "If {.field year} is numeric, at least one of its elements
-        should belong to this list, \n {.file {ref_years}}")
-      cli::cli_abort(msg,class = "pipapi_error")
-    } else if (length(no_year) > 0) {
-      msg     <- c(
-        "{.file {as.character(no_year)}} {?is/are} outside the valid
-        range for {.field year}",
-        "x" = "If {.field year} is numeric, at least one of its elements
-        should belong to this list, \n {.file {ref_years}}")
-      cli::cli_warn(msg)
-    }
-  } else {
-    msg     <- c(
-      "{.field year} must be either character or numeric",
-      "*" = "If {.strong character}, it must be either {.file all} or
-      {.file WLD}",
-      "*" = "If {.strong numeric}, at least one of its elements
-        should belong to this list, \n {.file {ref_years}}"
-    )
-    cli::cli_abort(msg,class = "pipapi_error")
-
-  }
-
-# Country and regions availability ------------
-  regs   <- lkup$aux_files$regions
-  reg_av <- regs$region_code
-
-  not_av <- country[!country %in% reg_av]
-
-  if (length(not_av) > 0) {
-    msg     <- c(
-      "region{?s} {.file {not_av}} in paraneter {.field country}
-      {?is/are} not available",
-      "*" = "It must be one of the following, {.file {reg_av}}")
-    cli::cli_abort(msg, class = "pipapi_error")
-  }
-
-
-# Return -------------
-  return(invisible(TRUE))
 
 }
