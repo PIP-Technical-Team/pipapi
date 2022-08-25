@@ -1,4 +1,11 @@
-ref_lkup <- fst::read_fst("../testdata/app_data/20210401/estimations/interpolated_means.fst")
+# skip("have no idea where this file is `../testdata/app_data/20210401/estimations/interpolated_means.fst`")
+lkup_path <- test_path("testdata", "lkup.rds")
+lkup      <- readRDS(lkup_path)
+
+int_means_path <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"),
+                           "20220810_2017_01_02_TEST/estimations/interpolated_means.fst")
+
+ref_lkup <- fst::read_fst(int_means_path)
 ref_lkup$region_code <- ref_lkup$wb_region_code
 valid_regions <- sort(unique(ref_lkup$region_code))
 # ref_lkup <- fst::read_fst("./tests/testdata/app_data/20210401/estimations/interpolated_means.fst")
@@ -16,7 +23,9 @@ test_that("select_reporting_level is working as expected", {
                                 reporting_level = "national")
   # Accounting for aggregate distribution does make a difference here
   # CHECK THAT THIS IS THE CORRECT BEHAVIOR
-  expect_equal(sum(tmp), 179)
+
+  nat_n <- ref_lkup[reporting_level == "national", .N ]
+  expect_equal(sum(tmp), nat_n)
 
   tmp <- select_reporting_level(lkup = ref_lkup,
                                 keep = keep,
@@ -24,13 +33,16 @@ test_that("select_reporting_level is working as expected", {
   # Deals with the case of Argentina: 6 records where survey covertage is "urban"
   # while reporting_level is "national"
   # CHECK THAT THIS IS THE CORRECT BEHAVIOR
-  expect_equal(sum(tmp), 6)
+
+  urb_n <- ref_lkup[reporting_level == "urban", .N ]
+  expect_equal(sum(tmp), urb_n)
 
   tmp <- select_reporting_level(lkup = ref_lkup,
                                 keep = keep,
                                 reporting_level = "rural")
   # CHECK THAT THIS IS THE CORRECT BEHAVIOR
-  expect_equal(sum(tmp), 2)
+  rur_n <- ref_lkup[reporting_level == "rural", .N ]
+  expect_equal(sum(tmp), rur_n)
 })
 
 test_that("subset_lkup correctly selects all countries", {
