@@ -343,19 +343,16 @@ function(req, res) {
 #* @serializer switch
 function(req) {
   params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[params$version]]
-  params$format <- NULL
-  params$version <- NULL
-  #Set default value as FALSE if long_format is not passed.
-  if(is.null(params$long_format)) params$long_format <- FALSE
-
   if (is.null(req$args$table)) {
-    out <- data.frame(tables = params$lkup$aux_tables)
+    # return all available tables if none selected
+    list_of_tables <- lkups$versions_paths[[params$version]]$aux_tables
+    out <- data.frame(tables = list_of_tables)
   } else {
-    out <- pipapi::get_aux_table(
-      data_dir = params$lkup$data_root,
-      table = req$args$table,
-      long_format = params$long_format)
+    # Return only requested table
+    params$data_dir <- lkups$versions_paths[[params$version]]$data_root
+    params$format <- NULL
+    params$version <- NULL
+    out <- do.call(pipapi::get_aux_table, params)
   }
   attr(out, "serialize_format") <- req$argsQuery$format
   out
