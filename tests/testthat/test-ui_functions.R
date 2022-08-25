@@ -2,11 +2,11 @@
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 
 # constants
-# lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
-# lkups <- lkups$versions_paths[[lkups$latest_release]]
+lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+lkups <- lkups$versions_paths[[lkups$latest_release]]
 
-lkup_path <- test_path("testdata", "lkup.rds")
-lkups      <- readRDS(lkup_path)
+# lkup_path <- test_path("testdata", "lkup.rds")
+# lkups      <- readRDS(lkup_path)
 
 
 
