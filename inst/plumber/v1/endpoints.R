@@ -195,6 +195,8 @@ function() {
 
 #* Check timestamp for the data
 #* @get /api/v1/data-timestamp
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer unboxedJSON
 function(req) {
@@ -204,6 +206,8 @@ function(req) {
 
 #* Get information on directory contents
 #* @get /api/v1/dir-info
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 function(req) {
   dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
@@ -222,6 +226,8 @@ function(req) {
 
 #* Check Github hash for the PIP packages
 #* @get /api/v1/gh-hash
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer unboxedJSON
 function(req) {
@@ -248,6 +254,8 @@ function(req) {
 
 #* Return valid parameters
 #* @get /api/v1/valid-params
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @param endpoint:[chr] Endpoint for which to return the valid parameters
@@ -306,9 +314,10 @@ function(req) {
 #* @param country:[chr] Country ISO3 code
 #* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
-#* @param popshare:[dbl] Share of the population living below the poverty Line.
 #* @param group_by:[chr] Select type of aggregation (simple weighted average or a pre-defined subgroup)
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* for all available versions
@@ -337,7 +346,9 @@ function(req, res) {
 #* Return auxiliary data table
 #* @get /api/v1/aux
 #* @param table:[chr] Auxiliary data table to be returned
-#* @param version:[chr] Data version. Defaults to latest versions. See api/v1/versions (add filter for version validation and default selection)
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param long_format:[bool] Data in long format
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
@@ -361,6 +372,8 @@ function(req) {
 
 #* Return poverty lines for home page display
 #* @get /api/v1/poverty-lines
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
@@ -370,6 +383,8 @@ function(req) {
 
 #* Return indicators master table
 #* @get /api/v1/indicators
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req) {
@@ -379,6 +394,8 @@ function(req) {
 
 #* Return list of variables used for decomposition
 #* @get /api/v1/decomposition-vars
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
@@ -389,6 +406,8 @@ function(req) {
 #* Return data for home page main chart
 #* @get /api/v1/hp-stacked
 #* @param povline:[dbl] Poverty Line
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
@@ -402,6 +421,8 @@ function(req) {
 
 #* Return data for home page country charts
 #* @get /api/v1/hp-countries
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
@@ -423,6 +444,8 @@ function(req) {
 #* @param group_by:[chr] Triggers sub-groups aggregation
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na = "null")
 function(req) {
@@ -447,6 +470,8 @@ function(req) {
 #* @param group_by:[chr] Triggers sub-groups aggregation
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer csv
 function(req) {
@@ -468,6 +493,8 @@ function(req) {
 #* @param country:[chr] Region code
 #* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
@@ -485,6 +512,8 @@ function(req) {
 #* @get /api/v1/cp-key-indicators
 #* @param country:[chr] Country ISO3 code
 #* @param povline:[dbl] Poverty Line
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req) {
@@ -499,6 +528,8 @@ function(req) {
 #* @get /api/v1/cp-charts
 #* @param country:[chr] Country ISO3 code
 #* @param povline:[dbl] Poverty Line
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
@@ -518,6 +549,8 @@ function(req) {
 #* @get /api/v1/cp-download
 #* @param country:[chr] Country ISO3 code
 #* @param povline:[dbl] Poverty Line
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer switch
 function(req) {
@@ -544,6 +577,8 @@ function(req) {
 #* Return data for the Data Sources page
 #* @get /api/v1/survey-metadata
 #* @param country:[chr] Country ISO3 code
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req) {
@@ -555,6 +590,8 @@ function(req) {
 
 #* Return valid years
 #* @get /api/v1/valid-years
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer switch
 function(req) {
