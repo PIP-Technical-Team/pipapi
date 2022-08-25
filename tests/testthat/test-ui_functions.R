@@ -2,15 +2,23 @@
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 
 # constants
-lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
-lkups <- lkups$versions_paths[[lkups$latest_release]]
+# lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+# lkups <- lkups$versions_paths[[lkups$latest_release]]
+
+lkup_path <- test_path("testdata", "lkup.rds")
+lkups      <- readRDS(lkup_path)
+
+
+
 set.seed(42)
 lkups$pl_lkup <- lkups$pl_lkup[sample(nrow(lkups$pl_lkup), 10)]
 lkups2 <- lkups
 lkups2$svy_lkup <- lkups2$svy_lkup[country_code %in% c('AGO', 'ZWE')]
 lkups2$ref_lkup <- lkups2$ref_lkup[country_code %in% c('AGO', 'ZWE')]
-dt_lac <- readRDS("../testdata/pip_lac_resp.rds")
-dt_sas <- readRDS("../testdata/pip_sas_resp.rds")
+
+
+dt_lac <- readRDS(test_path("testdata", "pip_lac_resp.rds"))
+dt_sas <- readRDS(test_path("testdata", "pip_sas_resp.rds"))
 
 test_that("ui_hp_stacked() works as expected", {
   res <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
@@ -344,16 +352,33 @@ test_that("ui_cp_charts() only returns first country if multiple countries are p
 })
 
 test_that("ui_svy_meta() works as expected", {
-  expected_names <- c("country_code", "reporting_year" , "survey_year",
-                      "survey_title", "survey_conductor",  "survey_coverage",
-                      "welfare_type",    "distribution_type", "metadata")
+  expected_names <-
+    c(
+      "country_code",
+      "country_name",
+      "reporting_year" ,
+      "survey_year",
+      "survey_title",
+      "survey_conductor",
+      "survey_coverage",
+      "welfare_type",
+      "distribution_type",
+      "metadata"
+    )
   expected_metadata <- c(
-    "surveyid_year", "survey_acronym",
-    "year_start", "year_end",
-    "authoring_entity_name", "abstract",
-    "collection_dates_cycle", "collection_dates_start",
-    "collection_dates_end", "sampling_procedure",
-    "collection_mode", "coll_situation", "weight",
+    "surveyid_year",
+    "survey_acronym",
+    "year_start",
+    "year_end",
+    "authoring_entity_name",
+    "abstract",
+    "collection_dates_cycle",
+    "collection_dates_start",
+    "collection_dates_end",
+    "sampling_procedure",
+    "collection_mode",
+    "coll_situation",
+    "weight",
     "cleaning_operations"
   )
 
@@ -361,17 +386,23 @@ test_that("ui_svy_meta() works as expected", {
   expect_equal(unique(res$country_code), "AGO")
   expect_equal(names(res),
                expected_names)
+
   expect_equal(
     names(res$metadata[[1]]),
     expected_metadata
   )
+
   res <- ui_svy_meta(country = "all", lkup = lkups)
+
   expect_true(all(unique(res$country_code) %in%
                     lkups$query_controls$country$values))
+
   expect_equal(names(res),
                expected_names)
+
   expect_equal(
     names(res$metadata[[1]]),
     expected_metadata
   )
+
 })
