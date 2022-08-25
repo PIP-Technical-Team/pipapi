@@ -1,3 +1,4 @@
+library(data.table)
 # skip("have no idea where this file is `../testdata/app_data/20210401/estimations/interpolated_means.fst`")
 lkup_path <- test_path("testdata", "lkup.rds")
 lkup      <- readRDS(lkup_path)
@@ -5,7 +6,7 @@ lkup      <- readRDS(lkup_path)
 int_means_path <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"),
                            "20220810_2017_01_02_TEST/estimations/interpolated_means.fst")
 
-ref_lkup <- fst::read_fst(int_means_path)
+ref_lkup <- fst::read_fst(int_means_path, as.data.table = TRUE)
 ref_lkup$region_code <- ref_lkup$wb_region_code
 valid_regions <- sort(unique(ref_lkup$region_code))
 # ref_lkup <- fst::read_fst("./tests/testdata/app_data/20210401/estimations/interpolated_means.fst")
