@@ -1,10 +1,12 @@
+# Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 library(data.table)
-# skip("have no idea where this file is `../testdata/app_data/20210401/estimations/interpolated_means.fst`")
-lkup_path <- test_path("testdata", "lkup.rds")
-lkup      <- readRDS(lkup_path)
+
+lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+lkups <- lkups$versions_paths[[lkups$latest_release]]
 
 int_means_path <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"),
-                           "20220810_2017_01_02_TEST/estimations/interpolated_means.fst")
+                           "20220810_2017_01_02_PROD/estimations/interpolated_means.fst")
 
 ref_lkup <- fst::read_fst(int_means_path, as.data.table = TRUE)
 ref_lkup$region_code <- ref_lkup$wb_region_code
@@ -25,7 +27,7 @@ test_that("select_reporting_level is working as expected", {
   # Accounting for aggregate distribution does make a difference here
   # CHECK THAT THIS IS THE CORRECT BEHAVIOR
 
-  nat_n <- ref_lkup[reporting_level == "national", .N ]
+  nat_n <- ref_lkup[reporting_level == "national" | is_used_for_aggregation == TRUE , .N ]
   expect_equal(sum(tmp), nat_n)
 
   tmp <- select_reporting_level(lkup = ref_lkup,
