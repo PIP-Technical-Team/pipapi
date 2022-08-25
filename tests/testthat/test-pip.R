@@ -339,7 +339,7 @@ test_that("pop_share option is working", {
   expect_equal(nrow(tmp), 1)
 })
 
-test_that("pop_share option is returning consisten results for single microdata distributions", {
+test_that("pop_share option is returning consistent results for single microdata distributions", {
   # Average poverty line
   povline <- 2.0
 
@@ -402,7 +402,7 @@ test_that("pop_share option is returning consisten results for single microdata 
   expect_equal(povline, round(ps$poverty_line, 0))
 })
 
-test_that("pop_share option is returning consisten results for single grouped distributions", {
+test_that("pop_share option is returning consistent results for single grouped distributions", {
   # Average poverty line
   povline <- 2.0
   country <- "MNG"
@@ -467,7 +467,7 @@ test_that("pop_share option is returning consisten results for single grouped di
   expect_equal(povline, round(ps$poverty_line, 0))
 })
 
-test_that("pop_share option is returning consisten results for single aggregate distributions", {
+test_that("pop_share option is returning consistent results for single aggregate distributions", {
   skip("popshare not working for aggregate distributions")
   # Average poverty line
   povline <- 2.0
@@ -537,6 +537,35 @@ test_that("pop_share option is returning consisten results for single aggregate 
 
   expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
   expect_equal(povline, round(ps$poverty_line, 0))
+})
+
+test_that("pop_share option is disabled for aggregate distributions", {
+  # popshare is currently not working with aggregate distribution and has been
+  # disabled
+
+  povline <- 2.0
+  country <- "CHN"
+  year <- 2018
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "CHN",
+    year = 2018,
+    popshare = .5,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(nrow(pl), 1)
+  expect_equal(nrow(ps), 0)
+  expect_equal(pl$distribution_type, "aggregate")
 })
 
 #Check pip country name case insensitive
