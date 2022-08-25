@@ -32,42 +32,6 @@ lkup             =  lkup
 )
 
 
-
-test_that("invalid parameters", {
-
-  country <- "FLE" # wrong names
-  lp$country <- country
-  expect_error(do.call(pip_grp_logic, lp))
-
-
-  country <- c("LAC", "FRE") # wrong names
-  lp$country <- country
-  expect_error(do.call(pip_grp_logic, lp))
-
-
-
-  country <- c("LAC") # right
-  year    <- c("BLAH") # right
-  lp$country <- country
-  lp$year    <- year
-  expect_error(do.call(pip_grp_logic, lp))
-
-
-
-  year    <- c(1970) # out of range
-  lp$country <- country
-  lp$year    <- year
-  expect_error(do.call(pip_grp_logic, lp))
-
-
-  year    <- c(1970, 2019) # out of range
-  lp$country <- country
-  lp$year    <- year
-  expect_warning(do.call(pip_grp_logic, lp))
-
-
-})
-
 test_that("expected results", {
 
   ## regular official regions
