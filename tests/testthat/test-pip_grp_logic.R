@@ -1,14 +1,21 @@
+
+# Following this solution: https://stackoverflow.com/a/71334780/11472481
+
 options(joyn.verbose = FALSE)
 
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 
-data_dir <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+lkup_path <- test_path("testdata", "lkup.rds")
+lkup      <- readRDS(lkup_path)
 
-lkups <- create_versioned_lkups(data_dir = data_dir,
-                                vintage_pattern = "TEST$")
-
-lkup <-  lkups$versions_paths$`20220810_2017_01_02_TEST`
+# skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
+#
+# data_dir <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+#
+# lkups <- create_versioned_lkups(data_dir = data_dir,
+#                                 vintage_pattern = "TEST$")
+#
+# lkup <-  lkups$versions_paths$`20220810_2017_01_02_TEST`
 
 # default parameters
 
