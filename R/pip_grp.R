@@ -18,7 +18,6 @@
 pip_grp <- function(country = "all",
                     year = "all",
                     povline = 1.9,
-                    # popshare = NULL,
                     group_by = c("none", "wb"),
                     welfare_type = c("all", "consumption", "income"),
                     reporting_level = c("all", "national"),
