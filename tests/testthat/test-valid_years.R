@@ -1,7 +1,7 @@
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 
 # constants
-tdir <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"), "20220810_2017_01_02_TEST")
+tdir <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"), "20220810_2017_01_02_PROD")
 
 test_that("valid_years returns expected output type", {
 
