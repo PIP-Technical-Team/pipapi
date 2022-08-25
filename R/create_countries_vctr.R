@@ -58,17 +58,17 @@ create_countries_vctr <- function(country,
 
   # Early Return ---------
   if (off_alt_agg == "off") {
-    lret <- list(md_ctrs          = NULL,
-                 fg_ctrs          = NULL,
+    lret <- list(md_ctrs           = NULL,
+                 fg_ctrs           = NULL,
                  off_regs_to_input = NULL,
-                 years_to_input   = NULL,
-                 off_alt_agg      = NULL,
-                 grp_use          = NULL,
-                 missing_data     = NULL,
-                 gt_code          = NULL,
-                 off_regs_user    = off_regs_user,
-                 alt_agg_user     = alt_agg,
-                 country_list     = NULL
+                 years_to_input    = NULL,
+                 off_alt_agg       = off_alt_agg,
+                 grp_use           = NULL,
+                 missing_data      = NULL,
+                 gt_code           = NULL,
+                 off_regs_user     = off_regs_user,
+                 alt_agg_user      = alt_agg,
+                 country_list      = NULL
                  )
     return(lret)
   }

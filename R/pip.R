@@ -83,6 +83,14 @@ pip <- function(country         = "all",
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
+  lcv <- # List with countries vectors
+    create_countries_vctr(
+      country         =  country,
+      year            =  year,
+      lkup            =  lkup
+    )
+
+
   if (fill_gaps) {
     # Compute imputed stats
     out <- fg_pip(
