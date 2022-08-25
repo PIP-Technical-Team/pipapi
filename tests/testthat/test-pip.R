@@ -6,11 +6,10 @@ skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 
 # files <- sub("[.]fst", "", list.files("../testdata/app_data/20210401/survey_data/"))
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
-# lkup <- lkups$versions_paths[[lkups$latest_release]]
+lkup <- lkups$versions_paths[[lkups$latest_release]]
 
-lkup_path <- test_path("testdata", "lkup.rds")
-lkup      <- readRDS(lkup_path)
-
+# lkup_path <- test_path("testdata", "lkup.rds")
+# lkup      <- readRDS(lkup_path)
 
 
 test_that("Reporting level filtering is working", {

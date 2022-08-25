@@ -67,7 +67,8 @@ create_countries_vctr <- function(country,
                  missing_data     = NULL,
                  gt_code          = NULL,
                  off_regs_user    = off_regs_user,
-                 alt_agg_user     = alt_agg
+                 alt_agg_user     = alt_agg,
+                 country_list     = NULL
                  )
     return(lret)
   }
@@ -181,7 +182,8 @@ create_countries_vctr <- function(country,
     missing_data     = md,
     gt_code          = gt_code,
     off_regs_user    = off_regs_user,
-    alt_agg_user     = alt_agg
+    alt_agg_user     = alt_agg,
+    country_list     = cl
   )
   return(lret)
 

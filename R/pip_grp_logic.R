@@ -50,6 +50,10 @@ pip_grp_logic <- function(country         = "all",
     lkup            =  lkup
   )
 
+  # use the same names as before to avoid inconsistencies
+  alt_agg <- lcv$alt_agg_user
+  gt_code <- lcv$gt_code
+
 
   if (all(lcv$off_alt_agg == "off")) {
   ### Early return -----------
@@ -140,7 +144,7 @@ pip_grp_logic <- function(country         = "all",
   md_grp[,
          region_code := NULL]
 
-  md_grp <- merge(md_grp, cl,
+  md_grp <- merge(md_grp, lcv$country_list,
                   by = "country_code",
                   all.x = TRUE)
 
@@ -158,11 +162,10 @@ pip_grp_logic <- function(country         = "all",
     debug           = debug
   )
 
-  gt_code <- lcv$gt_code
+
   l_fg <- vector(mode = "list", length = length(gt_code))
 
   ### Split fg estimates by grouping type ============
-
   for (i in seq_along(gt_code)) {
     gt_var    <- gt_code[i]
     filter_fg <-

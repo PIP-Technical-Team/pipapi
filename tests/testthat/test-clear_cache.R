@@ -1,12 +1,13 @@
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 #
-# lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
-# lkups <- lkups$versions_paths[[lkups$latest_release]]
 
+lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+lkup <- lkups$versions_paths[[lkups$latest_release]]
 
-lkup_path <- test_path("testdata", "lkup.rds")
-lkup      <- readRDS(lkup_path)
+# lkup_path <- test_path("testdata", "lkup.rds")
+# lkup      <- readRDS(lkup_path)
+
 cd        <- readRDS(test_path("testdata", "cd-ex.RDS"))
 
 skip_if_not(dir.exists(cd$info()$dir),

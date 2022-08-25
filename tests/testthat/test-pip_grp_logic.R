@@ -1,3 +1,4 @@
+skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 
 # Following this solution: https://stackoverflow.com/a/71334780/11472481
 
@@ -5,17 +6,15 @@ options(joyn.verbose = FALSE)
 
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
 
-lkup_path <- test_path("testdata", "lkup.rds")
-lkup      <- readRDS(lkup_path)
+# lkup_path <- test_path("testdata", "lkup.rds")
+# lkup      <- readRDS(lkup_path)
 
-# skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
-#
-# data_dir <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
-#
-# lkups <- create_versioned_lkups(data_dir = data_dir,
-#                                 vintage_pattern = "TEST$")
-#
-# lkup <-  lkups$versions_paths$`20220810_2017_01_02_TEST`
+
+data_dir <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+
+lkups <- create_versioned_lkups(data_dir = data_dir)
+
+lkup <-  lkups$versions_paths[[lkups$latest_release]]
 
 # default parameters
 
@@ -74,6 +73,6 @@ test_that("expected results", {
   country <- c("AFE", "AFW", "LIC", "IDX")
   lp$country <- country
 
-  de6 <- do.call(pip_grp_logic, lp)
+  # de6 <- do.call(pip_grp_logic, lp)
 
 })
