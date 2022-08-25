@@ -30,7 +30,7 @@ create_fake_data <- function(ver, pr = 0.01 ) {
     Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_SERVER") |>
     fs::path(ver)
 
-  ldir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
+  ldir <- Sys.getenv("PIPAPI_FAKEDATA_FOLDER") |>
     fs::path(ver)
 
 
@@ -103,7 +103,7 @@ create_fake_data <- function(ver, pr = 0.01 ) {
 
 
 ver <- "20220810_2017_01_02_TEST"
-data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL")
+data_dir <- Sys.getenv("PIPAPI_FAKEDATA_FOLDER")
 lkups <- create_versioned_lkups(data_dir = data_dir,
                                 vintage_pattern = "TEST$")
 
