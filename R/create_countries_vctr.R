@@ -206,7 +206,7 @@ create_countries_vctr <- function(country,
     }
 
     md_ctrs <- md[, unique(country_code)] # missing data countries
-    fg_ctrs <- ctr_alt_agg[which(!ctr_alt_agg %in% md_ctrs)] # survey countries
+    fg_ctrs <- ctr_alt_agg[!ctr_alt_agg %in% md_ctrs] # survey countries
 
   } else { # if yes_md == FALSE
     md_ctrs    <- NULL # missing data countries
