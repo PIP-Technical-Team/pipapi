@@ -286,10 +286,11 @@ create_lkups <- function(data_dir, versions) {
   # Create list of query controls
   query_controls <-
     create_query_controls(
-      svy_lkup = svy_lkup,
-      ref_lkup = ref_lkup,
+      svy_lkup   = svy_lkup,
+      ref_lkup   = ref_lkup,
+      aux_files = aux_files,
       aux_tables = aux_tables,
-      versions = versions)
+      versions   = versions)
 
   # Create list of lkups
   lkups <- list(
@@ -348,7 +349,7 @@ get_vintage_pattern_regex <- function(vintage_pattern = NULL,
 #' @return object of class(x)
 ifel_isnull <- function(x, y) {
 
-  if(is.null(x)) {
+  if (is.null(x)) {
     y
   } else {
     x
@@ -380,24 +381,12 @@ ifel_isnull <- function(x, y) {
 #' }
 create_vintage_pattern_call <- function(vintage_pattern = NULL) {
 
-  #   ______________________________________________________________________
-  #   on.exit                                               ####
-  on.exit({
-
-  })
-
   #   ____________________________________________________________________________
   #   Defenses                                                                ####
   stopifnot( exprs = {
     class(vintage_pattern) %in% c("NULL",  "list",  "character")
   }
   )
-
-  #   _______________________________________________________________________
-  #   Early returns                                             ####
-  if (FALSE) {
-    return()
-  }
 
   #   ______________________________________________________________________
   #   Computations                                                      ####
@@ -416,7 +405,7 @@ create_vintage_pattern_call <- function(vintage_pattern = NULL) {
 
       l <- length(vintage_pattern)
 
-      stopifnot(l>=1 && l <= lf)
+      stopifnot(l >= 1 && l <= lf)
 
       if (inherits(vintage_pattern, "list")) { # if list
 

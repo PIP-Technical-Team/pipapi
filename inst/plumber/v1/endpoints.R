@@ -330,14 +330,14 @@ function(req, res) {
   params$version <- NULL
 
   # Parallel processing for slow requests
-  if (params$country == "all" && params$year == "all") {
+  if (params$country %in% c("ALL", "WLD") && params$year == "ALL") {
     out <- promises::future_promise({
-      tmp <- do.call(pipapi::pip_grp, params)
+      tmp <- do.call(pipapi::pip_grp_logic, params)
       attr(tmp, "serialize_format") <- req$argsQuery$format
       tmp
     }, seed = TRUE)
   } else {
-    out <- do.call(pipapi::pip_grp, params)
+    out <- do.call(pipapi::pip_grp_logic, params)
     attr(out, "serialize_format") <- req$argsQuery$format
   }
   out

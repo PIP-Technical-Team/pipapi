@@ -8,7 +8,6 @@ pip_grp_logic(
   country = "all",
   year = "all",
   povline = 1.9,
-  popshare = NULL,
   group_by = c("none", "wb"),
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national"),
@@ -23,9 +22,6 @@ pip_grp_logic(
 \item{year}{integer: Reporting year}
 
 \item{povline}{numeric: Poverty line}
-
-\item{popshare}{numeric: Proportion of the population living below the
-poverty line}
 
 \item{group_by}{character: Will return aggregated values for predefined
 sub-groups}
