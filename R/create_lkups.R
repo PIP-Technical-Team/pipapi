@@ -286,10 +286,11 @@ create_lkups <- function(data_dir, versions) {
   # Create list of query controls
   query_controls <-
     create_query_controls(
-      svy_lkup = svy_lkup,
-      ref_lkup = ref_lkup,
+      svy_lkup   = svy_lkup,
+      ref_lkup   = ref_lkup,
+      aux_files = aux_files,
       aux_tables = aux_tables,
-      versions = versions)
+      versions   = versions)
 
   # Create list of lkups
   lkups <- list(
@@ -348,7 +349,7 @@ get_vintage_pattern_regex <- function(vintage_pattern = NULL,
 #' @return object of class(x)
 ifel_isnull <- function(x, y) {
 
-  if(is.null(x)) {
+  if (is.null(x)) {
     y
   } else {
     x

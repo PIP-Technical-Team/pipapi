@@ -280,11 +280,16 @@ censor_stats <- function(df, censored_table) {
 #' Create query controls
 #' @param syv_lkup data.table: Survey lkup table
 #' @param ref_lkup data.table: Reference lkup table
+#' @param aux_files data.table: All valid regions and corresponding population
 #' @param aux_tables character: List of available aux tables
 #' @param versions character: List of available data versions
 #' @return list
 #' @noRd
-create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
+create_query_controls <- function(svy_lkup,
+                                  ref_lkup,
+                                  aux_files,
+                                  aux_tables,
+                                  versions) {
   # Countries and regions
   countries <- unique(c(
       svy_lkup$country_code,
@@ -292,13 +297,12 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     ))
 
   regions <- unique(c(
-    svy_lkup$region_code,
-    ref_lkup$region_code
+    aux_files$regions$region_code
   ))
 
   country <- list(
     values = c(
-      "all",
+      "ALL",
       "WLD",
       sort(c(
         countries,
@@ -309,7 +313,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
   )
 
   region <- list(
-    values = sort(c("all", "WLD", regions)),
+    values = sort(c("ALL", "WLD", regions)),
     type = "character"
   )
   # Year
