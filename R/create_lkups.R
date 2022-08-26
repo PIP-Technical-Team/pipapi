@@ -380,24 +380,12 @@ ifel_isnull <- function(x, y) {
 #' }
 create_vintage_pattern_call <- function(vintage_pattern = NULL) {
 
-  #   ______________________________________________________________________
-  #   on.exit                                               ####
-  on.exit({
-
-  })
-
   #   ____________________________________________________________________________
   #   Defenses                                                                ####
   stopifnot( exprs = {
     class(vintage_pattern) %in% c("NULL",  "list",  "character")
   }
   )
-
-  #   _______________________________________________________________________
-  #   Early returns                                             ####
-  if (FALSE) {
-    return()
-  }
 
   #   ______________________________________________________________________
   #   Computations                                                      ####
@@ -416,7 +404,7 @@ create_vintage_pattern_call <- function(vintage_pattern = NULL) {
 
       l <- length(vintage_pattern)
 
-      stopifnot(l>=1 && l <= lf)
+      stopifnot(l >= 1 && l <= lf)
 
       if (inherits(vintage_pattern, "list")) { # if list
 
