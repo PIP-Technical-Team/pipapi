@@ -71,7 +71,7 @@ pip_grp_logic <- function(country         = "all",
   } else if (lcv$off_alt_agg == "both") {
   ## Estimates for official aggregates
     off_ret <-
-      pip_grp(country         =  lcv$off_regs_user,
+      pip_grp(country         =  lcv$user_off_reg,
               year            =  year,
               povline         =  povline,
               group_by        =  "wb",

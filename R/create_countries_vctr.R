@@ -14,19 +14,45 @@ create_countries_vctr <- function(country,
   #   ___________________________________________________________________
   #   Get Data Availability                                       ####
 
-  ## Regions available ----------
-  aggs    <- lkup$aux_files$regions  ## all aggregates
+
+
+  ## Split between regions and countries ----------
+
+  ### Regions available ----------
+  aggs      <- lkup$aux_files$regions  ## all aggregates
+
+  region_code <- country_code <-
+    grouping_type <- NULL
+
+  user_aggs <- aggs[region_code %in% country,
+                    unique(region_code)]
 
   # Official valid region codes
-  off_reg <- lkup$aux_files$regions[grouping_type == "region",
-                                    region_code]
+  off_reg <- aggs[grouping_type == "region",
+                  region_code]
+
+  alt_agg <- aggs[grouping_type != "region",
+                  region_code]
+
   off_reg <- c("all", off_reg, "WLD")
 
-  # reg_av <- aggs$region_code
-  region_code <- country_code <- NULL
 
-  ## Get grouping type ----
-  grouping_type <- aggs[region_code %in% country,
+
+  # Official aggregates requested by user
+  user_off_reg <- off_reg[off_reg %in% user_aggs]
+
+  # Alternative aggregates requested by user
+  user_alt_agg <- alt_agg[alt_agg %in% user_aggs]
+
+  ### countries Available -----
+  ctrs      <- lkup$aux_files$countries
+
+  # Countries selected by user
+  user_ctrs <- ctrs[country_code  %in% country,
+                    unique(country_code)]
+
+  ## Get grouping type -------
+  grouping_type <- aggs[region_code %in% user_aggs,
                         unique(grouping_type)]
 
   if (all(grouping_type %in% "region")) {
@@ -37,6 +63,7 @@ create_countries_vctr <- function(country,
     off_alt_agg <- "alt"
   }
 
+
   ## Estimates for official aggregates
 
   if (off_alt_agg == "both") {
@@ -44,14 +71,14 @@ create_countries_vctr <- function(country,
     gt <- grouping_type[grouping_type != "region"]
 
     # official regions selected by the user
-    off_regs_user <- off_reg[off_reg %in% country]
+    user_off_reg <- off_reg[off_reg %in% country]
 
     alt_agg <- country[!country %in% off_reg]
 
 
   } else {
     gt            <- grouping_type
-    off_regs_user <- NULL
+    user_off_reg <- NULL
     alt_agg       <- country
   }
 
@@ -66,7 +93,7 @@ create_countries_vctr <- function(country,
                  grp_use           = NULL,
                  missing_data      = NULL,
                  gt_code           = NULL,
-                 off_regs_user     = off_regs_user,
+                 user_off_reg     = user_off_reg,
                  alt_agg_user      = alt_agg,
                  country_list      = NULL
                  )
@@ -123,7 +150,7 @@ create_countries_vctr <- function(country,
       # estimated
 
       grp_computed <-
-        expand.grid(region_code      = off_regs_user,
+        expand.grid(region_code      = user_off_reg,
                     reporting_year   = year,
                     stringsAsFactors = FALSE) |>
         data.table::as.data.table()
@@ -181,7 +208,7 @@ create_countries_vctr <- function(country,
     grp_use          = grp_use,
     missing_data     = md,
     gt_code          = gt_code,
-    off_regs_user    = off_regs_user,
+    user_off_reg    = user_off_reg,
     alt_agg_user     = alt_agg,
     country_list     = cl
   )
