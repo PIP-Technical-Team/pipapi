@@ -11,11 +11,32 @@
 create_countries_vctr <- function(country,
                                   year,
                                   lkup) {
+
+  # init Return list ------------
+  lret <-
+    list(
+      user_off_reg      = NULL, # Off regs requested by user
+      user_alt_agg      = NULL, # Alt aggs requested by user
+      user_aggs         = NULL, # all aggregates requested by user
+      user_ctrs         = NULL, # countries requested by user
+      alt_agg           = NULL, # Alt aggregates available
+      off_reg           = NULL, # Official regions available
+      off_alt_agg       = NULL, # what to do with alt and reg
+      user_gt           = NULL, # gt implicitly selected by user
+      user_alt_gt       = NULL, # Alternative gt implicitly selected by user
+      ctr_alt_agg       = NULL, # ctrs in alt aggs based on gt by user
+      md_ctrs           = NULL, # missing data countries
+      fg_ctrs           = NULL, # fill gaps countries (with svy)
+      md_off_reg        = NULL, # off regs to input to MD
+      md_year           = NULL, # years to input to MD countries
+      grp_use           = NULL,
+      missing_data      = NULL, # MD and pop table
+      gt_code           = NULL, # code of alt grouping data
+      country_list      = NULL  #
+    )
+
   #   ___________________________________________________________________
   #   Get Data Availability                                       ####
-
-
-
   ## Split between regions and countries ----------
 
   ### Regions available ----------
@@ -68,35 +89,26 @@ create_countries_vctr <- function(country,
 
   if (off_alt_agg == "both") {
     # Non-official grouping_type
-    gt <- grouping_type[grouping_type != "region"]
-
-    # official regions selected by the user
-    user_off_reg <- off_reg[off_reg %in% country]
-
-    alt_agg <- country[!country %in% off_reg]
-
+    gt  <- grouping_type[grouping_type != "region"]
 
   } else {
-    gt            <- grouping_type
-    user_off_reg <- NULL
-    alt_agg       <- country
-  }
+    gt  <- grouping_type
 
+  }
 
   # Early Return ---------
   if (off_alt_agg == "off") {
-    lret <- list(md_ctrs           = NULL,
-                 fg_ctrs           = NULL,
-                 off_regs_to_input = NULL,
-                 years_to_input    = NULL,
-                 off_alt_agg       = off_alt_agg,
-                 grp_use           = NULL,
-                 missing_data      = NULL,
-                 gt_code           = NULL,
-                 user_off_reg     = user_off_reg,
-                 alt_agg_user      = alt_agg,
-                 country_list      = NULL
-                 )
+
+    lret$user_off_reg <- user_off_reg
+    lret$user_alt_agg <- user_alt_agg
+    lret$user_aggs    <- user_aggs
+    lret$user_ctrs    <- user_ctrs
+    lret$alt_agg      <- alt_agg
+    lret$off_reg      <- off_reg
+    lret$off_alt_agg  <- off_alt_agg
+    lret$user_gt      <- grouping_type
+    lret$user_alt_gt  <- gt
+
     return(lret)
   }
 
@@ -118,12 +130,14 @@ create_countries_vctr <- function(country,
 
   ctr_alt_agg   <- gt_code |>
     # Create filter for data.table
-    paste0(" %in% alt_agg", collapse =  " | ") |>
+    paste0(" %in% user_alt_agg", collapse =  " | ") |>
     # parse the filter as unevaluated expression
     {\(.) parse(text = .) }() |>
     # filter and get country codes
     {\(.) cl[eval(.), country_code] }()
 
+  # add to return list
+  lret$ctr_alt_agg <- ctr_alt_agg
 
 
   ## Countries with  missing data ----
@@ -138,15 +152,17 @@ create_countries_vctr <- function(country,
       md[country_code %in% ctr_alt_agg & year %in% nyear]
     }
 
+  # add to return list
+  lret$missing_data <- md
 
   # Get countries for which we want to input
   yes_md <- nrow(md) > 0
   if (yes_md) {
-    rg_country <- md[, unique(region_code)]
-    rg_year    <- md[, unique(year)]
+    md_off_reg <- md[, unique(region_code)]
+    md_year    <- md[, unique(year)]
 
     if (off_alt_agg == "both") {
-      # filter rg_country and rg_year based on what have already been
+      # filter md_off_reg and md_year based on what have already been
       # estimated
 
       grp_computed <-
@@ -156,8 +172,8 @@ create_countries_vctr <- function(country,
         data.table::as.data.table()
 
       grp_to_compute <-
-        expand.grid(region_code      = rg_country,
-                    reporting_year   = rg_year,
+        expand.grid(region_code      = md_off_reg,
+                    reporting_year   = md_year,
                     stringsAsFactors = FALSE)  |>
         data.table::as.data.table()
 
@@ -166,15 +182,15 @@ create_countries_vctr <- function(country,
                        on = c("region_code", "reporting_year")]
 
       # filter region code and year to calculate
-      rg_country <- grp_to_compute[, unique(region_code)]
-      rg_year    <- grp_to_compute[, unique(year)]
+      md_off_reg <- grp_to_compute[, unique(region_code)]
+      md_year    <- grp_to_compute[, unique(year)]
 
-      if (length(rg_country) > 0) {
-        # If length of `rg_country` is still positive, we need to append the
+      if (length(md_off_reg) > 0) {
+        # If length of `md_off_reg` is still positive, we need to append the
         # results previously calculated
         grp_use <- "append"
       } else {
-        # If length of `rg_country` is zero, we don't need to do any additional
+        # If length of `md_off_reg` is zero, we don't need to do any additional
         # calculation, so the previously done calculation is used alone
         grp_use <- "alone"
       }
@@ -191,27 +207,104 @@ create_countries_vctr <- function(country,
   } else { # if yes_md == FALSE
     md_ctrs    <- NULL # missing data countries
     fg_ctrs     <- ctr_alt_agg  # survey countries
-    rg_country <- NULL
-    rg_year    <- NULL
+    md_off_reg <- NULL
+    md_year    <- NULL
   }
+
+  # Add to return list
+  lret$md_ctrs <- md_ctrs
+  lret$
 
 
 
 #   _____________________________________________________________________
 #   Return                                                           ####
-  lret <- list(
-    md_ctrs          = md_ctrs,
-    fg_ctrs          = fg_ctrs,
-    off_regs_to_input = rg_country,
-    years_to_input   = rg_year,
-    off_alt_agg      = off_alt_agg,
-    grp_use          = grp_use,
-    missing_data     = md,
-    gt_code          = gt_code,
-    user_off_reg    = user_off_reg,
-    alt_agg_user     = alt_agg,
-    country_list     = cl
+
+  lret <- append(lret,
+                 list(
+                   md_ctrs           = md_ctrs,
+                   fg_ctrs           = fg_ctrs,
+                   md_off_reg = md_off_reg,
+                   md_year    = md_year,
+                   grp_use           = grp_use,
+                   missing_data      = md,
+                   gt_code           = gt_code,
+                   country_list      = cl,
+                   ctr_alt_agg       = ctr_alt_agg
+                 )
   )
+
   return(lret)
 
 }
+
+
+#' Store return values
+#'
+#' @param lret list with return named objects predifined
+#' @param x_name character: name of object to be added to `lret`. It must
+#' @param x object to be added to lret
+#' @param assign logical: whether to assign to parent frame. Default is TRUE
+#'
+#' @return invisible `lret` list
+#' @examples
+#' lf <- list(x = NULL,
+#' y = 8,
+#' w = "foo")
+#'
+#' z <- "ocho"
+#' x <- 2
+#' w <- "nueve"
+#' (ret_list(lf, "x"))
+#' (ret_list(lf, "y", z))
+#' (ret_list(lf, "w", assign = FALSE))
+#' lf
+ret_list <- function(lret,
+                     x_name,
+                     x = get(x_name, envir = parent.frame()),
+                     assign = TRUE) {
+
+#   ____________________________________________________________________________
+#   on.exit                                                                 ####
+  on.exit({
+
+  })
+
+#   ____________________________________________________________________________
+#   Defenses                                                                ####
+  stopifnot( exprs = {
+    x_name %in% names(lret)
+    is.list(lret)
+    }
+  )
+
+#   ____________________________________________________________________________
+#   Early returns                                                           ####
+  if (length(x) == 0 & !is.null(x)) {
+    return(invisible(lret))
+  }
+
+
+#   ____________________________________________________________________
+#   Computations                   ####
+
+  # get name of oribinal object
+  nm <- deparse(substitute(lret))
+
+  # get object if not specifed
+  # if (is.null(x)) {
+  #   x <- get(x_name, envir = parent.frame())
+  # }
+
+  lret[[x_name]] <-  x
+  if (assign == TRUE) {
+    assign(nm, lret, envir = parent.frame())
+  }
+
+
+#   ____________________________________________________________________________
+#   Return                                                                  ####
+  return(invisible(lret))
+
+}
+

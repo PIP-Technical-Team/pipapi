@@ -50,7 +50,7 @@ pip_grp_logic <- function(country         = "all",
   )
 
   # use the same names as before to avoid inconsistencies
-  alt_agg <- lcv$alt_agg_user
+  alt_agg <- lcv$user_alt_agg
   gt_code <- lcv$gt_code
 
 
@@ -98,8 +98,8 @@ pip_grp_logic <- function(country         = "all",
   if (lcv$grp_use %in% c("append", "not")) {
 
     grp <-
-      pip_grp(country         =  lcv$off_regs_to_input,
-              year            =  lcv$years_to_input,
+      pip_grp(country         =  lcv$md_off_reg,
+              year            =  lcv$md_year,
               povline         =  povline,
               group_by        =  "wb",
               welfare_type    =  welfare_type,
