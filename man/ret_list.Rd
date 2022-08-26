@@ -4,14 +4,14 @@
 \alias{ret_list}
 \title{Store return values}
 \usage{
-ret_list(lret, x_name, x = get(x_name, envir = parent.frame()), assign = TRUE)
+ret_list(lret, x, x_name = deparse(substitute(x)), assign = TRUE)
 }
 \arguments{
 \item{lret}{list with return named objects predifined}
 
-\item{x_name}{character: name of object to be added to \code{lret}. It must}
-
 \item{x}{object to be added to lret}
+
+\item{x_name}{character: name of object to be added to \code{lret}. It must}
 
 \item{assign}{logical: whether to assign to parent frame. Default is TRUE}
 }
@@ -29,8 +29,8 @@ w = "foo")
 z <- "ocho"
 x <- 2
 w <- "nueve"
-(ret_list(lf, "x"))
-(ret_list(lf, "y", z))
-(ret_list(lf, "w", assign = FALSE))
+(ret_list(lf, x))
+(ret_list(lf, z, "y"))
+(ret_list(lf, w, assign = FALSE))
 lf
 }

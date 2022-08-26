@@ -96,18 +96,20 @@ create_countries_vctr <- function(country,
 
   }
 
+  # add return list
+  ret_list(lret, user_off_reg)
+  ret_list(lret, user_alt_agg)
+  ret_list(lret, user_aggs)
+  ret_list(lret, user_ctrs)
+  ret_list(lret, alt_agg)
+  ret_list(lret, off_reg)
+  ret_list(lret, off_alt_agg)
+  ret_list(lret, gt, "user_alt_gt")
+
+
   # Early Return ---------
   if (off_alt_agg == "off") {
 
-    lret$user_off_reg <- user_off_reg
-    lret$user_alt_agg <- user_alt_agg
-    lret$user_aggs    <- user_aggs
-    lret$user_ctrs    <- user_ctrs
-    lret$alt_agg      <- alt_agg
-    lret$off_reg      <- off_reg
-    lret$off_alt_agg  <- off_alt_agg
-    lret$user_gt      <- grouping_type
-    lret$user_alt_gt  <- gt
 
     return(lret)
   }
@@ -137,10 +139,10 @@ create_countries_vctr <- function(country,
     {\(.) cl[eval(.), country_code] }()
 
   # add to return list
-  lret$ctr_alt_agg <- ctr_alt_agg
-
+  ret_list(lret, ctr_alt_agg)
 
   ## Countries with  missing data ----
+
   md <- lkup$aux_files$missing_data
 
   ### Filter by year  -----
@@ -153,7 +155,9 @@ create_countries_vctr <- function(country,
     }
 
   # add to return list
-  lret$missing_data <- md
+  ret_list(lret, md, "missing_data")
+
+
 
   # Get countries for which we want to input
   yes_md <- nrow(md) > 0
@@ -211,28 +215,17 @@ create_countries_vctr <- function(country,
     md_year    <- NULL
   }
 
-  # Add to return list
-  lret$md_ctrs <- md_ctrs
-  lret$
-
-
-
 #   _____________________________________________________________________
 #   Return                                                           ####
 
-  lret <- append(lret,
-                 list(
-                   md_ctrs           = md_ctrs,
-                   fg_ctrs           = fg_ctrs,
-                   md_off_reg = md_off_reg,
-                   md_year    = md_year,
-                   grp_use           = grp_use,
-                   missing_data      = md,
-                   gt_code           = gt_code,
-                   country_list      = cl,
-                   ctr_alt_agg       = ctr_alt_agg
-                 )
-  )
+  # Add to return list
+  ret_list(lret, md_ctrs)
+  ret_list(lret, fg_ctrs)
+  ret_list(lret, md_off_reg)
+  ret_list(lret, md_year)
+  ret_list(lret, grp_use)
+  ret_list(lret, gt_code)
+  ret_list(lret, cl, "country_list")
 
   return(lret)
 
@@ -242,8 +235,8 @@ create_countries_vctr <- function(country,
 #' Store return values
 #'
 #' @param lret list with return named objects predifined
-#' @param x_name character: name of object to be added to `lret`. It must
 #' @param x object to be added to lret
+#' @param x_name character: name of object to be added to `lret`. It must
 #' @param assign logical: whether to assign to parent frame. Default is TRUE
 #'
 #' @return invisible `lret` list
@@ -255,20 +248,14 @@ create_countries_vctr <- function(country,
 #' z <- "ocho"
 #' x <- 2
 #' w <- "nueve"
-#' (ret_list(lf, "x"))
-#' (ret_list(lf, "y", z))
-#' (ret_list(lf, "w", assign = FALSE))
+#' (ret_list(lf, x))
+#' (ret_list(lf, z, "y"))
+#' (ret_list(lf, w, assign = FALSE))
 #' lf
 ret_list <- function(lret,
-                     x_name,
-                     x = get(x_name, envir = parent.frame()),
+                     x ,
+                     x_name = deparse(substitute(x)),
                      assign = TRUE) {
-
-#   ____________________________________________________________________________
-#   on.exit                                                                 ####
-  on.exit({
-
-  })
 
 #   ____________________________________________________________________________
 #   Defenses                                                                ####
@@ -288,13 +275,9 @@ ret_list <- function(lret,
 #   ____________________________________________________________________
 #   Computations                   ####
 
-  # get name of oribinal object
+  # get name of original object
   nm <- deparse(substitute(lret))
 
-  # get object if not specifed
-  # if (is.null(x)) {
-  #   x <- get(x_name, envir = parent.frame())
-  # }
 
   lret[[x_name]] <-  x
   if (assign == TRUE) {
