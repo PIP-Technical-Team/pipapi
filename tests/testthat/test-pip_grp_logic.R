@@ -21,7 +21,6 @@ lkup <-  lkups$versions_paths[[lkups$latest_release]]
 lp <- list(
 year             = c(1990, 2000),
 povline          =  2.25,
-popshare         =  NULL,
 group_by         =  c("wb"),
 welfare_type     =  c("all"),
 reporting_level  =  c("all"),
