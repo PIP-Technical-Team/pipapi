@@ -5,8 +5,9 @@ skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
 lkups <- lkups$versions_paths[[lkups$latest_release]]
 
-censored <- readRDS("../testdata/censored.rds")
-
+censored <-
+  test_path("testdata", "/censored.rds") |>
+  readRDS()
 
 test_that("Reporting level filtering is working", {
   reporting_levels <- c("national", "urban", "rural", "all")

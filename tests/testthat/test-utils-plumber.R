@@ -5,7 +5,10 @@ if (Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") != "") {
   # lkups$query_controls$version <- NULL
   # saveRDS(list(query_controls = lkups$query_controls),
   #         'tests/testdata/query-controls.rds')
-  lkups <- readRDS("../testdata/query-controls.rds")
+  lkups <-
+    test_path("testdata", "query-controls.rds") |>
+    readRDS()
+
 }
 
 test_that("validate_query_parameters() works", {
