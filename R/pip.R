@@ -94,7 +94,7 @@ pip <- function(country         = "all",
   if (fill_gaps) {
     # Compute imputed stats
     out <- fg_pip(
-      country         = country,
+      country         = lcv$est_ctrs,
       year            = year,
       povline         = povline,
       popshare        = popshare,
@@ -107,7 +107,7 @@ pip <- function(country         = "all",
   } else {
     # Compute survey year stats
     out <- rg_pip(
-      country         = country,
+      country         = lcv$est_ctrs,
       year            = year,
       povline         = povline,
       popshare        = popshare,

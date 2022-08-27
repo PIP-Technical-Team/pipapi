@@ -51,7 +51,7 @@ pip_grp_logic <- function(country         = "all",
 
   # use the same names as before to avoid inconsistencies
   alt_agg <- lcv$user_alt_agg
-  gt_code <- lcv$gt_code
+  gt_code <- lcv$user_alt_gt_code
 
 
   if (all(lcv$off_alt_agg == "off")) {

@@ -529,27 +529,32 @@ select_country <- function(lkup, keep, country, valid_regions) {
 #' @param keep logical vector
 #' @return logical vector
 select_years <- function(lkup, keep, year, country) {
-  year <- toupper(year)
-  country <- toupper(country)
-  keep_years <- rep(TRUE, nrow(lkup))
+  dtmp       <- data.table::copy(lkup)
+  year       <- toupper(year)
+  country    <- toupper(country)
+  keep_years <- rep(TRUE, nrow(dtmp))
   # STEP 1 - If Most Recent Value requested
   if ("MRV" %in% year) {
     # STEP 1.1 - If all countries selected. Select MRV for each country
+    dtmp <-
     if (any(c("ALL", "WLD") %in% country)) {
-      lkup[,
+      dtmp[,
            max_year := reporting_year == max(reporting_year),
            by = country_code]
     } else {
       # STEP 1.2 - If only some countries selected. Select MRV for each selected country
-      lkup[lkup$country_code %in% country,
+      dtmp[country_code %in% country,
            max_year := reporting_year == max(reporting_year),
            by = country_code]
     }
-    keep_years <- keep_years & as.logical(lkup[["max_year"]]) # Not sure why max_year is being created as a character vector...?
+
+    # dtmp <- unique(dtmp[, .(country_code, reporting_year, max_year)])
+
+    keep_years <- keep_years & as.logical(dtmp[["max_year"]]) # Not sure why max_year is being created as a character vector...?
   }
   # STEP 2 - If specific years are specified. Filter for these years
   if (!any(c("ALL", "MRV") %in% year)) {
-    keep_years <- keep_years & lkup$reporting_year %in% year
+    keep_years <- keep_years & dtmp$reporting_year %in% year
 
   }
 
@@ -557,3 +562,26 @@ select_years <- function(lkup, keep, year, country) {
   keep <- keep & keep_years
   return(keep)
 }
+
+
+
+#' Test whether a vector is length zero and IS not NULL
+#'
+#' @param x
+#'
+#' @return logical. TRUE if x is empty but it is not NULL
+#' @examples
+#' x <- vector()
+#' is_empty(x)
+#'
+#' y <- NULL
+#' length(y)
+#' is_empty(y)
+is_empty <- function(x) {
+  if (length(x) == 0 & !is.null(x)) {
+    TRUE
+  } else {
+    FALSE
+  }
+}
+

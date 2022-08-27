@@ -203,15 +203,18 @@ test_that("select_years works for most recent value", {
   keep <- rep(TRUE, nrow(ref_lkup))
   keep_country <- select_country(ref_lkup, keep, country, valid_regions = valid_regions)
   tmp <- ref_lkup[keep_country, ]
-  mrv_year <- tmp[tmp$country_code %in% country,
+  mrv_year <- tmp[country_code %in% country,
                   .SD[which.max(reporting_year)],
-                  by = country_code]$reporting_year
-  expected_countries <- nrow(tmp[tmp$reporting_year %in% mrv_year, ])
+                  by = country_code
+                  ][,
+                    reporting_year]
+
+  expected_countries <- nrow(tmp[reporting_year %in% mrv_year, ])
 
   keep <- select_years(ref_lkup, keep_country, year, country = country)
   expect_equal(length(keep), nrow(ref_lkup))
   expect_equal(sum(keep), expected_countries)
-  expect_equal(sort(unique(ref_lkup$reporting_year[keep])), sort(mrv_year))
+  expect_equal(sort(unique(ref_lkup$reporting_year[keep])), sort(unique(mrv_year)))
 
   # All countries
   country <- "all"
@@ -221,6 +224,7 @@ test_that("select_years works for most recent value", {
   tmp <- ref_lkup[keep_country, ]
   mrv_year <- tmp[, .SD[which.max(reporting_year)],
                   by = country_code]$reporting_year
+
   expected_countries <- length(unique(ref_lkup$country_code)) # Here we expect a single year to be returned for each single country
 
   keep <- select_years(ref_lkup, keep_country, year, country = country)
