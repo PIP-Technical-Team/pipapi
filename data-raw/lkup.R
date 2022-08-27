@@ -103,7 +103,7 @@ vers <- c("20220810_2017_01_02_TEST", "20220609_2011_02_02_PROD", "20220810_2017
 purrr::map(vers, create_fake_data)
 
 
-ver <- "20220810_2017_01_02_PROD"
+# ver <- "20220810_2017_01_02_PROD"
 data_dir <- Sys.getenv("PIPAPI_FAKEDATA_FOLDER")
 lkups <- create_versioned_lkups(data_dir = data_dir,
                                 vintage_pattern = "PROD$")

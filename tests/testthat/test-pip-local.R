@@ -13,17 +13,21 @@ test_that("Reporting level filtering is working", {
   reporting_levels <- c("national", "urban", "rural", "all")
   tmp <- lapply(reporting_levels,
                 function(x) {
-                  pip(country="CHN",
-                      year="2008",
-                      povline=1.9,
-                      popshare=NULL,
-                      welfare_type = "all",
-                      reporting_level = x,
-                      fill_gaps = FALSE,
-                      ppp = 10,
-                      lkup = lkups,
-                      debug = FALSE)
+                  pip(
+                    country         = "CHN",
+                    year            = "2008",
+                    povline         = 1.9,
+                    popshare        = NULL,
+                    welfare_type    = "all",
+                    reporting_level = x,
+                    fill_gaps       = FALSE,
+                    ppp             = 10,
+                    lkup            = lkups,
+                    debug           = FALSE
+                  )
                 })
+
+
   names(tmp) <- reporting_levels
 
   expect_equal(nrow(tmp$national), 1)
