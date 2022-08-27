@@ -19,6 +19,7 @@ create_countries_vctr <- function(country,
       user_alt_agg      = NULL, # Alt aggs requested by user
       user_aggs         = NULL, # all aggregates requested by user
       user_ctrs         = NULL, # countries requested by user
+      impl_ctrs         = NULL, # implicit countries requested by user
       alt_agg           = NULL, # Alt aggregates available
       off_reg           = NULL, # Official regions available
       off_alt_agg       = NULL, # what to do with alt and reg
@@ -36,7 +37,8 @@ create_countries_vctr <- function(country,
     )
 
   #   ___________________________________________________________________
-  #   Get Data Availability                                       ####
+  #   Organize main country and region data                       ####
+
   ## Split between regions and countries ----------
 
   ### Regions available ----------
