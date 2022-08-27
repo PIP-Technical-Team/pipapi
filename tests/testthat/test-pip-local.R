@@ -407,3 +407,274 @@ test_that("Censoring for regional aggregations is working", {
   id <- paste0(tmp$region_code, "_", tmp$reporting_year)
   expect_true(!censored$region$id %in% id)
 })
+
+# Check pop_share ----
+test_that("pop_share option is working", {
+  tmp <- pip(
+    country = "AGO",
+    year = 2000,
+    popshare = .2,
+    lkup = lkup
+  )
+
+  expect_equal(nrow(tmp), 1)
+})
+
+test_that("pop_share option is returning consistent results for single microdata distributions", {
+  # Average poverty line
+  povline <- 2.0
+
+  pl <- pip(
+    country = "AGO",
+    year = 2008,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "AGO",
+    year = 2008,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+  # Low poverty line
+  # Fails for lower poverty lines
+  povline <- .3
+
+  pl <- pip(
+    country = "AGO",
+    year = 2008,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "AGO",
+    year = 2008,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+
+  # High poverty line
+  # Fails for higher poverty lines
+  povline <- 33
+
+  pl <- pip(
+    country = "AGO",
+    year = 2008,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "AGO",
+    year = 2008,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
+  expect_equal(povline, round(ps$poverty_line, 0))
+})
+
+test_that("pop_share option is returning consistent results for single grouped distributions", {
+  # Average poverty line
+  povline <- 2.0
+  country <- "MNG"
+  year <- 1995
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+  # Low poverty line
+  # Fails for lower poverty lines
+  povline <- .8
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+
+  # High poverty line
+  # Fails for higher poverty lines
+  povline <- 20
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
+  expect_equal(povline, round(ps$poverty_line, 0))
+})
+
+test_that("pop_share option is returning consistent results for single aggregate distributions", {
+  skip("popshare not working for aggregate distributions")
+  # Average poverty line
+  povline <- 2.0
+  country <- "CHN"
+  year <- 2018
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+  # Low poverty line
+  # Fails for lower poverty lines
+  povline <- .9
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+
+  # High poverty line
+  # Fails for higher poverty lines
+  povline <- 20
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
+  expect_equal(povline, round(ps$poverty_line, 0))
+})
+
+test_that("pop_share option is disabled for aggregate distributions", {
+  # popshare is currently not working with aggregate distribution and has been
+  # disabled
+
+  povline <- 2.0
+  country <- "CHN"
+  year <- 2018
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "CHN",
+    year = 2018,
+    popshare = .5,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(nrow(pl), 1)
+  expect_equal(nrow(ps), 0)
+  expect_equal(pl$distribution_type, "aggregate")
+})
+
+#Check pip country name case insensitive
+
+test_that("pip country name case insensitive", {
+  skip("Code to handle mixed casing has been moved to API filter level")
+  #Run it on pip-fake-data
+  tmp1 <- pip(country = "nga",year = "ALL", povline = 1.9, lkup = lkup)
+  tmp2 <- pip(country = "NGA",year = "all", povline = 1.9, lkup = lkup)
+  tmp3 <- pip(country = "All",year = "ALL", povline = 1.9, lkup = lkup)
+  tmp4 <- pip(country = "chn",year = "1981", povline = 1.9, lkup = lkup)
+  tmp5 <- pip(country = "chn",year = "ALL", povline = 1.9, lkup = lkup)
+
+  expect_equal(nrow(tmp1), 1)
+  expect_equal(nrow(tmp2), 1)
+  expect_equal(nrow(tmp3), 22)
+  expect_equal(nrow(tmp4), 3)
+  expect_equal(nrow(tmp5), 6)
+})
+
+
+#Better error message when more than one data set is passed.
+
+test_that("error when more than one dataset is passed", {
+
+  expect_error(pip(country = "all", year = "all", povline = 1.9, lkup = lkups),
+               "You are probably passing more than one dataset as lkup argument.
+  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD",
+  fixed = TRUE)
+})
+

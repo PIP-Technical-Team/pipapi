@@ -2,11 +2,14 @@
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 library(data.table)
 
-lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
-lkups <- lkups$versions_paths[[lkups$latest_release]]
+lkups          <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+latest_release <- lkups$latest_release
+lkups          <- lkups$versions_paths[[lkups$latest_release]]
 
 int_means_path <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"),
-                           "20220810_2017_01_02_PROD/estimations/interpolated_means.fst")
+                           latest_release,
+                           "/estimations/interpolated_means.fst")
+
 
 ref_lkup <- fst::read_fst(int_means_path, as.data.table = TRUE)
 ref_lkup$region_code <- ref_lkup$wb_region_code
@@ -229,6 +232,7 @@ test_that("select_years works for most recent value", {
 
   keep <- select_years(ref_lkup, keep_country, year, country = country)
   expect_equal(length(keep), nrow(ref_lkup))
+
   expect_equal(sum(keep), expected_countries)
   expect_equal(sort(ref_lkup$reporting_year[keep]), sort(mrv_year))
 })

@@ -529,7 +529,12 @@ select_country <- function(lkup, keep, country, valid_regions) {
 #' @param keep logical vector
 #' @return logical vector
 select_years <- function(lkup, keep, year, country) {
-  dtmp       <- data.table::copy(lkup)
+  # columns i is an ID that identifies if a country has more than one
+  # observation for reporting year. That is the case of IND with URB/RUR and ZWE
+  # with interporaltion and microdata info
+  dtmp       <- unique(ref_lkup[,
+                                .(i = seq_len(.N)),
+                                by = .(country_code, reporting_year)])
   year       <- toupper(year)
   country    <- toupper(country)
   keep_years <- rep(TRUE, nrow(dtmp))
@@ -538,11 +543,16 @@ select_years <- function(lkup, keep, year, country) {
     # STEP 1.1 - If all countries selected. Select MRV for each country
     dtmp <-
     if (any(c("ALL", "WLD") %in% country)) {
+       # the i == 1 conditions ensures that it takes into account only one
+       # observation  per country per reporting year. This has to bee like
+       # that in order to keep the same length as the `keep_years` vector.
       dtmp[,
-           max_year := reporting_year == max(reporting_year),
+           max_year := reporting_year == max(reporting_year) & i == 1,
            by = country_code]
+
     } else {
-      # STEP 1.2 - If only some countries selected. Select MRV for each selected country
+      # STEP 1.2 - If only some countries selected. Select MRV for each selected
+      # country
       dtmp[country_code %in% country,
            max_year := reporting_year == max(reporting_year),
            by = country_code]
@@ -550,7 +560,9 @@ select_years <- function(lkup, keep, year, country) {
 
     # dtmp <- unique(dtmp[, .(country_code, reporting_year, max_year)])
 
-    keep_years <- keep_years & as.logical(dtmp[["max_year"]]) # Not sure why max_year is being created as a character vector...?
+
+    keep_years <- keep_years & as.logical(dtmp[["max_year"]])
+
   }
   # STEP 2 - If specific years are specified. Filter for these years
   if (!any(c("ALL", "MRV") %in% year)) {
