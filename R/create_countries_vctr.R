@@ -34,9 +34,8 @@ create_countries_vctr <- function(country,
       md_off_reg        = NULL, # off regs to input to MD
       md_year           = NULL, # years to input to MD countries
       grp_use           = NULL,
-      missing_data      = NULL, # MD and pop table
-      user_alt_gt_code  = NULL, # code of alt grouping data
-      country_list      = NULL  #
+      md                = NULL, # missing data  and pop table
+      user_alt_gt_code  = NULL # code of alt grouping data
     )
 
   # modify if year is "all" --------------
@@ -208,7 +207,7 @@ create_countries_vctr <- function(country,
     }
 
   # add to return list
-  ret_list(lret, md, "missing_data")
+  ret_list(lret, md)
 
 
 
@@ -279,7 +278,6 @@ create_countries_vctr <- function(country,
   ret_list(lret, md_year)
   ret_list(lret, grp_use)
   ret_list(lret, user_alt_gt_code)
-  ret_list(lret, cl, "country_list")
 
   return(lret)
 
