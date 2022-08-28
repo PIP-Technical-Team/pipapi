@@ -66,32 +66,32 @@ create_countries_vctr <- function(country,
     user_aggs <- aggs[region_code %in% country,
                       unique(region_code)]
   }
-  ret_list(lret, user_aggs)
+
 
   ## all and WLD to off_reg
   off_reg <- c("all", off_reg, "WLD")
-  ret_list(lret, off_reg)
+
 
 
   # Alternative  aggregates code
   alt_agg <- aggs[grouping_type != "region",
                   region_code]
-  ret_list(lret, alt_agg)
+
 
 
 
   # All aggregates available including WLD and all
   all_agg <- c(off_reg, alt_agg)
-  ret_list(lret, all_agg)
+
 
 
   # Official aggregates requested by user
   user_off_reg <- off_reg[off_reg %in% user_aggs]
-  ret_list(lret, user_off_reg)
+
 
   # Alternative aggregates requested by user
   user_alt_agg <- alt_agg[alt_agg %in% user_aggs]
-  ret_list(lret, user_alt_agg)
+
 
   ### countries Available -----
   ctrs      <- lkup$aux_files$countries
@@ -99,13 +99,13 @@ create_countries_vctr <- function(country,
   # Countries selected by user
   user_ctrs <- ctrs[country_code  %in% country,
                     unique(country_code)]
-  ret_list(lret, user_ctrs)
+
 
 
   ### Get grouping type -------
   user_gt <- aggs[region_code %in% user_aggs,
                         unique(grouping_type)]
-  ret_list(lret, user_gt)
+
 
   if (!is_empty(user_gt) && all(user_gt %in% "region")) {
     off_alt_agg <- "off"
@@ -114,13 +114,13 @@ create_countries_vctr <- function(country,
   } else {
     off_alt_agg <- "alt"
   }
-  ret_list(lret, off_alt_agg)
+
 
 
   ### Estimates for official aggregates
   user_alt_gt  <- user_gt[user_gt != "region"]
 
-  ret_list(lret, user_alt_gt)
+
 
   # Organize Countries in aggregate --------
 
@@ -152,7 +152,7 @@ create_countries_vctr <- function(country,
     ctr_alt_agg <- character()
   }
   # add to return list
-  ret_list(lret, ctr_alt_agg)
+
 
 
   ## ctr_off_reg Survey countries in official regions --------
@@ -162,7 +162,7 @@ create_countries_vctr <- function(country,
   } else {
     ctr_off_reg <- character()
   }
-  ret_list(lret, ctr_off_reg)
+
 
   ## Implicit SURVEY countries on both, official and alternative ----------
   if (!is_empty(user_gt)) {
@@ -179,11 +179,11 @@ create_countries_vctr <- function(country,
   }
 
   # add to return list
-  ret_list(lret, impl_ctrs)
+
 
   ## All countries needed for estimations --------------
   est_ctrs <- unique(c(user_ctrs, impl_ctrs))
-  ret_list(lret, est_ctrs)
+
 
 
   # Early Return ---------
@@ -207,7 +207,7 @@ create_countries_vctr <- function(country,
     }
 
   # add to return list
-  ret_list(lret, md)
+
 
 
 
@@ -272,76 +272,9 @@ create_countries_vctr <- function(country,
 #   Return                                                           ####
 
   # Add to return list
-  ret_list(lret, md_ctrs)
-  ret_list(lret, fg_ctrs)
-  ret_list(lret, md_off_reg)
-  ret_list(lret, md_year)
-  ret_list(lret, grp_use)
-  ret_list(lret, user_alt_gt_code)
+  fillin_list(lret)
 
   return(lret)
-
-}
-
-
-#' Store return values
-#'
-#' @param lret list with return named objects predifined
-#' @param x object to be added to lret
-#' @param x_name character: name of object to be added to `lret`. It must
-#' @param assign logical: whether to assign to parent frame. Default is TRUE
-#'
-#' @return invisible `lret` list
-#' @export
-#'
-#' @examples
-#' lf <- list(x = NULL,
-#' y = 8,
-#' w = "foo")
-#'
-#' z <- "ocho"
-#' x <- 2
-#' w <- "nueve"
-#' (ret_list(lf, x))
-#' (ret_list(lf, z, "y"))
-#' (ret_list(lf, w, assign = FALSE))
-#' lf
-ret_list <- function(lret,
-                     x ,
-                     x_name = deparse(substitute(x)),
-                     assign = TRUE) {
-
-#   ____________________________________________________________________________
-#   Defenses                                                                ####
-  stopifnot( exprs = {
-    x_name %in% names(lret)
-    is.list(lret)
-    }
-  )
-
-#   ____________________________________________________________________________
-#   Early returns                                                           ####
-  if (is_empty(x)) {
-    return(invisible(lret))
-  }
-
-
-#   ____________________________________________________________________
-#   Computations                   ####
-
-  # get name of original object
-  nm <- deparse(substitute(lret))
-
-
-  lret[[x_name]] <-  x
-  if (assign == TRUE) {
-    assign(nm, lret, envir = parent.frame())
-  }
-
-
-#   ____________________________________________________________________________
-#   Return                                                                  ####
-  return(invisible(lret))
 
 }
 
