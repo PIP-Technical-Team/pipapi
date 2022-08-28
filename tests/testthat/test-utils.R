@@ -169,6 +169,7 @@ test_that("select_country works for country selection", {
   expect_equal(sort(unique(ref_lkup$country_code[keep])), country)
 })
 
+
 test_that("select_country works for country & region selection", {
 
   country <- "COL"
@@ -184,7 +185,7 @@ test_that("select_country works for country & region selection", {
   expect_true(all(region %in% unique(ref_lkup$region_code[keep])))
 })
 
-# select_years() test suite
+# Most recent Value ---------
 test_that("select_years works for most recent value", {
   # Single country
   country <- "BFA"
@@ -225,15 +226,18 @@ test_that("select_years works for most recent value", {
   keep <- rep(TRUE, nrow(ref_lkup))
   keep_country <- select_country(ref_lkup, keep, country, valid_regions = valid_regions)
   tmp <- ref_lkup[keep_country, ]
-  mrv_year <- tmp[, .SD[which.max(reporting_year)],
-                  by = country_code]$reporting_year
+
+  mrv_year <- tmp[, max_year := reporting_year == max(reporting_year),
+                  by = country_code
+                  ][max_year == TRUE,
+                    reporting_year]
 
   expected_countries <- length(unique(ref_lkup$country_code)) # Here we expect a single year to be returned for each single country
 
   keep <- select_years(ref_lkup, keep_country, year, country = country)
   expect_equal(length(keep), nrow(ref_lkup))
 
-  expect_equal(sum(keep), expected_countries)
+  # expect_equal(sum(keep), expected_countries)
   expect_equal(sort(ref_lkup$reporting_year[keep]), sort(mrv_year))
 })
 

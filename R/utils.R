@@ -546,8 +546,12 @@ select_years <- function(lkup, keep, year, country) {
        # the i == 1 conditions ensures that it takes into account only one
        # observation  per country per reporting year. This has to bee like
        # that in order to keep the same length as the `keep_years` vector.
+      # dtmp[,
+      #      max_year := reporting_year == max(reporting_year) & i == 1,
+      #      by = country_code]
+
       dtmp[,
-           max_year := reporting_year == max(reporting_year) & i == 1,
+           max_year := reporting_year == max(reporting_year),
            by = country_code]
 
     } else {
