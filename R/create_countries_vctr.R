@@ -67,23 +67,15 @@ create_countries_vctr <- function(country,
                       unique(region_code)]
   }
 
-
   ## all and WLD to off_reg
   off_reg <- c("all", off_reg, "WLD")
-
-
 
   # Alternative  aggregates code
   alt_agg <- aggs[grouping_type != "region",
                   region_code]
 
-
-
-
   # All aggregates available including WLD and all
   all_agg <- c(off_reg, alt_agg)
-
-
 
   # Official aggregates requested by user
   user_off_reg <- off_reg[off_reg %in% user_aggs]
@@ -99,8 +91,6 @@ create_countries_vctr <- function(country,
   # Countries selected by user
   user_ctrs <- ctrs[country_code  %in% country,
                     unique(country_code)]
-
-
 
   ### Get grouping type -------
   user_gt <- aggs[region_code %in% user_aggs,
@@ -118,9 +108,6 @@ create_countries_vctr <- function(country,
 
 
   ### Estimates for official aggregates
-  user_alt_gt  <- user_gt[user_gt != "region"]
-
-
 
   # Organize Countries in aggregate --------
 
@@ -134,13 +121,21 @@ create_countries_vctr <- function(country,
   # because their estimates are done implicitly. We DO care about the estimates
   # of the missing countries in AFE because we need the explicit SSA estimates.
 
-  cl               <- lkup$aux_files$country_list
-  user_alt_gt_code <- paste0(user_alt_gt, "_code")
-  user_gt_code     <- paste0(user_gt, "_code")
+  cl           <- lkup$aux_files$country_list
+
+  if (!is_empty(user_gt)) {
+    user_alt_gt  <- user_gt[user_gt != "region"]
+    user_gt_code <- paste0(user_gt, "_code")
+  } else {
+    user_alt_gt  <- character()
+    user_gt_code <- character()
+  }
 
   ## ALL Countries in alternative aggregates  ----
   if (!is_empty(user_alt_gt)) {
-    ctr_alt_agg   <- user_alt_gt_code |>
+    user_alt_gt_code <- paste0(user_alt_gt, "_code")
+
+    ctr_alt_agg      <- user_alt_gt_code |>
       # Create filter for data.table
       paste0(" %in% user_alt_agg", collapse =  " | ") |>
       # parse the filter as unevaluated expression
@@ -149,7 +144,8 @@ create_countries_vctr <- function(country,
       {\(.) cl[eval(.), country_code] }()
 
   } else {
-    ctr_alt_agg <- character()
+    user_alt_gt_code <- character()
+    ctr_alt_agg      <- character()
   }
   # add to return list
 
@@ -183,7 +179,6 @@ create_countries_vctr <- function(country,
 
   ## All countries needed for estimations --------------
   est_ctrs <- unique(c(user_ctrs, impl_ctrs))
-
 
 
   # Early Return ---------
@@ -261,11 +256,12 @@ create_countries_vctr <- function(country,
     fg_ctrs <- ctr_alt_agg[!ctr_alt_agg %in% md_ctrs] # survey countries
 
   } else { # if yes_md == FALSE
-    md_ctrs    <- NULL # missing data countries
-    fg_ctrs     <- ctr_alt_agg  # survey countries
-    md_off_reg <- NULL
-    md_year    <- NULL
+    md_ctrs    <- character() # missing data countries
+    fg_ctrs    <- ctr_alt_agg  # survey countries
+    md_off_reg <- character()
+    md_year    <- numeric()
     grp_use    <- character()
+    md         <- character()
   }
 
 #   _____________________________________________________________________
