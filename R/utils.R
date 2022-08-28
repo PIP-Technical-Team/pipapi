@@ -607,3 +607,87 @@ is_empty <- function(x) {
 }
 
 
+
+
+#' Populate list in parent frame
+#'
+#' Fill in maned objects of a list with the value of named objects in  the
+#' parent frame in which the list has been created. This objects must have the
+#' same names as the objects of the list
+#'
+#' @param l list to populate with names objects
+#' @param assign logical: whether to assign to parent frame
+#'
+#' @return invisible list `l` populated with objects of the same frame
+#' @export
+#'
+#' @examples
+#' l <- list(x = NULL,
+#' y = NULL,
+#' z = NULL)
+#'
+#' x <-  2
+#' y <-  "f"
+#' z <- TRUE
+#' fillin_list(l)
+#' l
+fillin_list <- function(l,
+                        assign = TRUE) {
+
+  #   ____________________________________________________________
+  #   Defenses                                    ####
+  stopifnot( exprs = {
+    is.list(l)
+    !is.data.frame(l)
+  }
+  )
+
+  #   __________________________________________________________________
+  #   Early returns                                               ####
+  if (FALSE) {
+    return()
+  }
+
+  #   _______________________________________________________________
+  #   Computations                                              ####
+  # name of the list in parent frame
+  nm_l = deparse(substitute(l))
+
+  #n names of the objects of the list
+  nm_obj <- names(l)
+
+  # all the objects in parent frame
+  obj_in_parent <- ls(envir = parent.frame())
+
+  # make sure that all the objects in list are in parent frame
+  if (!all(nm_obj %in% obj_in_parent)) {
+
+    non_in_parent <-nm_obj[!nm_obj %in% obj_in_parent]
+
+    stop_msg <- paste("The following objects are not in calling function: \n",
+                      paste(non_in_parent, collapse = ", "))
+
+    stop(stop_msg)
+  }
+
+  val_obj        <- lapply(nm_obj, get, envir = parent.frame())
+  names(val_obj) <- nm_obj
+
+  for (i in seq_along(nm_obj)) {
+    l[[nm_obj[i]]] <- val_obj[[nm_obj[i]]]
+  }
+
+  if (assign == TRUE) {
+    assign(nm_l, l, envir = parent.frame())
+  }
+
+  #   ________________________________________________
+  #   Return                                        ####
+  return(invisible(l))
+
+  # x = get(x_name, envir = parent.frame())
+  # x_name = deparse(substitute(x))
+}
+
+
+
