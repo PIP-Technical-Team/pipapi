@@ -532,9 +532,12 @@ select_years <- function(lkup, keep, year, country) {
   # columns i is an ID that identifies if a country has more than one
   # observation for reporting year. That is the case of IND with URB/RUR and ZWE
   # with interporaltion and microdata info
-  dtmp       <- unique(ref_lkup[,
-                                .(i = seq_len(.N)),
-                                by = .(country_code, reporting_year)])
+  # dtmp    <- ref_lkup[,
+  #                   .i := seq_len(.N),
+  #                   by = .(country_code, reporting_year)]
+
+  dtmp <- data.table::copy(lkup)
+
   year       <- toupper(year)
   country    <- toupper(country)
   keep_years <- rep(TRUE, nrow(dtmp))
@@ -586,6 +589,8 @@ select_years <- function(lkup, keep, year, country) {
 #' @param x
 #'
 #' @return logical. TRUE if x is empty but it is not NULL
+#' @export
+#'
 #' @examples
 #' x <- vector()
 #' is_empty(x)

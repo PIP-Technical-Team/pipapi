@@ -2,8 +2,8 @@
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 
 # files <- sub("[.]fst", "", list.files("../testdata/app_data/20210401/survey_data/"))
-lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
-lkups <- lkups$versions_paths[[lkups$latest_release]]
+lkups_ver <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+lkups <- lkups_ver$versions_paths[[lkups_ver$latest_release]]
 
 censored <-
   test_path("testdata", "/censored.rds") |>
@@ -414,7 +414,7 @@ test_that("pop_share option is working", {
     country = "AGO",
     year = 2000,
     popshare = .2,
-    lkup = lkup
+    lkup = lkups
   )
 
   expect_equal(nrow(tmp), 1)
@@ -428,14 +428,14 @@ test_that("pop_share option is returning consistent results for single microdata
     country = "AGO",
     year = 2008,
     povline = povline,
-    lkup = lkup
+    lkup = lkups
   )
 
   ps <- pip(
     country = "AGO",
     year = 2008,
     popshare = pl$headcount,
-    lkup = lkup
+    lkup = lkups
   )
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
@@ -448,14 +448,14 @@ test_that("pop_share option is returning consistent results for single microdata
     country = "AGO",
     year = 2008,
     povline = povline,
-    lkup = lkup
+    lkup = lkups
   )
 
   ps <- pip(
     country = "AGO",
     year = 2008,
     popshare = pl$headcount,
-    lkup = lkup
+    lkup = lkups
   )
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
@@ -469,14 +469,14 @@ test_that("pop_share option is returning consistent results for single microdata
     country = "AGO",
     year = 2008,
     povline = povline,
-    lkup = lkup
+    lkup = lkups
   )
 
   ps <- pip(
     country = "AGO",
     year = 2008,
     popshare = pl$headcount,
-    lkup = lkup
+    lkup = lkups
   )
 
   expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
@@ -493,14 +493,14 @@ test_that("pop_share option is returning consistent results for single grouped d
     country = country,
     year = year,
     povline = povline,
-    lkup = lkup
+    lkup = lkups
   )
 
   ps <- pip(
     country = country,
     year = year,
     popshare = pl$headcount,
-    lkup = lkup
+    lkup = lkups
   )
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
@@ -513,14 +513,14 @@ test_that("pop_share option is returning consistent results for single grouped d
     country = country,
     year = year,
     povline = povline,
-    lkup = lkup
+    lkup = lkups
   )
 
   ps <- pip(
     country = country,
     year = year,
     popshare = pl$headcount,
-    lkup = lkup
+    lkup = lkups
   )
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
@@ -534,14 +534,14 @@ test_that("pop_share option is returning consistent results for single grouped d
     country = country,
     year = year,
     povline = povline,
-    lkup = lkup
+    lkup = lkups
   )
 
   ps <- pip(
     country = country,
     year = year,
     popshare = pl$headcount,
-    lkup = lkup
+    lkup = lkups
   )
 
   expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
@@ -560,7 +560,7 @@ test_that("pop_share option is returning consistent results for single aggregate
     year = year,
     povline = povline,
     reporting_level = "national",
-    lkup = lkup
+    lkup = lkups
   )
 
   ps <- pip(
@@ -568,7 +568,7 @@ test_that("pop_share option is returning consistent results for single aggregate
     year = year,
     popshare = pl$headcount,
     reporting_level = "national",
-    lkup = lkup
+    lkup = lkups
   )
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
@@ -582,7 +582,7 @@ test_that("pop_share option is returning consistent results for single aggregate
     year = year,
     povline = povline,
     reporting_level = "national",
-    lkup = lkup
+    lkup = lkups
   )
 
   ps <- pip(
@@ -590,7 +590,7 @@ test_that("pop_share option is returning consistent results for single aggregate
     year = year,
     popshare = pl$headcount,
     reporting_level = "national",
-    lkup = lkup
+    lkup = lkups
   )
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
@@ -605,7 +605,7 @@ test_that("pop_share option is returning consistent results for single aggregate
     year = year,
     povline = povline,
     reporting_level = "national",
-    lkup = lkup
+    lkup = lkups
   )
 
   ps <- pip(
@@ -613,7 +613,7 @@ test_that("pop_share option is returning consistent results for single aggregate
     year = year,
     popshare = pl$headcount,
     reporting_level = "national",
-    lkup = lkup
+    lkup = lkups
   )
 
   expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
@@ -633,7 +633,7 @@ test_that("pop_share option is disabled for aggregate distributions", {
     year = year,
     povline = povline,
     reporting_level = "national",
-    lkup = lkup
+    lkup = lkups
   )
 
   ps <- pip(
@@ -641,7 +641,7 @@ test_that("pop_share option is disabled for aggregate distributions", {
     year = 2018,
     popshare = .5,
     reporting_level = "national",
-    lkup = lkup
+    lkup = lkups
   )
 
   expect_equal(nrow(pl), 1)
@@ -654,11 +654,11 @@ test_that("pop_share option is disabled for aggregate distributions", {
 test_that("pip country name case insensitive", {
   skip("Code to handle mixed casing has been moved to API filter level")
   #Run it on pip-fake-data
-  tmp1 <- pip(country = "nga",year = "ALL", povline = 1.9, lkup = lkup)
-  tmp2 <- pip(country = "NGA",year = "all", povline = 1.9, lkup = lkup)
-  tmp3 <- pip(country = "All",year = "ALL", povline = 1.9, lkup = lkup)
-  tmp4 <- pip(country = "chn",year = "1981", povline = 1.9, lkup = lkup)
-  tmp5 <- pip(country = "chn",year = "ALL", povline = 1.9, lkup = lkup)
+  tmp1 <- pip(country = "nga",year = "ALL", povline = 1.9, lkup = lkups)
+  tmp2 <- pip(country = "NGA",year = "all", povline = 1.9, lkup = lkups)
+  tmp3 <- pip(country = "All",year = "ALL", povline = 1.9, lkup = lkups)
+  tmp4 <- pip(country = "chn",year = "1981", povline = 1.9, lkup = lkups)
+  tmp5 <- pip(country = "chn",year = "ALL", povline = 1.9, lkup = lkups)
 
   expect_equal(nrow(tmp1), 1)
   expect_equal(nrow(tmp2), 1)
@@ -672,9 +672,16 @@ test_that("pip country name case insensitive", {
 
 test_that("error when more than one dataset is passed", {
 
-  expect_error(pip(country = "all", year = "all", povline = 1.9, lkup = lkups),
-               "You are probably passing more than one dataset as lkup argument.
+  expect_error(
+    pip(
+      country = "all",
+      year = "all",
+      povline = 1.9,
+      lkup = lkups_ver
+    ),
+    "You are probably passing more than one dataset as lkup argument.
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD",
-  fixed = TRUE)
+  fixed = TRUE
+  )
 })
 
