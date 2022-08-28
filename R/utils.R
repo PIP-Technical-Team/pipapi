@@ -674,7 +674,10 @@ fillin_list <- function(l,
   names(val_obj) <- nm_obj
 
   for (i in seq_along(nm_obj)) {
-    l[[nm_obj[i]]] <- val_obj[[nm_obj[i]]]
+    x <- val_obj[[nm_obj[i]]]
+    if (!is_empty(x)) {
+      l[[nm_obj[i]]] <- x
+    }
   }
 
   if (assign == TRUE) {
