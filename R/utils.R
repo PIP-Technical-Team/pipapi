@@ -533,27 +533,51 @@ select_country <- function(lkup, keep, country, valid_regions) {
 #' @param keep logical vector
 #' @return logical vector
 select_years <- function(lkup, keep, year, country) {
-  year <- toupper(year)
-  country <- toupper(country)
-  keep_years <- rep(TRUE, nrow(lkup))
+  # columns i is an ID that identifies if a country has more than one
+  # observation for reporting year. That is the case of IND with URB/RUR and ZWE
+  # with interporaltion and microdata info
+  # dtmp    <- ref_lkup[,
+  #                   .i := seq_len(.N),
+  #                   by = .(country_code, reporting_year)]
+
+  dtmp <- data.table::copy(lkup)
+
+  year       <- toupper(year)
+  country    <- toupper(country)
+  keep_years <- rep(TRUE, nrow(dtmp))
   # STEP 1 - If Most Recent Value requested
   if ("MRV" %in% year) {
     # STEP 1.1 - If all countries selected. Select MRV for each country
+    dtmp <-
     if (any(c("ALL", "WLD") %in% country)) {
-      lkup[,
+       # the i == 1 conditions ensures that it takes into account only one
+       # observation  per country per reporting year. This has to bee like
+       # that in order to keep the same length as the `keep_years` vector.
+      # dtmp[,
+      #      max_year := reporting_year == max(reporting_year) & i == 1,
+      #      by = country_code]
+
+      dtmp[,
            max_year := reporting_year == max(reporting_year),
            by = country_code]
+
     } else {
-      # STEP 1.2 - If only some countries selected. Select MRV for each selected country
-      lkup[lkup$country_code %in% country,
+      # STEP 1.2 - If only some countries selected. Select MRV for each selected
+      # country
+      dtmp[country_code %in% country,
            max_year := reporting_year == max(reporting_year),
            by = country_code]
     }
-    keep_years <- keep_years & as.logical(lkup[["max_year"]]) # Not sure why max_year is being created as a character vector...?
+
+    # dtmp <- unique(dtmp[, .(country_code, reporting_year, max_year)])
+
+
+    keep_years <- keep_years & as.logical(dtmp[["max_year"]])
+
   }
   # STEP 2 - If specific years are specified. Filter for these years
   if (!any(c("ALL", "MRV") %in% year)) {
-    keep_years <- keep_years & lkup$reporting_year %in% year
+    keep_years <- keep_years & dtmp$reporting_year %in% year
 
   }
 
@@ -561,3 +585,116 @@ select_years <- function(lkup, keep, year, country) {
   keep <- keep & keep_years
   return(keep)
 }
+
+
+
+#' Test whether a vector is length zero and IS not NULL
+#'
+#' @param x
+#'
+#' @return logical. TRUE if x is empty but it is not NULL
+#' @export
+#'
+#' @examples
+#' x <- vector()
+#' is_empty(x)
+#'
+#' y <- NULL
+#' length(y)
+#' is_empty(y)
+is_empty <- function(x) {
+  if (length(x) == 0 & !is.null(x)) {
+    TRUE
+  } else {
+    FALSE
+  }
+}
+
+
+
+
+#' Populate list in parent frame
+#'
+#' Fill in maned objects of a list with the value of named objects in  the
+#' parent frame in which the list has been created. This objects must have the
+#' same names as the objects of the list
+#'
+#' @param l list to populate with names objects
+#' @param assign logical: whether to assign to parent frame
+#'
+#' @return invisible list `l` populated with objects of the same frame
+#' @export
+#'
+#' @examples
+#' l <- list(x = NULL,
+#' y = NULL,
+#' z = NULL)
+#'
+#' x <-  2
+#' y <-  "f"
+#' z <- TRUE
+#' fillin_list(l)
+#' l
+fillin_list <- function(l,
+                        assign = TRUE) {
+
+  #   ____________________________________________________________
+  #   Defenses                                    ####
+  stopifnot( exprs = {
+    is.list(l)
+    !is.data.frame(l)
+  }
+  )
+
+  #   __________________________________________________________________
+  #   Early returns                                               ####
+  if (FALSE) {
+    return()
+  }
+
+  #   _______________________________________________________________
+  #   Computations                                              ####
+  # name of the list in parent frame
+  nm_l = deparse(substitute(l))
+
+  #n names of the objects of the list
+  nm_obj <- names(l)
+
+  # all the objects in parent frame
+  obj_in_parent <- ls(envir = parent.frame())
+
+  # make sure that all the objects in list are in parent frame
+  if (!all(nm_obj %in% obj_in_parent)) {
+
+    non_in_parent <-nm_obj[!nm_obj %in% obj_in_parent]
+
+    stop_msg <- paste("The following objects are not in calling function: \n",
+                      paste(non_in_parent, collapse = ", "))
+
+    stop(stop_msg)
+  }
+
+  val_obj        <- lapply(nm_obj, get, envir = parent.frame())
+  names(val_obj) <- nm_obj
+
+  for (i in seq_along(nm_obj)) {
+    x <- val_obj[[nm_obj[i]]]
+    if (!is_empty(x)) {
+      l[[nm_obj[i]]] <- x
+    }
+  }
+
+  if (assign == TRUE) {
+    assign(nm_l, l, envir = parent.frame())
+  }
+
+  #   ________________________________________________
+  #   Return                                        ####
+  return(invisible(l))
+
+  # x = get(x_name, envir = parent.frame())
+  # x_name = deparse(substitute(x))
+}
+
+
+

@@ -1,7 +1,8 @@
 # Disable until a full set of anonymous package data has been created
 # skip("Disable until a full set of anonymous package data has been created")
 
-# Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+# # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+skip("This test is fully repeated in pip-local")
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 
 # files <- sub("[.]fst", "", list.files("../testdata/app_data/20210401/survey_data/"))
@@ -16,16 +17,18 @@ test_that("Reporting level filtering is working", {
   reporting_levels <- c("national", "urban", "rural", "all")
   tmp <- lapply(reporting_levels,
                 function(x) {
-                  pip(country = "CHN",
-                      year = "2008",
-                      povline = 1.9,
-                      popshare = NULL,
-                      welfare_type = "all",
-                      reporting_level = x,
-                      fill_gaps = FALSE,
-                      ppp = 10,
-                      lkup = lkup,
-                      debug = FALSE)
+                  pip(
+                    country         = "CHN",
+                    year            = "2008",
+                    povline         = 1.9,
+                    popshare        = NULL,
+                    welfare_type    = "all",
+                    reporting_level = x,
+                    fill_gaps       = FALSE,
+                    ppp             = 10,
+                    lkup            = lkup,
+                    debug           = FALSE
+                  )
                 })
   names(tmp) <- reporting_levels
 

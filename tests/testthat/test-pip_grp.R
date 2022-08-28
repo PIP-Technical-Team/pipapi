@@ -4,7 +4,10 @@ skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 # Constants
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
 lkups <- lkups$versions_paths[[lkups$latest_release]]
-censored <- readRDS("../testdata/censored.rds")
+censored <-
+  test_path("testdata", "/censored.rds") |>
+  readRDS()
+
 
 # Check pip_grp against current implementation
 # TO BE REMOVED ONCE pip() group_by OPTION is FULLY DEPRECATED

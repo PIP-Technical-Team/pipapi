@@ -50,9 +50,9 @@ pip_grp_logic <- function(country         = "all",
   )
 
   # use the same names as before to avoid inconsistencies
-  alt_agg <- lcv$alt_agg_user
-  gt_code <- lcv$gt_code
-
+  alt_agg <- lcv$user_alt_agg
+  gt_code <- lcv$user_alt_gt_code
+  cl      <- lkup$aux_files$country_list
 
   if (all(lcv$off_alt_agg == "off")) {
   ### Early return -----------
@@ -71,7 +71,7 @@ pip_grp_logic <- function(country         = "all",
   } else if (lcv$off_alt_agg == "both") {
   ## Estimates for official aggregates
     off_ret <-
-      pip_grp(country         =  lcv$off_regs_user,
+      pip_grp(country         =  lcv$user_off_reg,
               year            =  year,
               povline         =  povline,
               group_by        =  "wb",
@@ -98,8 +98,8 @@ pip_grp_logic <- function(country         = "all",
   if (lcv$grp_use %in% c("append", "not")) {
 
     grp <-
-      pip_grp(country         =  lcv$off_regs_to_input,
-              year            =  lcv$years_to_input,
+      pip_grp(country         =  lcv$md_off_reg,
+              year            =  lcv$md_year,
               povline         =  povline,
               group_by        =  "wb",
               welfare_type    =  welfare_type,
@@ -127,7 +127,7 @@ pip_grp_logic <- function(country         = "all",
   ### Merge population with Missing data table ---------
 
   ### Merge with pop_md ------
-  pop_md <- lcv$missing_data
+  pop_md <- lcv$md
   data.table::setnames(pop_md, "year", "reporting_year")
 
   # This merge will remove those countries for which there is no official
@@ -140,7 +140,7 @@ pip_grp_logic <- function(country         = "all",
   md_grp[,
          region_code := NULL]
 
-  md_grp <- merge(md_grp, lcv$country_list,
+  md_grp <- merge(md_grp, cl,
                   by = "country_code",
                   all.x = TRUE)
 
