@@ -292,6 +292,8 @@ create_countries_vctr <- function(country,
 #' @param assign logical: whether to assign to parent frame. Default is TRUE
 #'
 #' @return invisible `lret` list
+#' @export
+#'
 #' @examples
 #' lf <- list(x = NULL,
 #' y = 8,
