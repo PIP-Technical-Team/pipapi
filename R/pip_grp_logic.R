@@ -81,7 +81,6 @@ pip_grp_logic <- function(country         = "all",
               debug           =  debug,
               censor          =  censor)
   } else {
-    gt      <- grouping_type
     off_ret <- NULL
     alt_agg <- country
   }
