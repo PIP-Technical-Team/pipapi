@@ -204,8 +204,10 @@ test_that("region selection is working for multiple regions", {
 
 test_that("region selection is working for all countries", {
   region <- "all"
-  expected_region_values <- lkups$query_controls$region$values
-  expected_region_values <- expected_region_values[expected_region_values != "all"]
+  alt_region_values <-
+    lkups$aux_files$regions$region_code[lkups$aux_files$regions$grouping_type != "region"]
+  expected_region_values <-
+    lkups$query_controls$region$values[!lkups$query_controls$region$values %in% c(alt_region_values, toupper(region))]
 
   out <- pip_grp(
     country = region,
@@ -224,8 +226,12 @@ test_that("region selection is working for multiple regions and country from oth
   # but for the time being, all countries are being selected
   # So this selection will effectively return country = "all"
   region <- c("SSA", "MNA", "COL")
-  expected_region_values <- lkups$query_controls$region$values
-  expected_region_values <- expected_region_values[expected_region_values != "all"]
+  # expected_region_values <- lkups$query_controls$region$values
+  # expected_region_values <- expected_region_values[expected_region_values != "all"]
+  alt_region_values <-
+    lkups$aux_files$regions$region_code[lkups$aux_files$regions$grouping_type != "region"]
+  expected_region_values <-
+    lkups$query_controls$region$values[!lkups$query_controls$region$values %in% c(alt_region_values, "ALL")]
 
   out <- pip_grp(
     country = region,
