@@ -5,7 +5,10 @@ if (Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") != "") {
   # lkups$query_controls$version <- NULL
   # saveRDS(list(query_controls = lkups$query_controls),
   #         'tests/testdata/query-controls.rds')
-  lkups <- readRDS("../testdata/query-controls.rds")
+  lkups <-
+    test_path("testdata", "query-controls.rds") |>
+    readRDS()
+
 }
 
 test_that("validate_query_parameters() works", {
@@ -200,10 +203,10 @@ test_that("assign_required_params works as expected for /pip endpoint", {
   req$PATH_INFO <- "api/v1/pip"
   req <- assign_required_params(req)
 
-  expect_identical(req$args$country, "all")
-  expect_identical(req$args$year, "all")
-  expect_identical(req$argsQuery$country, "all")
-  expect_identical(req$argsQuery$year, "all")
+  expect_identical(req$args$country, "ALL")
+  expect_identical(req$args$year, "ALL")
+  expect_identical(req$argsQuery$country, "ALL")
+  expect_identical(req$argsQuery$year, "ALL")
 })
 
 test_that("assign_required_params works as expected for /pip-grp endpoint", {
@@ -212,11 +215,11 @@ test_that("assign_required_params works as expected for /pip-grp endpoint", {
   req$PATH_INFO <- "api/v1/pip-grp"
   req <- assign_required_params(req)
 
-  expect_identical(req$args$country, "all")
-  expect_identical(req$args$year, "all")
+  expect_identical(req$args$country, "ALL")
+  expect_identical(req$args$year, "ALL")
   expect_identical(req$args$group_by, "none")
-  expect_identical(req$argsQuery$country, "all")
-  expect_identical(req$argsQuery$year, "all")
+  expect_identical(req$argsQuery$country, "ALL")
+  expect_identical(req$argsQuery$year, "ALL")
   expect_identical(req$argsQuery$group_by, "none")
 })
 

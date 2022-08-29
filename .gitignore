@@ -10,3 +10,4 @@ tests/testdata/app_data/
 .Renviron
 docs
 logs/
+/sessionInfoLog

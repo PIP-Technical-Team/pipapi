@@ -52,22 +52,22 @@
 #'     lkup = lkups)
 #' }
 #' @export
-pip <- function(country = "all",
-                year = "all",
-                povline = 1.9,
-                popshare = NULL,
-                fill_gaps = FALSE,
-                group_by = c("none", "wb"),
-                welfare_type = c("all", "consumption", "income"),
+pip <- function(country         = "all",
+                year            = "all",
+                povline         = 1.9,
+                popshare        = NULL,
+                fill_gaps       = FALSE,
+                group_by        = c("none", "wb"),
+                welfare_type    = c("all", "consumption", "income"),
                 reporting_level = c("all", "national", "rural", "urban"),
-                ppp = NULL,
+                ppp             = NULL,
                 lkup,
-                debug = FALSE,
-                censor = TRUE) {
+                debug           = FALSE,
+                censor          = TRUE) {
 
-  welfare_type <- match.arg(welfare_type)
+  welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
-  group_by <- match.arg(group_by)
+  group_by        <- match.arg(group_by)
 
   # If svy_lkup and ref_lkup are not part of lkup throw an error.
   if (!all(c('svy_lkup', 'ref_lkup') %in% names(lkup)))
@@ -83,31 +83,39 @@ pip <- function(country = "all",
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
+  lcv <- # List with countries vectors
+    create_countries_vctr(
+      country         =  country,
+      year            =  year,
+      lkup            =  lkup
+    )
+
+
   if (fill_gaps) {
     # Compute imputed stats
     out <- fg_pip(
-      country = country,
-      year = year,
-      povline = povline,
-      popshare = popshare,
-      welfare_type = welfare_type,
+      country         = lcv$est_ctrs,
+      year            = year,
+      povline         = povline,
+      popshare        = popshare,
+      welfare_type    = welfare_type,
       reporting_level = reporting_level,
-      ppp = ppp,
-      lkup = lkup,
-      debug = debug
+      ppp             = ppp,
+      lkup            = lkup,
+      debug           = debug
     )
   } else {
     # Compute survey year stats
     out <- rg_pip(
-      country = country,
-      year = year,
-      povline = povline,
-      popshare = popshare,
-      welfare_type = welfare_type,
+      country         = lcv$est_ctrs,
+      year            = year,
+      povline         = povline,
+      popshare        = popshare,
+      welfare_type    = welfare_type,
       reporting_level = reporting_level,
-      ppp = ppp,
-      lkup = lkup,
-      debug = debug
+      ppp             = ppp,
+      lkup            = lkup,
+      debug           = debug
     )
   }
 

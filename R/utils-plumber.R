@@ -197,12 +197,12 @@ assign_required_params <- function(req) {
   endpoint <- extract_endpoint(req$PATH_INFO)
   if (endpoint %in% c("pip", "pip-grp")) {
     if (is.null(req$args$country)) {
-      req$args$country <- "all"
-      req$argsQuery$country <- "all"
+      req$args$country <- "ALL"
+      req$argsQuery$country <- "ALL"
     }
     if (is.null(req$args$year)) {
-      req$args$year <- "all"
-      req$argsQuery$year <- "all"
+      req$args$year <- "ALL"
+      req$argsQuery$year <- "ALL"
     }
     if (endpoint == "pip-grp") {
       if (is.null(req$args$group_by)) {
