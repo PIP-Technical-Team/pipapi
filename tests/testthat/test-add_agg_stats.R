@@ -1,7 +1,13 @@
-res_ex1 <- readRDS("../testdata/agg-stats-ex-1.rds")
-res_ex2 <- readRDS("../testdata/agg-stats-ex-2.rds")
-res_ex3 <- readRDS("../testdata/agg-stats-ex-3.rds")
-res_ex4 <- readRDS("../testdata/povcal_response_ind1988.rds")
+
+res_ex1 <- test_path("testdata", "agg-stats-ex-1.rds") |>
+  readRDS()
+res_ex2 <- test_path("testdata", "agg-stats-ex-2.rds") |>
+  readRDS()
+res_ex3 <- test_path("testdata", "agg-stats-ex-3.rds") |>
+  readRDS()
+res_ex4 <- test_path("testdata", "povcal_response_ind1988.rds") |>
+  readRDS()
+
 
 test_that("add_agg_stats() works", {
 

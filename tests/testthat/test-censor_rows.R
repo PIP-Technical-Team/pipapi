@@ -1,8 +1,19 @@
 # constants
-censored <- readRDS("../testdata/censored.rds")
-censored2 <- readRDS("../testdata/censored-2.rds")
-reg_agg <- readRDS("../testdata/ohi-sample.rds")
-chn <- readRDS("../testdata/chn-2016.rds")
+censored <-
+  test_path("testdata", "censored.rds") |>
+  readRDS()
+
+censored2 <-
+  test_path("testdata", "censored-2.rds") |>
+  readRDS()
+
+reg_agg <-
+  test_path("testdata", "ohi-sample.rds") |>
+  readRDS()
+
+chn <-
+  test_path("testdata", "chn-2016.rds") |>
+  readRDS()
 
 test_that("censor_rows() removes entire row when statistic is 'all'", {
 

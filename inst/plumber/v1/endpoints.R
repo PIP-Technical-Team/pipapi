@@ -9,23 +9,29 @@ library(pipapi)
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
-  # tictoc::tic("filters")
-  # browser()
-  if (!is.null(req$argsQuery$version) & !grepl("swagger", req$PATH_INFO)) {
-    if (!is.null(req$argsQuery$version)) {
-      if (!req$argsQuery$version %in% lkups$versions) {
+
+  # STEP 1 - If no arguments are passed, use the latest version
+  if (is.null(req$argsQuery$release_version) & is.null(req$argsQuery$ppp_version) &
+     is.null(req$argsQuery$version) & is.null(req$argsQuery$identity)) {
+      version <- lkups$latest_release
+  # STEP 2 - If partial version information is passed, use selection algorithm
+  } else {
+    if (is.null(req$argsQuery$identity)) req$argsQuery$identity <- 'PROD'
+    version <- pipapi::return_correct_version(req$argsQuery$version,
+                                              req$argsQuery$release_version,
+                                              req$argsQuery$ppp_version,
+                                              req$argsQuery$identity, lkups$versions)
+  }
+    # If the version is not found (404) or it is not present in valid versions vector return an error.
+    if (!version %in% lkups$versions) {
         res$status <- 404
         out <- list(
           error = "Invalid query arguments have been submitted.",
-          details = list(msg = "You supplied an invalid value for version. Please use one of the valid values.",
-                         valid = lkups$versions))
+          details = list(msg = "The selected value is not available. Please select one of the valid values",
+                         valid = pipapi::version_dataframe(lkups$versions)))
         return(out)
-        #return("Invalid version has been submitted. Please check valid versions with /versions")
-      }
-    }
-  } else {
-    req$argsQuery$version <- lkups$latest_release
-  }
+    } else req$argsQuery$version <- version
+
   plumber::forward()
 }
 
@@ -41,7 +47,6 @@ function(req, res) {
 #* Parse query parameters of incoming request
 #* @filter parse_parameters
 function(req, res) {
-  # browser()
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     req$argsQuery <- pipapi:::parse_parameters(req$argsQuery)
   }
@@ -51,7 +56,6 @@ function(req, res) {
 #* Protect against invalid arguments
 #* @filter check_parameters
 function(req, res) {
-  # browser()
   lkups <- lkups$versions_paths[[req$argsQuery$version]]
   query_controls = lkups$query_controls
 
@@ -138,17 +142,8 @@ function() {
 
 #* Return available data versions
 #* @get /api/v1/versions
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
-#* @serializer switch
 function(req) {
-  # browser()
-  out <- lkups$versions
-  # if (!is.null(req$argsQuery$format)) {
-  #   if (req$argsQuery$format == "csv") out <- data.frame(versions = out)
-  #   attr(out, "serialize_format") <- req$argsQuery$format
-  # }
-  out <- data.frame(versions = out)
-  attr(out, "serialize_format") <- req$argsQuery$format
+  out <- pipapi::version_dataframe(lkups$versions)
   out
 }
 
@@ -200,6 +195,8 @@ function() {
 
 #* Check timestamp for the data
 #* @get /api/v1/data-timestamp
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer unboxedJSON
 function(req) {
@@ -209,9 +206,10 @@ function(req) {
 
 #* Get information on directory contents
 #* @get /api/v1/dir-info
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 function(req) {
-  # browser()
   dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
   x <- fs::dir_info(dir, recurse = TRUE, type = "file")
   x$file <- sub(".*/", "", x$path)
@@ -228,6 +226,8 @@ function(req) {
 
 #* Check Github hash for the PIP packages
 #* @get /api/v1/gh-hash
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer unboxedJSON
 function(req) {
@@ -254,12 +254,13 @@ function(req) {
 
 #* Return valid parameters
 #* @get /api/v1/valid-params
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @param endpoint:[chr] Endpoint for which to return the valid parameters
 #* @serializer switch
 function(req) {
-  # browser()
   version <- req$argsQuery$version
   endpoint <- req$argsQuery$endpoint
   out <- pipapi::get_param_values(
@@ -281,22 +282,18 @@ function(req) {
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
-#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions for all available versions
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @param identity:[chr] One of "PROD" (production) (default), "INT" (internal) and "TEST"
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
   # Process request
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
-
-  # Define default arguments
-  # if (is.null(params$country))
-  #   params$country <- "all"
-  # if (is.null(params$year))
-  #   params$year <- "all"
 
   # Parallel processing for slow requests
   if (params$country == "all" && params$year == "all") {
@@ -317,30 +314,30 @@ function(req) {
 #* @param country:[chr] Country ISO3 code
 #* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
-#* @param popshare:[dbl] Share of the population living below the poverty Line.
 #* @param group_by:[chr] Select type of aggregation (simple weighted average or a pre-defined subgroup)
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* for all available versions
 #* @serializer switch
 function(req, res) {
   # Process request
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   params$format <- NULL
   params$version <- NULL
 
   # Parallel processing for slow requests
-  if (params$country == "all" && params$year == "all") {
+  if (params$country %in% c("ALL", "WLD") && params$year == "ALL") {
     out <- promises::future_promise({
-      tmp <- do.call(pipapi::pip_grp, params)
+      tmp <- do.call(pipapi::pip_grp_logic, params)
       attr(tmp, "serialize_format") <- req$argsQuery$format
       tmp
     }, seed = TRUE)
   } else {
-    out <- do.call(pipapi::pip_grp, params)
+    out <- do.call(pipapi::pip_grp_logic, params)
     attr(out, "serialize_format") <- req$argsQuery$format
   }
   out
@@ -349,22 +346,24 @@ function(req, res) {
 #* Return auxiliary data table
 #* @get /api/v1/aux
 #* @param table:[chr] Auxiliary data table to be returned
-#* @param version:[chr] Data version. Defaults to latest versions. See api/v1/versions (add filter for version validation and default selection)
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @param long_format:[bool] Data in long format
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
-  # browser()
   params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[params$version]]
-  params$format <- NULL
-  params$version <- NULL
-
   if (is.null(req$args$table)) {
-    out <- data.frame(tables = params$lkup$aux_tables)
+    # return all available tables if none selected
+    list_of_tables <- lkups$versions_paths[[params$version]]$aux_tables
+    out <- data.frame(tables = list_of_tables)
   } else {
-    out <- pipapi::get_aux_table(
-      data_dir = params$lkup$data_root,
-      table = req$args$table)
+    # Return only requested table
+    params$data_dir <- lkups$versions_paths[[params$version]]$data_root
+    params$format <- NULL
+    params$version <- NULL
+    out <- do.call(pipapi::get_aux_table, params)
   }
   attr(out, "serialize_format") <- req$argsQuery$format
   out
@@ -373,6 +372,8 @@ function(req) {
 
 #* Return poverty lines for home page display
 #* @get /api/v1/poverty-lines
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
@@ -382,6 +383,8 @@ function(req) {
 
 #* Return indicators master table
 #* @get /api/v1/indicators
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req) {
@@ -391,6 +394,8 @@ function(req) {
 
 #* Return list of variables used for decomposition
 #* @get /api/v1/decomposition-vars
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
@@ -401,6 +406,8 @@ function(req) {
 #* Return data for home page main chart
 #* @get /api/v1/hp-stacked
 #* @param povline:[dbl] Poverty Line
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
@@ -414,6 +421,8 @@ function(req) {
 
 #* Return data for home page country charts
 #* @get /api/v1/hp-countries
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
@@ -435,6 +444,8 @@ function(req) {
 #* @param group_by:[chr] Triggers sub-groups aggregation
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na = "null")
 function(req) {
@@ -459,6 +470,8 @@ function(req) {
 #* @param group_by:[chr] Triggers sub-groups aggregation
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "all", national", "urban", "rural".
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer csv
 function(req) {
@@ -480,10 +493,11 @@ function(req) {
 #* @param country:[chr] Region code
 #* @param year:[chr] Year
 #* @param povline:[dbl] Poverty Line
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
-  # browser()
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
@@ -498,6 +512,8 @@ function(req) {
 #* @get /api/v1/cp-key-indicators
 #* @param country:[chr] Country ISO3 code
 #* @param povline:[dbl] Poverty Line
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req) {
@@ -512,6 +528,8 @@ function(req) {
 #* @get /api/v1/cp-charts
 #* @param country:[chr] Country ISO3 code
 #* @param povline:[dbl] Poverty Line
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
@@ -527,11 +545,40 @@ function(req) {
   }
 }
 
+#* Return Country Profile - Downloads
+#* @get /api/v1/cp-download
+#* @param country:[chr] Country ISO3 code
+#* @param povline:[dbl] Poverty Line
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer switch
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  params$version <- NULL
+  params$format  <- NULL
+
+  if (params$country == "all") {
+    out <- promises::future_promise({
+      tmp <- do.call(pipapi::ui_cp_download, params)
+      attr(tmp, "serialize_format") <- req$argsQuery$format
+      tmp
+    }, seed = TRUE)
+  } else {
+    out <- do.call(pipapi::ui_cp_download, params)
+    attr(out, "serialize_format") <- req$argsQuery$format
+  }
+  out
+}
+
 # UI Endpoints: Survey metadata  ------------------------------------------
 
 #* Return data for the Data Sources page
 #* @get /api/v1/survey-metadata
 #* @param country:[chr] Country ISO3 code
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req) {
@@ -543,6 +590,8 @@ function(req) {
 
 #* Return valid years
 #* @get /api/v1/valid-years
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer switch
 function(req) {

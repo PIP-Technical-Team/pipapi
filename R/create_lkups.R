@@ -5,10 +5,12 @@
 #'   vintage folders
 #' @return list
 #' @export
-#'
 create_versioned_lkups <-
   function(data_dir,
-           vintage_pattern = get_vintage_pattern_regex()) {
+           vintage_pattern = NULL) {
+
+    vintage_pattern <- create_vintage_pattern_call(vintage_pattern)
+
 
     data_dirs <- extract_data_dirs(data_dir = data_dir,
                                    vintage_pattern = vintage_pattern)
@@ -82,7 +84,7 @@ create_lkups <- function(data_dir, versions) {
   countries <-  qs::qread(cts_path) %>% data.table::as.data.table()
   regions   <-  qs::qread(reg_path) %>% data.table::as.data.table()
 
-  data.table::setnames(regions, 'region', 'region_name')
+  data.table::setnames(countries, 'region', 'region_name')
 
   # TEMP fix - END (see further code chunks below )
 
@@ -96,11 +98,17 @@ create_lkups <- function(data_dir, versions) {
   # TEMP cleaning - END
   svy_lkup$path <- fs::path(data_dir,"survey_data", svy_lkup$cache_id, ext = "fst")
 
+  # TEMP: Ideally, region should come from one single place
+  if ("region_code" %in% names(svy_lkup)) {
+    svy_lkup[,
+             region_code := NULL]
+  }
+
   # TEMP fix to add country and region name
-  svy_lkup <- merge(svy_lkup, countries[, c('country_code', 'country_name')],
-                    by = 'country_code', all.x = TRUE)
-  svy_lkup <- merge(svy_lkup, regions[, c('region_code', 'region_name')],
-                    by = 'region_code', all.x = TRUE)
+  svy_lkup <- merge(svy_lkup, countries,
+                    by = 'country_code',
+                    all.x = TRUE)
+
   # TEMP fix - END
   # Clean ref_lkup
   ref_lkup_path <- fs::path(data_dir, "estimations/prod_ref_estimation.fst")
@@ -109,18 +117,23 @@ create_lkups <- function(data_dir, versions) {
 
   # TEMP cleaning - START
   ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
+  # TEMP: Ideally, region should come from one single place
+  if ("region_code" %in% names(ref_lkup)) {
+    ref_lkup[,
+             region_code := NULL]
+  }
+
 
   # TEMP cleaning - END
-
   ref_lkup$path <-
     fs::path(data_dir, "survey_data", ref_lkup$cache_id, ext = "fst")
 
 
   # TEMP fix to add country and region name
-  ref_lkup <- merge(ref_lkup, countries[, c('country_code', 'country_name')],
-                    by = 'country_code', all.x = TRUE)
-  ref_lkup <- merge(ref_lkup, regions[, c('region_code', 'region_name')],
-                    by = 'region_code', all.x = TRUE)
+  ref_lkup <-  merge(ref_lkup, countries,
+                     by = 'country_code',
+                     all.x = TRUE)
+
   # TEMP fix - END
 
   # Add data interpolation ID (unique combination of survey files used for one
@@ -188,6 +201,27 @@ create_lkups <- function(data_dir, versions) {
   censored_path   <- fs::path(data_dir, "_aux/censored.qs")
   censored        <- qs::qread(censored_path) %>% data.table::as.data.table()
 
+
+  # Files with country and region information -----
+
+  # Countries with Missing data
+  msd_lkup_path    <- fs::path(data_dir, "_aux/missing_data.fst")
+  missing_data     <- fst::read_fst(msd_lkup_path, as.data.table = TRUE)
+
+  # Country list
+  cl_lkup_path    <- fs::path(data_dir, "_aux/country_list.fst")
+  country_list     <- fst::read_fst(cl_lkup_path, as.data.table = TRUE)
+
+  # Population
+  pop_path    <- fs::path(data_dir, "_aux/pop.fst")
+  pop         <- fst::read_fst(pop_path, as.data.table = TRUE)
+
+  aux_files <- list(missing_data = missing_data,
+                    country_list = country_list,
+                    countries    = countries,
+                    regions      = regions,
+                    pop          = pop)
+
   # Create pip return columns
   pip_cols <-
     c(
@@ -252,10 +286,11 @@ create_lkups <- function(data_dir, versions) {
   # Create list of query controls
   query_controls <-
     create_query_controls(
-      svy_lkup = svy_lkup,
-      ref_lkup = ref_lkup,
+      svy_lkup   = svy_lkup,
+      ref_lkup   = ref_lkup,
+      aux_files = aux_files,
       aux_tables = aux_tables,
-      versions = versions)
+      versions   = versions)
 
   # Create list of lkups
   lkups <- list(
@@ -266,12 +301,13 @@ create_lkups <- function(data_dir, versions) {
     cp_lkups           = cp_lkups,
     pl_lkup            = pl_lkup,
     censored           = censored,
+    aux_files          = aux_files,
     pip_cols           = pip_cols,
     query_controls     = query_controls,
     data_root          = data_dir,
     aux_tables         = aux_tables,
     interpolation_list = interpolation_list,
-    valid_years = valid_years
+    valid_years        = valid_years
   )
 
   return(lkups)
@@ -282,14 +318,116 @@ create_lkups <- function(data_dir, versions) {
 #'
 #' @return list
 #' @noRd
-get_vintage_pattern_regex <- function() {
+get_vintage_pattern_regex <- function(vintage_pattern = NULL,
+                                      prod_regex      = NULL,
+                                      int_regex       = NULL,
+                                      test_regex      = NULL
+                                      ) {
+
+
   list(
-    vintage_pattern = "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$",
-    prod_regex      = "PROD$",
-    int_regex       = "INT$",
-    test_regex      = "TEST$"
+
+    vintage_pattern = ifel_isnull(vintage_pattern,
+                                 "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$"),
+
+    prod_regex      = ifel_isnull(prod_regex,
+                             "PROD$"),
+
+    int_regex       = ifel_isnull(int_regex,
+                             "INT$"),
+
+    test_regex      = ifel_isnull(test_regex,
+                             "TEST$")
     )
 }
+
+#' Efficient "if" "else" evaluation of null.
+#'
+#' @param x object to evaluate
+#' @param y in case x null. If X is not null, then x.
+#'
+#' @return object of class(x)
+ifel_isnull <- function(x, y) {
+
+  if (is.null(x)) {
+    y
+  } else {
+    x
+  }
+
+}
+
+
+
+#' create vintage call to be parsed into `get_vintage_pattern_regex()`
+#'
+#' @param vintage_pattern either NULL, chracter with regex or list of arguments
+#'   for `get_vintage_pattern_regex()`
+#'
+#' @return list to be parses t `get_vintage_pattern_regex()`
+#' @examples
+#' \dontrun{
+#' vintage_pattern <- NULL
+#' create_vintage_pattern_call(vintage_pattern)
+#'
+#' vintage_pattern <- list("r.*", "", "^hjkhj\\.d")
+#' create_vintage_pattern_call(vintage_pattern)
+#'
+#' vintage_pattern <- c("r.*", "", "^hjkhj\\.d")
+#' create_vintage_pattern_call(vintage_pattern)
+#'
+#' vintage_pattern <- c(vintage_pattern = "r.*", test_regex = "", int_regex =  "^hjkhj\\.d")
+#' create_vintage_pattern_call(vintage_pattern)
+#' }
+create_vintage_pattern_call <- function(vintage_pattern = NULL) {
+
+  #   ____________________________________________________________________________
+  #   Defenses                                                                ####
+  stopifnot( exprs = {
+    class(vintage_pattern) %in% c("NULL",  "list",  "character")
+  }
+  )
+
+  #   ______________________________________________________________________
+  #   Computations                                                      ####
+  vp <-
+    if (is.null(vintage_pattern)) {
+
+      get_vintage_pattern_regex()
+
+    } else {
+
+
+      lf <-
+        formals(get_vintage_pattern_regex) |>
+        names() |>
+        length()
+
+      l <- length(vintage_pattern)
+
+      stopifnot(l >= 1 && l <= lf)
+
+      if (inherits(vintage_pattern, "list")) { # if list
+
+        do.call(get_vintage_pattern_regex,
+                vintage_pattern)
+
+
+      } else { # if character
+        do.call(get_vintage_pattern_regex,
+                as.list(vintage_pattern))
+      }
+
+    }
+
+
+  #   ____________________________________________________________
+  #   Return                                                     ####
+  return(vp)
+
+}
+
+
 
 #' Identify valid data directories
 #' Helper function to facilitate testing

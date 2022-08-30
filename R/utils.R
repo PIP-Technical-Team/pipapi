@@ -35,37 +35,17 @@ subset_lkup <- function(country,
                         lkup,
                         valid_regions) {
 
-  keep <- TRUE
-  # Select data files based on requested country, year, etc.
-  # Select countries
-  if (!any(c("all", "WLD") %in% country)) {
-    # Select regions
-    if (any(country %in% valid_regions)) {
-      selected_regions <- country[country %in% valid_regions]
-      keep_regions <- lkup$region_code %in% selected_regions
-    } else {
-      keep_regions <- rep(FALSE, length(lkup$country_code))
-    }
-    keep_countries <- lkup$country_code %in% country
-    keep <- keep & (keep_countries | keep_regions)
-  }
-  # Select years
-  if (year[1] == "mrv") {
-    if (!any(c("all", "WLD") %in% country)) {
-      max_year <- max(lkup[country_code == country]$reporting_year)
-    } else {
-      max_year <- max(lkup$reporting_year)
-    }
-    keep <- keep & lkup$reporting_year %in% max_year
-  }
-  if (!year[1] %in% c("all", "mrv")) {
-    keep <- keep & lkup$reporting_year %in% year
-  }
-  # Select welfare_type
+  # STEP 1 - Keep every row by default
+  keep <- rep(TRUE, nrow(lkup))
+  # STEP 2 - Select countries
+  keep <- select_country(lkup, keep, country, valid_regions)
+  # STEP 3 - Select years
+  keep <- select_years(lkup, keep, year, country)
+  # STEP 4 - Select welfare_type
   if (welfare_type[1] != "all") {
     keep <- keep & lkup$welfare_type == welfare_type
   }
-  # Select survey coverage
+  # STEP 5 - Select reporting_level
   keep <- select_reporting_level(lkup = lkup,
                                  keep = keep,
                                  reporting_level = reporting_level[1])
@@ -73,6 +53,29 @@ subset_lkup <- function(country,
   lkup <- lkup[keep, ]
 
   return(lkup)
+}
+
+#' Helper to filter metadata
+#' aggregate distribution need to be filtered out when popshare is not null
+#' This is a temporary function until a full fix is implemented, and popshare is
+#' supported for all distributions
+#'
+#' @param metadata data.frame: Output of `subset_lkup()`
+#' @param popshare numeric: popshare value passed to `pip()`
+#'
+#' @return data.frame
+
+filter_lkup <- function(metadata,
+                        popshare) {
+  # popshare option not supported for aggregate distributions
+  if (!is.null(popshare)) {
+    return(
+      metadata[metadata$distribution_type != "aggregate", ]
+    )
+  } else {
+    return(metadata)
+  }
+
 }
 
 
@@ -277,11 +280,16 @@ censor_stats <- function(df, censored_table) {
 #' Create query controls
 #' @param syv_lkup data.table: Survey lkup table
 #' @param ref_lkup data.table: Reference lkup table
+#' @param aux_files data.table: All valid regions and corresponding population
 #' @param aux_tables character: List of available aux tables
 #' @param versions character: List of available data versions
 #' @return list
 #' @noRd
-create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
+create_query_controls <- function(svy_lkup,
+                                  ref_lkup,
+                                  aux_files,
+                                  aux_tables,
+                                  versions) {
   # Countries and regions
   countries <- unique(c(
       svy_lkup$country_code,
@@ -289,13 +297,12 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     ))
 
   regions <- unique(c(
-    svy_lkup$region_code,
-    ref_lkup$region_code
+    aux_files$regions$region_code
   ))
 
   country <- list(
     values = c(
-      "all",
+      "ALL",
       "WLD",
       sort(c(
         countries,
@@ -306,7 +313,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
   )
 
   region <- list(
-    values = sort(c("all", "WLD", regions)),
+    values = sort(c("ALL", "WLD", regions)),
     type = "character"
   )
   # Year
@@ -331,7 +338,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     type = "numeric"
   )
   # Fill gaps
-  fill_gaps <- aggregate <- list(
+  fill_gaps <- aggregate <- long_format <- list(
     values = c(TRUE, FALSE),
     type = "logical"
   )
@@ -380,7 +387,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format", "table"),
+                    "format", "table", "long_format"),
          type = "character")
   # Endpoint
   endpoint <-
@@ -401,6 +408,7 @@ create_query_controls <- function(svy_lkup, ref_lkup, aux_tables, versions) {
     popshare        = popshare,
     fill_gaps       = fill_gaps,
     aggregate       = aggregate,
+    long_format     = long_format,
     group_by        = group_by,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
@@ -496,3 +504,197 @@ clear_cache <- function(cd) {
     return(out)
   })
 }
+
+#' select_country
+#' Helper function for subset_lkup()
+#' @inheritParams subset_lkup
+#' @param keep logical vector
+#' @return logical vector
+select_country <- function(lkup, keep, country, valid_regions) {
+  # Select data files based on requested country, year, etc.
+  # Select countries
+  if (!any(c("ALL", "WLD") %in% toupper(country))) {
+    # Select regions
+    if (any(country %in% valid_regions)) {
+      selected_regions <- country[country %in% valid_regions]
+      keep_regions <- lkup$region_code %in% selected_regions
+    } else {
+      keep_regions <- rep(FALSE, length(lkup$country_code))
+    }
+    keep_countries <- lkup$country_code %in% country
+    keep <- keep & (keep_countries | keep_regions)
+  }
+  return(keep)
+}
+
+#' select_years
+#' Helper function for subset_lkup()
+#' @inheritParams subset_lkup
+#' @param keep logical vector
+#' @return logical vector
+select_years <- function(lkup, keep, year, country) {
+  # columns i is an ID that identifies if a country has more than one
+  # observation for reporting year. That is the case of IND with URB/RUR and ZWE
+  # with interporaltion and microdata info
+  # dtmp    <- ref_lkup[,
+  #                   .i := seq_len(.N),
+  #                   by = .(country_code, reporting_year)]
+
+  dtmp <- data.table::copy(lkup)
+
+  year       <- toupper(year)
+  country    <- toupper(country)
+  keep_years <- rep(TRUE, nrow(dtmp))
+  # STEP 1 - If Most Recent Value requested
+  if ("MRV" %in% year) {
+    # STEP 1.1 - If all countries selected. Select MRV for each country
+    dtmp <-
+    if (any(c("ALL", "WLD") %in% country)) {
+       # the i == 1 conditions ensures that it takes into account only one
+       # observation  per country per reporting year. This has to bee like
+       # that in order to keep the same length as the `keep_years` vector.
+      # dtmp[,
+      #      max_year := reporting_year == max(reporting_year) & i == 1,
+      #      by = country_code]
+
+      dtmp[,
+           max_year := reporting_year == max(reporting_year),
+           by = country_code]
+
+    } else {
+      # STEP 1.2 - If only some countries selected. Select MRV for each selected
+      # country
+      dtmp[country_code %in% country,
+           max_year := reporting_year == max(reporting_year),
+           by = country_code]
+    }
+
+    # dtmp <- unique(dtmp[, .(country_code, reporting_year, max_year)])
+
+
+    keep_years <- keep_years & as.logical(dtmp[["max_year"]])
+
+  }
+  # STEP 2 - If specific years are specified. Filter for these years
+  if (!any(c("ALL", "MRV") %in% year)) {
+    keep_years <- keep_years & dtmp$reporting_year %in% year
+
+  }
+
+  # STEP 3 - Otherwise return all years
+  keep <- keep & keep_years
+  return(keep)
+}
+
+
+
+#' Test whether a vector is length zero and IS not NULL
+#'
+#' @param x
+#'
+#' @return logical. TRUE if x is empty but it is not NULL
+#' @export
+#'
+#' @examples
+#' x <- vector()
+#' is_empty(x)
+#'
+#' y <- NULL
+#' length(y)
+#' is_empty(y)
+is_empty <- function(x) {
+  if (length(x) == 0 & !is.null(x)) {
+    TRUE
+  } else {
+    FALSE
+  }
+}
+
+
+
+
+#' Populate list in parent frame
+#'
+#' Fill in maned objects of a list with the value of named objects in  the
+#' parent frame in which the list has been created. This objects must have the
+#' same names as the objects of the list
+#'
+#' @param l list to populate with names objects
+#' @param assign logical: whether to assign to parent frame
+#'
+#' @return invisible list `l` populated with objects of the same frame
+#' @export
+#'
+#' @examples
+#' l <- list(x = NULL,
+#' y = NULL,
+#' z = NULL)
+#'
+#' x <-  2
+#' y <-  "f"
+#' z <- TRUE
+#' fillin_list(l)
+#' l
+fillin_list <- function(l,
+                        assign = TRUE) {
+
+  #   ____________________________________________________________
+  #   Defenses                                    ####
+  stopifnot( exprs = {
+    is.list(l)
+    !is.data.frame(l)
+  }
+  )
+
+  #   __________________________________________________________________
+  #   Early returns                                               ####
+  if (FALSE) {
+    return()
+  }
+
+  #   _______________________________________________________________
+  #   Computations                                              ####
+  # name of the list in parent frame
+  nm_l = deparse(substitute(l))
+
+  #n names of the objects of the list
+  nm_obj <- names(l)
+
+  # all the objects in parent frame
+  obj_in_parent <- ls(envir = parent.frame())
+
+  # make sure that all the objects in list are in parent frame
+  if (!all(nm_obj %in% obj_in_parent)) {
+
+    non_in_parent <-nm_obj[!nm_obj %in% obj_in_parent]
+
+    stop_msg <- paste("The following objects are not in calling function: \n",
+                      paste(non_in_parent, collapse = ", "))
+
+    stop(stop_msg)
+  }
+
+  val_obj        <- lapply(nm_obj, get, envir = parent.frame())
+  names(val_obj) <- nm_obj
+
+  for (i in seq_along(nm_obj)) {
+    x <- val_obj[[nm_obj[i]]]
+    if (!is_empty(x)) {
+      l[[nm_obj[i]]] <- x
+    }
+  }
+
+  if (assign == TRUE) {
+    assign(nm_l, l, envir = parent.frame())
+  }
+
+  #   ________________________________________________
+  #   Return                                        ####
+  return(invisible(l))
+
+  # x = get(x_name, envir = parent.frame())
+  # x_name = deparse(substitute(x))
+}
+
+
+

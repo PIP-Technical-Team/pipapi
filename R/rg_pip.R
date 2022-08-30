@@ -24,6 +24,11 @@ rg_pip <- function(country,
     valid_regions = lkup$query_controls$region$values
   )
 
+  # Remove aggregate distribution if popshare is specified
+  # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
+  metadata <- filter_lkup(metadata = metadata,
+                          popshare = popshare)
+
   # return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
     return(pipapi::empty_response)

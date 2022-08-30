@@ -3,8 +3,13 @@
 ## New features
 
 - [Read data in `_aux` folder from qs files](https://github.com/PIP-Technical-Team/pipapi/issues/271)
-
+- [Add new endpoint to support country profile downloads](https://github.com/PIP-Technical-Team/pipapi/pull/283)
+- [Add separate arguments to select release and ppp version](https://github.com/PIP-Technical-Team/pipapi/issues/265)
+- [Allow direct selection of non-official WB regions](https://github.com/PIP-Technical-Team/pipapi/pull/287)
+ 
 ## Enhancements
+- [Disable popshare option for pip_grp and aggregate distributions](https://github.com/PIP-Technical-Team/pipapi/pull/274)
+- [Allow /aux endpoint to return data in long format](https://github.com/PIP-Technical-Team/pipapi/issues/272)
 
 # pipapi 1.1.0
 

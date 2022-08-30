@@ -1,6 +1,10 @@
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
-lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
-data_folder_root <- lkups$versions_paths[[lkups$latest_release]]$data_root
+skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
+
+lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+
+lkup <- lkups$versions_paths[[lkups$latest_release]]
+data_folder_root <- lkup$data_root
+
 
 tables <- c("gdp", "pce", "pop", "cpi", "ppp")
 
@@ -9,6 +13,9 @@ test_that("get_aux_table() works", {
     get_aux_table(data_folder_root, table = x)
   })
   expect_equal(length(dl), length(tables))
+
+  gdp_long <- pipapi::get_aux_table(data_folder_root, "gdp", long_format = TRUE)
+  expect_equal(ncol(gdp_long), 4)
 })
 
 test_that("get_aux_table() returns an error", {

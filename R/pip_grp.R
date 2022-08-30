@@ -15,20 +15,19 @@
 #'         lkup = lkups)
 #' }
 #' @export
-pip_grp <- function(country = "all",
-                    year = "all",
-                    povline = 1.9,
-                    popshare = NULL,
-                    group_by = c("none", "wb"),
-                    welfare_type = c("all", "consumption", "income"),
+pip_grp <- function(country         = "all",
+                    year            = "all",
+                    povline         = 1.9,
+                    group_by        = c("none", "wb"),
+                    welfare_type    = c("all", "consumption", "income"),
                     reporting_level = c("all", "national"),
                     lkup,
-                    debug = FALSE,
-                    censor = TRUE) {
+                    debug           = FALSE,
+                    censor          = TRUE) {
 
-  welfare_type <- match.arg(welfare_type)
+  welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
-  group_by <- match.arg(group_by)
+  group_by        <- match.arg(group_by)
 
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
@@ -42,15 +41,15 @@ pip_grp <- function(country = "all",
   }
 
   out <- fg_pip(
-    country = country,
-    year = year,
-    povline = povline,
-    popshare = popshare,
-    welfare_type = welfare_type,
+    country         = country,
+    year            = year,
+    povline         = povline,
+    popshare        = NULL,
+    welfare_type    = welfare_type,
     reporting_level = reporting_level,
-    lkup = lkup,
-    ppp = NULL,
-    debug = debug
+    lkup            = lkup,
+    ppp             = NULL,
+    debug           = debug
   )
 
   # return empty dataframe if no metadata is found
@@ -102,26 +101,79 @@ pip_grp <- function(country = "all",
 }
 
 
-pip_aggregate <- function(df) {
+#' Calculate estiamtes for aggregates different to the official regional
+#' aggregation
+#'
+#' @param df data.table from `pip_fg()`
+#' @param by character: Additional variable to use in `by` when doing the
+#'   aggragations. Default is `NULL`, but it should be use to include
+#'   aggregations variables
+#'
+#' @return data.table
+pip_aggregate <- function(df, by = NULL) {
+
+  ## Assess by parameter ---------
+
+  if (is.null(by)) {
+
+    by_code <- "CUSTOM"
+    by_name <- "CUSTOM"
+
+    to_keep <- c(
+      "region_name",
+      "region_code",
+      "reporting_year",
+      "poverty_line",
+      "mean",
+      "headcount",
+      "poverty_gap",
+      "poverty_severity",
+      "watts",
+      "reporting_pop")
+
+
+  } else {
+
+    if (grepl("code$", by)) {
+
+      by_code <- by
+      by_name <- gsub("_code", "", by)
+
+    } else {
+
+      by_code <- paste0(by, "_code")
+      by_name <- by
+
+    }
+
+    to_keep <- c(
+      by_name,
+      by_code,
+      "reporting_year",
+      "poverty_line",
+      "mean",
+      "headcount",
+      "poverty_gap",
+      "poverty_severity",
+      "watts",
+      "reporting_pop")
+
+    by <- c(by_name, by_code)
+  }
+
+
+
   # Handle simple aggregation
-  df <- df[, .(
-    region_name,
-    region_code,
-    reporting_year,
-    poverty_line,
-    mean,
-    headcount,
-    poverty_gap,
-    poverty_severity,
-    watts,
-    reporting_pop
-  )]
+
+  df <- df[, ..to_keep]
+
+  byvar <- c(by, "reporting_year", "poverty_line")
 
   # Compute population totals
   pop <- df[, lapply(.SD,
                      base::sum,
                      na.rm = TRUE),
-            by = .(reporting_year, poverty_line),
+            by = byvar,
             .SDcols = "reporting_pop"
   ]
 
@@ -131,20 +183,30 @@ pip_aggregate <- function(df) {
                       stats::weighted.mean,
                       w = reporting_pop,
                       na.rm = TRUE),
-             by = .(reporting_year, poverty_line),
+             by = byvar,
              .SDcols = cols
   ]
 
   # Combine results
-  df <- df[pop, on = .(reporting_year, poverty_line)]
+  df <- df[pop, on = byvar]
 
-  df$region_code <- "CUSTOM"
-  df$region_name <- "CUSTOM"
+  ## Add region code and name -----
+  if (is.null(by)) {
+
+    df$region_code <- "CUSTOM"
+    df$region_name <- "CUSTOM"
+
+  } else {
+    data.table::setnames(df,
+                         c(by_name, by_code),
+                         c("region_name", "region_code"))
+  }
 
   # Compute population living in poverty
   df <- df[, pop_in_poverty := round(headcount * reporting_pop, 0)]
 
   return(df)
+
 }
 
 #' Aggregate by predefined groups
@@ -176,10 +238,12 @@ pip_aggregate_by <- function(df,
   group_lkup <- group_lkup[, c("region_code", "reporting_year", "reporting_pop")]
 
   # Compute stats weighted average by groups
-  rgn <- df[, lapply(.SD, stats::weighted.mean, w = reporting_pop, na.rm = TRUE),
+  rgn <- df[, lapply(.SD, stats::weighted.mean,
+                     w = reporting_pop,
+                     na.rm = TRUE),
             by = .(region_name, region_code, reporting_year, poverty_line),
             .SDcols = cols
-  ]
+            ]
 
   rgn <- group_lkup[rgn,
                     on = .(region_code, reporting_year),
