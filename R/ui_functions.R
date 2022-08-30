@@ -159,13 +159,13 @@ ui_pc_regional <- function(country = "all",
                            pop_units = 1e6,
                            lkup) {
 
-  out <- pip_grp(country = country,
-                 year    = year,
-                 group_by = "wb",
-                 reporting_level = "national",
-                 povline = povline,
-                 lkup = lkup,
-                 censor = TRUE)
+  out <- pip_grp_logic(country = country,
+                       year    = year,
+                       group_by = "wb",
+                       reporting_level = "national",
+                       povline = povline,
+                       lkup = lkup,
+                       censor = TRUE)
 
   # Add pop_in_poverty and scale according to pop_units
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
