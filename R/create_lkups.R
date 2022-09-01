@@ -78,11 +78,11 @@ create_lkups <- function(data_dir, versions) {
   paths_ids <- tools::file_path_sans_ext(paths)
 
   # TEMP FIX to add country and region name
-  cts_path <- fs::path(data_dir, "_aux/countries.fst")
-  reg_path <- fs::path(data_dir, "_aux/regions.fst")
+  cts_path <- fs::path(data_dir, "_aux/countries.qs")
+  reg_path <- fs::path(data_dir, "_aux/regions.qs")
 
-  countries <-  fst::read_fst(cts_path,as.data.table = TRUE)
-  regions   <-  fst::read_fst(reg_path,as.data.table = TRUE)
+  countries <-  qs::qread(cts_path) %>% data.table::as.data.table()
+  regions   <-  qs::qread(reg_path) %>% data.table::as.data.table()
 
   data.table::setnames(countries, 'region', 'region_name')
 
@@ -186,20 +186,20 @@ create_lkups <- function(data_dir, versions) {
   dist_stats      <- fst::read_fst(dist_stats_path, as.data.table = TRUE)
 
   # Load pop_region
-  pop_region_path <- fs::path(data_dir, "_aux/pop_region.fst")
-  pop_region      <- fst::read_fst(pop_region_path,as.data.table = TRUE)
+  pop_region_path <- fs::path(data_dir, "_aux/pop_region.qs")
+  pop_region      <- qs::qread(pop_region_path) %>% data.table::as.data.table()
 
   # Load country profiles lkups
-  cp_lkups_path   <- fs::path(data_dir, "_aux/country_profiles.rds")
-  cp_lkups        <- readRDS(cp_lkups_path)
+  cp_lkups_path   <- fs::path(data_dir, "_aux/country_profiles.qs")
+  cp_lkups        <- qs::qread(cp_lkups_path) %>% data.table::as.data.table()
 
   # Load poverty lines table
-  pl_lkup_path    <- fs::path(data_dir, "_aux/poverty_lines.fst")
-  pl_lkup         <- fst::read_fst(pl_lkup_path, as.data.table = TRUE)
+  pl_lkup_path    <- fs::path(data_dir, "_aux/poverty_lines.qs")
+  pl_lkup         <- qs::qread(pl_lkup_path) %>% data.table::as.data.table()
 
   # Load list with censor tables
-  censored_path   <- fs::path(data_dir, "_aux/censored.rds")
-  censored        <- readRDS(censored_path)
+  censored_path   <- fs::path(data_dir, "_aux/censored.qs")
+  censored        <- qs::qread(censored_path) %>% data.table::as.data.table()
 
 
   # Files with country and region information -----
@@ -279,7 +279,7 @@ create_lkups <- function(data_dir, versions) {
     )
 
   # Create list of available auxiliary data tables
-  aux_tables <- list.files(fs::path(data_dir, "_aux"),pattern = "\\.fst$")
+  aux_tables <- list.files(fs::path(data_dir, "_aux"),pattern = "\\.qs$")
   aux_tables <- tools::file_path_sans_ext(aux_tables)
   aux_tables <- sort(aux_tables)
   valid_years <- valid_years(data_dir)
