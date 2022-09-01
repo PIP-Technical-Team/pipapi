@@ -243,6 +243,28 @@ paths:
             schema:
               type: string
             description: Data version. Defaults to most recent version. See api/v1/versions.
+  /api/v1/citation:
+    get:
+      summary: 'Return citation for given version'
+      responses:
+        default:
+          description: Default response.
+      parameters:
+          - in: query
+            name: version
+            schema:
+              type: string
+            description: Data version. Defaults to most recent version. See api/v1/versions.
+          - in: query
+            name: release_version
+            schema:
+              type: string
+            description: Date when the data was published in YYYYMMDD format
+          - in: query
+            name: ppp_version
+            schema:
+              type: string
+            description: ppp year to be used
   /api/v1/valid-params:
     get:
       summary: ' Return valid query parameters'
