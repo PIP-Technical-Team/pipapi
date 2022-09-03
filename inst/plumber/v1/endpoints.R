@@ -95,6 +95,14 @@ function(req, res) {
         return(out)
       }
     }
+    if (endpoint == "aux") {
+      if(is.null(req$argsQuery$long_format)) req$argsQuery$long_format <- FALSE
+        if (req$argsQuery$long_format && !req$argsQuery$table %in% c('cpi', 'ppp', 'gdp', 'pce', 'pop')) {
+           res$status <- 404
+           out <- list(error = "Only the tables cpi, ppp, gdp, pce and pop are available in long format")
+           return(out)
+        }
+      }
   }
   plumber::forward()
 }
