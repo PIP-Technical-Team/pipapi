@@ -297,3 +297,15 @@ test_that("pi_version works as expected", {
   expect_equal(pi_version("2011", "PROD", x), c("20220609_2011_02_02_PROD", "20211212_2011_01_01_PROD",
                                                 "20200101_2011_01_01_PROD", "20211212_2011_02_01_PROD"))
 })
+
+
+
+
+test_that("citation_from_version works as expected", {
+  expect_equal(citation_from_version(x),
+               c("Poverty and Inequality Platform, 2022-06-09, 2011 PPPs.",
+                 "Poverty and Inequality Platform, 2022-05-04, 2017 PPPs.", "Poverty and Inequality Platform, 2021-12-12, 2011 PPPs.",
+                 "Poverty and Inequality Platform, 2020-01-01, 2011 PPPs.", "Poverty and Inequality Platform, 2022-06-02, 2017 PPPs.",
+                 "Poverty and Inequality Platform, 2022-05-04, 2017 PPPs.", "Poverty and Inequality Platform, 2021-12-12, 2011 PPPs."
+               ))
+})

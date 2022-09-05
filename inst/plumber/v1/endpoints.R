@@ -607,3 +607,15 @@ function(req) {
   params$lkup <- lkups$versions_paths[[params$version]]
   pipapi::valid_years(data_dir = params$lkup$data_root)
 }
+
+
+#* Return citation
+#* @get /api/v1/citation
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @serializer switch
+function(req) {
+  params <- req$argsQuery
+  pipapi::citation_from_version(params$version)
+}

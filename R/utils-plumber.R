@@ -339,3 +339,18 @@ ri_version <- function(release_version, identity, versions_available) {
 pi_version <- function(ppp_version, identity, versions_available) {
   grep(sprintf('\\d{6}_%s_\\d{2}_\\d{2}_%s$', ppp_version, identity), versions_available, value = TRUE)
 }
+
+
+#' Return citation from the version
+#'
+#' @param version character vector of data version
+#'
+#' @return character. Text containing citation for the version passed.
+#'
+#' @export
+#'
+citation_from_version <- function(version) {
+  release_date <- extract_release_date(version)
+  ppp_date <- extract_ppp_date(version)
+  sprintf('Poverty and Inequality Platform, %s, %s PPPs.', release_date, format(ppp_date, '%Y'))
+}
