@@ -609,7 +609,5 @@ function(req) {
 #* @serializer switch
 function(req) {
   params <- req$argsQuery
-  version <- pipapi::return_correct_version(params$version, params$release_version,
-                                 params$ppp_version, versions_available = lkups$versions)
-  pipapi::citation_from_version(version)
+  pipapi::citation_from_version(params$version)
 }
