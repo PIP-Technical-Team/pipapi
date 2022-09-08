@@ -142,8 +142,10 @@ function() {
 
 #* Return available data versions
 #* @get /api/v1/versions
+#* @serializer switch
 function(req) {
   out <- pipapi::version_dataframe(lkups$versions)
+  attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
 
