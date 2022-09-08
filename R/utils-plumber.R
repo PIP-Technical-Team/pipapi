@@ -318,7 +318,7 @@ version_dataframe <- function(versions) {
   out <- data.frame(version = versions,
                     release_version = release_version,
                     ppp_version = ppp_version,
-                    identify = identity)
+                    identity = identity)
   return(out)
 }
 
