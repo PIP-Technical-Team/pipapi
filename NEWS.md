@@ -61,7 +61,7 @@ interpolated years](https://github.com/PIP-Technical-Team/pipapi/issues/182)
 - Make sure `ui_cp_poverty_charts()` only returns non-national observations when a country has no surveys with national coverage
 - Fix a bug in the application of censoring within `pip_grp()`
 - Add a specific empty repsonse for `pip_grp()` to ensure that the response is consistent when no data is available
-- Fix a bug in the selection of most recent value (`year="mrv"`) when `country="all"`
+- Fix a bug in the selection of most recent value (`year="MRV"`) when `country="ALL"`
 
 # pipapi 0.0.1
 

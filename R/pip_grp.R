@@ -15,8 +15,8 @@
 #'         lkup = lkups)
 #' }
 #' @export
-pip_grp <- function(country         = "all",
-                    year            = "all",
+pip_grp <- function(country         = "ALL",
+                    year            = "ALL",
                     povline         = 1.9,
                     group_by        = c("none", "wb"),
                     welfare_type    = c("all", "consumption", "income"),
@@ -29,12 +29,17 @@ pip_grp <- function(country         = "all",
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
 
+  # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
+  country <- toupper(country)
+  year <- toupper(year)
+
+
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
   if (group_by != "none") {
     reporting_level <- "all"
-    if (!all(country %in% c("all", lkup$query_controls$region$values))) {
-      country <- "all"
+    if (!all(country %in% c("ALL", lkup$query_controls$region$values))) {
+      country <- "ALL"
     }
   } else {
     reporting_level <- "national"
