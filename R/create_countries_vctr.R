@@ -60,7 +60,7 @@ create_countries_vctr <- function(country,
                   region_code]
 
   #  Aggregates selected by user
-  if ("all" %in% country) {
+  if (any(c("all", "WLD") %in% country)) {
     user_aggs <- off_reg
   } else {
     user_aggs <- aggs[region_code %in% country,
