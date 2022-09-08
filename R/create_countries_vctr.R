@@ -38,9 +38,9 @@ create_countries_vctr <- function(country,
       user_alt_gt_code  = NULL # code of alt grouping data
     )
 
-  # modify if year is "all" --------------
+  # modify if year is "ALL" --------------
 
-  if ("all" %in% year) {
+  if ("ALL" %in% year) {
     year <- lkup$valid_years$valid_survey_years
   }
 
@@ -60,7 +60,7 @@ create_countries_vctr <- function(country,
                   region_code]
 
   #  Aggregates selected by user
-  if (any(c("all", "WLD") %in% country)) {
+  if (any(c("ALL", "WLD") %in% country)) {
     user_aggs <- off_reg
   } else {
     user_aggs <- aggs[region_code %in% country,
@@ -68,7 +68,7 @@ create_countries_vctr <- function(country,
   }
 
   ## all and WLD to off_reg
-  off_reg <- c("all", off_reg, "WLD")
+  off_reg <- c("ALL", off_reg, "WLD")
 
   # Alternative  aggregates code
   alt_agg <- aggs[grouping_type != "region",

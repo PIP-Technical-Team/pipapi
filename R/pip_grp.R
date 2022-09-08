@@ -15,8 +15,8 @@
 #'         lkup = lkups)
 #' }
 #' @export
-pip_grp <- function(country         = "all",
-                    year            = "all",
+pip_grp <- function(country         = "ALL",
+                    year            = "ALL",
                     povline         = 1.9,
                     group_by        = c("none", "wb"),
                     welfare_type    = c("all", "consumption", "income"),
@@ -29,12 +29,17 @@ pip_grp <- function(country         = "all",
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
 
+  # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
+  country <- toupper(country)
+  year <- toupper(year)
+
+
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
   if (group_by != "none") {
     reporting_level <- "all"
-    if (!all(country %in% c("all", lkup$query_controls$region$values))) {
-      country <- "all"
+    if (!all(country %in% c("ALL", lkup$query_controls$region$values))) {
+      country <- "ALL"
     }
   } else {
     reporting_level <- "national"
@@ -216,7 +221,7 @@ pip_aggregate <- function(df, by = NULL) {
 #' @noRd
 pip_aggregate_by <- function(df,
                              group_lkup,
-                             country = "all") {
+                             country = "ALL") {
 
   # Keep only rows necessary for regional aggregates
   df <- filter_for_aggregate_by(df)
@@ -250,7 +255,7 @@ pip_aggregate_by <- function(df,
                     allow.cartesian = TRUE
   ]
 
-  if (any(c("all", "WLD") %in% country)) {
+  if (any(c("ALL", "WLD") %in% country)) {
     # Compute world aggregates
     wld <- compute_world_aggregates(rgn = rgn,
                                     cols = cols)
@@ -258,7 +263,7 @@ pip_aggregate_by <- function(df,
       if (country == "WLD") {
         # Return only world aggregate
         out <- wld
-      } else if (country == "all") {
+      } else if (country == "ALL") {
         # Combine with other regional aggregates
         out <- rbind(rgn, wld, fill = TRUE)
       }
@@ -266,7 +271,7 @@ pip_aggregate_by <- function(df,
       # Combine with other regional aggregates
       out <- rbind(rgn, wld, fill = TRUE)
       # Return selection only
-      if (!"all" %in% country) {
+      if (!"ALL" %in% country) {
         out <- out[region_code %in% country, ]
       }
     }

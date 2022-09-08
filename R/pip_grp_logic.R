@@ -7,8 +7,8 @@
 #' # Create lkups
 #' }
 #' @export
-pip_grp_logic <- function(country         = "all",
-                          year            = "all",
+pip_grp_logic <- function(country         = "ALL",
+                          year            = "ALL",
                           povline         = 1.9,
                           group_by        = c("none", "wb"),
                           welfare_type    = c("all", "consumption", "income"),

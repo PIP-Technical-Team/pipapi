@@ -210,6 +210,12 @@ assign_required_params <- function(req) {
         req$argsQuery$group_by <- "none"
       }
     }
+    # Turn all country codes to upper case
+    req$args$country <- toupper(req$args$country)
+    req$argsQuery$country <- toupper(req$argsQuery$country)
+    # Turn all year codes to upper case
+    req$args$year <- toupper(req$args$year)
+    req$argsQuery$year <- toupper(req$argsQuery$year)
   }
   return(req)
 }
@@ -318,7 +324,7 @@ version_dataframe <- function(versions) {
   out <- data.frame(version = versions,
                     release_version = release_version,
                     ppp_version = ppp_version,
-                    identify = identity)
+                    identity = identity)
   return(out)
 }
 

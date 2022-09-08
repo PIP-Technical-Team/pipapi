@@ -153,11 +153,15 @@ ui_pc_charts <- function(country = c("AGO"),
 #' @inheritParams ui_pc_charts
 #' @return data.table
 #' @export
-ui_pc_regional <- function(country = "all",
-                           year = "all",
+ui_pc_regional <- function(country = "ALL",
+                           year = "ALL",
                            povline = 1.9,
                            pop_units = 1e6,
                            lkup) {
+
+  # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
+  country <- toupper(country)
+  year <- toupper(year)
 
   out <- pip_grp_logic(country = country,
                        year    = year,
