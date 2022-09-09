@@ -9,6 +9,7 @@
 ## Enhancements
 - [Disable popshare option for pip_grp and aggregate distributions](https://github.com/PIP-Technical-Team/pipapi/pull/274)
 - [Allow /aux endpoint to return data in long format](https://github.com/PIP-Technical-Team/pipapi/issues/272)
+- [Make default poverty line dynamic in API](https://github.com/PIP-Technical-Team/pipapi/pull/310)
 
 # pipapi 1.1.0
 
