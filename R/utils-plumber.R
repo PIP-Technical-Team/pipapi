@@ -188,10 +188,11 @@ serializer_switch <- function() {
 #' Assign PIP API required parameters if missing
 #'
 #' @param req list: plumber `req` object
+#' @param pl_lkup data.frame: Poverty lines lookup table
 #'
 #' @return list
 #' @noRd
-assign_required_params <- function(req) {
+assign_required_params <- function(req, pl_lkup) {
 
   # Handle required names for /pip endpoint
   endpoint <- extract_endpoint(req$PATH_INFO)
@@ -216,6 +217,22 @@ assign_required_params <- function(req) {
     # Turn all year codes to upper case
     req$args$year <- toupper(req$args$year)
     req$argsQuery$year <- toupper(req$argsQuery$year)
+  }
+
+  # Handle default poverty line
+  if (endpoint %in% c("pip",
+                      "pip-grp",
+                      "hp-stacked",
+                      "pc-charts",
+                      "pc-download",
+                      "pc-regional-aggregates",
+                      "cp-key-indicators",
+                      "cp-charts",
+                      "cp-download")) {
+    if (is.null(req$args$povline)) {
+      req$args$povline <- pl_lkup$poverty_line[pl_lkup$is_default == TRUE]
+      req$argsQuery$povline <- pl_lkup$poverty_line[pl_lkup$is_default == TRUE]
+    }
   }
   return(req)
 }

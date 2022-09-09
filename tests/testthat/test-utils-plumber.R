@@ -11,6 +11,9 @@ if (Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") != "") {
 
 }
 
+pl_lkup <- lkups$pl_lkup
+poverty_line <- pl_lkup$poverty_line[pl_lkup$is_default == TRUE]
+
 test_that("validate_query_parameters() works", {
 
   # Test that all pip() parameters are accepted
@@ -201,25 +204,29 @@ test_that("assign_required_params works as expected for /pip endpoint", {
 
   req <- list()
   req$PATH_INFO <- "api/v1/pip"
-  req <- assign_required_params(req)
+  req <- assign_required_params(req, pl_lkup)
 
   expect_identical(req$args$country, "ALL")
   expect_identical(req$args$year, "ALL")
+  expect_identical(req$args$povline, poverty_line)
   expect_identical(req$argsQuery$country, "ALL")
   expect_identical(req$argsQuery$year, "ALL")
+  expect_identical(req$argsQuery$povline, poverty_line)
 })
 
 test_that("assign_required_params works as expected for /pip-grp endpoint", {
 
   req <- list()
   req$PATH_INFO <- "api/v1/pip-grp"
-  req <- assign_required_params(req)
+  req <- assign_required_params(req, pl_lkup)
 
   expect_identical(req$args$country, "ALL")
   expect_identical(req$args$year, "ALL")
+  expect_identical(req$args$povline, poverty_line)
   expect_identical(req$args$group_by, "none")
   expect_identical(req$argsQuery$country, "ALL")
   expect_identical(req$argsQuery$year, "ALL")
+  expect_identical(req$argsQuery$povline, poverty_line)
   expect_identical(req$argsQuery$group_by, "none")
 })
 
