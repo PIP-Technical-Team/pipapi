@@ -11,7 +11,7 @@ ui_hp_stacked <- function(povline = 1.9,
                           lkup) {
 
   ref_years <- sort(unique(lkup$ref_lkup$reporting_year))
-  ref_years <- ref_years[!ref_years %in% c(1981:1990, 2019)]
+  ref_years <- ref_years[!ref_years %in% c(1981:1990)]
 
   out <- pip_grp(
     country = "all",
