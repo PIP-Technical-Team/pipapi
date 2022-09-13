@@ -212,8 +212,17 @@ pip_grp_logic <- function(country         = "ALL",
   }
   data.table::setcolorder(ret, names_grp)
 
+
+  # Censor regional values -----------
+
+  if (censor) {
+    ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
+  }
+
   #   ____________________________________________________________________
   #   Return                                                         ####
   return(ret)
 
 }
+
+
