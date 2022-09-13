@@ -206,6 +206,8 @@ assign_required_params <- function(req, pl_lkup) {
       req$argsQuery$year <- "ALL"
     }
     if (endpoint == "pip-grp") {
+      req$args$fill_gaps <- NULL
+      req$argsQuery$fill_gaps <- NULL
       if (is.null(req$args$group_by)) {
         req$args$group_by <- "none"
         req$argsQuery$group_by <- "none"
