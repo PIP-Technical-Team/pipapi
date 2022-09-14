@@ -594,6 +594,7 @@ ui_cp_download_single <- function(country,
   dl <- lapply(indicators, function(x) {
     out <- x[country_code == country, ]
     out[["latest"]] <- NULL
+    out <- unique(out) # HOT FIX: NEED TO FIGURE OUT WHAT THE REAL ISSUE IS
     return(out)
   })
 
