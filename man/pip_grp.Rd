@@ -5,8 +5,8 @@
 \title{Compute various aggregations of PIP statistics}
 \usage{
 pip_grp(
-  country = "all",
-  year = "all",
+  country = "ALL",
+  year = "ALL",
   povline = 1.9,
   group_by = c("none", "wb"),
   welfare_type = c("all", "consumption", "income"),

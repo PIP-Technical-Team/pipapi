@@ -5,8 +5,8 @@
 \title{Poverty Calculator regional aggregates}
 \usage{
 ui_pc_regional(
-  country = "all",
-  year = "all",
+  country = "ALL",
+  year = "ALL",
   povline = 1.9,
   pop_units = 1e+06,
   lkup

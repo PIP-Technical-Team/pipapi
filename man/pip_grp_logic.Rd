@@ -5,8 +5,8 @@
 \title{Logic for computing new aggregate}
 \usage{
 pip_grp_logic(
-  country = "all",
-  year = "all",
+  country = "ALL",
+  year = "ALL",
   povline = 1.9,
   group_by = c("none", "wb"),
   welfare_type = c("all", "consumption", "income"),
