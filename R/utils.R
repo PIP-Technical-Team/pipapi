@@ -303,7 +303,6 @@ create_query_controls <- function(svy_lkup,
   country <- list(
     values = c(
       "ALL",
-      "WLD",
       sort(c(
         countries,
         regions)
@@ -313,7 +312,7 @@ create_query_controls <- function(svy_lkup,
   )
 
   region <- list(
-    values = sort(c("ALL", "WLD", regions)),
+    values = sort(c("ALL", regions)),
     type = "character"
   )
   # Year

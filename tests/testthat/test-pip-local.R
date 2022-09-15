@@ -120,9 +120,9 @@ test_that("year selection is working", {
   # Not a great unit test... To be improved
   tmp <- pip(
     country = "all",
-    year = "mrv",
+    year    = "mrv",
     povline = 1.9,
-    lkup = lkups
+    lkup    = lkups
   )
 
   expect_true(length(unique(tmp$reporting_year)) > 1)

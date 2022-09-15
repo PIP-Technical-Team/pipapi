@@ -40,7 +40,7 @@ create_countries_vctr <- function(country,
 
   # modify if year is "ALL" --------------
 
-  if ("ALL" %in% year) {
+  if (any(c("ALL", "MRV") %in% toupper(year))) {
     year <- lkup$valid_years$valid_survey_years
   }
 
