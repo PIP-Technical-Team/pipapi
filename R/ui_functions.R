@@ -11,7 +11,7 @@ ui_hp_stacked <- function(povline = 1.9,
                           lkup) {
 
   ref_years <- sort(unique(lkup$ref_lkup$reporting_year))
-  ref_years <- ref_years[!ref_years %in% c(1981:1990, 2019)]
+  ref_years <- ref_years[!ref_years %in% c(1981:1990)]
 
   out <- pip_grp(
     country = "all",
@@ -153,19 +153,23 @@ ui_pc_charts <- function(country = c("AGO"),
 #' @inheritParams ui_pc_charts
 #' @return data.table
 #' @export
-ui_pc_regional <- function(country = "all",
-                           year = "all",
+ui_pc_regional <- function(country = "ALL",
+                           year = "ALL",
                            povline = 1.9,
                            pop_units = 1e6,
                            lkup) {
 
-  out <- pip_grp(country = country,
-                 year    = year,
-                 group_by = "wb",
-                 reporting_level = "national",
-                 povline = povline,
-                 lkup = lkup,
-                 censor = TRUE)
+  # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
+  country <- toupper(country)
+  year <- toupper(year)
+
+  out <- pip_grp_logic(country = country,
+                       year    = year,
+                       group_by = "wb",
+                       reporting_level = "national",
+                       povline = povline,
+                       lkup = lkup,
+                       censor = TRUE)
 
   # Add pop_in_poverty and scale according to pop_units
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
@@ -539,3 +543,72 @@ ui_svy_meta <- function(country = "all", lkup) {
   }
 }
 
+
+#' Country Profiles Key Indicators download
+#'
+#' Helper function to download Country Profile data
+#'
+#' @inheritParams pip
+#' @return list
+#' @export
+ui_cp_download <- function(country = "AGO",
+                                 povline = NULL,
+                                 lkup) {
+
+  # Select surveys to use for CP page
+  lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
+
+  if (country == "all") {
+    country_codes <- unique(lkup$svy_lkup$country_code)
+    dl <- lapply(country_codes, function(country)
+      ui_cp_download_single(
+        country = country, povline = povline, lkup = lkup))
+    dl <- data.table::rbindlist(dl)
+    dl <- dl[order(country_code, -reporting_year), ]
+  } else {
+    dl <- ui_cp_download_single(
+      country = country, povline = povline, lkup = lkup)
+  }
+  return(dl)
+
+}
+
+
+
+#' Country Profile Key Indicators download
+#'
+#' Helper function to download Country Profile data
+#'
+#' @inheritParams ui_cp_download
+#' @return list
+#' @keywords internal
+ui_cp_download_single <- function(country,
+                                  povline = 1.9,
+                                  lkup) {
+
+  hc <- ui_cp_ki_headcount(country, povline, lkup)
+
+  # Remove "shared_prosperity" since the column names are not consitent with the
+  # other data frames
+  indicators <- lkup$cp$key_indicators[!names(lkup$cp$key_indicators) %in% c("shared_prosperity", "reporting_pop")]
+  dl <- lapply(indicators, function(x) {
+    out <- x[country_code == country, ]
+    out[["latest"]] <- NULL
+    out <- unique(out) # HOT FIX: NEED TO FIGURE OUT WHAT THE REAL ISSUE IS
+    return(out)
+  })
+
+  dl <- c(headcount = list(hc), dl)
+
+  out <- Reduce(function(df1, df2) {
+    merge(df1, df2,
+          by = c("country_code", "reporting_year"),
+          all.x = TRUE)
+  },
+  dl)
+
+  # Re-scale headcount_national to be consistent with headcount
+  out$headcount_national <- out$headcount_national / 100
+
+  return(out)
+}

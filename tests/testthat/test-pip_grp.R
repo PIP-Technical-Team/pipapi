@@ -1,10 +1,13 @@
-# Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
+# Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 
 # Constants
-lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
 lkups <- lkups$versions_paths[[lkups$latest_release]]
-censored <- readRDS("../testdata/censored.rds")
+censored <-
+  test_path("testdata", "/censored.rds") |>
+  readRDS()
+
 
 # Check pip_grp against current implementation
 # TO BE REMOVED ONCE pip() group_by OPTION is FULLY DEPRECATED
@@ -106,14 +109,17 @@ test_that("year selection is working", {
   expect_equal(tmp$reporting_year, check)
 
   # Most recent year for all countries
+  # Should return the most recent for each country
+  # Therefore we expect having more than one year in the response
+  # Not a great unit test... To be improved
   tmp <- pip_grp(
     country = "all",
     year = "mrv",
     povline = 1.9,
     lkup = lkups
   )
-  check <- max(lkups$ref_lkup$reporting_year)
-  expect_equal(tmp$reporting_year, check)
+
+  expect_true(length(unique(tmp$reporting_year)) > 1)
 
 })
 
@@ -198,8 +204,10 @@ test_that("region selection is working for multiple regions", {
 
 test_that("region selection is working for all countries", {
   region <- "all"
-  expected_region_values <- lkups$query_controls$region$values
-  expected_region_values <- expected_region_values[expected_region_values != "all"]
+  alt_region_values <-
+    lkups$aux_files$regions$region_code[lkups$aux_files$regions$grouping_type != "region"]
+  expected_region_values <-
+    lkups$query_controls$region$values[!lkups$query_controls$region$values %in% c(alt_region_values, toupper(region))]
 
   out <- pip_grp(
     country = region,
@@ -218,8 +226,12 @@ test_that("region selection is working for multiple regions and country from oth
   # but for the time being, all countries are being selected
   # So this selection will effectively return country = "all"
   region <- c("SSA", "MNA", "COL")
-  expected_region_values <- lkups$query_controls$region$values
-  expected_region_values <- expected_region_values[expected_region_values != "all"]
+  # expected_region_values <- lkups$query_controls$region$values
+  # expected_region_values <- expected_region_values[expected_region_values != "all"]
+  alt_region_values <-
+    lkups$aux_files$regions$region_code[lkups$aux_files$regions$grouping_type != "region"]
+  expected_region_values <-
+    lkups$query_controls$region$values[!lkups$query_controls$region$values %in% c(alt_region_values, "ALL")]
 
   out <- pip_grp(
     country = region,

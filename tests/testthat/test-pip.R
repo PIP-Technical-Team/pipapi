@@ -1,27 +1,34 @@
 # Disable until a full set of anonymous package data has been created
-skip("Disable until a full set of anonymous package data has been created")
+# skip("Disable until a full set of anonymous package data has been created")
 
-# Tests depend on PIPAPI_DATA_ROOT_FOLDER. Skip if not found.
-# skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER") == "")
+# # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+skip("This test is fully repeated in pip-local")
+skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 
 # files <- sub("[.]fst", "", list.files("../testdata/app_data/20210401/survey_data/"))
-lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER"))
+lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
 lkup <- lkups$versions_paths[[lkups$latest_release]]
+
+# lkup_path <- test_path("testdata", "lkup.rds")
+# lkup      <- readRDS(lkup_path)
+
 
 test_that("Reporting level filtering is working", {
   reporting_levels <- c("national", "urban", "rural", "all")
   tmp <- lapply(reporting_levels,
                 function(x) {
-                  pip(country = "CHN",
-                      year = "2008",
-                      povline = 1.9,
-                      popshare = NULL,
-                      welfare_type = "all",
-                      reporting_level = x,
-                      fill_gaps = FALSE,
-                      ppp = 10,
-                      lkup = lkup,
-                      debug = FALSE)
+                  pip(
+                    country         = "CHN",
+                    year            = "2008",
+                    povline         = 1.9,
+                    popshare        = NULL,
+                    welfare_type    = "all",
+                    reporting_level = x,
+                    fill_gaps       = FALSE,
+                    ppp             = 10,
+                    lkup            = lkup,
+                    debug           = FALSE
+                  )
                 })
   names(tmp) <- reporting_levels
 
@@ -107,18 +114,24 @@ test_that("year selection is working", {
     fill_gaps = TRUE,
     lkup = lkup
   )
-  check <- max(lkup$ref_lkup$reporting_year)
+  check <- max(lkup$ref_lkup[country_code == "AGO"]$reporting_year)
   expect_equal(tmp$reporting_year, check)
 
   # Most recent year for all countries
+  # Should return the most recent for each country
+  # Therefore we expect having more than one year in the response
+  # Not a great unit test... be cause it will not be always true.
+  # The possibility exists that all countries will have the same maximum
+  # reporting year?
+  # To be improved
   tmp <- pip(
     country = "all",
     year = "mrv",
     povline = 1.9,
     lkup = lkup
   )
-  check <- max(lkup$svy_lkup$reporting_year)
-  expect_equal(unique(tmp$reporting_year), check)
+
+  expect_true(length(unique(tmp$reporting_year)) > 1)
 
 })
 
@@ -205,7 +218,6 @@ test_that("Aggregation is working", {
     country = "all",
     year = "all",
     povline = 3.5,
-    aggregate = TRUE,
     lkup = lkup
   )
   expect_equal(nrow(tmp), 1)
@@ -213,15 +225,18 @@ test_that("Aggregation is working", {
 
 # Check imputation ----
 test_that("Imputation is working", {
+
+  n_ref_years <- length(unique(lkup$ref_lkup$reporting_year))
+
   tmp <- pip(
-    country = "all",
+    country = "AGO",
     year = "all",
     povline = 3.5,
     fill_gaps = TRUE,
     lkup = lkup
   )
   # Why is this correct? E.g. tmp %>% group_by(country_code) %>% summarise(n = n())
-  expect_equal(nrow(tmp), 195)
+  expect_equal(nrow(tmp), n_ref_years)
   # expect_equal(nrow(tmp), 182)
 })
 
@@ -308,18 +323,18 @@ test_that("Distributional stats are correct for interpolated/extrapolated report
 
 # Check regional aggregations ----
 test_that("Regional aggregations are working", {
-  tmp <- pip(
+  tmp <- pip_grp(
     country = "all",
-    year = "2000",
+    year = "2010",
     group_by = "wb",
     povline = 3.5,
     lkup = lkup
   )
 
-  expect_equal(nrow(tmp), 3) # Should be changed if lkups are updated. Full set of regions is 8.
+  expect_equal(nrow(tmp), 8)
 })
 
-# Check pop_share
+# Check pop_share ----
 test_that("pop_share option is working", {
   tmp <- pip(
     country = "AGO",
@@ -331,9 +346,239 @@ test_that("pop_share option is working", {
   expect_equal(nrow(tmp), 1)
 })
 
+test_that("pop_share option is returning consistent results for single microdata distributions", {
+  # Average poverty line
+  povline <- 2.0
+
+  pl <- pip(
+    country = "AGO",
+    year = 2008,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "AGO",
+    year = 2008,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+  # Low poverty line
+  # Fails for lower poverty lines
+  povline <- .3
+
+  pl <- pip(
+    country = "AGO",
+    year = 2008,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "AGO",
+    year = 2008,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+
+  # High poverty line
+  # Fails for higher poverty lines
+  povline <- 33
+
+  pl <- pip(
+    country = "AGO",
+    year = 2008,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "AGO",
+    year = 2008,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
+  expect_equal(povline, round(ps$poverty_line, 0))
+})
+
+test_that("pop_share option is returning consistent results for single grouped distributions", {
+  # Average poverty line
+  povline <- 2.0
+  country <- "MNG"
+  year <- 1995
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+  # Low poverty line
+  # Fails for lower poverty lines
+  povline <- .8
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+
+  # High poverty line
+  # Fails for higher poverty lines
+  povline <- 20
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
+  expect_equal(povline, round(ps$poverty_line, 0))
+})
+
+test_that("pop_share option is returning consistent results for single aggregate distributions", {
+  skip("popshare not working for aggregate distributions")
+  # Average poverty line
+  povline <- 2.0
+  country <- "CHN"
+  year <- 2018
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+  # Low poverty line
+  # Fails for lower poverty lines
+  povline <- .9
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
+  expect_equal(povline, round(ps$poverty_line, 2))
+
+  # High poverty line
+  # Fails for higher poverty lines
+  povline <- 20
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = country,
+    year = year,
+    popshare = pl$headcount,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
+  expect_equal(povline, round(ps$poverty_line, 0))
+})
+
+test_that("pop_share option is disabled for aggregate distributions", {
+  # popshare is currently not working with aggregate distribution and has been
+  # disabled
+
+  povline <- 2.0
+  country <- "CHN"
+  year <- 2018
+
+  pl <- pip(
+    country = country,
+    year = year,
+    povline = povline,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  ps <- pip(
+    country = "CHN",
+    year = 2018,
+    popshare = .5,
+    reporting_level = "national",
+    lkup = lkup
+  )
+
+  expect_equal(nrow(pl), 1)
+  expect_equal(nrow(ps), 0)
+  expect_equal(pl$distribution_type, "aggregate")
+})
+
 #Check pip country name case insensitive
 
 test_that("pip country name case insensitive", {
+  skip("Code to handle mixed casing has been moved to API filter level")
   #Run it on pip-fake-data
   tmp1 <- pip(country = "nga",year = "ALL", povline = 1.9, lkup = lkup)
   tmp2 <- pip(country = "NGA",year = "all", povline = 1.9, lkup = lkup)

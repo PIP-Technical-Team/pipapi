@@ -6,6 +6,74 @@ dirs_names <- c("00000001",
                 "20220408",
                 "20220408_2011_02_02_PROD")
 
+
+test_that("pattern list is created correctly", {
+
+  vp <- get_vintage_pattern_regex()
+
+  expect_equal(object = vp,
+               expected =  list(
+                 vintage_pattern = "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$",
+                 prod_regex = "PROD$",
+                 int_regex = "INT$",
+                 test_regex = "TEST$")
+               )
+
+
+  vp <- get_vintage_pattern_regex(vintage_pattern = "\\.*",
+                                  int_regex = "foo$")
+
+  expect_equal(object = vp,
+               expected =  list(
+                 vintage_pattern = "\\.*",
+                 prod_regex = "PROD$",
+                 int_regex = "foo$",
+                 test_regex = "TEST$")
+               )
+
+
+})
+
+
+test_that("create vintanger pattern call is working fine", {
+
+  # test NULL
+  vintage_pattern <- NULL
+  cvp <- create_vintage_pattern_call(vintage_pattern)
+  vp  <- get_vintage_pattern_regex()
+  expect_equal(cvp, vp)
+
+  # Test list
+  vintage_pattern <- list("r.*", "", "^hjkhj\\.d")
+  cvp <- create_vintage_pattern_call(vintage_pattern)
+  expect_equal(cvp, list(vintage_pattern = "r.*",
+                         prod_regex = "",
+                         int_regex = "^hjkhj\\.d",
+                         test_regex = "TEST$"))
+
+
+  # Test unnamed character vector
+  vintage_pattern <- c("r.*", "", "^hjkhj\\.d")
+  cvp <- create_vintage_pattern_call(vintage_pattern)
+  expect_equal(cvp, list(vintage_pattern = "r.*",
+                         prod_regex = "",
+                         int_regex = "^hjkhj\\.d",
+                         test_regex = "TEST$"))
+
+
+  # test named chacter vector
+  vintage_pattern <- c(vintage_pattern = "r.*", test_regex = "", int_regex =  "^hjkhj\\.d")
+  cvp <- create_vintage_pattern_call(vintage_pattern)
+  expect_equal(cvp, list(vintage_pattern = "r.*",
+                         prod_regex = "PROD$",
+                         int_regex = "^hjkhj\\.d",
+                         test_regex = ""))
+
+})
+
+
+
+
 vintage_patterns <- get_vintage_pattern_regex()
 
 test_that("id_valid_dirs correctly identifies valid directories", {

@@ -4,12 +4,14 @@
 \alias{get_aux_table}
 \title{Return specified auxiliary data}
 \usage{
-get_aux_table(data_dir, table)
+get_aux_table(data_dir, table, long_format = FALSE)
 }
 \arguments{
 \item{data_dir}{character: Data directory}
 
 \item{table}{character: Name of auxiliary table}
+
+\item{long_format}{logical: do you want data long format ? (default FALSE)}
 }
 \value{
 data.frame

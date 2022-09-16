@@ -70,10 +70,26 @@ paths:
               enum: [all, national, rural, urban]
              description: Reporting coverage.
            - in: query
+             name: release_version
+             schema:
+              type: string
+             description: date when the data was published in YYYYMMDD format
+           - in: query
+             name: ppp_version
+             schema:
+              type: string
+             description: ppp year to be used
+           - in: query
              name: version
              schema:
               type: string
              description: Data version. Defaults to most recent version. See api/v1/versions.
+           - in: query
+             name: identity
+             schema:
+              type: string
+              enum: [PROD, INT, TEST]
+             description: One of PROD (production), INT (internal) and TEST
            - in: query
              name: format
              schema:
@@ -143,6 +159,16 @@ paths:
               enum: [all, national]
              description: Reporting coverage.
            - in: query
+             name: release_version
+             schema:
+              type: string
+             description: date when the data was published in YYYYMMDD format
+           - in: query
+             name: ppp_version
+             schema:
+              type: string
+             description: ppp year to be used
+           - in: query
              name: version
              schema:
               type: string
@@ -169,10 +195,26 @@ paths:
               type: string
             description: Auxiliary data table to be returned.
           - in: query
+            name: release_version
+            schema:
+              type: string
+            description: Date when the data was published in YYYYMMDD format
+          - in: query
+            name: ppp_version
+            schema:
+              type: string
+            description: ppp year to be used
+          - in: query
             name: version
             schema:
               type: string
             description: Data version. Defaults to most recent version. See api/v1/versions.
+          - in: query
+            name: long_format
+            schema:
+              type: boolean
+              example: FALSE
+            description: If the response should be in long format.
           - in: query
             name: format
             schema:
@@ -187,10 +229,42 @@ paths:
           description: Default response.
       parameters:
           - in: query
+            name: release_version
+            schema:
+              type: string
+            description: Date when the data was published in YYYYMMDD format
+          - in: query
+            name: ppp_version
+            schema:
+              type: string
+            description: ppp year to be used
+          - in: query
             name: version
             schema:
               type: string
             description: Data version. Defaults to most recent version. See api/v1/versions.
+  /api/v1/citation:
+    get:
+      summary: 'Return citation for given version'
+      responses:
+        default:
+          description: Default response.
+      parameters:
+          - in: query
+            name: version
+            schema:
+              type: string
+            description: Data version. Defaults to most recent version. See api/v1/versions.
+          - in: query
+            name: release_version
+            schema:
+              type: string
+            description: Date when the data was published in YYYYMMDD format
+          - in: query
+            name: ppp_version
+            schema:
+              type: string
+            description: ppp year to be used
   /api/v1/valid-params:
     get:
       summary: ' Return valid query parameters'
@@ -204,6 +278,16 @@ paths:
               type: string
               enum: [aux, pip, pip-grp, pip-info, valid-params, all]
             description: Endpoint for which corresponding valid parameters will be returned
+          - in: query
+            name: release_version
+            schema:
+              type: string
+            description: Date when the data was published in YYYYMMDD format
+          - in: query
+            name: ppp_version
+            schema:
+              type: string
+            description: ppp year to be used
           - in: query
             name: version
             schema:
