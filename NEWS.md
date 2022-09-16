@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.2.0
 
 ## New features
 - [Add new endpoint to support country profile downloads](https://github.com/PIP-Technical-Team/pipapi/pull/283)
