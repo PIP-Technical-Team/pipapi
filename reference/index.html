@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">pipapi</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.0</span>
       </span>
     </div>
 
@@ -55,13 +55,37 @@
         </td>
         <td><p>Add pre-computed distributional stats</p></td>
       </tr><tr><td>
+          <p><code><a href="citation_from_version.html">citation_from_version()</a></code> </p>
+        </td>
+        <td><p>Return citation from the version</p></td>
+      </tr><tr><td>
+          <p><code><a href="create_countries_vctr.html">create_countries_vctr()</a></code> </p>
+        </td>
+        <td><p>Create countries vectors</p></td>
+      </tr><tr><td>
           <p><code><a href="create_versioned_lkups.html">create_versioned_lkups()</a></code> </p>
         </td>
         <td><p>Create one list of lookups per data version</p></td>
       </tr><tr><td>
+          <p><code><a href="create_vintage_pattern_call.html">create_vintage_pattern_call()</a></code> </p>
+        </td>
+        <td><p>create vintage call to be parsed into <code>get_vintage_pattern_regex()</code></p></td>
+      </tr><tr><td>
           <p><code><a href="empty_response.html">empty_response</a></code> </p>
         </td>
         <td><p>Empty response schema</p></td>
+      </tr><tr><td>
+          <p><code><a href="extract_identity.html">extract_identity()</a></code> </p>
+        </td>
+        <td><p>Return identity from the version of the data</p></td>
+      </tr><tr><td>
+          <p><code><a href="extract_ppp_date.html">extract_ppp_date()</a></code> </p>
+        </td>
+        <td><p>Return the ppp date from the version of the data</p></td>
+      </tr><tr><td>
+          <p><code><a href="extract_release_date.html">extract_release_date()</a></code> </p>
+        </td>
+        <td><p>Return the release date from the version of the data</p></td>
       </tr><tr><td>
           <p><code><a href="fg_assign_nas_values_to_dup_cols.html">fg_assign_nas_values_to_dup_cols()</a></code> </p>
         </td>
@@ -74,6 +98,17 @@
           <p><code><a href="fg_standardize_cache_id.html">fg_standardize_cache_id()</a></code> </p>
         </td>
         <td><p>Standardize cache_id format to avoid duplication of rows</p></td>
+      </tr><tr><td>
+          <p><code><a href="fillin_list.html">fillin_list()</a></code> </p>
+        </td>
+        <td><p>Populate list in parent frame</p></td>
+      </tr><tr><td>
+          <p><code><a href="filter_lkup.html">filter_lkup()</a></code> </p>
+        </td>
+        <td><p>Helper to filter metadata
+aggregate distribution need to be filtered out when popshare is not null
+This is a temporary function until a full fix is implemented, and popshare is
+supported for all distributions</p></td>
       </tr><tr><td>
           <p><code><a href="get_aux_table.html">get_aux_table()</a></code> </p>
         </td>
@@ -88,22 +123,53 @@ Get vector of accepted query parameter values for the API</p></td>
         </td>
         <td><p>Return the versions of the pip packages used for computations</p></td>
       </tr><tr><td>
+          <p><code><a href="ifel_isnull.html">ifel_isnull()</a></code> </p>
+        </td>
+        <td><p>Efficient "if" "else" evaluation of null.</p></td>
+      </tr><tr><td>
+          <p><code><a href="is_empty.html">is_empty()</a></code> </p>
+        </td>
+        <td><p>Test whether a vector is length zero and IS not NULL</p></td>
+      </tr><tr><td>
           <p><code><a href="pip.html">pip()</a></code> </p>
         </td>
         <td><p>Compute PIP statistics</p></td>
+      </tr><tr><td>
+          <p><code><a href="pip_aggregate.html">pip_aggregate()</a></code> </p>
+        </td>
+        <td><p>Calculate estiamtes for aggregates different to the official regional
+aggregation</p></td>
       </tr><tr><td>
           <p><code><a href="pip_grp.html">pip_grp()</a></code> </p>
         </td>
         <td><p>Compute various aggregations of PIP statistics</p></td>
       </tr><tr><td>
+          <p><code><a href="pip_grp_logic.html">pip_grp_logic()</a></code> </p>
+        </td>
+        <td><p>Logic for computing new aggregate</p></td>
+      </tr><tr><td>
           <p><code><a href="reporting_level_list.html">reporting_level_list</a></code> </p>
         </td>
         <td><p>List of valid coverage values</p></td>
+      </tr><tr><td>
+          <p><code><a href="return_correct_version.html">return_correct_version()</a></code> </p>
+        </td>
+        <td><p>Return the version of the data</p></td>
+      </tr><tr><td>
+          <p><code><a href="select_country.html">select_country()</a></code> </p>
+        </td>
+        <td><p>select_country
+Helper function for subset_lkup()</p></td>
       </tr><tr><td>
           <p><code><a href="select_reporting_level.html">select_reporting_level()</a></code> </p>
         </td>
         <td><p>helper function to correctly filter look up table according to requested
 reporting level</p></td>
+      </tr><tr><td>
+          <p><code><a href="select_years.html">select_years()</a></code> </p>
+        </td>
+        <td><p>select_years
+Helper function for subset_lkup()</p></td>
       </tr><tr><td>
           <p><code><a href="start_api.html">start_api()</a></code> </p>
         </td>
@@ -112,6 +178,10 @@ reporting level</p></td>
           <p><code><a href="ui_cp_charts.html">ui_cp_charts()</a></code> </p>
         </td>
         <td><p>Country Profiles Charts</p></td>
+      </tr><tr><td>
+          <p><code><a href="ui_cp_download.html">ui_cp_download()</a></code> </p>
+        </td>
+        <td><p>Country Profiles Key Indicators download</p></td>
       </tr><tr><td>
           <p><code><a href="ui_cp_key_indicators.html">ui_cp_key_indicators()</a></code> </p>
         </td>
@@ -140,6 +210,10 @@ reporting level</p></td>
           <p><code><a href="valid_years.html">valid_years()</a></code> </p>
         </td>
         <td><p>Return available valid years</p></td>
+      </tr><tr><td>
+          <p><code><a href="version_dataframe.html">version_dataframe()</a></code> </p>
+        </td>
+        <td><p>Return versions of the data available.</p></td>
       </tr></tbody></table></div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -153,7 +227,7 @@ reporting level</p></td>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer></div>

@@ -28,7 +28,13 @@
     <loc>https://pip-technical-team.github.io/pipapi/reference/add_dist_stats.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/citation_from_version.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/clear_cache.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/create_countries_vctr.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/create_lkups.html</loc>
@@ -37,7 +43,19 @@
     <loc>https://pip-technical-team.github.io/pipapi/reference/create_versioned_lkups.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/create_vintage_pattern_call.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/empty_response.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/extract_identity.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/extract_ppp_date.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/extract_release_date.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/fg_assign_nas_values_to_dup_cols.html</loc>
@@ -52,6 +70,12 @@
     <loc>https://pip-technical-team.github.io/pipapi/reference/fg_standardize_cache_id.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/fillin_list.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/filter_lkup.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/get_aux_table.html</loc>
   </url>
   <url>
@@ -64,13 +88,25 @@
     <loc>https://pip-technical-team.github.io/pipapi/reference/get_svy_data.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/ifel_isnull.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/is_empty.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/pip.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/pip_aggregate.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/pip_grp.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/pip_grp_logic.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/pipe.html</loc>
@@ -79,10 +115,19 @@
     <loc>https://pip-technical-team.github.io/pipapi/reference/reporting_level_list.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/return_correct_version.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/rg_pip.html</loc>
   </url>
   <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/select_country.html</loc>
+  </url>
+  <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/select_reporting_level.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/select_years.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/start_api.html</loc>
@@ -98,6 +143,12 @@
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/ui_cp_charts_single.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/ui_cp_download.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/ui_cp_download_single.html</loc>
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/ui_cp_key_indicators.html</loc>
@@ -125,5 +176,8 @@
   </url>
   <url>
     <loc>https://pip-technical-team.github.io/pipapi/reference/valid_years.html</loc>
+  </url>
+  <url>
+    <loc>https://pip-technical-team.github.io/pipapi/reference/version_dataframe.html</loc>
   </url>
 </urlset>
