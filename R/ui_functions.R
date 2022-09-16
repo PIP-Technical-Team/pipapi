@@ -153,23 +153,25 @@ ui_pc_charts <- function(country = c("AGO"),
 #' @inheritParams ui_pc_charts
 #' @return data.table
 #' @export
-ui_pc_regional <- function(country = "ALL",
-                           year = "ALL",
-                           povline = 1.9,
+ui_pc_regional <- function(country   = "ALL",
+                           year      = "ALL",
+                           povline   = 1.9,
                            pop_units = 1e6,
                            lkup) {
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
-  year <- toupper(year)
+  if (is.character(year)) {
+    year <- toupper(year)
+  }
 
-  out <- pip_grp_logic(country = country,
-                       year    = year,
-                       group_by = "wb",
+  out <- pip_grp_logic(country         = country,
+                       year            = year,
+                       group_by        = "wb",
                        reporting_level = "national",
-                       povline = povline,
-                       lkup = lkup,
-                       censor = TRUE)
+                       povline         = povline,
+                       lkup            = lkup,
+                       censor          = TRUE)
 
   # Add pop_in_poverty and scale according to pop_units
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units

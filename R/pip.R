@@ -71,7 +71,9 @@ pip <- function(country         = "ALL",
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
-  year <- toupper(year)
+  if (is.character(year)) {
+    year <- toupper(year)
+  }
 
   # If svy_lkup and ref_lkup are not part of lkup throw an error.
   if (!all(c('svy_lkup', 'ref_lkup') %in% names(lkup)))
