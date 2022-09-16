@@ -205,7 +205,8 @@ test_that("region selection is working for multiple regions", {
 test_that("region selection is working for all countries", {
   region <- "all"
   alt_region_values <-
-    lkups$aux_files$regions$region_code[lkups$aux_files$regions$grouping_type != "region"]
+    lkups$aux_files$regions$region_code[!lkups$aux_files$regions$grouping_type %in% c("region", "world")]
+
   expected_region_values <-
     lkups$query_controls$region$values[!lkups$query_controls$region$values %in% c(alt_region_values, toupper(region))]
 
@@ -229,7 +230,7 @@ test_that("region selection is working for multiple regions and country from oth
   # expected_region_values <- lkups$query_controls$region$values
   # expected_region_values <- expected_region_values[expected_region_values != "all"]
   alt_region_values <-
-    lkups$aux_files$regions$region_code[lkups$aux_files$regions$grouping_type != "region"]
+    lkups$aux_files$regions$region_code[!lkups$aux_files$regions$grouping_type %in% c("region", "world")]
   expected_region_values <-
     lkups$query_controls$region$values[!lkups$query_controls$region$values %in% c(alt_region_values, "ALL")]
 
