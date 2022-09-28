@@ -2,6 +2,7 @@
 
 ## Bug fixes
 - Hot fix to handle failing of `create_vector_countries()` when `country="ALL"`
+- Fix cp-download
 
 # pipapi 1.2.0
 
