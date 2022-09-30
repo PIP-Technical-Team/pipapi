@@ -224,7 +224,7 @@ create_countries_vctr <- function(country,
 
       grp_computed <-
         expand.grid(region_code      = user_off_reg,
-                    reporting_year   = year,
+                    reporting_year   = as.numeric(year), # Hot fix
                     stringsAsFactors = FALSE) |>
         data.table::as.data.table()
 

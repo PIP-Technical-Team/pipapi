@@ -458,7 +458,7 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  if (params$country == "all" && params$year == "all") {
+  if (params$country == "ALL" && params$year == "ALL") {
     promises::future_promise({
       do.call(pipapi::ui_pc_charts, params)
     }, seed = TRUE)
@@ -485,7 +485,7 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$pop_units <- 1
   params$version <- NULL
-  if (params$country == "all" && params$year == "all") {
+  if (params$country == "ALL" && params$year == "ALL") {
     promises::future_promise({
       do.call(pipapi::ui_pc_charts, params)
     }, seed = TRUE)
@@ -542,7 +542,7 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  if (params$country == "all") {
+  if (params$country == "ALL") {
     promises::future_promise({
       do.call(pipapi::ui_cp_charts, params)
     }, seed = TRUE)
@@ -565,7 +565,7 @@ function(req) {
   params$version <- NULL
   params$format  <- NULL
 
-  if (params$country == "all") {
+  if (params$country == "ALL") {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::ui_cp_download, params)
       attr(tmp, "serialize_format") <- req$argsQuery$format

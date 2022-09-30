@@ -223,12 +223,16 @@ ui_cp_key_indicators_single <- function(country,
   if (is.null(povline)) {
     poverty_lines <- lkup$pl_lkup$poverty_line
     hc <- lapply(poverty_lines, function(pl) {
-      ui_cp_ki_headcount(country, pl, lkup)
+      ui_cp_ki_headcount(country = country,
+                         povline = pl,
+                         lkup = lkup)
     })
     hc <- data.table::rbindlist(hc)
     # names(hc) <- poverty_lines
   } else {
-    hc <- ui_cp_ki_headcount(country, povline, lkup)
+    hc <- ui_cp_ki_headcount(country = country,
+                             povline = povline,
+                             lkup = lkup)
     # hc <- list(hc)
     # names(hc) <- povline
   }
@@ -249,10 +253,13 @@ ui_cp_key_indicators_single <- function(country,
 #' @inheritParams cp_key_indicators
 #' @return data.table
 #' @noRd
-ui_cp_ki_headcount <- function(country, povline, lkup) {
+ui_cp_ki_headcount <- function(country,
+                               year = "mrv",
+                               povline,
+                               lkup) {
 
   # Fetch most recent year (for CP-display)
-  res <- pip(country = country, year = "mrv",
+  res <- pip(country = country, year = year,
              povline = povline, popshare = NULL,
              welfare_type = "all",
              reporting_level = "all", ppp = NULL,
@@ -554,25 +561,31 @@ ui_svy_meta <- function(country = "all", lkup) {
 #' @return list
 #' @export
 ui_cp_download <- function(country = "AGO",
-                                 povline = NULL,
-                                 lkup) {
+                           year = "ALL",
+                           povline = NULL,
+                           lkup) {
 
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
-  if (country == "all") {
+  if (country == "ALL") {
     country_codes <- unique(lkup$svy_lkup$country_code)
     dl <- lapply(country_codes, function(country)
       ui_cp_download_single(
-        country = country, povline = povline, lkup = lkup))
+        country = country,
+        year = year,
+        povline = povline,
+        lkup = lkup))
     dl <- data.table::rbindlist(dl)
     dl <- dl[order(country_code, -reporting_year), ]
   } else {
     dl <- ui_cp_download_single(
-      country = country, povline = povline, lkup = lkup)
+      country = country,
+      year = year,
+      povline = povline,
+      lkup = lkup)
   }
   return(dl)
-
 }
 
 
@@ -585,10 +598,11 @@ ui_cp_download <- function(country = "AGO",
 #' @return list
 #' @keywords internal
 ui_cp_download_single <- function(country,
+                                  year,
                                   povline = 1.9,
                                   lkup) {
 
-  hc <- ui_cp_ki_headcount(country, povline, lkup)
+  hc <- ui_cp_ki_headcount(country, year, povline, lkup)
 
   # Remove "shared_prosperity" since the column names are not consitent with the
   # other data frames
