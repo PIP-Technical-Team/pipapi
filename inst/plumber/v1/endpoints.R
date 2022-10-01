@@ -62,11 +62,15 @@ function(req, res) {
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     # STEP 1: Assign required parameters
     # Non-provided parameters are typically assigned the underlying function
-    # arguments' default values. There is an exception to that however:
-    # The `country` & `year` parameters cannot be NULL in order for to pass
+    # arguments' default values. There are two exceptions to that however:
+    # 1) The `country` & `year` parameters cannot be NULL in order for to pass
     # the if condition that will decide whether or no the request should be
     # treated asynchronously.
-    req <- pipapi:::assign_required_params(req)
+    # 2) The introduction of PPP versioning implies having a dynamic default
+    # poverty line
+
+    req <- pipapi:::assign_required_params(req,
+                                           pl_lkup = lkups$pl_lkup)
 
     # STEP 2: Validate individual query parameters
     are_valid <- pipapi:::check_parameters(req, query_controls)

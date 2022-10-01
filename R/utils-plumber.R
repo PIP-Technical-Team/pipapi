@@ -188,10 +188,11 @@ serializer_switch <- function() {
 #' Assign PIP API required parameters if missing
 #'
 #' @param req list: plumber `req` object
+#' @param pl_lkup data.frame: Poverty lines lookup table
 #'
 #' @return list
 #' @noRd
-assign_required_params <- function(req) {
+assign_required_params <- function(req, pl_lkup) {
 
   # Handle required names for /pip endpoint
   endpoint <- extract_endpoint(req$PATH_INFO)
@@ -205,10 +206,34 @@ assign_required_params <- function(req) {
       req$argsQuery$year <- "ALL"
     }
     if (endpoint == "pip-grp") {
+      req$args$fill_gaps <- NULL
+      req$argsQuery$fill_gaps <- NULL
       if (is.null(req$args$group_by)) {
         req$args$group_by <- "none"
         req$argsQuery$group_by <- "none"
       }
+    }
+    # Turn all country codes to upper case
+    req$args$country <- toupper(req$args$country)
+    req$argsQuery$country <- toupper(req$argsQuery$country)
+    # Turn all year codes to upper case
+    req$args$year <- toupper(req$args$year)
+    req$argsQuery$year <- toupper(req$argsQuery$year)
+  }
+
+  # Handle default poverty line
+  if (endpoint %in% c("pip",
+                      "pip-grp",
+                      "hp-stacked",
+                      "pc-charts",
+                      "pc-download",
+                      "pc-regional-aggregates",
+                      "cp-key-indicators",
+                      "cp-charts",
+                      "cp-download")) {
+    if (is.null(req$args$povline)) {
+      req$args$povline <- pl_lkup$poverty_line[pl_lkup$is_default == TRUE]
+      req$argsQuery$povline <- pl_lkup$poverty_line[pl_lkup$is_default == TRUE]
     }
   }
   return(req)
@@ -318,7 +343,7 @@ version_dataframe <- function(versions) {
   out <- data.frame(version = versions,
                     release_version = release_version,
                     ppp_version = ppp_version,
-                    identify = identity)
+                    identity = identity)
   return(out)
 }
 

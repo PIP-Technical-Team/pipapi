@@ -4,10 +4,12 @@
 \alias{ui_cp_download_single}
 \title{Country Profile Key Indicators download}
 \usage{
-ui_cp_download_single(country, povline = 1.9, lkup)
+ui_cp_download_single(country, year, povline = 1.9, lkup)
 }
 \arguments{
 \item{country}{character: Country ISO 3 codes}
+
+\item{year}{integer: Reporting year}
 
 \item{povline}{numeric: Poverty line}
 

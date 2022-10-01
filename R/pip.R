@@ -52,8 +52,8 @@
 #'     lkup = lkups)
 #' }
 #' @export
-pip <- function(country         = "all",
-                year            = "all",
+pip <- function(country         = "ALL",
+                year            = "ALL",
                 povline         = 1.9,
                 popshare        = NULL,
                 fill_gaps       = FALSE,
@@ -68,6 +68,12 @@ pip <- function(country         = "all",
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
+
+  # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
+  country <- toupper(country)
+  if (is.character(year)) {
+    year <- toupper(year)
+  }
 
   # If svy_lkup and ref_lkup are not part of lkup throw an error.
   if (!all(c('svy_lkup', 'ref_lkup') %in% names(lkup)))

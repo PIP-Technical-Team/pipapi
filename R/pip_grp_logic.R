@@ -7,8 +7,8 @@
 #' # Create lkups
 #' }
 #' @export
-pip_grp_logic <- function(country         = "all",
-                          year            = "all",
+pip_grp_logic <- function(country         = "ALL",
+                          year            = "ALL",
                           povline         = 1.9,
                           group_by        = c("none", "wb"),
                           welfare_type    = c("all", "consumption", "income"),
@@ -212,8 +212,17 @@ pip_grp_logic <- function(country         = "all",
   }
   data.table::setcolorder(ret, names_grp)
 
+
+  # Censor regional values -----------
+
+  if (censor) {
+    ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
+  }
+
   #   ____________________________________________________________________
   #   Return                                                         ####
   return(ret)
 
 }
+
+

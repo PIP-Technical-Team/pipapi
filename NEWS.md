@@ -1,5 +1,14 @@
 # pipapi (development version)
 
+## Bug fixes
+- Hot fix to handle failing of `create_vector_countries()` when `country="ALL"`
+- Fix cp-download
+
+## Enhancements
+- [Implement checks for long_format parameter in API filter](https://github.com/PIP-Technical-Team/pipapi/pull/303)
+
+# pipapi 1.2.0
+
 ## New features
 - [Add new endpoint to support country profile downloads](https://github.com/PIP-Technical-Team/pipapi/pull/283)
 - [Add separate arguments to select release and ppp version](https://github.com/PIP-Technical-Team/pipapi/issues/265)
@@ -9,7 +18,7 @@
 ## Enhancements
 - [Disable popshare option for pip_grp and aggregate distributions](https://github.com/PIP-Technical-Team/pipapi/pull/274)
 - [Allow /aux endpoint to return data in long format](https://github.com/PIP-Technical-Team/pipapi/issues/272)
-- [Implement checks for long_format parameter in API filter](https://github.com/PIP-Technical-Team/pipapi/pull/303)
+- [Make default poverty line dynamic in API](https://github.com/PIP-Technical-Team/pipapi/pull/310)
 
 # pipapi 1.1.0
 
@@ -62,7 +71,7 @@ interpolated years](https://github.com/PIP-Technical-Team/pipapi/issues/182)
 - Make sure `ui_cp_poverty_charts()` only returns non-national observations when a country has no surveys with national coverage
 - Fix a bug in the application of censoring within `pip_grp()`
 - Add a specific empty repsonse for `pip_grp()` to ensure that the response is consistent when no data is available
-- Fix a bug in the selection of most recent value (`year="mrv"`) when `country="all"`
+- Fix a bug in the selection of most recent value (`year="MRV"`) when `country="ALL"`
 
 # pipapi 0.0.1
 

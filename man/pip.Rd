@@ -5,8 +5,8 @@
 \title{Compute PIP statistics}
 \usage{
 pip(
-  country = "all",
-  year = "all",
+  country = "ALL",
+  year = "ALL",
   povline = 1.9,
   popshare = NULL,
   fill_gaps = FALSE,

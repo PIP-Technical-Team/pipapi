@@ -21,7 +21,19 @@ dt_lac <- readRDS(test_path("testdata", "pip_lac_resp.rds"))
 dt_sas <- readRDS(test_path("testdata", "pip_sas_resp.rds"))
 
 test_that("ui_hp_stacked() works as expected", {
-  res <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
+  res                <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
+  countries_selected <- lkups2$svy_lkup[, unique(country_code)]
+  tmp                <- lkups2$aux_files$country_list[country_code %in% countries_selected]
+
+  var_code <- c("country_code", "region_code", "world_code")
+
+  regions_of_countries <-
+    tmp[, ..var_code] |>
+    melt(id.vars = "country_code") |>
+    {\(.) .[, value] }() |>
+    unique()
+
+
   expect_identical(
     names(res),
     c(
@@ -29,7 +41,10 @@ test_that("ui_hp_stacked() works as expected", {
       "poverty_line", "pop_in_poverty"
     )
   )
-  expect_identical(unique(res$region_code), c("SSA", "WLD"))
+  expect_identical(unique(res$region_code) |>
+                     sort(),
+                   regions_of_countries |>
+                     sort())
   expect_true(all(res$pop_in_poverty == floor(res$pop_in_poverty))) # No decimals for population numbers
 })
 
@@ -69,18 +84,41 @@ test_that("ui_pc_charts() works as expected", {
 
 test_that("ui_pc_regional() works as expected", {
   res <- ui_pc_regional(povline = 1.9, lkup = lkups2)
+
+  countries_selected <- lkups2$svy_lkup[, unique(country_code)]
+  tmp                <- lkups2$aux_files$country_list[country_code %in% countries_selected]
+
+  var_code <- grep("_code$", names(tmp), value = TRUE)
+
+  regions_of_countries <-
+    tmp[, ..var_code] |>
+    melt(id.vars = "country_code") |>
+    {\(.) .[, value] }() |>
+    unique()
+
   expect_identical(
-    names(res),
+   names(res) |> sort(),
     c(
-      "region_name", "region_code", "reporting_year",
-      "reporting_pop",  "poverty_line",
-      "headcount", "poverty_gap",
-      "poverty_severity", "watts",
+      "region_name",
+      "region_code",
+      "reporting_year",
+      "reporting_pop",
+      "poverty_line",
+      "headcount",
+      "poverty_gap",
+      "poverty_severity",
+      "watts",
       "mean",
       "pop_in_poverty"
-    )
+    ) |> sort()
   )
-  expect_identical(unique(res$region_code), c("SSA", "WLD"))
+  expect_identical(unique(res$region_code) |>
+                     sort(),
+                   regions_of_countries |>
+                     sort())
+
+
+  # expect_identical(unique(res$region_code), c("SSA", "WLD"))
 })
 
 test_that("ui_cp_poverty_charts() works as expected", {
