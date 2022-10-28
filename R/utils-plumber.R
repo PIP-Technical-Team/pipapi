@@ -375,7 +375,12 @@ pi_version <- function(ppp_version, identity, versions_available) {
 #' @export
 #'
 citation_from_version <- function(version) {
+  current_date <- Sys.Date()
+  current_year <- format(current_date, '%Y')
   release_date <- extract_release_date(version)
   ppp_date <- extract_ppp_date(version)
-  sprintf('Poverty and Inequality Platform, %s, %s PPPs.', release_date, format(ppp_date, '%Y'))
+  sprintf('World Bank (%s), Poverty and Inequality Platform (version %s) [data set]. pip.worldbank.org. Accessed on %s',
+          current_year,
+          version,
+          current_date)
 }
