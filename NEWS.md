@@ -1,5 +1,8 @@
 # pipapi (development version)
 
+## New features
+- /citation endpoint now returns additional information: `version_id` and `accessed_date`
+
 ## Bug fixes
 - Hot fix to handle failing of `create_vector_countries()` when `country="ALL"`
 - Fix cp-download

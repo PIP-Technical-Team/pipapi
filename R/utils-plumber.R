@@ -274,13 +274,13 @@ return_correct_version <- function(version = NULL,
   if (!is.null(release_version) & !is.null(ppp_version) & !is.null(identity)) {
     selected_version <- rpi_version(release_version, ppp_version, identity, versions_available)
   } else if (!is.null(release_version) & !is.null(ppp_version)) {
-  # STEP 2.2 - If identity is NULL, return closest matching version if it exists
+    # STEP 2.2 - If identity is NULL, return closest matching version if it exists
     # This probably would never be executed since identity would never be NULL unless explicitly specified.
     selected_version <- rp_version(release_version, ppp_version, versions_available)
-  # STEP 2.3 - If ppp_version is NULL, return closest matching version if it exists
+    # STEP 2.3 - If ppp_version is NULL, return closest matching version if it exists
   } else if (!is.null(release_version) & !is.null(identity)) {
     selected_version <- ri_version(release_version, identity, versions_available)
-  # STEP 2.4 - If release_version is NULL, return closest matching version if it exists
+    # STEP 2.4 - If release_version is NULL, return closest matching version if it exists
   } else if (!is.null(ppp_version) & !is.null(identity)) {
     selected_version <- pi_version(ppp_version, identity, versions_available)
   }
@@ -379,8 +379,15 @@ citation_from_version <- function(version) {
   current_year <- format(current_date, '%Y')
   release_date <- extract_release_date(version)
   ppp_date <- extract_ppp_date(version)
-  sprintf('World Bank (%s), Poverty and Inequality Platform (version %s) [data set]. pip.worldbank.org. Accessed on %s',
-          current_year,
-          version,
-          current_date)
+  citation <- sprintf('World Bank (%s), Poverty and Inequality Platform (version %s) [data set]. pip.worldbank.org. Accessed on %s',
+                      current_year,
+                      version,
+                      current_date)
+
+  return(list(
+    citation = citation,
+    version_id  = version,
+    date_accessed = current_date
+  )
+  )
 }
