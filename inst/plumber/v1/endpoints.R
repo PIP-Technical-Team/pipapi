@@ -98,11 +98,10 @@ function(req, res) {
         # )
         return(out)
       }
-
-    # STEP 4: Trim poverty line
-    # This is to prevent users to abuse the API by passing too many decimals
-    # or poverty lines that are too high
     }
+    # STEP 4: Round poverty line
+    # This is to prevent users to abuse the API by passing too many decimals
+    req$argsQuery$povline <- round(req$argsQuery$povline, digits = 3)
   }
   plumber::forward()
 }
