@@ -2,7 +2,8 @@
 
 ## New features
 - /citation endpoint now returns additional information: `version_id` and `accessed_date`
-- Limit accpeted poverty lines to 3 decimals
+- Limit accepted poverty lines to 3 decimals
+- Add new /version parameter that returns information about a specific data version
 
 ## Bug fixes
 - Hot fix to handle failing of `create_vector_countries()` when `country="ALL"`
