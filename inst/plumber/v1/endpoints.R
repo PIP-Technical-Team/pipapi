@@ -101,7 +101,9 @@ function(req, res) {
     }
     # STEP 4: Round poverty line
     # This is to prevent users to abuse the API by passing too many decimals
-    req$argsQuery$povline <- round(req$argsQuery$povline, digits = 3)
+    if (!is.null(req$argsQuery$povline)) {
+      req$argsQuery$povline <- round(req$argsQuery$povline, digits = 3)
+    }
   }
   plumber::forward()
 }
@@ -152,6 +154,19 @@ function() {
 #* @serializer switch
 function(req) {
   out <- pipapi::version_dataframe(lkups$versions)
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
+}
+
+#* Return information about a specific data version
+#* @get /api/v1/version
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer switch
+function(req) {
+  out <- pipapi::version_dataframe(lkups$versions)
+  out <- out[out$version == req$argsQuery$version, ]
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }

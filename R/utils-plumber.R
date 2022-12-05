@@ -330,13 +330,14 @@ extract_identity <- function(version) {
 
 #' Return versions of the data available.
 #'
-#' @param version character vector of data version
+#' @param versions character: All available versions
 #'
 #' @return Dataframe with 4 columns, versions, release_version, ppp_version and identity
 #'
 #' @export
 #'
 version_dataframe <- function(versions) {
+
   ppp_version <- format(extract_ppp_date(versions), '%Y')
   release_version <- format(extract_release_date(versions), "%Y%m%d")
   identity <- extract_identity(versions)
@@ -344,6 +345,7 @@ version_dataframe <- function(versions) {
                     release_version = release_version,
                     ppp_version = ppp_version,
                     identity = identity)
+
   return(out)
 }
 
