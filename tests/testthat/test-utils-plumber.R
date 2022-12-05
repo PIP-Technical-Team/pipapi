@@ -305,14 +305,12 @@ test_that("pi_version works as expected", {
                                                 "20200101_2011_01_01_PROD", "20211212_2011_02_01_PROD"))
 })
 
-
-
-
 test_that("citation_from_version works as expected", {
-  expect_equal(citation_from_version(x),
-               c("Poverty and Inequality Platform, 2022-06-09, 2011 PPPs.",
-                 "Poverty and Inequality Platform, 2022-05-04, 2017 PPPs.", "Poverty and Inequality Platform, 2021-12-12, 2011 PPPs.",
-                 "Poverty and Inequality Platform, 2020-01-01, 2011 PPPs.", "Poverty and Inequality Platform, 2022-06-02, 2017 PPPs.",
-                 "Poverty and Inequality Platform, 2022-05-04, 2017 PPPs.", "Poverty and Inequality Platform, 2021-12-12, 2011 PPPs."
-               ))
+  citation <- citation_from_version(x[1])
+
+  expect_equal(names(citation), c("citation", "version_id", "date_accessed"))
+  expect_equal(citation$citation,
+               "World Bank (2022), Poverty and Inequality Platform (version 20220609_2011_02_02_PROD) [data set]. pip.worldbank.org. Accessed on 2022-12-05")
+  expect_equal(citation$version_id, "20220609_2011_02_02_PROD")
+  expect_equal(as.character(citation$date_accessed), "2022-12-05")
 })
