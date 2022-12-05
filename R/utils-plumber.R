@@ -4,10 +4,10 @@
 #' @param query_controls list: List of valid values
 #' @return logical
 #' @noRd
-check_parameters <- function(req, query_controls) {
+check_parameters_values <- function(req, query_controls) {
   out <- lapply(seq_along(req$argsQuery), function(i) {
     param_name <- names(req$argsQuery)[i]
-    check_parameter(
+    check_parameter_values(
       values = req$argsQuery[[i]],
       valid_values = query_controls[[param_name]][["values"]],
       type = query_controls[[param_name]][["type"]]
@@ -23,7 +23,7 @@ check_parameters <- function(req, query_controls) {
 #' @param type character: Type of value
 #' @return logical
 #' @noRd
-check_parameter <- function(values, valid_values, type) {
+check_parameter_values <- function(values, valid_values, type) {
   if (type == "character") {
     check_param_chr(values, valid_values)
   } else if (type == "numeric") {
@@ -65,7 +65,7 @@ check_param_lgl <- function(value) {
 }
 
 #' Format error
-#' Format error if check_parameters() returns TRUE
+#' Format error if check_parameters_values() returns TRUE
 #' @param params character: Vector with parsed parameters
 #' @param query_controls list: Query controls
 #' @return list

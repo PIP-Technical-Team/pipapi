@@ -54,7 +54,7 @@ function(req, res) {
 }
 
 #* Protect against invalid arguments
-#* @filter check_parameters
+#* @filter check_parameters_values
 function(req, res) {
   lkups <- lkups$versions_paths[[req$argsQuery$version]]
   query_controls = lkups$query_controls
@@ -73,7 +73,7 @@ function(req, res) {
                                            pl_lkup = lkups$pl_lkup)
 
     # STEP 2: Validate individual query parameters
-    are_valid <- pipapi:::check_parameters(req, query_controls)
+    are_valid <- pipapi:::check_parameters_values(req, query_controls)
     if (any(are_valid == FALSE)) {
       res$status <- 404
       invalid_params <- names(req$argsQuery)[!are_valid]
@@ -98,6 +98,10 @@ function(req, res) {
         # )
         return(out)
       }
+
+    # STEP 4: Trim poverty line
+    # This is to prevent users to abuse the API by passing too many decimals
+    # or poverty lines that are too high
     }
   }
   plumber::forward()
