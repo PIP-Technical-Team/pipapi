@@ -8,6 +8,8 @@
 ## Bug fixes
 - Hot fix to handle failing of `create_vector_countries()` when `country="ALL"`
 - Fix cp-download
+- Fix creation of duplicated responses for some regional aggregates
+- Fix year selection for /pip-grp
 
 # pipapi 1.2.0
 
