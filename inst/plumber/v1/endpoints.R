@@ -445,6 +445,7 @@ function(req) {
 
 #* Return data for home page country charts
 #* @get /api/v1/hp-countries
+#* @param povline:[dbl] Poverty Line
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
