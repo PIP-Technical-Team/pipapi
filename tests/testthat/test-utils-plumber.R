@@ -309,8 +309,12 @@ test_that("citation_from_version works as expected", {
   citation <- citation_from_version(x[1])
 
   expect_equal(names(citation), c("citation", "version_id", "date_accessed"))
+  current_date <- Sys.Date()
   expect_equal(citation$citation,
-               paste0("World Bank (2022), Poverty and Inequality Platform (version 20220609_2011_02_02_PROD) [data set]. pip.worldbank.org. Accessed on ", as.character(Sys.Date())))
+               paste0("World Bank (",
+                      format(current_date, '%Y'),
+                      "), Poverty and Inequality Platform (version 20220609_2011_02_02_PROD) [data set]. pip.worldbank.org. Accessed on ",
+                      as.character(current_date)))
   expect_equal(citation$version_id, "20220609_2011_02_02_PROD")
   expect_equal(as.character(citation$date_accessed), as.character(Sys.Date()))
 })
