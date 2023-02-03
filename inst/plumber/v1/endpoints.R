@@ -5,7 +5,7 @@
 library(pipapi)
 
 # API filters -------------------------------------------------------------
-
+## Validate version parameter ----
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
@@ -35,6 +35,7 @@ function(req, res) {
   plumber::forward()
 }
 
+## Filter out invalid parameters ----
 #* Ensure that only valid parameters are being forwarded
 #* @filter validate_query_parameters
 function(req, res) {
@@ -44,6 +45,7 @@ function(req, res) {
   plumber::forward()
 }
 
+## Parse query parameters ----
 #* Parse query parameters of incoming request
 #* @filter parse_parameters
 function(req, res) {
@@ -53,6 +55,7 @@ function(req, res) {
   plumber::forward()
 }
 
+## Validate parameter values ----
 #* Protect against invalid arguments
 #* @filter check_parameters_values
 function(req, res) {
@@ -108,9 +111,7 @@ function(req, res) {
   plumber::forward()
 }
 
-
-# Set response headers ----------------------------------------------------
-
+## Set response headers ----
 #* Set required response headers
 #* @filter response_headers
 function(res) {
@@ -137,7 +138,7 @@ function(res) {
 
 }
 
-# Register switch serializer
+# Register switch serializer ----
 plumber::register_serializer("switch", pipapi:::serializer_switch)
 
 

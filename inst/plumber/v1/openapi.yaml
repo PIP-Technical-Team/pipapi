@@ -41,7 +41,7 @@ paths:
              schema:
               type: number
               minimum: 0
-              maximum: 10000
+              maximum: 2700
               example: 1.90
              description: Poverty line to be used to compute poverty mesures. Poverty lines are only accepted up to 3 decimals.
            - in: query
@@ -129,7 +129,7 @@ paths:
              schema:
               type: number
               minimum: 0
-              maximum: 10000
+              maximum: 2700
               example: 1.90
              description: Poverty line to be used to compute poverty mesures. Poverty lines are only accepted up to 3 decimals.
            - in: query

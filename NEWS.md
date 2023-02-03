@@ -4,6 +4,7 @@
 - /citation endpoint now returns additional information: `version_id` and `accessed_date`
 - Limit accepted poverty lines to 3 decimals
 - Add new /version parameter that returns information about a specific data version
+- Povline is now limited to a maximum value of $2700 PPP (daily value)
 
 ## Bug fixes
 - Hot fix to handle failing of `create_vector_countries()` when `country="ALL"`
