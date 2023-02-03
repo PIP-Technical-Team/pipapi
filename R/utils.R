@@ -328,7 +328,7 @@ create_query_controls <- function(svy_lkup,
   )
   # Poverty line
   povline <- list(
-    values = c(min = 0, max = 10000),
+    values = c(min = 0, max = 2700),
     type = "numeric"
   )
   # Popshare
