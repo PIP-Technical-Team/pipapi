@@ -111,7 +111,7 @@ pip_grp <- function(country         = "ALL",
 #'
 #' @param df data.table from `pip_fg()`
 #' @param by character: Additional variable to use in `by` when doing the
-#'   aggragations. Default is `NULL`, but it should be use to include
+#'   aggregations. Default is `NULL`, but it should be use to include
 #'   aggregations variables
 #'
 #' @return data.table
