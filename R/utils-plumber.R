@@ -216,11 +216,15 @@ assign_required_params <- function(req, pl_lkup) {
   }
 
   # Turn all country codes to upper case
+  if (!is.null(req$args$country)) {
   req$args$country <- toupper(req$args$country)
   req$argsQuery$country <- toupper(req$argsQuery$country)
+  }
   # Turn all year codes to upper case
+  if (!is.null(req$args$year)) {
   req$args$year <- toupper(req$args$year)
   req$argsQuery$year <- toupper(req$argsQuery$year)
+  }
 
   # Handle default poverty line
   if (endpoint %in% c("pip",

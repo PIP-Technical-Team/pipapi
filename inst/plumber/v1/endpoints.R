@@ -61,6 +61,7 @@ function(req, res) {
 function(req, res) {
   lkups <- lkups$versions_paths[[req$argsQuery$version]]
   query_controls = lkups$query_controls
+  # browser()
 
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     # STEP 1: Assign required parameters
