@@ -66,7 +66,7 @@ function(req, res) {
     # STEP 1: Assign required parameters
     # Non-provided parameters are typically assigned the underlying function
     # arguments' default values. There are two exceptions to that however:
-    # 1) The `country` & `year` parameters cannot be NULL in order for to pass
+    # 1) The `country` & `year` parameters cannot be NULL in order to pass
     # the if condition that will decide whether or no the request should be
     # treated asynchronously.
     # 2) The introduction of PPP versioning implies having a dynamic default
