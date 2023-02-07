@@ -604,7 +604,7 @@ ui_cp_download_single <- function(country,
 
   hc <- ui_cp_ki_headcount(country, year, povline, lkup)
 
-  # Remove "shared_prosperity" since the column names are not consitent with the
+  # Remove "shared_prosperity" since the column names are not consistent with the
   # other data frames
   indicators <- lkup$cp$key_indicators[!names(lkup$cp$key_indicators) %in% c("shared_prosperity", "reporting_pop")]
   dl <- lapply(indicators, function(x) {
@@ -619,7 +619,7 @@ ui_cp_download_single <- function(country,
   out <- Reduce(function(df1, df2) {
     merge(df1, df2,
           by = c("country_code", "reporting_year"),
-          all.x = TRUE)
+          all = TRUE)
   },
   dl)
 
