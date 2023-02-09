@@ -200,24 +200,29 @@ function(req) {
 #* @get /api/v1/cache-info
 #* @serializer unboxedJSON
 function() {
-  info <- cd$info()
-  info$missing <- NULL
-  c(n_items = cd$size(), info)
+  if (!cd$is_destroyed()) {
+    info <- cd$info()
+    info$missing <- NULL
+    c(n_items = cd$size(), info)
+  }
 }
 
 #* Return cache log
 #* @get /api/v1/cache-log
 #* @serializer print list(quote = FALSE)
 function(){
-  readLines(cd$info()$logfile)
+  if (!cd$is_destroyed()) {
+    readLines(cd$info()$logfile)
+  }
 }
 
-#* Reset current cache
-#* @get /api/v1/cache-reset
+#* Delete current cache directory
+#* @get /api/v1/cache-delete
 #* @serializer unboxedJSON
 function() {
-  pipapi:::clear_cache(cd)
+    unlink(cd$info()$dir, recursive = TRUE)
 }
+
 
 #* Check timestamp for the data
 #* @get /api/v1/data-timestamp
