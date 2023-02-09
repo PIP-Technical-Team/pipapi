@@ -6,11 +6,11 @@
                              evict = "lru",
                              logfile = log,
                              max_size = as.numeric(Sys.getenv("PIPAPI_CACHE_MAX_SIZE")))
-    pip <<- memoise::memoise(pip, cache = cd)
-    pip_grp <<- memoise::memoise(pip_grp, cache = cd)
-    pip_grp_logic <<- memoise::memoise(pip_grp_logic, cache = cd)
-    ui_cp_charts <<- memoise::memoise(ui_cp_charts, cache = cd)
-    ui_cp_download <<- memoise::memoise(ui_cp_download, cache = cd)
+    pip <<- memoise::memoise(pip, cache = cd, omit_args = "lkup")
+    pip_grp <<- memoise::memoise(pip_grp, cache = cd, omit_args = "lkup")
+    pip_grp_logic <<- memoise::memoise(pip_grp_logic, cache = cd, omit_args = "lkup")
+    ui_cp_charts <<- memoise::memoise(ui_cp_charts, cache = cd, omit_args = "lkup")
+    ui_cp_download <<- memoise::memoise(ui_cp_download, cache = cd, omit_args = "lkup")
     # ui_cp_key_indicators <<- memoise::memoise(ui_cp_key_indicators, cache = cd)
     # ui_cp_charts <<- memoise::memoise(ui_cp_charts, cache = cd)
     assign("cd", cd, envir = .GlobalEnv)
