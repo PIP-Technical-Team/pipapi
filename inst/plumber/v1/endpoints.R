@@ -216,6 +216,13 @@ function(){
   }
 }
 
+#* Reset current cache directory
+#* @get /api/v1/cache-reset
+#* @serializer unboxedJSON
+function() {
+  pipapi:::clear_cache(cd)
+}
+
 #* Delete current cache directory
 #* @get /api/v1/cache-delete
 #* @serializer unboxedJSON
