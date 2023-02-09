@@ -602,29 +602,19 @@ ui_cp_download_single <- function(country,
                                   povline = 1.9,
                                   lkup) {
 
+
   hc <- ui_cp_ki_headcount(country, year, povline, lkup)
 
-  # Remove "shared_prosperity" since the column names are not consistent with the
-  # other data frames
-  indicators <- lkup$cp$key_indicators[!names(lkup$cp$key_indicators) %in% c("shared_prosperity", "reporting_pop")]
-  dl <- lapply(indicators, function(x) {
-    out <- x[country_code == country, ]
-    out[["latest"]] <- NULL
-    out <- unique(out) # HOT FIX: NEED TO FIGURE OUT WHAT THE REAL ISSUE IS
-    return(out)
-  })
-
-  dl <- c(headcount = list(hc), dl)
-
-  out <- Reduce(function(df1, df2) {
-    merge(df1, df2,
+  df <- lkup$cp$flat$flat_cp
+  df <- df[country_code == country]
+  out <-
+    merge(hc, df,
           by = c("country_code", "reporting_year"),
           all = TRUE)
-  },
-  dl)
 
   # Re-scale headcount_national to be consistent with headcount
-  out$headcount_national <- out$headcount_national / 100
+  out[, headcount_national := headcount_national / 100]
+
 
   return(out)
 }
