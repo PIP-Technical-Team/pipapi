@@ -590,33 +590,3 @@ ui_cp_download <- function(country = "AGO",
   return(out)
 }
 
-
-
-#' Country Profile Key Indicators download
-#'
-#' Helper function to download Country Profile data
-#'
-#' @inheritParams ui_cp_download
-#' @return list
-#' @keywords internal
-ui_cp_download_single <- function(country,
-                                  year,
-                                  povline = 1.9,
-                                  lkup) {
-
-
-  hc <- ui_cp_ki_headcount(country, year, povline, lkup)
-
-  df <- lkup$cp$flat$flat_cp
-  df <- df[country_code == country]
-  out <-
-    merge(hc, df,
-          by = c("country_code", "reporting_year"),
-          all = TRUE)
-
-  # Re-scale headcount_national to be consistent with headcount
-  out[, headcount_national := headcount_national / 100]
-
-
-  return(out)
-}
