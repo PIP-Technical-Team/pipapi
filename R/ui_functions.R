@@ -562,69 +562,31 @@ ui_svy_meta <- function(country = "all", lkup) {
 #' @export
 ui_cp_download <- function(country = "AGO",
                            year = "ALL",
-                           povline = NULL,
+                           povline = 1.9,
                            lkup) {
 
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
   if (country == "ALL") {
-    country_codes <- unique(lkup$svy_lkup$country_code)
-    dl <- lapply(country_codes, function(country)
-      ui_cp_download_single(
-        country = country,
-        year = year,
-        povline = povline,
-        lkup = lkup))
-    dl <- data.table::rbindlist(dl)
-    dl <- dl[order(country_code, -reporting_year), ]
-  } else {
-    dl <- ui_cp_download_single(
-      country = country,
-      year = year,
-      povline = povline,
-      lkup = lkup)
+    country <- unique(lkup$svy_lkup$country_code)
   }
-  return(dl)
-}
 
+  hc <- lapply(country, \(.) {
+    ui_cp_ki_headcount(., year, povline, lkup)
+  }) |>
+    data.table::rbindlist(use.names = TRUE)
 
-
-#' Country Profile Key Indicators download
-#'
-#' Helper function to download Country Profile data
-#'
-#' @inheritParams ui_cp_download
-#' @return list
-#' @keywords internal
-ui_cp_download_single <- function(country,
-                                  year,
-                                  povline = 1.9,
-                                  lkup) {
-
-  hc <- ui_cp_ki_headcount(country, year, povline, lkup)
-
-  # Remove "shared_prosperity" since the column names are not consistent with the
-  # other data frames
-  indicators <- lkup$cp$key_indicators[!names(lkup$cp$key_indicators) %in% c("shared_prosperity", "reporting_pop")]
-  dl <- lapply(indicators, function(x) {
-    out <- x[country_code == country, ]
-    out[["latest"]] <- NULL
-    out <- unique(out) # HOT FIX: NEED TO FIGURE OUT WHAT THE REAL ISSUE IS
-    return(out)
-  })
-
-  dl <- c(headcount = list(hc), dl)
-
-  out <- Reduce(function(df1, df2) {
-    merge(df1, df2,
+  df <- lkup$cp$flat$flat_cp
+  df <- df[country_code %chin% country]
+  out <-
+    merge(hc, df,
           by = c("country_code", "reporting_year"),
           all = TRUE)
-  },
-  dl)
 
   # Re-scale headcount_national to be consistent with headcount
-  out$headcount_national <- out$headcount_national / 100
+  out[, headcount_national := headcount_national / 100]
 
   return(out)
 }
+
