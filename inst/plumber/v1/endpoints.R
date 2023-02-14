@@ -207,14 +207,14 @@ function() {
   }
 }
 
-#* Return cache log
-#* @get /api/v1/cache-log
-#* @serializer print list(quote = FALSE)
-function(){
-  if (!cd$is_destroyed()) {
-    readLines(cd$info()$logfile)
-  }
-}
+# #* Return cache log
+# #* @get /api/v1/cache-log
+# #* @serializer print list(quote = FALSE)
+# function(){
+#   if (!cd$is_destroyed()) {
+#     readLines(cd$info()$logfile)
+#   }
+# }
 
 #* Reset current cache directory
 #* @get /api/v1/cache-reset
@@ -228,6 +228,21 @@ function() {
 #* @serializer unboxedJSON
 function() {
     unlink(cd$info()$dir, recursive = TRUE)
+}
+
+#* Get the cached value from a specified key
+#* @get /api/v1/cache-get
+#* @param key: [chr] key corresponding to a specific cached value
+#* @serializer unboxedJSON
+function(key) {
+  cd$get(key)
+}
+
+#* Return all keys from the cache
+#* @get /api/v1/cache-keys
+#* @serializer unboxedJSON
+function(key) {
+  cd$keys()
 }
 
 
