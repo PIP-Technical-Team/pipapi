@@ -1,11 +1,19 @@
 # pipapi (development version)
 
+## New features
+- /citation endpoint now returns additional information: `version_id` and `accessed_date`
+- Limit accepted poverty lines to 3 decimals
+- Add new /version parameter that returns information about a specific data version
+- Povline is now limited to a maximum value of $2700 PPP (daily value)
+
+## Enhancements	
+- [Implement checks for long_format parameter in API filter](https://github.com/PIP-Technical-Team/pipapi/pull/303)
+
 ## Bug fixes
 - Hot fix to handle failing of `create_vector_countries()` when `country="ALL"`
 - Fix cp-download
-
-## Enhancements
-- [Implement checks for long_format parameter in API filter](https://github.com/PIP-Technical-Team/pipapi/pull/303)
+- Fix creation of duplicated responses for some regional aggregates
+- Fix year selection for /pip-grp
 
 # pipapi 1.2.0
 
@@ -59,7 +67,7 @@ interpolated years](https://github.com/PIP-Technical-Team/pipapi/issues/182)
 - Add unit tests for `pip_grp()`
 - Improve filtering of data version directories in `create_versioned_lkups()` 
 - Add country and region name to /pip response 
-- Make sure latest data version is available as a specific version (not just as "latest_relase")
+- Make sure latest data version is available as a specific version (not just as "latest_release")
 - Use `{fs}` functions rather than base R's. 
 
 ## Bug fixes
@@ -70,7 +78,7 @@ interpolated years](https://github.com/PIP-Technical-Team/pipapi/issues/182)
 - Add reporting_level to the output of `ui_cp_poverty_charts()`
 - Make sure `ui_cp_poverty_charts()` only returns non-national observations when a country has no surveys with national coverage
 - Fix a bug in the application of censoring within `pip_grp()`
-- Add a specific empty repsonse for `pip_grp()` to ensure that the response is consistent when no data is available
+- Add a specific empty response for `pip_grp()` to ensure that the response is consistent when no data is available
 - Fix a bug in the selection of most recent value (`year="MRV"`) when `country="ALL"`
 
 # pipapi 0.0.1

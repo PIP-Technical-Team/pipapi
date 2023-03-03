@@ -5,7 +5,7 @@
 library(pipapi)
 
 # API filters -------------------------------------------------------------
-
+## Validate version parameter ----
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
@@ -35,6 +35,7 @@ function(req, res) {
   plumber::forward()
 }
 
+## Filter out invalid parameters ----
 #* Ensure that only valid parameters are being forwarded
 #* @filter validate_query_parameters
 function(req, res) {
@@ -44,6 +45,7 @@ function(req, res) {
   plumber::forward()
 }
 
+## Parse query parameters ----
 #* Parse query parameters of incoming request
 #* @filter parse_parameters
 function(req, res) {
@@ -53,17 +55,19 @@ function(req, res) {
   plumber::forward()
 }
 
+## Validate parameter values ----
 #* Protect against invalid arguments
-#* @filter check_parameters
+#* @filter check_parameters_values
 function(req, res) {
   lkups <- lkups$versions_paths[[req$argsQuery$version]]
   query_controls = lkups$query_controls
+  # browser()
 
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     # STEP 1: Assign required parameters
     # Non-provided parameters are typically assigned the underlying function
     # arguments' default values. There are two exceptions to that however:
-    # 1) The `country` & `year` parameters cannot be NULL in order for to pass
+    # 1) The `country` & `year` parameters cannot be NULL in order to pass
     # the if condition that will decide whether or no the request should be
     # treated asynchronously.
     # 2) The introduction of PPP versioning implies having a dynamic default
@@ -73,7 +77,7 @@ function(req, res) {
                                            pl_lkup = lkups$pl_lkup)
 
     # STEP 2: Validate individual query parameters
-    are_valid <- pipapi:::check_parameters(req, query_controls)
+    are_valid <- pipapi:::check_parameters_values(req, query_controls)
     if (any(are_valid == FALSE)) {
       res$status <- 404
       invalid_params <- names(req$argsQuery)[!are_valid]
@@ -99,21 +103,16 @@ function(req, res) {
         return(out)
       }
     }
-    if (endpoint == "aux") {
-      if(is.null(req$argsQuery$long_format)) req$argsQuery$long_format <- FALSE
-        if (req$argsQuery$long_format && !req$argsQuery$table %in% c('cpi', 'ppp', 'gdp', 'pce', 'pop')) {
-           res$status <- 404
-           out <- list(error = "Only the tables cpi, ppp, gdp, pce and pop are available in long format")
-           return(out)
-        }
-      }
+    # STEP 4: Round poverty line
+    # This is to prevent users to abuse the API by passing too many decimals
+    if (!is.null(req$argsQuery$povline)) {
+      req$argsQuery$povline <- round(req$argsQuery$povline, digits = 3)
+    }
   }
   plumber::forward()
 }
 
-
-# Set response headers ----------------------------------------------------
-
+## Set response headers ----
 #* Set required response headers
 #* @filter response_headers
 function(res) {
@@ -140,7 +139,7 @@ function(res) {
 
 }
 
-# Register switch serializer
+# Register switch serializer ----
 plumber::register_serializer("switch", pipapi:::serializer_switch)
 
 
@@ -154,8 +153,23 @@ function() {
 
 #* Return available data versions
 #* @get /api/v1/versions
+#* @serializer switch
 function(req) {
   out <- pipapi::version_dataframe(lkups$versions)
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
+}
+
+#* Return information about a specific data version
+#* @get /api/v1/version
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer switch
+function(req) {
+  out <- pipapi::version_dataframe(lkups$versions)
+  out <- out[out$version == req$argsQuery$version, ]
+  attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
 
@@ -186,24 +200,51 @@ function(req) {
 #* @get /api/v1/cache-info
 #* @serializer unboxedJSON
 function() {
-  info <- cd$info()
-  info$missing <- NULL
-  c(n_items = cd$size(), info)
+  if (!cd$is_destroyed()) {
+    info <- cd$info()
+    info$missing <- NULL
+    c(n_items = cd$size(), info)
+  }
 }
 
-#* Return cache log
-#* @get /api/v1/cache-log
-#* @serializer print list(quote = FALSE)
-function(){
-  readLines(cd$info()$logfile)
-}
+# #* Return cache log
+# #* @get /api/v1/cache-log
+# #* @serializer print list(quote = FALSE)
+# function(){
+#   if (!cd$is_destroyed()) {
+#     readLines(cd$info()$logfile)
+#   }
+# }
 
-#* Reset current cache
+#* Reset current cache directory
 #* @get /api/v1/cache-reset
 #* @serializer unboxedJSON
 function() {
   pipapi:::clear_cache(cd)
 }
+
+#* Delete current cache directory
+#* @get /api/v1/cache-delete
+#* @serializer unboxedJSON
+function() {
+    unlink(cd$info()$dir, recursive = TRUE)
+}
+
+#* Get the cached value from a specified key
+#* @get /api/v1/cache-get
+#* @param key: [chr] key corresponding to a specific cached value
+#* @serializer unboxedJSON
+function(key) {
+  cd$get(key)
+}
+
+#* Return all keys from the cache
+#* @get /api/v1/cache-keys
+#* @serializer unboxedJSON
+function(key) {
+  cd$keys()
+}
+
 
 #* Check timestamp for the data
 #* @get /api/v1/data-timestamp
@@ -433,6 +474,7 @@ function(req) {
 
 #* Return data for home page country charts
 #* @get /api/v1/hp-countries
+#* @param povline:[dbl] Poverty Line
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
@@ -464,7 +506,7 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  if (params$country == "all" && params$year == "all") {
+  if (params$country == "ALL" && params$year == "ALL") {
     promises::future_promise({
       do.call(pipapi::ui_pc_charts, params)
     }, seed = TRUE)
@@ -491,7 +533,7 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$pop_units <- 1
   params$version <- NULL
-  if (params$country == "all" && params$year == "all") {
+  if (params$country == "ALL" && params$year == "ALL") {
     promises::future_promise({
       do.call(pipapi::ui_pc_charts, params)
     }, seed = TRUE)
@@ -548,7 +590,7 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  if (params$country == "all") {
+  if (params$country == "ALL") {
     promises::future_promise({
       do.call(pipapi::ui_cp_charts, params)
     }, seed = TRUE)
@@ -571,7 +613,7 @@ function(req) {
   params$version <- NULL
   params$format  <- NULL
 
-  if (params$country == "all") {
+  if (params$country == "ALL") {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::ui_cp_download, params)
       attr(tmp, "serialize_format") <- req$argsQuery$format

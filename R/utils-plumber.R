@@ -4,10 +4,10 @@
 #' @param query_controls list: List of valid values
 #' @return logical
 #' @noRd
-check_parameters <- function(req, query_controls) {
+check_parameters_values <- function(req, query_controls) {
   out <- lapply(seq_along(req$argsQuery), function(i) {
     param_name <- names(req$argsQuery)[i]
-    check_parameter(
+    check_parameter_values(
       values = req$argsQuery[[i]],
       valid_values = query_controls[[param_name]][["values"]],
       type = query_controls[[param_name]][["type"]]
@@ -23,7 +23,7 @@ check_parameters <- function(req, query_controls) {
 #' @param type character: Type of value
 #' @return logical
 #' @noRd
-check_parameter <- function(values, valid_values, type) {
+check_parameter_values <- function(values, valid_values, type) {
   if (type == "character") {
     check_param_chr(values, valid_values)
   } else if (type == "numeric") {
@@ -65,7 +65,7 @@ check_param_lgl <- function(value) {
 }
 
 #' Format error
-#' Format error if check_parameters() returns TRUE
+#' Format error if check_parameters_values() returns TRUE
 #' @param params character: Vector with parsed parameters
 #' @param query_controls list: Query controls
 #' @return list
@@ -213,12 +213,17 @@ assign_required_params <- function(req, pl_lkup) {
         req$argsQuery$group_by <- "none"
       }
     }
-    # Turn all country codes to upper case
-    req$args$country <- toupper(req$args$country)
-    req$argsQuery$country <- toupper(req$argsQuery$country)
-    # Turn all year codes to upper case
-    req$args$year <- toupper(req$args$year)
-    req$argsQuery$year <- toupper(req$argsQuery$year)
+  }
+
+  # Turn all country codes to upper case
+  if (!is.null(req$args$country)) {
+  req$args$country <- toupper(req$args$country)
+  req$argsQuery$country <- toupper(req$argsQuery$country)
+  }
+  # Turn all year codes to upper case
+  if (!is.null(req$args$year)) {
+  req$args$year <- toupper(req$args$year)
+  req$argsQuery$year <- toupper(req$argsQuery$year)
   }
 
   # Handle default poverty line
@@ -274,13 +279,13 @@ return_correct_version <- function(version = NULL,
   if (!is.null(release_version) & !is.null(ppp_version) & !is.null(identity)) {
     selected_version <- rpi_version(release_version, ppp_version, identity, versions_available)
   } else if (!is.null(release_version) & !is.null(ppp_version)) {
-  # STEP 2.2 - If identity is NULL, return closest matching version if it exists
+    # STEP 2.2 - If identity is NULL, return closest matching version if it exists
     # This probably would never be executed since identity would never be NULL unless explicitly specified.
     selected_version <- rp_version(release_version, ppp_version, versions_available)
-  # STEP 2.3 - If ppp_version is NULL, return closest matching version if it exists
+    # STEP 2.3 - If ppp_version is NULL, return closest matching version if it exists
   } else if (!is.null(release_version) & !is.null(identity)) {
     selected_version <- ri_version(release_version, identity, versions_available)
-  # STEP 2.4 - If release_version is NULL, return closest matching version if it exists
+    # STEP 2.4 - If release_version is NULL, return closest matching version if it exists
   } else if (!is.null(ppp_version) & !is.null(identity)) {
     selected_version <- pi_version(ppp_version, identity, versions_available)
   }
@@ -330,13 +335,14 @@ extract_identity <- function(version) {
 
 #' Return versions of the data available.
 #'
-#' @param version character vector of data version
+#' @param versions character: All available versions
 #'
 #' @return Dataframe with 4 columns, versions, release_version, ppp_version and identity
 #'
 #' @export
 #'
 version_dataframe <- function(versions) {
+
   ppp_version <- format(extract_ppp_date(versions), '%Y')
   release_version <- format(extract_release_date(versions), "%Y%m%d")
   identity <- extract_identity(versions)
@@ -344,6 +350,7 @@ version_dataframe <- function(versions) {
                     release_version = release_version,
                     ppp_version = ppp_version,
                     identity = identity)
+
   return(out)
 }
 
@@ -375,7 +382,19 @@ pi_version <- function(ppp_version, identity, versions_available) {
 #' @export
 #'
 citation_from_version <- function(version) {
+  current_date <- Sys.Date()
+  current_year <- format(current_date, '%Y')
   release_date <- extract_release_date(version)
   ppp_date <- extract_ppp_date(version)
-  sprintf('Poverty and Inequality Platform, %s, %s PPPs.', release_date, format(ppp_date, '%Y'))
+  citation <- sprintf('World Bank (%s), Poverty and Inequality Platform (version %s) [data set]. pip.worldbank.org. Accessed on %s',
+                      current_year,
+                      version,
+                      current_date)
+
+  return(list(
+    citation = citation,
+    version_id  = version,
+    date_accessed = current_date
+  )
+  )
 }

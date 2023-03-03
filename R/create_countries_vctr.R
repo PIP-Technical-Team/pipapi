@@ -195,22 +195,9 @@ create_countries_vctr <- function(country,
 
 
   ## Countries with  missing data ----
-
-  md <- lkup$aux_files$missing_data
-
-  ### Filter by year  -----
-  md <-
-    if (is.character(year)) {
-      md[country_code %in% ctr_alt_agg]
-    } else {
-      nyear <- year # to avoid conflicts in variable names
-      md[country_code %in% ctr_alt_agg & year %in% nyear]
-    }
-
-  # add to return list
-
-
-
+  md <- filter_md(md = lkup$aux_files$missing_data,
+                  ctr_alt_agg = ctr_alt_agg,
+                  year = year)
 
   # Get countries for which we want to input
   yes_md <- nrow(md) > 0
@@ -281,4 +268,25 @@ create_countries_vctr <- function(country,
   return(lret)
 
 }
+
+#' Helper function to filter missing data table
+#'
+#' @param md data.frame: Table of countries with missing data
+#' @param ctr_alt_agg character: Countries from alternate aggregates
+#' @param year character: year
+#'
+#' @return data.table
+filter_md <- function(md, ctr_alt_agg, year) {
+  # Filter countries
+  md <-  md[md$country_code %in% ctr_alt_agg, ]
+    numeric_years <- suppressWarnings(as.numeric(year))
+    numeric_years <- numeric_years[!is.na(numeric_years)]
+
+  # Filter years
+    if (length(numeric_years) > 0) {
+      md <- md[md$year %in% numeric_years, ]
+    }
+    return(md)
+}
+
 

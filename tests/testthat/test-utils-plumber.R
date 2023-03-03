@@ -98,7 +98,7 @@ test_that("parse_parameter() correctly parses query parameter values", {
 
 })
 
-test_that("check_parameters() works as expected", {
+test_that("check_parameters_values() works as expected", {
 
   # Test that all pip() parameters are accepted
   req <- list(argsQuery = list(
@@ -113,68 +113,68 @@ test_that("check_parameters() works as expected", {
     reporting_level = "all",
     ppp = NULL
   ))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_true(all(tmp))
 
   # Invalid country parameters
   req <- list(argsQuery = list(country = "XYZ"))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
   req <- list(argsQuery = list(country = 1.9))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 
   # Invalid year parameter
   req <- list(argsQuery = list(country = 2050))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 
   # Invalid povline parameters
   req <- list(argsQuery = list(povline = "all"))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
   req <- list(argsQuery = list(povline = lkups$query_controls$povline$values[["max"]] + 1))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 
   # Invalid popshare parameter
   req <- list(argsQuery = list(popshare = 2))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 
   # Invalid fill_gaps parameter
   req <- list(argsQuery = list(fill_gaps = "TRUE"))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 
   # Invalid aggregate parameter
   req <- list(argsQuery = list(aggregate = "FALSE"))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 
   # Invalid group_by parameter
   req <- list(argsQuery = list(group_by = "pcn"))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 
   # Invalid welfare_type parameter
   req <- list(argsQuery = list(welfare_type = "INC"))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 
   # Invalid reporting_level parameter
   req <- list(argsQuery = list(reporting_level = "ALL"))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_true(tmp)
 
   # Invalid ppp parameter
   req <- list(argsQuery = list(ppp = "NULL"))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 
   # Invalid format parameter
   req <- list(argsQuery = list(format = "tiff"))
-  tmp <- check_parameters(req, lkups$query_controls)
+  tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 })
 
@@ -305,14 +305,16 @@ test_that("pi_version works as expected", {
                                                 "20200101_2011_01_01_PROD", "20211212_2011_02_01_PROD"))
 })
 
-
-
-
 test_that("citation_from_version works as expected", {
-  expect_equal(citation_from_version(x),
-               c("Poverty and Inequality Platform, 2022-06-09, 2011 PPPs.",
-                 "Poverty and Inequality Platform, 2022-05-04, 2017 PPPs.", "Poverty and Inequality Platform, 2021-12-12, 2011 PPPs.",
-                 "Poverty and Inequality Platform, 2020-01-01, 2011 PPPs.", "Poverty and Inequality Platform, 2022-06-02, 2017 PPPs.",
-                 "Poverty and Inequality Platform, 2022-05-04, 2017 PPPs.", "Poverty and Inequality Platform, 2021-12-12, 2011 PPPs."
-               ))
+  citation <- citation_from_version(x[1])
+
+  expect_equal(names(citation), c("citation", "version_id", "date_accessed"))
+  current_date <- Sys.Date()
+  expect_equal(citation$citation,
+               paste0("World Bank (",
+                      format(current_date, '%Y'),
+                      "), Poverty and Inequality Platform (version 20220609_2011_02_02_PROD) [data set]. pip.worldbank.org. Accessed on ",
+                      as.character(current_date)))
+  expect_equal(citation$version_id, "20220609_2011_02_02_PROD")
+  expect_equal(as.character(citation$date_accessed), as.character(Sys.Date()))
 })
