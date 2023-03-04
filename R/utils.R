@@ -698,5 +698,14 @@ fillin_list <- function(l,
   # x_name = deparse(substitute(x))
 }
 
+#' select_country
+#' Helper function for subset_lkup()
+#' @return character vector
+#' @keywords internal
+#' @noRd
+get_valid_aux_long_format_tables <- function() {
+  c('cpi', 'ppp', 'gdp', 'pce', 'pop')
+}
+
 
 

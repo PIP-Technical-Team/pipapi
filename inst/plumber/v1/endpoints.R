@@ -32,6 +32,18 @@ function(req, res) {
         return(out)
     } else req$argsQuery$version <- version
 
+  if(pipapi:::extract_endpoint(req$PATH_INFO) == "aux") {
+    req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
+    if(isTRUE(req$argsQuery$long_format ) && !req$argsQuery$table %in% get_valid_aux_long_format_tables()) {
+        res$status <- 404
+        out <- list(
+          error = "Invalid query arguments have been submitted.",
+          details = list(msg = "The selected table is not available. Please select one of the valid values",
+                         valid = get_valid_aux_long_format_tables()))
+        return(out)
+      }
+  }
+
   plumber::forward()
 }
 

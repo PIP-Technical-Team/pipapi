@@ -8,7 +8,7 @@
 #' @export
 #'
 get_aux_table <- function(data_dir, table, long_format = FALSE) {
-  if (long_format && !table %in% c('cpi', 'ppp', 'gdp', 'pce', 'pop')) {
+  if (long_format && !table %in% get_valid_aux_long_format_tables()) {
     # stop('Please select one of cpi, ppp, gdp, pce and pop tables to get data in long format.')
     # This gives a 500 error when using the API. This should be caught at the
     # API filter level and give an informative message to the user.

@@ -6,6 +6,10 @@
 - Add new /version parameter that returns information about a specific data version
 - Povline is now limited to a maximum value of $2700 PPP (daily value)
 
+## Enhancements
+
+- [Implement checks for long_format parameter in API filter](https://github.com/PIP-Technical-Team/pipapi/pull/332)
+
 ## Bug fixes
 - Hot fix to handle failing of `create_vector_countries()` when `country="ALL"`
 - Fix cp-download
