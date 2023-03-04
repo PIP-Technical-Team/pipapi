@@ -698,8 +698,7 @@ fillin_list <- function(l,
   # x_name = deparse(substitute(x))
 }
 
-#' select_country
-#' Helper function for subset_lkup()
+#' Valid aux tables for long format
 #' @return character vector
 #' @keywords internal
 #' @noRd
