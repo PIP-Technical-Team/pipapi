@@ -32,6 +32,18 @@ function(req, res) {
         return(out)
     } else req$argsQuery$version <- version
 
+  if(pipapi:::extract_endpoint(req$PATH_INFO) == "aux") {
+    req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
+    if(isTRUE(req$argsQuery$long_format ) && !req$argsQuery$table %in% get_valid_aux_long_format_tables()) {
+        res$status <- 404
+        out <- list(
+          error = "Invalid query arguments have been submitted.",
+          details = list(msg = "The selected table is not available in long format. Please select one of the valid values",
+                         valid = get_valid_aux_long_format_tables()))
+        return(out)
+      }
+  }
+
   plumber::forward()
 }
 
@@ -95,11 +107,6 @@ function(req, res) {
         invalid_params <- "region"
         out <- pipapi:::format_error("region", query_controls)
         out$error <- "You supplied an invalid value for country. Please use one of the valid values."
-
-        # out <- list(
-        #   error = "Invalid query arguments have been submitted.",
-        #   details = list(msg = paste0("You cannot query individual countries when specifying a predefined sub-group. Please use  country=all")
-        # )
         return(out)
       }
     }
