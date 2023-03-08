@@ -38,7 +38,7 @@ function(req, res) {
         res$status <- 404
         out <- list(
           error = "Invalid query arguments have been submitted.",
-          details = list(msg = "The selected table is not available. Please select one of the valid values",
+          details = list(msg = "The selected table is not available in long format. Please select one of the valid values",
                          valid = get_valid_aux_long_format_tables()))
         return(out)
       }
