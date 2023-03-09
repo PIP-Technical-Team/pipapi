@@ -34,12 +34,12 @@ function(req, res) {
 
   if(pipapi:::extract_endpoint(req$PATH_INFO) == "aux") {
     req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
-    if(isTRUE(req$argsQuery$long_format ) && !req$argsQuery$table %in% get_valid_aux_long_format_tables()) {
+    if (isTRUE(req$argsQuery$long_format ) & !req$argsQuery$table %in% pipapi::get_valid_aux_long_format_tables()) {
         res$status <- 404
         out <- list(
           error = "Invalid query arguments have been submitted.",
           details = list(msg = "The selected table is not available in long format. Please select one of the valid values",
-                         valid = get_valid_aux_long_format_tables()))
+                         valid = pipapi::get_valid_aux_long_format_tables()))
         return(out)
       }
   }

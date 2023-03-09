@@ -698,10 +698,10 @@ fillin_list <- function(l,
   # x_name = deparse(substitute(x))
 }
 
-#' Valid aux tables for long format
+#' Returns all auxiliary tables that support the long_format=TRUE parameter
 #' @return character vector
-#' @keywords internal
-#' @noRd
+#' @export
+
 get_valid_aux_long_format_tables <- function() {
   c('cpi', 'ppp', 'gdp', 'pce', 'pop')
 }
