@@ -11,30 +11,39 @@ library(pipapi)
 function(req, res) {
 
   # STEP 1 - If no arguments are passed, use the latest version
-  if (is.null(req$argsQuery$release_version) & is.null(req$argsQuery$ppp_version) &
-     is.null(req$argsQuery$version) & is.null(req$argsQuery$identity)) {
+  if (is.null(req$argsQuery$release_version) &
+      is.null(req$argsQuery$ppp_version) &
+      is.null(req$argsQuery$version) &
+      is.null(req$argsQuery$identity)) {
       version <- lkups$latest_release
-  # STEP 2 - If partial version information is passed, use selection algorithm
   } else {
+  # STEP 2 - If partial version information is passed, use selection algorithm
     if (is.null(req$argsQuery$identity)) req$argsQuery$identity <- 'PROD'
-    version <- pipapi::return_correct_version(req$argsQuery$version,
-                                              req$argsQuery$release_version,
-                                              req$argsQuery$ppp_version,
-                                              req$argsQuery$identity, lkups$versions)
+    version <-
+      pipapi::return_correct_version(req$argsQuery$version,
+                                     req$argsQuery$release_version,
+                                     req$argsQuery$ppp_version,
+                                     req$argsQuery$identity, lkups$versions)
   }
-    # If the version is not found (404) or it is not present in valid versions vector return an error.
+    # If the version is not found (404) or it is not present in valid versions
+    # vector return an error.
     if (!version %in% lkups$versions) {
         res$status <- 404
         out <- list(
           error = "Invalid query arguments have been submitted.",
-          details = list(msg = "The selected value is not available. Please select one of the valid values",
+          details = list(msg = "The selected value is not available.
+                         Please select one of the valid values",
                          valid = pipapi::version_dataframe(lkups$versions)))
         return(out)
     } else req$argsQuery$version <- version
 
   if (pipapi:::extract_endpoint(req$PATH_INFO) == "aux") {
+    if (is.null(req$argsQuery$long_format)) {
+      req$argsQuery$long_format <- TRUE
+    }
     req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
-    if (isTRUE(req$argsQuery$long_format ) & !req$argsQuery$table %in% pipapi::get_valid_aux_long_format_tables()) {
+    if (isTRUE(req$argsQuery$long_format ) &
+        !req$argsQuery$table %in% pipapi::get_valid_aux_long_format_tables()) {
         # res$status <- 404
         # out <- list(
         #   error = "Invalid query arguments have been submitted.",
