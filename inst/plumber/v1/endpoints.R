@@ -10,14 +10,16 @@ library(pipapi)
 #* @filter validate_version
 function(req, res) {
 
-  # STEP 1 - If no arguments are passed, use the latest version
+  # STEP 1 ----
+  #If no arguments are passed, use the latest version
   if (is.null(req$argsQuery$release_version) &
       is.null(req$argsQuery$ppp_version) &
       is.null(req$argsQuery$version) &
       is.null(req$argsQuery$identity)) {
       version <- lkups$latest_release
   } else {
-  # STEP 2 - If partial version information is passed, use selection algorithm
+  # STEP 2   ----
+  # If partial version information is passed, use selection algorithm
     if (is.null(req$argsQuery$identity)) req$argsQuery$identity <- 'PROD'
     version <-
       pipapi::return_correct_version(req$argsQuery$version,
@@ -35,23 +37,59 @@ function(req, res) {
                          Please select one of the valid values",
                          valid = pipapi::version_dataframe(lkups$versions)))
         return(out)
-    } else req$argsQuery$version <- version
-
-  if (pipapi:::extract_endpoint(req$PATH_INFO) == "aux") {
-    if (is.null(req$argsQuery$long_format)) {
-      req$argsQuery$long_format <- TRUE
+    } else {
+      req$argsQuery$version <- version
     }
-    req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
-    if (isTRUE(req$argsQuery$long_format ) &
-        !req$argsQuery$table %in% pipapi::get_valid_aux_long_format_tables()) {
-        # res$status <- 404
-        # out <- list(
-        #   error = "Invalid query arguments have been submitted.",
-        #   details = list(msg = "The selected table is not available in long format. Please select one of the valid values",
-        #                  valid = pipapi::get_valid_aux_long_format_tables()))
-        # return(out)
+
+  # STEP 3 -----
+  # Long format of tables
+  if (pipapi:::extract_endpoint(req$PATH_INFO) == "aux") {
+    # If no table is defined
+
+    if (is.null(req$argsQuery$table)) {
+      # req$argsQuery$long_format <- "wait"
       req$argsQuery$long_format <- FALSE
+    }
+
+    # If long format is not selected
+    if (is.null(req$argsQuery$long_format)) {
+
+      # Check if long format table is defined check if belongs to list of
+      # tables available in long format
+      if (req$argsQuery$table %in%
+          pipapi::get_valid_aux_long_format_tables()) {
+        req$argsQuery$long_format <- TRUE
+      } else {
+        req$argsQuery$long_format <- FALSE
       }
+
+    } else {
+      # if (req$argsQuery$long_format == "wait") {
+      #   req$argsQuery$long_format <- NULL
+      # } else {
+      #   req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
+      # }
+        req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
+    } # end of if NULL long_format
+
+    # Check if selected table is available as long format
+
+    if (isTRUE(req$argsQuery$long_format) &
+        !is.null(req$argsQuery$table)) {
+
+      if (!req$argsQuery$table %in%
+          pipapi::get_valid_aux_long_format_tables()) {
+
+        res$status <- 404
+        out <- list(
+          error = "Invalid query arguments have been submitted.",
+          details = list(msg = "The selected table is not available in
+                         long format. Please select one of the valid values",
+                         valid = pipapi::get_valid_aux_long_format_tables()))
+        return(out)
+        # req$argsQuery$long_format <- FALSE
+      }
+    }
   }
 
   plumber::forward()

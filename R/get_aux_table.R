@@ -22,13 +22,14 @@ get_aux_table <- function(data_dir, table, long_format = FALSE) {
   out <- fst::read_fst(sprintf(
     "%s/_aux/%s.fst",
     data_dir,
-    sanitized_table
-  ))
-
-  out <- data.table::data.table(out)
+    sanitized_table),
+    as.data.table = TRUE)
 
   if (long_format) {
-    out <- data.table::melt(out, id.vars = c('country_code', 'data_level'), variable.name = "year")
+    out <- data.table::melt(out,
+                            id.vars = c('country_code', 'data_level'),
+                            variable.name = "year")
+    data.table::setorder(out, country_code, year, data_level)
   }
 
   return(out)
