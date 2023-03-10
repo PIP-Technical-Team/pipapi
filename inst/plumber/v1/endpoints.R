@@ -6,19 +6,20 @@ library(pipapi)
 
 # API filters -------------------------------------------------------------
 ## Validate version parameter ----
+
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
 
-  # STEP 1 ----
-  #If no arguments are passed, use the latest version
+  ### STEP 1 ----
+  # If no arguments are passed, use the latest version
   if (is.null(req$argsQuery$release_version) &
       is.null(req$argsQuery$ppp_version) &
       is.null(req$argsQuery$version) &
       is.null(req$argsQuery$identity)) {
       version <- lkups$latest_release
   } else {
-  # STEP 2   ----
+  ### STEP 2 ----
   # If partial version information is passed, use selection algorithm
     if (is.null(req$argsQuery$identity)) req$argsQuery$identity <- 'PROD'
     version <-
@@ -27,7 +28,8 @@ function(req, res) {
                                      req$argsQuery$ppp_version,
                                      req$argsQuery$identity, lkups$versions)
   }
-    # If the version is not found (404) or it is not present in valid versions
+  ### STEP 3 ----
+  # If the version is still not found (404) or it is not present in valid versions
     # vector return an error.
     if (!version %in% lkups$versions) {
         res$status <- 404
@@ -40,57 +42,6 @@ function(req, res) {
     } else {
       req$argsQuery$version <- version
     }
-
-  # STEP 3 -----
-  # Long format of tables
-  if (pipapi:::extract_endpoint(req$PATH_INFO) == "aux") {
-    # If no table is defined
-
-    if (is.null(req$argsQuery$table)) {
-      # req$argsQuery$long_format <- "wait"
-      req$argsQuery$long_format <- FALSE
-    }
-
-    # If long format is not selected
-    if (is.null(req$argsQuery$long_format)) {
-
-      # Check if long format table is defined check if belongs to list of
-      # tables available in long format
-      if (req$argsQuery$table %in%
-          pipapi::get_valid_aux_long_format_tables()) {
-        req$argsQuery$long_format <- TRUE
-      } else {
-        req$argsQuery$long_format <- FALSE
-      }
-
-    } else {
-      # if (req$argsQuery$long_format == "wait") {
-      #   req$argsQuery$long_format <- NULL
-      # } else {
-      #   req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
-      # }
-        req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
-    } # end of if NULL long_format
-
-    # Check if selected table is available as long format
-
-    if (isTRUE(req$argsQuery$long_format) &
-        !is.null(req$argsQuery$table)) {
-
-      if (!req$argsQuery$table %in%
-          pipapi::get_valid_aux_long_format_tables()) {
-
-        res$status <- 404
-        out <- list(
-          error = "Invalid query arguments have been submitted.",
-          details = list(msg = "The selected table is not available in
-                         long format. Please select one of the valid values",
-                         valid = pipapi::get_valid_aux_long_format_tables()))
-        return(out)
-        # req$argsQuery$long_format <- FALSE
-      }
-    }
-  }
 
   plumber::forward()
 }
@@ -124,7 +75,8 @@ function(req, res) {
   # browser()
 
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
-    # STEP 1: Assign required parameters
+    #### STEP 1 ----
+    # Assign required parameters
     # Non-provided parameters are typically assigned the underlying function
     # arguments' default values. There are two exceptions to that however:
     # 1) The `country` & `year` parameters cannot be NULL in order to pass
@@ -136,7 +88,8 @@ function(req, res) {
     req <- pipapi:::assign_required_params(req,
                                            pl_lkup = lkups$pl_lkup)
 
-    # STEP 2: Validate individual query parameters
+    ### STEP 2 ----
+    # Validate individual query parameters
     are_valid <- pipapi:::check_parameters_values(req, query_controls)
     if (any(are_valid == FALSE)) {
       res$status <- 404
@@ -144,8 +97,9 @@ function(req, res) {
       out <- pipapi:::format_error(invalid_params, query_controls)
       return(out)
     }
-    # STEP 3: Check for invalid combinations of query parameter values
-    # Break if bad request
+    ### STEP 3 ----
+    #Check for invalid combinations of query parameter values
+    # Break if bad combination of country/region and grouping
     endpoint <- pipapi:::extract_endpoint(req$PATH_INFO)
     if (endpoint == "pip-grp") {
       group_condition   <- req$argsQuery$group_by != "none"
@@ -158,7 +112,27 @@ function(req, res) {
         return(out)
       }
     }
-    # STEP 4: Round poverty line
+
+    # Break if bad combination of table and long_format
+    if (endpoint == "aux") {
+      if (isTRUE(req$argsQuery$long_format) &
+          !is.null(req$argsQuery$table)) {
+
+        if (!req$argsQuery$table %in% pipapi::get_valid_aux_long_format_tables()) {
+
+          res$status <- 404
+          out <- list(
+            error = "Invalid query arguments have been submitted.",
+            details = list(msg = "The selected table is not available in
+                         long format. Please select one of the valid values",
+                         valid = pipapi::get_valid_aux_long_format_tables()))
+          return(out)
+        }
+      }
+    }
+
+    ### STEP 4 ----
+    # Round poverty line
     # This is to prevent users to abuse the API by passing too many decimals
     if (!is.null(req$argsQuery$povline)) {
       req$argsQuery$povline <- round(req$argsQuery$povline, digits = 3)
