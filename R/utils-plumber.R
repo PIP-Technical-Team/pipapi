@@ -241,6 +241,32 @@ assign_required_params <- function(req, pl_lkup) {
       req$argsQuery$povline <- pl_lkup$poverty_line[pl_lkup$is_default == TRUE]
     }
   }
+
+  # Handle long_format argument for /aux endpoint
+  # Behavior: long_format argument will be forced to FALSE is the selected
+  # table is not suppported for long format
+  # Long format of tables
+  if (endpoint == "aux") {
+    # If no table is defined
+    if (is.null(req$argsQuery$table)) {
+      req$argsQuery$long_format <- FALSE
+    }
+
+    # If long format is not selected
+    if (is.null(req$argsQuery$long_format)) {
+
+      # Check if belongs to list of tables available in long format
+      if (req$argsQuery$table %in%
+          pipapi::get_valid_aux_long_format_tables()) {
+        req$argsQuery$long_format <- TRUE
+      } else {
+        req$argsQuery$long_format <- FALSE
+      }
+      # end of if NULL long_format
+    } else {
+      req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
+    }
+  }
   return(req)
 }
 
