@@ -5,6 +5,9 @@
 - Limit accepted poverty lines to 3 decimals
 - Add new /version parameter that returns information about a specific data version
 - Povline is now limited to a maximum value of $2700 PPP (daily value)
+- `/aux` endpoints now return tables in long_format by default
+- A new `/ui_aux` endpoint has been created with the opposite behavior: tables are
+returned in wide format by default.
 
 ## Enhancements
 
