@@ -11,7 +11,7 @@ library(pipapi)
 #* @filter validate_version
 function(req, res) {
 
-  ### STEP 1 ----
+  ### STEP 1:
   # If no arguments are passed, use the latest version
   if (is.null(req$argsQuery$release_version) &
       is.null(req$argsQuery$ppp_version) &
@@ -19,7 +19,7 @@ function(req, res) {
       is.null(req$argsQuery$identity)) {
       version <- lkups$latest_release
   } else {
-  ### STEP 2 ----
+  ### STEP 2:
   # If partial version information is passed, use selection algorithm
     if (is.null(req$argsQuery$identity)) req$argsQuery$identity <- 'PROD'
     version <-
@@ -28,7 +28,7 @@ function(req, res) {
                                      req$argsQuery$ppp_version,
                                      req$argsQuery$identity, lkups$versions)
   }
-  ### STEP 3 ----
+  ### STEP 3:
   # If the version is still not found (404) or it is not present in valid versions
     # vector return an error.
     if (!version %in% lkups$versions) {
@@ -75,7 +75,7 @@ function(req, res) {
   # browser()
 
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
-    #### STEP 1 ----
+    #### STEP 1
     # Assign required parameters
     # Non-provided parameters are typically assigned the underlying function
     # arguments' default values. There are two exceptions to that however:
@@ -88,7 +88,7 @@ function(req, res) {
     req <- pipapi:::assign_required_params(req,
                                            pl_lkup = lkups$pl_lkup)
 
-    ### STEP 2 ----
+    ### STEP 2
     # Validate individual query parameters
     are_valid <- pipapi:::check_parameters_values(req, query_controls)
     if (any(are_valid == FALSE)) {
@@ -97,7 +97,7 @@ function(req, res) {
       out <- pipapi:::format_error(invalid_params, query_controls)
       return(out)
     }
-    ### STEP 3 ----
+    ### STEP 3
     #Check for invalid combinations of query parameter values
     # Break if bad combination of country/region and grouping
     endpoint <- pipapi:::extract_endpoint(req$PATH_INFO)
@@ -130,7 +130,7 @@ function(req, res) {
       }
     }
 
-    ### STEP 4 ----
+    ### STEP 4
     # Round poverty line
     # This is to prevent users to abuse the API by passing too many decimals
     if (!is.null(req$argsQuery$povline)) {
@@ -167,165 +167,12 @@ function(res) {
 
 }
 
-# Register switch serializer ----
+## Register switch serializer ----
 plumber::register_serializer("switch", pipapi:::serializer_switch)
 
 
 # Endpoints definition ----------------------------------------------------
-
-#* Check status of API
-#* @get /api/v1/health-check
-function() {
-  "PIP API is running"
-}
-
-#* Return available data versions
-#* @get /api/v1/versions
-#* @serializer switch
-function(req) {
-  out <- pipapi::version_dataframe(lkups$versions)
-  attr(out, "serialize_format") <- req$argsQuery$format
-  out
-}
-
-#* Return information about a specific data version
-#* @get /api/v1/version
-#* @param release_version:[chr] date when the data was published in YYYYMMDD format
-#* @param ppp_version:[chr] ppp year to be used
-#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer switch
-function(req) {
-  out <- pipapi::version_dataframe(lkups$versions)
-  out <- out[out$version == req$argsQuery$version, ]
-  attr(out, "serialize_format") <- req$argsQuery$format
-  out
-}
-
-# #* Return system info
-# #* @get /api/v1/system-info
-# function(){
-#   Sys.info()
-# }
-
-# #* Return working directory
-# #* @get /api/v1/get-root
-# function() {
-#   getwd()
-# }
-
-# #* Return available objects
-# #* @get /api/v1/get-available-objects
-# function() {
-#   list(
-#     search_list = search(),
-#     global    = ls(pos = 1),
-#     parent    = ls(pos = 2),
-#     gd_parent = ls(pos = 3)
-#   )
-# }
-
-#* Return cache info
-#* @get /api/v1/cache-info
-#* @serializer unboxedJSON
-function() {
-  if (!cd$is_destroyed()) {
-    info <- cd$info()
-    info$missing <- NULL
-    c(n_items = cd$size(), info)
-  }
-}
-
-# #* Return cache log
-# #* @get /api/v1/cache-log
-# #* @serializer print list(quote = FALSE)
-# function(){
-#   if (!cd$is_destroyed()) {
-#     readLines(cd$info()$logfile)
-#   }
-# }
-
-#* Reset current cache directory
-#* @get /api/v1/cache-reset
-#* @serializer unboxedJSON
-function() {
-  pipapi:::clear_cache(cd)
-}
-
-#* Delete current cache directory
-#* @get /api/v1/cache-delete
-#* @serializer unboxedJSON
-function() {
-    unlink(cd$info()$dir, recursive = TRUE)
-}
-
-#* Get the cached value from a specified key
-#* @get /api/v1/cache-get
-#* @param key: [chr] key corresponding to a specific cached value
-#* @serializer unboxedJSON
-function(key) {
-  cd$get(key)
-}
-
-#* Return all keys from the cache
-#* @get /api/v1/cache-keys
-#* @serializer unboxedJSON
-function(key) {
-  cd$keys()
-}
-
-
-#* Check timestamp for the data
-#* @get /api/v1/data-timestamp
-#* @param release_version:[chr] date when the data was published in YYYYMMDD format
-#* @param ppp_version:[chr] ppp year to be used
-#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer unboxedJSON
-function(req) {
-  dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
-  readLines(sprintf("%s/data_update_timestamp.txt", dir))
-}
-
-#* Get information on directory contents
-#* @get /api/v1/dir-info
-#* @param release_version:[chr] date when the data was published in YYYYMMDD format
-#* @param ppp_version:[chr] ppp year to be used
-#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-function(req) {
-  dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
-  x <- fs::dir_info(dir, recurse = TRUE, type = "file")
-  x$file <- sub(".*/", "", x$path)
-  x <- x[c("path", "file", "size", "birth_time", "modification_time", "change_time", "access_time")]
-  list(
-    aux_files = x[grepl("aux", x$path),],
-    estimation_files = x[grepl("estimation", x$path),],
-    survey_data = x[grepl("survey_data", x$path),]
-  )
-}
-
-
-
-
-#* Check Github hash for the PIP packages
-#* @get /api/v1/gh-hash
-#* @param release_version:[chr] date when the data was published in YYYYMMDD format
-#* @param ppp_version:[chr] ppp year to be used
-#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer unboxedJSON
-function(req) {
-  list(pipapi = packageDescription("pipapi")$GithubSHA1,
-       wbpip = packageDescription("wbpip")$GithubSHA1)
-}
-
-#* Return number of workers
-#* @get /api/v1/n-workers
-#* @serializer unboxedJSON
-function() {
-  list(
-    n_cores = unname(future::availableCores()),
-    n_workers = future::nbrOfWorkers(),
-    n_free_workers = future::nbrOfFreeWorkers()
-  )
-}
+## Endpoints: Core endpoints ----
 
 #* Return PIP information
 #* @get /api/v1/pip-info
@@ -449,7 +296,164 @@ function(req) {
   attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
-# UI endpoints: Homepage --------------------------------------------------
+
+#* Return available data versions
+#* @get /api/v1/versions
+#* @serializer switch
+function(req) {
+  out <- pipapi::version_dataframe(lkups$versions)
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
+}
+
+#* Return information about a specific data version
+#* @get /api/v1/version
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer switch
+function(req) {
+  out <- pipapi::version_dataframe(lkups$versions)
+  out <- out[out$version == req$argsQuery$version, ]
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
+}
+
+## Endpoints: Cache endpoints ----
+
+#* Reset current cache directory
+#* @get /api/v1/cache-reset
+#* @serializer unboxedJSON
+function() {
+  pipapi:::clear_cache(cd)
+}
+
+#* Delete current cache directory
+#* @get /api/v1/cache-delete
+#* @serializer unboxedJSON
+function() {
+  unlink(cd$info()$dir, recursive = TRUE)
+}
+
+#* Get the cached value from a specified key
+#* @get /api/v1/cache-get
+#* @param key: [chr] key corresponding to a specific cached value
+#* @serializer unboxedJSON
+function(key) {
+  cd$get(key)
+}
+
+#* Return all keys from the cache
+#* @get /api/v1/cache-keys
+#* @serializer unboxedJSON
+function(key) {
+  cd$keys()
+}
+
+#* Return cache info
+#* @get /api/v1/cache-info
+#* @serializer unboxedJSON
+function() {
+  if (!cd$is_destroyed()) {
+    info <- cd$info()
+    info$missing <- NULL
+    c(n_items = cd$size(), info)
+  }
+}
+
+# #* Return cache log
+# #* @get /api/v1/cache-log
+# #* @serializer print list(quote = FALSE)
+# function(){
+#   if (!cd$is_destroyed()) {
+#     readLines(cd$info()$logfile)
+#   }
+# }
+
+## Endpoints: Miscellaneous ----
+
+#* Check status of API
+#* @get /api/v1/health-check
+function() {
+  "PIP API is running"
+}
+
+#* Check timestamp for the data
+#* @get /api/v1/data-timestamp
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer unboxedJSON
+function(req) {
+  dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
+  readLines(sprintf("%s/data_update_timestamp.txt", dir))
+}
+
+#* Get information on directory contents
+#* @get /api/v1/dir-info
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+function(req) {
+  dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
+  x <- fs::dir_info(dir, recurse = TRUE, type = "file")
+  x$file <- sub(".*/", "", x$path)
+  x <- x[c("path", "file", "size", "birth_time", "modification_time", "change_time", "access_time")]
+  list(
+    aux_files = x[grepl("aux", x$path),],
+    estimation_files = x[grepl("estimation", x$path),],
+    survey_data = x[grepl("survey_data", x$path),]
+  )
+}
+
+#* Check Github hash for the PIP packages
+#* @get /api/v1/gh-hash
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer unboxedJSON
+function(req) {
+  list(pipapi = packageDescription("pipapi")$GithubSHA1,
+       wbpip = packageDescription("wbpip")$GithubSHA1)
+}
+
+#* Return number of workers
+#* @get /api/v1/n-workers
+#* @serializer unboxedJSON
+function() {
+  list(
+    n_cores = unname(future::availableCores()),
+    n_workers = future::nbrOfWorkers(),
+    n_free_workers = future::nbrOfFreeWorkers()
+  )
+}
+
+# #* Return system info
+# #* @get /api/v1/system-info
+# function(){
+#   Sys.info()
+# }
+
+# #* Return working directory
+# #* @get /api/v1/get-root
+# function() {
+#   getwd()
+# }
+
+# #* Return available objects
+# #* @get /api/v1/get-available-objects
+# function() {
+#   list(
+#     search_list = search(),
+#     global    = ls(pos = 1),
+#     parent    = ls(pos = 2),
+#     gd_parent = ls(pos = 3)
+#   )
+# }
+
+# UI endpoints ----
+
+## UI endpoints: Homepage --------------------------------------------------
 
 #* Return poverty lines for home page display
 #* @get /api/v1/poverty-lines
@@ -515,7 +519,7 @@ function(req) {
 }
 
 
-# UI Endpoints: Poverty calculator ----------------------------------------
+## UI Endpoints: Poverty calculator ----------------------------------------
 
 #* Return data for Poverty Calculator main chart
 #* @get /api/v1/pc-charts
@@ -588,7 +592,7 @@ function(req) {
   }, seed = TRUE)
 }
 
-# UI Endpoints: Country Profiles ----------------------------------------
+## UI Endpoints: Country Profiles ----------------------------------------
 
 #* Return Country Profile - Key Indicators
 #* @get /api/v1/cp-key-indicators
@@ -654,9 +658,34 @@ function(req) {
   out
 }
 
-# UI Endpoints: Survey metadata  ------------------------------------------
+## UI endpoints: Miscellaneous ----
 
-#* Return data for the Data Sources page
+#* Return auxiliary data table
+#* @get /api/v1/ui_aux
+#* @param table:[chr] Auxiliary data table to be returned
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @serializer switch
+function(req) {
+  params <- req$argsQuery
+  if (is.null(req$args$table)) {
+    # return all available tables if none selected
+    list_of_tables <- lkups$versions_paths[[params$version]]$aux_tables
+    out <- data.frame(tables = list_of_tables)
+  } else {
+    # Return only requested table
+    params$data_dir <- lkups$versions_paths[[params$version]]$data_root
+    params$format <- NULL
+    params$version <- NULL
+    out <- do.call(pipapi::get_aux_table_ui, params)
+  }
+  attr(out, "serialize_format") <- req$argsQuery$format
+  out
+}
+
+#* Return metadata for the Data Sources page
 #* @get /api/v1/survey-metadata
 #* @param country:[chr] Country ISO3 code
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
