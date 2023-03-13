@@ -34,3 +34,20 @@ get_aux_table <- function(data_dir, table, long_format = FALSE) {
 
   return(out)
 }
+
+#' Return specified auxiliary data in wide format
+#' Helper function to the UI
+#' @param data_dir character: Data directory
+#' @param table character: Name of auxiliary table
+#'
+#' @return data.frame
+#' @export
+#'
+get_aux_table_ui <- function(data_dir, table) {
+
+  out <- get_aux_table(data_dir    = data_dir,
+                       table       = table,
+                       long_format = FALSE)
+
+  return(out)
+}
