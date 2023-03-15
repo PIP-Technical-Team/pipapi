@@ -72,8 +72,8 @@ pip <- function(country         = "ALL",
     year <- toupper(year)
   }
 
-  # If svy_lkup and ref_lkup are not part of lkup throw an error.
-  if (!all(c('svy_lkup', 'ref_lkup') %in% names(lkup)))
+  # If svy_lkup is not part of lkup throw an error.
+  if (!all(c('svy_lkup') %in% names(lkup)))
     stop("You are probably passing more than one dataset as lkup argument.
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
 

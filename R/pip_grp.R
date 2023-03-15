@@ -32,6 +32,11 @@ pip_grp <- function(country         = "ALL",
   country <- toupper(country)
   year <- toupper(year)
 
+  # If ref_lkup is not part of lkup throw an error.
+  if (!all(c('ref_lkup') %in% names(lkup)))
+    stop("You are probably passing more than one dataset as lkup argument.
+  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
+
 
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
