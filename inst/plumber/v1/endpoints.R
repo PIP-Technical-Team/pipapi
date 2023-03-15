@@ -627,6 +627,18 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  req_lkup_elements <- c("svy_lkup",
+                         "dist_stats",
+                         "query_controls",
+                         "pop_region",
+                         "censored",
+                         "pip_cols",
+                         "valid_years",
+                         "aux_files",
+                         "pl_lkup",
+                         "cp_lkups"
+  )
+  params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$version <- NULL
   do.call(pipapi::ui_cp_key_indicators, params)
 }
