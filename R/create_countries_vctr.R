@@ -62,26 +62,23 @@ create_countries_vctr <- function(country,
   off_gt <-  c("region", "world")
 
   # Official valid region codes
-  off_reg <- aggs[grouping_type %in% off_gt,
-                  region_code]
+  off_reg <- aggs[["region_code"]][aggs[["grouping_type"]] %in% off_gt]
 
   #  Aggregates selected by user
   if ("ALL" %in% country) {
 
-    user_aggs <- aggs[, unique(region_code)]
+    user_aggs <- unique(aggs[["region_code"]])
 
   } else {
 
-    user_aggs <- aggs[region_code %in% country,
-                      unique(region_code)]
+    user_aggs <- unique(aggs[["region_code"]][aggs[["region_code"]] %in% country])
   }
 
   ## all and WLD to off_reg
   off_reg <- unique(c("ALL", off_reg))
 
   # Alternative  aggregates code
-  alt_agg <- aggs[!grouping_type %in% off_gt,
-                  region_code]
+  alt_agg <- aggs[["region_code"]][!aggs[["grouping_type"]] %in% off_gt]
 
   # All aggregates available including WLD and all
   all_agg <- c(off_reg, alt_agg)
@@ -98,12 +95,10 @@ create_countries_vctr <- function(country,
   ctrs      <- aux_files$countries
 
   # Countries selected by user
-  user_ctrs <- ctrs[country_code  %in% country,
-                    unique(country_code)]
+  user_ctrs <- unique(ctrs[["country_code"]][ctrs[["country_code"]]  %in% country])
 
   ### Get grouping type -------
-  user_gt <- aggs[region_code %in% user_aggs,
-                        unique(grouping_type)]
+  user_gt <- unique(aggs[["grouping_type"]][aggs[["region_code"]] %in% user_aggs])
 
 
   if (!is_empty(user_gt) && all(user_gt %in% off_gt)) {
@@ -162,8 +157,7 @@ create_countries_vctr <- function(country,
 
   ## ctr_off_reg Survey countries in official regions --------
   if (!is_empty(user_off_reg)) {
-    ctr_off_reg <- ctrs[region_code %in% user_off_reg,
-                        country_code]
+    ctr_off_reg <- ctrs[["country_code"]][ctrs[["region_code"]] %in% user_off_reg]
   } else {
     ctr_off_reg <- character()
   }
@@ -205,8 +199,8 @@ create_countries_vctr <- function(country,
   # Get countries for which we want to input
   yes_md <- nrow(md) > 0
   if (yes_md) {
-    md_off_reg <- md[, unique(region_code)]
-    md_year    <- md[, unique(year)]
+    md_off_reg <- unique(md[["region_code"]])
+    md_year    <- unique(md[["year"]])
 
     if (off_alt_agg == "both") {
       # filter md_off_reg and md_year based on what have already been
@@ -229,8 +223,8 @@ create_countries_vctr <- function(country,
                        on = c("region_code", "reporting_year")]
 
       # filter region code and year to calculate
-      md_off_reg <- grp_to_compute[, unique(region_code)]
-      md_year    <- grp_to_compute[, unique(year)]
+      md_off_reg <- unique(grp_to_compute[["region_code"]])
+      md_year    <- unique(grp_to_compute[["year"]])
 
       if (length(md_off_reg) > 0) {
         # If length of `md_off_reg` is still positive, we need to append the
@@ -248,7 +242,7 @@ create_countries_vctr <- function(country,
       grp_use <- "not"
     }
 
-    md_ctrs <- md[, unique(country_code)] # missing data countries
+    md_ctrs <- unique(md[["country_code"]]) # missing data countries
     # fg_ctrs <- ctr_alt_agg[!ctr_alt_agg %in% md_ctrs] # survey countries
 
   } else { # if yes_md == FALSE
@@ -281,13 +275,13 @@ create_countries_vctr <- function(country,
 #' @return data.table
 filter_md <- function(md, ctr_alt_agg, year) {
   # Filter countries
-  md <-  md[md$country_code %in% ctr_alt_agg, ]
+  md <-  md[md[["country_code"]] %in% ctr_alt_agg, ]
     numeric_years <- suppressWarnings(as.numeric(year))
     numeric_years <- numeric_years[!is.na(numeric_years)]
 
   # Filter years
     if (length(numeric_years) > 0) {
-      md <- md[md$year %in% numeric_years, ]
+      md <- md[md[["year"]] %in% numeric_years, ]
     }
     return(md)
 }
