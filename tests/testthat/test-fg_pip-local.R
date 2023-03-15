@@ -15,7 +15,6 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
     welfare_type = "all",
     reporting_level = "all",
     ppp = NULL,
-    debug = FALSE,
     lkup = lkups
   )
 
@@ -29,7 +28,6 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
     welfare_type = "all",
     reporting_level = "national",
     ppp = NULL,
-    debug = FALSE,
     lkup = lkups
   )
 
@@ -46,7 +44,6 @@ test_that("Imputation is working for interpolated mixed distribution", {
     welfare_type = "all",
     reporting_level = "all",
     ppp = NULL,
-    debug = FALSE,
     lkup = lkups
   )
 
@@ -60,7 +57,6 @@ test_that("Imputation is working for interpolated mixed distribution", {
     welfare_type = "all",
     reporting_level = "national",
     ppp = NULL,
-    debug = FALSE,
     lkup = lkups
   )
 
@@ -76,7 +72,6 @@ test_that("Imputation is working for interpolated aggregate distribution", {
     welfare_type = "all",
     reporting_level = "all",
     ppp = NULL,
-    debug = FALSE,
     lkup = lkups
   )
 
@@ -90,7 +85,6 @@ test_that("Imputation is working for interpolated aggregate distribution", {
     welfare_type = "all",
     reporting_level = "national",
     ppp = NULL,
-    debug = FALSE,
     lkup = lkups
   )
 

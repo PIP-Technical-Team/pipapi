@@ -15,8 +15,6 @@
 #' @param reporting_level character: Geographical reporting level
 #' @param ppp numeric: Custom Purchase Power Parity value
 #' @param lkup list: A list of lkup tables
-#' @param debug logical: If TRUE poverty calculations from `wbpip` will run in
-#'   debug mode
 #' @param censor logical: Triggers censoring of country/year statistics
 #'
 #' @return data.table
@@ -62,7 +60,6 @@ pip <- function(country         = "ALL",
                 reporting_level = c("all", "national", "rural", "urban"),
                 ppp             = NULL,
                 lkup,
-                debug           = FALSE,
                 censor          = TRUE) {
 
   welfare_type    <- match.arg(welfare_type)
@@ -108,8 +105,7 @@ pip <- function(country         = "ALL",
       welfare_type    = welfare_type,
       reporting_level = reporting_level,
       ppp             = ppp,
-      lkup            = lkup,
-      debug           = debug
+      lkup            = lkup
     )
   } else {
     # Compute survey year stats
@@ -121,8 +117,7 @@ pip <- function(country         = "ALL",
       welfare_type    = welfare_type,
       reporting_level = reporting_level,
       ppp             = ppp,
-      lkup            = lkup,
-      debug           = debug
+      lkup            = lkup
     )
   }
 

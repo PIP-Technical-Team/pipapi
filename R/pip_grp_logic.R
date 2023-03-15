@@ -14,7 +14,6 @@ pip_grp_logic <- function(country         = "ALL",
                           welfare_type    = c("all", "consumption", "income"),
                           reporting_level = c("all", "national"),
                           lkup,
-                          debug           = FALSE,
                           censor          = TRUE) {
   #   ________________________________________________________________________
   #   Set up                                                      ####
@@ -35,7 +34,6 @@ pip_grp_logic <- function(country         = "ALL",
   #   welfare_type    =  welfare_type,
   #   reporting_level =  reporting_level,
   #   lkup            =  lkup,
-  #   debug           =  debug,
   #   censor          =  censor
   # )
 
@@ -65,7 +63,6 @@ pip_grp_logic <- function(country         = "ALL",
             welfare_type    =  welfare_type,
             reporting_level =  reporting_level,
             lkup            =  lkup,
-            debug           =  debug,
             censor          =  censor)
     return(res)
 
@@ -79,7 +76,6 @@ pip_grp_logic <- function(country         = "ALL",
               welfare_type    =  welfare_type,
               reporting_level =  reporting_level,
               lkup            =  lkup,
-              debug           =  debug,
               censor          =  censor)
   } else {
     off_ret <- NULL
@@ -105,7 +101,6 @@ pip_grp_logic <- function(country         = "ALL",
               welfare_type    =  welfare_type,
               reporting_level =  reporting_level,
               lkup            =  lkup,
-              debug           =  debug,
               censor          =  censor)
 
     if (lcv$grp_use == "append") {
@@ -154,8 +149,7 @@ pip_grp_logic <- function(country         = "ALL",
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
     lkup            = lkup,
-    ppp             = NULL,
-    debug           = debug
+    ppp             = NULL
   )
 
 

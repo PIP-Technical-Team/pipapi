@@ -22,7 +22,6 @@ pip_grp <- function(country         = "ALL",
                     welfare_type    = c("all", "consumption", "income"),
                     reporting_level = c("all", "national"),
                     lkup,
-                    debug           = FALSE,
                     censor          = TRUE) {
 
   welfare_type    <- match.arg(welfare_type)
@@ -53,8 +52,7 @@ pip_grp <- function(country         = "ALL",
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
     lkup            = lkup,
-    ppp             = NULL,
-    debug           = debug
+    ppp             = NULL
   )
 
   # return empty dataframe if no metadata is found

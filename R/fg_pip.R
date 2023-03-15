@@ -12,8 +12,7 @@ fg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   lkup,
-                   debug) {
+                   lkup) {
 
   valid_regions <- lkup$query_controls$region$values
 
@@ -69,7 +68,6 @@ fg_pip <- function(country,
       tmp_metadata <- metadata[metadata$interpolation_id == ctry_years[["interpolation_id"]][ctry_year_id], ]
 
       # Compute estimated statistics using the fill_gap method
-      if (debug) debugonce(wbpip:::prod_fg_compute_pip_stats)
       tmp_stats <- wbpip:::prod_fg_compute_pip_stats(
         request_year           = ctry_years[["reporting_year"]][ctry_year_id],
         data                   = svy_data,

@@ -12,8 +12,7 @@ rg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   lkup,
-                   debug) {
+                   lkup) {
 
   metadata <- subset_lkup(
     country = country,
@@ -44,8 +43,6 @@ rg_pip <- function(country,
       reporting_level = tmp_metadata$reporting_level,
       path = tmp_metadata$path
     )
-
-    if (debug) debugonce(wbpip:::prod_compute_pip_stats)
 
     tmp_stats <- wbpip:::prod_compute_pip_stats(
       welfare = svy_data$df0$welfare,

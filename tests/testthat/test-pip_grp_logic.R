@@ -24,7 +24,6 @@ povline          =  2.25,
 group_by         =  c("wb"),
 welfare_type     =  c("all"),
 reporting_level  =  c("all"),
-debug            =  FALSE,
 censor           =  TRUE,
 lkup             =  lkup
 )

@@ -26,8 +26,7 @@ test_that("Reporting level filtering is working", {
                     reporting_level = x,
                     fill_gaps       = FALSE,
                     ppp             = 10,
-                    lkup            = lkup,
-                    debug           = FALSE
+                    lkup            = lkup
                   )
                 })
   names(tmp) <- reporting_levels

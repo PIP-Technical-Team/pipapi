@@ -12,8 +12,7 @@ rg_pip(
   welfare_type,
   reporting_level,
   ppp,
-  lkup,
-  debug
+  lkup
 )
 }
 \arguments{
@@ -33,9 +32,6 @@ poverty line}
 \item{ppp}{numeric: Custom Purchase Power Parity value}
 
 \item{lkup}{list: A list of lkup tables}
-
-\item{debug}{logical: If TRUE poverty calculations from \code{wbpip} will run in
-debug mode}
 }
 \value{
 data.frame
