@@ -93,7 +93,8 @@ pip <- function(country         = "ALL",
     create_countries_vctr(
       country         =  country,
       year            =  year,
-      lkup            =  lkup
+      valid_years     =  lkup$valid_years,
+      aux_files       =  lkup$aux_files
     )
 
 

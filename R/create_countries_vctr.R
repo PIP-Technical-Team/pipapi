@@ -5,12 +5,15 @@
 #'
 #'
 #' @inheritParams pip
+#' @param valid_years list: Valid years information provided through lkup object
+#' @param aux_files list: List of auxiliary tables provided through lkup object
 #'
 #' @return a list of vectors with countries and regions code to be used in
 #'   `pip()` and `pip_grp()`
 create_countries_vctr <- function(country,
                                   year,
-                                  lkup) {
+                                  valid_years,
+                                  aux_files) {
 
   # init Return list ------------
   lret <-
@@ -41,7 +44,7 @@ create_countries_vctr <- function(country,
   # modify if year is "ALL" --------------
 
   if (any(c("ALL", "MRV") %in% toupper(year))) {
-    year <- lkup$valid_years$valid_survey_years
+    year <- valid_years$valid_survey_years
   }
 
   #   ___________________________________________________________________
@@ -50,7 +53,7 @@ create_countries_vctr <- function(country,
   ## Split between regions and countries ----------
 
   ### Regions available ----------
-  aggs      <- lkup$aux_files$regions  ## all aggregates
+  aggs      <- aux_files$regions  ## all aggregates
 
   region_code <- country_code <-
     grouping_type <- NULL
@@ -92,7 +95,7 @@ create_countries_vctr <- function(country,
 
 
   ### countries Available -----
-  ctrs      <- lkup$aux_files$countries
+  ctrs      <- aux_files$countries
 
   # Countries selected by user
   user_ctrs <- ctrs[country_code  %in% country,
@@ -127,7 +130,7 @@ create_countries_vctr <- function(country,
   # because their estimates are done implicitly. We DO care about the estimates
   # of the missing countries in AFE because we need the explicit SSA estimates.
 
-  cl           <- lkup$aux_files$country_list
+  cl           <- aux_files$country_list
 
   if (!is_empty(user_gt)) {
     user_alt_gt  <- user_gt[!user_gt %in% off_gt]
@@ -195,7 +198,7 @@ create_countries_vctr <- function(country,
 
 
   ## Countries with  missing data ----
-  md <- filter_md(md = lkup$aux_files$missing_data,
+  md <- filter_md(md = aux_files$missing_data,
                   ctr_alt_agg = ctr_alt_agg,
                   year = year)
 

@@ -46,7 +46,8 @@ pip_grp_logic <- function(country         = "ALL",
   create_countries_vctr(
     country         =  country,
     year            =  year,
-    lkup            =  lkup
+    valid_years     =  lkup$valid_years,
+    aux_files       =  lkup$aux_files
   )
 
   # use the same names as before to avoid inconsistencies
