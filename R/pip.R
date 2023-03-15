@@ -119,7 +119,8 @@ pip <- function(country         = "ALL",
       welfare_type    = welfare_type,
       reporting_level = reporting_level,
       ppp             = ppp,
-      lkup            = lkup
+      svy_lkup        = lkup[["svy_lkup"]],
+      valid_regions   = lkup$query_controls$region$values
     )
   }
 

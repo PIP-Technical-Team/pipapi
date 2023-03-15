@@ -3,6 +3,8 @@
 #' Compute the main PIP poverty and inequality statistics for survey years.
 #'
 #' @inheritParams pip
+#' @param svy_lkup data.frame: Lookup table containing all survey information
+#' @param valid_regions character: Vector of accpeted code for regions
 #' @return data.frame
 #' @keywords internal
 rg_pip <- function(country,
@@ -12,15 +14,16 @@ rg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   lkup) {
+                   svy_lkup,
+                   valid_regions) {
 
   metadata <- subset_lkup(
     country = country,
     year = year,
     welfare_type = welfare_type,
     reporting_level = reporting_level,
-    lkup = lkup[["svy_lkup"]],
-    valid_regions = lkup$query_controls$region$values
+    lkup = svy_lkup,
+    valid_regions = valid_regions
   )
 
   # Remove aggregate distribution if popshare is specified

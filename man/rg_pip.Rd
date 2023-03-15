@@ -12,7 +12,8 @@ rg_pip(
   welfare_type,
   reporting_level,
   ppp,
-  lkup
+  svy_lkup,
+  valid_regions
 )
 }
 \arguments{
@@ -31,7 +32,9 @@ poverty line}
 
 \item{ppp}{numeric: Custom Purchase Power Parity value}
 
-\item{lkup}{list: A list of lkup tables}
+\item{svy_lkup}{data.frame: Lookup table containing all survey information}
+
+\item{valid_regions}{character: Vector of accpeted code for regions}
 }
 \value{
 data.frame
