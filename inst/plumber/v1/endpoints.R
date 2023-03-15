@@ -220,6 +220,18 @@ function(req) {
   # Process request
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
+  req_lkup_elements <- c("svy_lkup",
+                         "ref_lkup",
+                         "dist_stats",
+                         "interpolation_list",
+                         "query_controls",
+                         "pop_region",
+                         "censored",
+                         "pip_cols",
+                         "valid_years",
+                         "aux_files"
+  )
+  params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$format <- NULL
   params$version <- NULL
 
@@ -254,6 +266,16 @@ function(req, res) {
   # Process request
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
+  req_lkup_elements <- c("ref_lkup",
+                         "interpolation_list",
+                         "query_controls",
+                         "pop_region",
+                         "censored",
+                         "pip_cols",
+                         "valid_years",
+                         "aux_files"
+  )
+  params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$format <- NULL
   params$version <- NULL
 
