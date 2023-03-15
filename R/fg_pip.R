@@ -3,6 +3,11 @@
 #' Compute the main PIP poverty and inequality statistics for imputed years.
 #'
 #' @inheritParams pip
+#' @param ref_lkup data.frame: Lookup table with necessary information to compute
+#' inter/extra-polated values
+#' @param valid_regions character: Vector of accepted country codes for regions
+#' @param interpolation_list list: List of surveys to be used for computing
+#' inter/extra-polated values
 #' @return data.frame
 #' @keywords internal
 fg_pip <- function(country,
@@ -12,9 +17,9 @@ fg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   lkup) {
-
-  valid_regions <- lkup$query_controls$region$values
+                   ref_lkup,
+                   valid_regions,
+                   interpolation_list) {
 
   # Handle interpolation
   metadata <- subset_lkup(
@@ -22,7 +27,7 @@ fg_pip <- function(country,
     year            = year,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
-    lkup            = lkup[["ref_lkup"]],
+    lkup            = ref_lkup,
     valid_regions   = valid_regions
   )
   # Remove aggregate distribution if popshare is specified
@@ -38,7 +43,6 @@ fg_pip <- function(country,
   unique_survey_files <- unique(metadata$data_interpolation_id)
 
   # Interpolation list
-  interpolation_list <- lkup$interpolation_list
   interpolation_list <- interpolation_list[names(interpolation_list) %in% unique_survey_files]
 
   # Unique set of survey data to be read

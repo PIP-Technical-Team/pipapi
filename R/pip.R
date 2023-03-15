@@ -98,14 +98,16 @@ pip <- function(country         = "ALL",
   if (fill_gaps) {
     # Compute imputed stats
     out <- fg_pip(
-      country         = lcv$est_ctrs,
-      year            = year,
-      povline         = povline,
-      popshare        = popshare,
-      welfare_type    = welfare_type,
-      reporting_level = reporting_level,
-      ppp             = ppp,
-      lkup            = lkup
+      country            = lcv$est_ctrs,
+      year               = year,
+      povline            = povline,
+      popshare           = popshare,
+      welfare_type       = welfare_type,
+      reporting_level    = reporting_level,
+      ppp                = ppp,
+      ref_lkup           = lkup[["ref_lkup"]],
+      valid_regions      = lkup$query_controls$region$values,
+      interpolation_list = lkup$interpolation_list
     )
   } else {
     # Compute survey year stats

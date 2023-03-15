@@ -148,8 +148,10 @@ pip_grp_logic <- function(country         = "ALL",
     popshare        = NULL,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
-    lkup            = lkup,
-    ppp             = NULL
+    ppp             = NULL,
+    ref_lkup           = lkup[["ref_lkup"]],
+    valid_regions      = lkup$query_controls$region$values,
+    interpolation_list = lkup$interpolation_list
   )
 
 

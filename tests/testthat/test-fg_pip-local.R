@@ -2,7 +2,7 @@
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
-lkups <- lkups$versions_paths[[lkups$latest_release]]
+lkup <- lkups$versions_paths[[lkups$latest_release]]
 
 # aggregated distribution ----
 ## Extrapolation ----
@@ -15,7 +15,9 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
     welfare_type = "all",
     reporting_level = "all",
     ppp = NULL,
-    lkup = lkups
+    ref_lkup           = lkup[["ref_lkup"]],
+    valid_regions      = lkup$query_controls$region$values,
+    interpolation_list = lkup$interpolation_list
   )
 
   expect_equal(nrow(tmp), 2)
@@ -28,7 +30,9 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
     welfare_type = "all",
     reporting_level = "national",
     ppp = NULL,
-    lkup = lkups
+    ref_lkup           = lkup[["ref_lkup"]],
+    valid_regions      = lkup$query_controls$region$values,
+    interpolation_list = lkup$interpolation_list
   )
 
   expect_equal(nrow(tmp), 2)
@@ -44,7 +48,9 @@ test_that("Imputation is working for interpolated mixed distribution", {
     welfare_type = "all",
     reporting_level = "all",
     ppp = NULL,
-    lkup = lkups
+    ref_lkup           = lkup[["ref_lkup"]],
+    valid_regions      = lkup$query_controls$region$values,
+    interpolation_list = lkup$interpolation_list
   )
 
   expect_equal(nrow(tmp), 2)
@@ -57,7 +63,9 @@ test_that("Imputation is working for interpolated mixed distribution", {
     welfare_type = "all",
     reporting_level = "national",
     ppp = NULL,
-    lkup = lkups
+    ref_lkup           = lkup[["ref_lkup"]],
+    valid_regions      = lkup$query_controls$region$values,
+    interpolation_list = lkup$interpolation_list
   )
 
   expect_equal(nrow(tmp), 2)
@@ -72,7 +80,9 @@ test_that("Imputation is working for interpolated aggregate distribution", {
     welfare_type = "all",
     reporting_level = "all",
     ppp = NULL,
-    lkup = lkups
+    ref_lkup           = lkup[["ref_lkup"]],
+    valid_regions      = lkup$query_controls$region$values,
+    interpolation_list = lkup$interpolation_list
   )
 
   expect_equal(nrow(tmp), 2)
@@ -85,7 +95,9 @@ test_that("Imputation is working for interpolated aggregate distribution", {
     welfare_type = "all",
     reporting_level = "national",
     ppp = NULL,
-    lkup = lkups
+    ref_lkup           = lkup[["ref_lkup"]],
+    valid_regions      = lkup$query_controls$region$values,
+    interpolation_list = lkup$interpolation_list
   )
 
   expect_equal(nrow(tmp), 2)
