@@ -54,7 +54,7 @@ ui_cp_key_indicators_single <- function(country,
     # names(hc) <- povline
   }
 
-  dl <- lapply(lkup$cp$key_indicators, function(x) {
+  dl <- lapply(lkup[["cp_lkups"]]$key_indicators, function(x) {
     x[country_code == country]
   })
 
@@ -177,7 +177,7 @@ ui_cp_charts_single <- function(country, povline,
   dl <- list(pov_charts = dl)
 
   # Fetch pre-calculated data (filter selected country)
-  dl2 <- lapply(lkup$cp_lkups$charts, function(x) {
+  dl2 <- lapply(lkup[["cp_lkups"]]$charts, function(x) {
     x[country_code == country]
   })
 
@@ -388,7 +388,7 @@ ui_cp_download <- function(country = "AGO",
   }) |>
     data.table::rbindlist(use.names = TRUE)
 
-  df <- lkup$cp$flat$flat_cp
+  df <- lkup[["cp_lkups"]]$flat$flat_cp
   df <- df[country_code %chin% country]
   out <-
     merge(hc, df,
