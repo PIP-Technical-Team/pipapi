@@ -167,6 +167,7 @@ create_lkups <- function(data_dir, versions) {
                                             collapse = "|"),
              by = .(interpolation_id)]
 
+
   # CREATE OBJECT: interpolation_list ----
   # This is to facilitate interpolation computations
   unique_survey_files <- unique(ref_lkup$data_interpolation_id)
@@ -183,16 +184,16 @@ create_lkups <- function(data_dir, versions) {
                                                "reporting_year",
                                                "reporting_level",
                                                "interpolation_id"
-                                               )
-                                           ])
+    )
+    ])
 
     interpolation_list[[i]] <-
-      list(tmp_metadata    = tmp_metadata,
-           cache_ids       = cache_ids,
-           reporting_level = reporting_level,
-           paths           = paths,
-           ctry_years      = ctry_years
-           )
+      list(#tmp_metadata    = tmp_metadata,
+        cache_ids       = cache_ids,
+        reporting_level = reporting_level,
+        paths           = paths,
+        ctry_years      = ctry_years
+      )
   }
 
   names(interpolation_list) <- unique_survey_files
@@ -302,6 +303,11 @@ create_lkups <- function(data_dir, versions) {
     interpolation_list = interpolation_list,
     valid_years        = valid_years
   )
+
+  # COERCE character to factors
+  # svy_lkup <- coerce_chr_to_fct(svy_lkup)
+  # dist_stats <- coerce_chr_to_fct(dist_stats)
+  # ref_lkup <- coerce_chr_to_fct(ref_lkup)
 
   return(lkup)
 }
@@ -459,4 +465,14 @@ sort_versions <- function(versions,
   sorted_versions <- c(versions_prod, versions_int, versions_test)
 
   return(sorted_versions)
+}
+
+
+coerce_chr_to_fct <- function(df) {
+  df <- as.data.frame(df)
+  character_vec <- unname(unlist(lapply(df, is.character)))
+  df[, character_vec] <- lapply(df[, character_vec], as.factor)
+  df <- data.table::as.data.table(df)
+
+  return(df)
 }
