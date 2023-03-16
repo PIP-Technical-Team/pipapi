@@ -202,7 +202,7 @@ create_lkups <- function(data_dir, versions) {
   dist_stats_path <- fs::path(data_dir, "estimations/dist_stats.fst")
   dist_stats      <- fst::read_fst(dist_stats_path, as.data.table = TRUE)
 
-  # CREATE OBJECT: pop_region
+  # CREATE OBJECT: pop_region ----
   pop_region_path <- fs::path(data_dir, "_aux/pop_region.fst")
   pop_region      <- fst::read_fst(pop_region_path,as.data.table = TRUE)
 
@@ -286,6 +286,95 @@ create_lkups <- function(data_dir, versions) {
       aux_tables = aux_tables,
       versions   = versions)
 
+  # CREATE OBJECT: cache_data_id ----
+  # The cache_data_id will be used to trigger cache invalidation
+  # Using this cache_data_id as a function argument, cache can be pre-computed
+  # and then deployed to the server
+
+  ## Remove non-hash-able variables ----
+  ## Some variables contain information that is specific to the local machine
+  ## `pipapi` runs onto, such as path to data files, which will not be the same
+  ## on my laptop, and on the PROD VM. These variables therefore need to be removed
+  ## prior to the creation of the cache_data_id
+  hash_svy_lkup <- svy_lkup
+  hash_svy_lkup$path <- NULL
+
+  hash_ref_lkup <- ref_lkup
+  hash_ref_lkup$path <- NULL
+
+  ## Create cache_data_id for complete lkup ----
+  hash_lkup <- list(hash_svy_lkup,
+                    hash_ref_lkup,
+                    dist_stats,
+                    pop_region,
+                    cp_lkups,
+                    pl_lkup,
+                    censored,
+                    aux_files,
+                    pip_cols,
+                    query_controls,
+                    aux_tables,
+                    valid_years
+                    )
+  hash_lkup <- rlang::hash(hash_lkup)
+
+  ## Create cache_data_id for pip() ----
+  hash_pip <- list(hash_svy_lkup,
+                   hash_ref_lkup,
+                   dist_stats,
+                   pop_region,
+                   censored,
+                   aux_files,
+                   pip_cols,
+                   query_controls$region$values,
+                   valid_years
+                   )
+  hash_pip <- rlang::hash(hash_pip)
+
+  ## Create cache_data_id for pip_grp() ----
+  ## Same data signature for pip_grp and pip_grp_logic
+  hash_pip_grp <- list(hash_ref_lkup,
+                       dist_stats,
+                       pop_region,
+                       censored,
+                       aux_files,
+                       pip_cols,
+                       query_controls$region$values,
+                       valid_years
+  )
+  hash_pip_grp <- rlang::hash(hash_pip_grp)
+
+  ## Create cache_data_id for ui_cp ----
+  ## Same data signature for ui_cp_key_indicators, ui_cp_charts and ui_cp_download
+  hash_ui_cp <- list(hash_svy_lkup,
+                     dist_stats,
+                     pop_region,
+                     censored,
+                     aux_files,
+                     pip_cols,
+                     query_controls$region$values,
+                     valid_years,
+                     pl_lkup,
+                     cp_lkups
+  )
+  hash_ui_cp <- rlang::hash(hash_ui_cp)
+
+
+  ## Create cache_data_id list ----
+  cache_data_id <- list(
+    hash_lkup    = hash_lkup,
+    hash_pip     = hash_pip,
+    hash_pip_grp = hash_pip_grp,
+    hash_ui_cp   = hash_ui_cp
+
+  )
+
+
+  # COERCE character to factors
+  # svy_lkup <- coerce_chr_to_fct(svy_lkup)
+  # dist_stats <- coerce_chr_to_fct(dist_stats)
+  # ref_lkup <- coerce_chr_to_fct(ref_lkup)
+
   # Create list of lkups
   lkup <- list(
     svy_lkup           = svy_lkup,
@@ -301,13 +390,9 @@ create_lkups <- function(data_dir, versions) {
     data_root          = data_dir,
     aux_tables         = aux_tables,
     interpolation_list = interpolation_list,
-    valid_years        = valid_years
+    valid_years        = valid_years,
+    cache_data_id      = cache_data_id
   )
-
-  # COERCE character to factors
-  # svy_lkup <- coerce_chr_to_fct(svy_lkup)
-  # dist_stats <- coerce_chr_to_fct(dist_stats)
-  # ref_lkup <- coerce_chr_to_fct(ref_lkup)
 
   return(lkup)
 }
