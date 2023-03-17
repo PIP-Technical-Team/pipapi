@@ -80,10 +80,6 @@ ui_cp_ki_headcount <- function(country,
   res <- pip(country         = country,
              year            = year,
              povline         = povline,
-             popshare        = NULL,
-             welfare_type    = "all",
-             reporting_level = "all",
-             ppp             = NULL,
              lkup            = lkup)
 
   ### TEMP FIX for reporting level
@@ -136,10 +132,6 @@ ui_cp_charts <- function(country   = "AGO",
     pov_lkup <- pip(country         = "all",
                     year            = "all",
                     povline         = povline,
-                    popshare        = NULL,
-                    welfare_type    = "all",
-                    reporting_level = "all",
-                    ppp             = NULL,
                     lkup            = lkup)
     dl <- lapply(country_codes, function(country) {
       ui_cp_charts_single(country = country, povline = povline,
@@ -197,8 +189,11 @@ ui_cp_charts_single <- function(country, povline,
 #' @inheritParams ui_cp_charts
 #' @return list
 #' @keywords internal
-ui_cp_poverty_charts <- function(country, povline, pop_units,
-                                 lkup, pov_lkup) {
+ui_cp_poverty_charts <- function(country,
+                                 povline,
+                                 pop_units,
+                                 lkup,
+                                 pov_lkup) {
 
   # Fetch data for poverty trend chart
   if (is.null(pov_lkup)) {
@@ -206,10 +201,6 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
       pip(country         = country,
           year            = "all",
           povline         = povline,
-          popshare        = NULL,
-          welfare_type    = "all",
-          reporting_level = "all",
-          ppp             = NULL,
           lkup            = lkup)
   } else {
     res_pov_trend <- pov_lkup[country_code == country]
@@ -257,10 +248,6 @@ ui_cp_poverty_charts <- function(country, povline, pop_units,
     res_pov_mrv <- pip(country         = countries,
                        year            = "all",
                        povline         = povline,
-                       popshare        = NULL,
-                       welfare_type    = "all",
-                       reporting_level = "all",
-                       ppp             = NULL,
                        lkup            = lkup)
   } else {
     res_pov_mrv <- pov_lkup[country_code %in% countries]
