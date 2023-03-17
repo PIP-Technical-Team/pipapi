@@ -302,6 +302,9 @@ create_lkups <- function(data_dir, versions) {
   hash_ref_lkup <- ref_lkup
   hash_ref_lkup$path <- NULL
 
+  query_controls_hash <- query_controls
+  query_controls_hash$version <- NULL
+
   ## Create cache_data_id for complete lkup ----
   hash_lkup <- list(hash_svy_lkup,
                     hash_ref_lkup,
