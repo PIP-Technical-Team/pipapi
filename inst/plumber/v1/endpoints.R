@@ -217,7 +217,6 @@ function(req) {
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
-  browser()
   # Process request
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
