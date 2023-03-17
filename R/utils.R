@@ -321,7 +321,7 @@ create_query_controls <- function(svy_lkup,
   # Year
   year <- list(
     values = c(
-      "all", "mrv",
+      "all", "MRV",
       sort(unique(c(
         svy_lkup$reporting_year,
         ref_lkup$reporting_year
