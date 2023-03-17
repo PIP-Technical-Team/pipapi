@@ -5,9 +5,10 @@
 #' @inheritParams pip
 #' @return list
 #' @export
-ui_cp_key_indicators <- function(country = "AGO",
-                                 povline = NULL,
-                                 lkup) {
+ui_cp_key_indicators <- function(country   = "AGO",
+                                 povline   = NULL,
+                                 lkup,
+                                 lkup_hash = lkup$cache_data_id$hash_ui_cp) {
 
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
@@ -71,7 +72,7 @@ ui_cp_key_indicators_single <- function(country,
 #' @return data.table
 #' @noRd
 ui_cp_ki_headcount <- function(country,
-                               year = "mrv",
+                               year = "MRV",
                                povline,
                                lkup) {
 
@@ -118,10 +119,11 @@ ui_cp_ki_headcount <- function(country,
 #' @inheritParams ui_hp_countries
 #' @return list
 #' @export
-ui_cp_charts <- function(country = "AGO",
-                         povline = 1.9,
+ui_cp_charts <- function(country   = "AGO",
+                         povline   = 1.9,
                          pop_units = 1e6,
-                         lkup) {
+                         lkup,
+                         lkup_hash = lkup$cache_data_id$hash_ui_cp) {
   # Only supports single country selection
   # Make it explicit
   country <- country[1]
@@ -371,10 +373,11 @@ cp_pov_mrv_select_values <- function(v, h) {
 #' @inheritParams pip
 #' @return list
 #' @export
-ui_cp_download <- function(country = "AGO",
-                           year = "ALL",
-                           povline = 1.9,
-                           lkup) {
+ui_cp_download <- function(country   = "AGO",
+                           year      = "ALL",
+                           povline   = 1.9,
+                           lkup,
+                           lkup_hash = lkup$cache_data_id$hash_ui_cp) {
 
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]

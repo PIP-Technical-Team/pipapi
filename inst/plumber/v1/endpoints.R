@@ -217,21 +217,24 @@ function(req) {
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @serializer switch
 function(req) {
+  browser()
   # Process request
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
-  req_lkup_elements <- c("svy_lkup",
-                         "ref_lkup",
-                         "dist_stats",
-                         "interpolation_list",
-                         "query_controls",
-                         "pop_region",
-                         "censored",
-                         "pip_cols",
-                         "valid_years",
-                         "aux_files"
-  )
-  params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
+  # # Subset lkup object to pass only required element and save some memory
+  # req_lkup_elements <- c("svy_lkup",
+  #                        "ref_lkup",
+  #                        "dist_stats",
+  #                        "interpolation_list",
+  #                        "query_controls",
+  #                        "pop_region",
+  #                        "censored",
+  #                        "pip_cols",
+  #                        "valid_years",
+  #                        "aux_files",
+  #                        "cache_data_id"
+  # )
+  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$format <- NULL
   params$version <- NULL
 
@@ -266,16 +269,18 @@ function(req, res) {
   # Process request
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
-  req_lkup_elements <- c("ref_lkup",
-                         "interpolation_list",
-                         "query_controls",
-                         "pop_region",
-                         "censored",
-                         "pip_cols",
-                         "valid_years",
-                         "aux_files"
-  )
-  params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
+  # # Subset lkup object to pass only required element and save some memory
+  # req_lkup_elements <- c("ref_lkup",
+  #                        "interpolation_list",
+  #                        "query_controls",
+  #                        "pop_region",
+  #                        "censored",
+  #                        "pip_cols",
+  #                        "valid_years",
+  #                        "aux_files",
+  #                        "cache_data_id"
+  # )
+  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$format <- NULL
   params$version <- NULL
 
@@ -637,18 +642,20 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-  req_lkup_elements <- c("svy_lkup",
-                         "dist_stats",
-                         "query_controls",
-                         "pop_region",
-                         "censored",
-                         "pip_cols",
-                         "valid_years",
-                         "aux_files",
-                         "pl_lkup",
-                         "cp_lkups"
-  )
-  params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
+  # # Subset lkup object to pass only required element and save some memory
+  # req_lkup_elements <- c("svy_lkup",
+  #                        "dist_stats",
+  #                        "query_controls",
+  #                        "pop_region",
+  #                        "censored",
+  #                        "pip_cols",
+  #                        "valid_years",
+  #                        "aux_files",
+  #                        "pl_lkup",
+  #                        "cp_lkups",
+  #                        "cache_data_id"
+  # )
+  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$version <- NULL
   do.call(pipapi::ui_cp_key_indicators, params)
 }
@@ -665,6 +672,20 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  # # Subset lkup object to pass only required element and save some memory
+  # req_lkup_elements <- c("svy_lkup",
+  #                        "dist_stats",
+  #                        "query_controls",
+  #                        "pop_region",
+  #                        "censored",
+  #                        "pip_cols",
+  #                        "valid_years",
+  #                        "aux_files",
+  #                        "pl_lkup",
+  #                        "cp_lkups",
+  #                        "cache_data_id"
+  # )
+  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$version <- NULL
   if (params$country == "ALL") {
     promises::future_promise({
@@ -686,6 +707,20 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  # # Subset lkup object to pass only required element and save some memory
+  # req_lkup_elements <- c("svy_lkup",
+  #                        "dist_stats",
+  #                        "query_controls",
+  #                        "pop_region",
+  #                        "censored",
+  #                        "pip_cols",
+  #                        "valid_years",
+  #                        "aux_files",
+  #                        "pl_lkup",
+  #                        "cp_lkups",
+  #                        "cache_data_id"
+  # )
+  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$version <- NULL
   params$format  <- NULL
 

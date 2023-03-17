@@ -60,7 +60,8 @@ pip <- function(country         = "ALL",
                 reporting_level = c("all", "national", "rural", "urban"),
                 ppp             = NULL,
                 lkup,
-                censor          = TRUE) {
+                censor          = TRUE,
+                lkup_hash       = lkup$cache_data_id$hash_pip) {
 
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
