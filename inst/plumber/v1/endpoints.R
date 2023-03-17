@@ -411,6 +411,16 @@ function(req) {
   readLines(sprintf("%s/data_update_timestamp.txt", dir))
 }
 
+#* Retrieve data signature hash
+#* @get /api/v1/data-signature
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer unboxedJSON
+function(req) {
+  lkups$versions_paths[[req$argsQuery$version]]$cache_data_id
+}
+
 #* Get information on directory contents
 #* @get /api/v1/dir-info
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
