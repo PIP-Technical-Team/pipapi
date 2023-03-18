@@ -321,7 +321,7 @@ create_query_controls <- function(svy_lkup,
   # Year
   year <- list(
     values = c(
-      "all", "mrv",
+      "all", "MRV",
       sort(unique(c(
         svy_lkup$reporting_year,
         ref_lkup$reporting_year
@@ -566,7 +566,7 @@ select_years <- function(lkup, keep, year, country) {
     } else {
       # STEP 1.2 - If only some countries selected. Select MRV for each selected
       # country
-      dtmp[country_code %in% country,
+      dtmp[dtmp[["country_code"]] %in% country,
            max_year := reporting_year == max(reporting_year),
            by = country_code]
     }

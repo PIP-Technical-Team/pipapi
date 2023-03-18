@@ -15,7 +15,6 @@ pip(
   reporting_level = c("all", "national", "rural", "urban"),
   ppp = NULL,
   lkup,
-  debug = FALSE,
   censor = TRUE
 )
 }
@@ -42,9 +41,6 @@ sub-groups}
 \item{ppp}{numeric: Custom Purchase Power Parity value}
 
 \item{lkup}{list: A list of lkup tables}
-
-\item{debug}{logical: If TRUE poverty calculations from \code{wbpip} will run in
-debug mode}
 
 \item{censor}{logical: Triggers censoring of country/year statistics}
 }

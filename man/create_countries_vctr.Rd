@@ -4,14 +4,16 @@
 \alias{create_countries_vctr}
 \title{Create countries vectors}
 \usage{
-create_countries_vctr(country, year, lkup)
+create_countries_vctr(country, year, valid_years, aux_files)
 }
 \arguments{
 \item{country}{character: Country ISO 3 codes}
 
 \item{year}{integer: Reporting year}
 
-\item{lkup}{list: A list of lkup tables}
+\item{valid_years}{list: Valid years information provided through lkup object}
+
+\item{aux_files}{list: List of auxiliary tables provided through lkup object}
 }
 \value{
 a list of vectors with countries and regions code to be used in

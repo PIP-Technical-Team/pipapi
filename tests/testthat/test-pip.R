@@ -26,8 +26,7 @@ test_that("Reporting level filtering is working", {
                     reporting_level = x,
                     fill_gaps       = FALSE,
                     ppp             = 10,
-                    lkup            = lkup,
-                    debug           = FALSE
+                    lkup            = lkup
                   )
                 })
   names(tmp) <- reporting_levels
@@ -99,7 +98,7 @@ test_that("year selection is working", {
   # Most recent year for a single country
   tmp <- pip(
     country = "AGO",
-    year = "mrv",
+    year = "MRV",
     povline = 1.9,
     lkup = lkup
   )
@@ -109,7 +108,7 @@ test_that("year selection is working", {
   # Most recent year for a single country (w/ fill_gaps)
   tmp <- pip(
     country = "AGO",
-    year = "mrv",
+    year = "MRV",
     povline = 1.9,
     fill_gaps = TRUE,
     lkup = lkup
@@ -126,7 +125,7 @@ test_that("year selection is working", {
   # To be improved
   tmp <- pip(
     country = "all",
-    year = "mrv",
+    year = "MRV",
     povline = 1.9,
     lkup = lkup
   )

@@ -220,6 +220,20 @@ function(req) {
   # Process request
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
+  # # Subset lkup object to pass only required element and save some memory
+  # req_lkup_elements <- c("svy_lkup",
+  #                        "ref_lkup",
+  #                        "dist_stats",
+  #                        "interpolation_list",
+  #                        "query_controls",
+  #                        "pop_region",
+  #                        "censored",
+  #                        "pip_cols",
+  #                        "valid_years",
+  #                        "aux_files",
+  #                        "cache_data_id"
+  # )
+  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$format <- NULL
   params$version <- NULL
 
@@ -254,6 +268,18 @@ function(req, res) {
   # Process request
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
+  # # Subset lkup object to pass only required element and save some memory
+  # req_lkup_elements <- c("ref_lkup",
+  #                        "interpolation_list",
+  #                        "query_controls",
+  #                        "pop_region",
+  #                        "censored",
+  #                        "pip_cols",
+  #                        "valid_years",
+  #                        "aux_files",
+  #                        "cache_data_id"
+  # )
+  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$format <- NULL
   params$version <- NULL
 
@@ -387,6 +413,16 @@ function() {
 function(req) {
   dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
   readLines(sprintf("%s/data_update_timestamp.txt", dir))
+}
+
+#* Retrieve data signature hash
+#* @get /api/v1/data-signature
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer unboxedJSON
+function(req) {
+  lkups$versions_paths[[req$argsQuery$version]]$cache_data_id
 }
 
 #* Get information on directory contents
@@ -605,6 +641,20 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  # # Subset lkup object to pass only required element and save some memory
+  # req_lkup_elements <- c("svy_lkup",
+  #                        "dist_stats",
+  #                        "query_controls",
+  #                        "pop_region",
+  #                        "censored",
+  #                        "pip_cols",
+  #                        "valid_years",
+  #                        "aux_files",
+  #                        "pl_lkup",
+  #                        "cp_lkups",
+  #                        "cache_data_id"
+  # )
+  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$version <- NULL
   do.call(pipapi::ui_cp_key_indicators, params)
 }
@@ -621,6 +671,20 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  # # Subset lkup object to pass only required element and save some memory
+  # req_lkup_elements <- c("svy_lkup",
+  #                        "dist_stats",
+  #                        "query_controls",
+  #                        "pop_region",
+  #                        "censored",
+  #                        "pip_cols",
+  #                        "valid_years",
+  #                        "aux_files",
+  #                        "pl_lkup",
+  #                        "cp_lkups",
+  #                        "cache_data_id"
+  # )
+  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$version <- NULL
   if (params$country == "ALL") {
     promises::future_promise({
@@ -642,6 +706,20 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  # # Subset lkup object to pass only required element and save some memory
+  # req_lkup_elements <- c("svy_lkup",
+  #                        "dist_stats",
+  #                        "query_controls",
+  #                        "pop_region",
+  #                        "censored",
+  #                        "pip_cols",
+  #                        "valid_years",
+  #                        "aux_files",
+  #                        "pl_lkup",
+  #                        "cp_lkups",
+  #                        "cache_data_id"
+  # )
+  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$version <- NULL
   params$format  <- NULL
 

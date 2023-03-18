@@ -14,8 +14,8 @@ pip_grp_logic <- function(country         = "ALL",
                           welfare_type    = c("all", "consumption", "income"),
                           reporting_level = c("all", "national"),
                           lkup,
-                          debug           = FALSE,
-                          censor          = TRUE) {
+                          censor          = TRUE,
+                          lkup_hash       = lkup$cache_data_id$hash_pip_grp) {
   #   ________________________________________________________________________
   #   Set up                                                      ####
 
@@ -35,7 +35,6 @@ pip_grp_logic <- function(country         = "ALL",
   #   welfare_type    =  welfare_type,
   #   reporting_level =  reporting_level,
   #   lkup            =  lkup,
-  #   debug           =  debug,
   #   censor          =  censor
   # )
 
@@ -46,7 +45,8 @@ pip_grp_logic <- function(country         = "ALL",
   create_countries_vctr(
     country         =  country,
     year            =  year,
-    lkup            =  lkup
+    valid_years     =  lkup$valid_years,
+    aux_files       =  lkup$aux_files
   )
 
   # use the same names as before to avoid inconsistencies
@@ -64,7 +64,6 @@ pip_grp_logic <- function(country         = "ALL",
             welfare_type    =  welfare_type,
             reporting_level =  reporting_level,
             lkup            =  lkup,
-            debug           =  debug,
             censor          =  censor)
     return(res)
 
@@ -78,7 +77,6 @@ pip_grp_logic <- function(country         = "ALL",
               welfare_type    =  welfare_type,
               reporting_level =  reporting_level,
               lkup            =  lkup,
-              debug           =  debug,
               censor          =  censor)
   } else {
     off_ret <- NULL
@@ -104,7 +102,6 @@ pip_grp_logic <- function(country         = "ALL",
               welfare_type    =  welfare_type,
               reporting_level =  reporting_level,
               lkup            =  lkup,
-              debug           =  debug,
               censor          =  censor)
 
     if (lcv$grp_use == "append") {
@@ -152,9 +149,10 @@ pip_grp_logic <- function(country         = "ALL",
     popshare        = NULL,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
-    lkup            = lkup,
     ppp             = NULL,
-    debug           = debug
+    ref_lkup           = lkup[["ref_lkup"]],
+    valid_regions      = lkup$query_controls$region$values,
+    interpolation_list = lkup$interpolation_list
   )
 
 

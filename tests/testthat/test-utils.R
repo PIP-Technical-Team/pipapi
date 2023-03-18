@@ -189,7 +189,7 @@ test_that("select_country works for country & region selection", {
 test_that("select_years works for most recent value", {
   # Single country
   country <- "BFA"
-  year <- "mrv"
+  year <- "MRV"
   keep <- rep(TRUE, nrow(ref_lkup))
   keep_country <- select_country(ref_lkup, keep, country, valid_regions = valid_regions)
   tmp <- ref_lkup[keep_country, ]
@@ -203,7 +203,7 @@ test_that("select_years works for most recent value", {
 
   # Multiple countries
   country <- c("BFA", "CAN")
-  year <- "mrv"
+  year <- "MRV"
   keep <- rep(TRUE, nrow(ref_lkup))
   keep_country <- select_country(ref_lkup, keep, country, valid_regions = valid_regions)
   tmp <- ref_lkup[keep_country, ]
@@ -222,7 +222,7 @@ test_that("select_years works for most recent value", {
 
   # All countries
   country <- "all"
-  year <- "mrv"
+  year <- "MRV"
   keep <- rep(TRUE, nrow(ref_lkup))
   keep_country <- select_country(ref_lkup, keep, country, valid_regions = valid_regions)
   tmp <- ref_lkup[keep_country, ]
@@ -306,7 +306,7 @@ test_that("select_years works for specific year selections", {
   # This test is expected to fail once the correct behavior is implemented
   country <- "all"
   not_mrv_year <- "1991"
-  year <- c("mrv", not_mrv_year)
+  year <- c("MRV", not_mrv_year)
   keep <- rep(TRUE, nrow(ref_lkup))
   mrv_year <- ref_lkup[, .SD[which.max(reporting_year)],
                        by = country_code]$reporting_year
@@ -327,7 +327,7 @@ test_that("select_years works for MRV + specific year selections", {
   # We expect all countries with their MRV year + all country/years not part of MRV query
   country <- "all"
   not_mrv_year <- "1991"
-  year <- c("mrv", not_mrv_year)
+  year <- c("MRV", not_mrv_year)
   keep <- rep(TRUE, nrow(ref_lkup))
   mrv_year <- ref_lkup[, .SD[which.max(reporting_year)],
                        by = country_code]$reporting_year

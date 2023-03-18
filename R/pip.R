@@ -15,8 +15,6 @@
 #' @param reporting_level character: Geographical reporting level
 #' @param ppp numeric: Custom Purchase Power Parity value
 #' @param lkup list: A list of lkup tables
-#' @param debug logical: If TRUE poverty calculations from `wbpip` will run in
-#'   debug mode
 #' @param censor logical: Triggers censoring of country/year statistics
 #'
 #' @return data.table
@@ -62,8 +60,8 @@ pip <- function(country         = "ALL",
                 reporting_level = c("all", "national", "rural", "urban"),
                 ppp             = NULL,
                 lkup,
-                debug           = FALSE,
-                censor          = TRUE) {
+                censor          = TRUE,
+                lkup_hash       = lkup$cache_data_id$hash_pip) {
 
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
@@ -75,8 +73,8 @@ pip <- function(country         = "ALL",
     year <- toupper(year)
   }
 
-  # If svy_lkup and ref_lkup are not part of lkup throw an error.
-  if (!all(c('svy_lkup', 'ref_lkup') %in% names(lkup)))
+  # If svy_lkup is not part of lkup throw an error.
+  if (!all(c('svy_lkup') %in% names(lkup)))
     stop("You are probably passing more than one dataset as lkup argument.
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
 
@@ -93,22 +91,24 @@ pip <- function(country         = "ALL",
     create_countries_vctr(
       country         =  country,
       year            =  year,
-      lkup            =  lkup
+      valid_years     =  lkup$valid_years,
+      aux_files       =  lkup$aux_files
     )
 
 
   if (fill_gaps) {
     # Compute imputed stats
     out <- fg_pip(
-      country         = lcv$est_ctrs,
-      year            = year,
-      povline         = povline,
-      popshare        = popshare,
-      welfare_type    = welfare_type,
-      reporting_level = reporting_level,
-      ppp             = ppp,
-      lkup            = lkup,
-      debug           = debug
+      country            = lcv$est_ctrs,
+      year               = year,
+      povline            = povline,
+      popshare           = popshare,
+      welfare_type       = welfare_type,
+      reporting_level    = reporting_level,
+      ppp                = ppp,
+      ref_lkup           = lkup[["ref_lkup"]],
+      valid_regions      = lkup$query_controls$region$values,
+      interpolation_list = lkup$interpolation_list
     )
   } else {
     # Compute survey year stats
@@ -120,8 +120,8 @@ pip <- function(country         = "ALL",
       welfare_type    = welfare_type,
       reporting_level = reporting_level,
       ppp             = ppp,
-      lkup            = lkup,
-      debug           = debug
+      svy_lkup        = lkup[["svy_lkup"]],
+      valid_regions   = lkup$query_controls$region$values
     )
   }
 
