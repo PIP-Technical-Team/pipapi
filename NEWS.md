@@ -8,6 +8,7 @@
 - `/aux` endpoints now return tables in long_format by default
 - A new `/ui_aux` endpoint has been created with the opposite behavior: tables are
 returned in wide format by default.
+- `/pip-info` returns additional information
 
 ## Enhancements
 

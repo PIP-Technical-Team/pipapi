@@ -4,7 +4,12 @@
 \alias{ui_cp_key_indicators}
 \title{Country Profiles Key Indicators}
 \usage{
-ui_cp_key_indicators(country = "AGO", povline = NULL, lkup)
+ui_cp_key_indicators(
+  country = "AGO",
+  povline = NULL,
+  lkup,
+  lkup_hash = lkup$cache_data_id$hash_ui_cp
+)
 }
 \arguments{
 \item{country}{character: Country ISO 3 codes}
