@@ -396,6 +396,7 @@ test_that("ui_svy_meta() works as expected", {
       "country_name",
       "reporting_year" ,
       "survey_year",
+      "surveyid_year",
       "survey_title",
       "survey_conductor",
       "survey_coverage",
@@ -404,7 +405,7 @@ test_that("ui_svy_meta() works as expected", {
       "metadata"
     )
   expected_metadata <- c(
-    "surveyid_year",
+    #"surveyid_year",
     "survey_acronym",
     "year_start",
     "year_end",

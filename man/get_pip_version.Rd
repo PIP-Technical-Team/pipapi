@@ -6,7 +6,7 @@
 \usage{
 get_pip_version(
   pip_packages = c("pipapi", "wbpip"),
-  data_versions = lkup$versions
+  data_versions = lkups$versions
 )
 }
 \arguments{
