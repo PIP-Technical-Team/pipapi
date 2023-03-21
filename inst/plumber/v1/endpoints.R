@@ -177,7 +177,9 @@ plumber::register_serializer("switch", pipapi:::serializer_switch)
 #* Return PIP information
 #* @get /api/v1/pip-info
 function(req) {
-  pipapi::get_pip_version(lkup = lkups)
+  pipapi::get_pip_version(pip_packages = c("pipapi",
+                                           "wbpip"),
+                          data_versions = lkups$versions)
 }
 
 #* Return valid parameters
