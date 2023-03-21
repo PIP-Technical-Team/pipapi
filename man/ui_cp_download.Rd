@@ -4,7 +4,13 @@
 \alias{ui_cp_download}
 \title{Country Profiles Key Indicators download}
 \usage{
-ui_cp_download(country = "AGO", year = "ALL", povline = 1.9, lkup)
+ui_cp_download(
+  country = "AGO",
+  year = "ALL",
+  povline = 1.9,
+  lkup,
+  lkup_hash = lkup$cache_data_id$hash_ui_cp
+)
 }
 \arguments{
 \item{country}{character: Country ISO 3 codes}

@@ -12,7 +12,8 @@ pip_grp_logic(
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national"),
   lkup,
-  censor = TRUE
+  censor = TRUE,
+  lkup_hash = lkup$cache_data_id$hash_pip_grp
 )
 }
 \arguments{
