@@ -34,6 +34,7 @@ fg_pip <- function(country,
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
   metadata <- filter_lkup(metadata = metadata,
                           popshare = popshare)
+  metadata <- as.data.frame(metadata) # data.tables speed only kicks in for big datasets
 
   # Return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
