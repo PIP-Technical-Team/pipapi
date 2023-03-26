@@ -8,14 +8,14 @@
 #' }
 #' @export
 pip_grp_logic2 <- function(country         = "ALL",
-                          year            = "ALL",
-                          povline         = 1.9,
-                          group_by        = c("none", "wb"),
-                          welfare_type    = c("all", "consumption", "income"),
-                          reporting_level = c("all", "national"),
-                          lkup,
-                          censor          = TRUE,
-                          lkup_hash       = lkup$cache_data_id$hash_pip_grp) {
+                           year            = "ALL",
+                           povline         = 1.9,
+                           group_by        = c("none", "wb"),
+                           welfare_type    = c("all", "consumption", "income"),
+                           reporting_level = c("all", "national"),
+                           lkup,
+                           censor          = TRUE,
+                           lkup_hash       = lkup$cache_data_id$hash_pip_grp) {
   #   ________________________________________________________________________
   #   STEP 1: Set up                                                      ####
 
@@ -34,89 +34,93 @@ pip_grp_logic2 <- function(country         = "ALL",
     reporting_level <- "national"
   }
 
-
-  # STEP 2: Compute fg_pip for ALL countries ----
-  # This will then be re-used in various part of the function
-  fg_pip_master <- fg_pip(
-    country         = "ALL",
-    year            = year,
-    povline         = povline,
-    popshare        = NULL,
-    welfare_type    = welfare_type,
-    reporting_level = reporting_level,
-    ppp             = NULL,
-    ref_lkup           = lkup[["ref_lkup"]],
-    valid_regions      = lkup$query_controls$region$values,
-    interpolation_list = lkup$interpolation_list
-  )
-
   #   ___________________________________________________________________
   # STEP 3: filter countries and years                             ####
 
   lcv <- # List with countries vectors
-  create_countries_vctr(
-    country         =  country,
-    year            =  year,
-    valid_years     =  lkup$valid_years,
-    aux_files       =  lkup$aux_files
-  )
+    create_countries_vctr(
+      country         =  country,
+      year            =  year,
+      valid_years     =  lkup$valid_years,
+      aux_files       =  lkup$aux_files
+    )
 
   # use the same names as before to avoid inconsistencies
   alt_agg <- lcv$user_alt_agg
   gt_code <- lcv$user_alt_gt_code
   cl      <- lkup$aux_files$country_list
 
-
+  # STEP 4: Start pip_grp_logic algorithm ----
+  ## STEP 4.1: Official regions only selection ----
+  ## This will trigger an early return as no additional imputations are needed
   if (all(lcv$off_alt_agg == "off")) { # Users only request the official regions
-  ### Early return -----------
+    ### Early return -----------
     res <-
-    # pip_grp(country         =  country,
-    #         year            =  year,
-    #         povline         =  povline,
-    #         group_by        =  "wb",
-    #         welfare_type    =  welfare_type,
-    #         reporting_level =  reporting_level,
-    #         lkup            =  lkup,
-    #         censor          =  censor)
-    pip_grp_helper(country         = lcv$ctr_off_reg,
-                   year            = year,
-                   povline         = povline,
-                   reporting_level = reporting_level,
-                   censor          = censor,
-                   fg_pip          = fg_pip_master,
-                   )
+      pip_grp(country         =  country,
+              year            =  year,
+              povline         =  povline,
+              group_by        =  "wb",
+              welfare_type    =  welfare_type,
+              reporting_level =  reporting_level,
+              lkup            =  lkup,
+              censor          =  censor)
     return(res)
 
-  } else if (lcv$off_alt_agg == "both") {
-  ## Estimates for official aggregates
-    off_ret <-
-      # pip_grp(country         =  lcv$user_off_reg,
-      #         year            =  year,
-      #         povline         =  povline,
-      #         group_by        =  "wb",
-      #         welfare_type    =  welfare_type,
-      #         reporting_level =  reporting_level,
-      #         lkup            =  lkup,
-      #         censor          =  censor)
-      pip_grp_helper(country         = lcv$ctr_off_reg,
-                     year            = year,
-                     povline         = povline,
-                     reporting_level = reporting_level,
-                     censor          = censor,
-                     fg_pip          = fg_pip_master)
   } else {
-    off_ret <- NULL
-    alt_agg <- country
+
+    ## STEP 4.2: Compute fg_pip for ALL required countries ----
+    ## This will then be re-used in various part of the function
+    ## This is to avoid re-computing and re-loading the same data over and over
+    fg_pip_master <- fg_pip(
+      country         = c(lcv$md_off_reg, lcv$user_off_reg),
+      year            = year,
+      povline         = povline,
+      popshare        = NULL,
+      welfare_type    = welfare_type,
+      reporting_level = reporting_level,
+      ppp             = NULL,
+      ref_lkup           = lkup[["ref_lkup"]],
+      valid_regions      = lkup$query_controls$region$values,
+      interpolation_list = lkup$interpolation_list
+    )
+
+    if (lcv$off_alt_agg == "both") {
+      ### STEP 4.2.1 Estimates for official aggregates ----
+      off_ret <-
+        # pip_grp(country         =  lcv$user_off_reg,
+        #         year            =  year,
+        #         povline         =  povline,
+        #         group_by        =  "wb",
+        #         welfare_type    =  welfare_type,
+        #         reporting_level =  reporting_level,
+        #         lkup            =  lkup,
+        #         censor          =  censor)
+        pip_grp_helper(lcv_country     = lcv$ctr_off_reg,
+                       country         = country,
+                       year            = year,
+                       povline         = povline,
+                       reporting_level = reporting_level,
+                       censor          = censor,
+                       fg_pip          = fg_pip_master)
+    } else {
+      ### STEP 4.2.2 Alternate aggregates only ----
+      ### Prepare necessary variables
+      off_ret <- NULL
+      alt_agg <- country
+    }
   }
 
   #   ________________________________________________________
   #   computations                                      ####
 
-  ## regional aggregates to be imputed -------
-
-  # If we want to append previous calculations or there is no previous
-  # calculation of off regions but we still have to input to missing data
-  # countries, we estimate official region estimates for such countries
+  ## STEP 4.3 Compute needed regional aggregates -------
+  ##  Alternate aggregates use the stats from corresponding official region
+  ##  to impute values for missing countries. As a result, even if an official
+  ##  region is not being requested by the user, we may need to compute its stats
+  ##  to compute the alternate regions stats.
+  ##  If we want to append previous calculations or there is no previous
+  ## calculation of off regions but we still have to input to missing data
+  ## countries, we estimate official region estimates for such countries
 
   if (lcv$grp_use %in% c("append", "not")) {
 
@@ -129,12 +133,13 @@ pip_grp_logic2 <- function(country         = "ALL",
       #         reporting_level =  reporting_level,
       #         lkup            =  lkup,
       #         censor          =  censor)
-    pip_grp_helper(country         = lcv$md_off_reg,
-                   year            = lcv$md_year,
-                   povline         = povline,
-                   reporting_level = reporting_level,
-                   censor          = censor,
-                   fg_pip          = fg_pip_master)
+      pip_grp_helper(lcv_country         = lcv$md_off_reg,
+                     country             = country,
+                     year                = lcv$md_year,
+                     povline             = povline,
+                     reporting_level     = reporting_level,
+                     censor              = censor,
+                     fg_pip              = fg_pip_master)
 
     if (lcv$grp_use == "append") {
       grp <- data.table::rbindlist(list(off_ret, grp))
@@ -162,7 +167,7 @@ pip_grp_logic2 <- function(country         = "ALL",
   # aggregate because of lack of coverage in the region. Eg. There is not data
   # for SAS in 2000, so for countries like AFG 2000 we can't input estimates
   md_grp <- merge(pop_md, grp,
-              by = c("region_code", "reporting_year"))
+                  by = c("region_code", "reporting_year"))
 
   ### Merge other region codes -----------
   md_grp[,
@@ -212,7 +217,7 @@ pip_grp_logic2 <- function(country         = "ALL",
     fdt         <- fdt[, ..common_vars]
     mdt         <- mdt[, ..common_vars]
 
-  ## Append with countries with missing data -----
+    ## Append with countries with missing data -----
     l_fg[[i]] <- data.table::rbindlist(list(fdt, mdt),
                                        use.names = TRUE,
                                        fill = TRUE)
@@ -262,7 +267,8 @@ pip_grp_logic2 <- function(country         = "ALL",
 }
 
 
-pip_grp_helper <- function(country,
+pip_grp_helper <- function(lcv_country,
+                           country,
                            year,
                            povline,
                            reporting_level,
@@ -271,7 +277,9 @@ pip_grp_helper <- function(country,
                            group_by = "wb"){
 
   # Filter countries
-  out <- fg_pip[fg_pip[["country_code"]] %chin% country, ]
+  keep_countries <- fg_pip[["country_code"]] %chin% lcv_country |
+    fg_pip[["wb_region_code"]] %chin% lcv_country
+  out <- fg_pip[keep_countries, ]
   # Filter years
   if (!"ALL" %in% year) {
     out <- out[out[["reporting_year"]] %in% as.numeric(year), ]
@@ -297,7 +305,7 @@ pip_grp_helper <- function(country,
     out <- pip_aggregate_by(
       df = out,
       group_lkup = lkup[["pop_region"]],
-      country = "ALL"
+      country = country
     )
 
     # Censor regional values
