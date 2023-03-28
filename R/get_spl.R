@@ -5,6 +5,7 @@
 #'
 #' @return data.frame
 #' @export
+#' @noRd
 
 get_spl <- function(country = "ALL",
                     data_dir) {
