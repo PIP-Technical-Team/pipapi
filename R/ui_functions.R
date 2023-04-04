@@ -612,3 +612,89 @@ ui_cp_download_single <- function(country,
 
   return(out)
 }
+
+
+ui_cp_download_multiple <- function(country,
+                                    povline = 1.9,
+                                    lkup) {
+
+
+  ### get indicator list of interest
+  ind_table <- pip(country = country,
+                   povline = povline,
+                   lkup = lkup,
+                   welfare_type = "all",
+                   reporting_level = "all")
+
+  ind_table <- ind_table[,c("country_code", "reporting_year",
+                            "headcount")]
+
+  ##NOTICE THAT THIS USES cp_lkups INSTEAD OF cp. I am using version
+  ##`20220909_2017_01_02_PROD` please check before running
+  lkup$cp_lkups$key_indicators$shared_prosperity <- NULL
+
+  dl <- lkup$cp_lkups$key_indicators
+
+
+  ### get key indicators and merge into ind_table
+  if (country != "all"){
+
+    dl <- lapply(dl,
+                 function(X) {
+
+                   X <- X[country_code %in% country,]
+
+                   return(X)
+
+                 })
+
+  }
+
+  dl <- lapply(dl,
+               function(X) {
+
+                 if ("latest" %in% names(X)){
+                   X[["latest"]] <- NULL
+                 }
+
+                 out <- merge(x = ind_table,
+                              y = X,
+                              all = TRUE)
+
+                 return(out)
+
+               })
+
+  dl <- Reduce(function(x, y) {
+
+                  merge(x,
+                        y,
+                        by = c("country_code", "reporting_year", "headcount"),
+                        all = TRUE)
+
+                  },
+               dl)
+
+  dl$headcount_national <- dl$headcount_national / 100
+
+  return(dl)
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
