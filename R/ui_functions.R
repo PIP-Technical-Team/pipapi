@@ -613,10 +613,19 @@ ui_cp_download_single <- function(country,
   return(out)
 }
 
+#' Country Profile Key Indicators download
+#'
+#' Helper function to download Country Profile data
+#'
+#' @inheritParams ui_cp_download
+#' @param indicators a list of the specific cp indicators to select
+#' @return list
+#' @keywords internal
 
 ui_cp_download_multiple <- function(country,
                                     povline = 1.9,
-                                    lkup) {
+                                    lkup,
+                                    indicators = "all") {
 
 
   ### get indicator list of interest
@@ -631,10 +640,26 @@ ui_cp_download_multiple <- function(country,
 
   ##NOTICE THAT THIS USES cp_lkups INSTEAD OF cp. I am using version
   ##`20220909_2017_01_02_PROD` please check before running
-  lkup$cp_lkups$key_indicators$shared_prosperity <- NULL
+  # lkup$cp_lkups$key_indicators$shared_prosperity <- NULL
 
   dl <- lkup$cp_lkups$key_indicators
 
+  ### include all the mpm and sp data as well
+  dl$mpm_headcount <- lkup$cp_lkups$charts$mpm[, c("country_code",
+                                                   "reporting_year",
+                                                   "mpm_headcount")]
+
+  sp_dt <- lkup$cp_lkups$charts$sp[,c("country_code",
+                                      "year_range",
+                                      "distribution",
+                                      "shared_prosperity")]
+
+  sp_dt <- dcast(sp_dt,
+                 country_code + year_range ~ distribution,
+                 value.var = "shared_prosperity",
+                 fun.aggregate = mean)
+
+  dl$shared_prosperity <- sp_dt
 
   ### get key indicators and merge into ind_table
   if (country != "all"){
@@ -644,42 +669,40 @@ ui_cp_download_multiple <- function(country,
 
                    X <- X[country_code %in% country,]
 
+                   if ("latest" %in% names(X)) {
+
+                     X <- X[, !(names(X) %in% "latest"), with = F]
+
+                   }
+
                    return(X)
 
                  })
 
   }
 
-  dl <- lapply(dl,
-               function(X) {
+  dl$headcount_national$headcount_national <-
+    dl$headcount_national$headcount_national / 100
 
-                 if ("latest" %in% names(X)){
-                   X[["latest"]] <- NULL
-                 }
+  dl$headcount <- ind_table
 
-                 out <- merge(x = ind_table,
-                              y = X,
-                              all = TRUE)
 
-                 return(out)
 
-               })
 
-  dl <- Reduce(function(x, y) {
 
-                  merge(x,
-                        y,
-                        by = c("country_code", "reporting_year", "headcount"),
-                        all = TRUE)
+  ### pick which indicators to show
 
-                  },
-               dl)
+  if (!all(indicators == "all")) {
 
-  dl$headcount_national <- dl$headcount_national / 100
+    dl <- dl[names(dl) %in% indicators]
+
+  }
+
+
+
+
 
   return(dl)
-
-
 
 }
 
