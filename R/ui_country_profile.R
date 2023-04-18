@@ -279,11 +279,12 @@ ui_cp_poverty_charts <- function(country,
   year_range <- c((selected_year - 3):(selected_year + 3))
   res_pov_mrv <-
     res_pov_mrv[reporting_year %in% year_range]
-  res_pov_mrv <-
-    res_pov_mrv[, c(
-      "country_code", "reporting_year",
-      "poverty_line", "headcount",
-      "reporting_level"
+  res_pov_mrv <- res_pov_mrv[, c("country_code",
+                                 "reporting_year",
+                                 "poverty_line",
+                                 "headcount",
+                                 "welfare_type",
+                                 "reporting_level"
     )]
   res_pov_mrv <-
     cp_pov_mrv_select_countries(res_pov_mrv, country)
