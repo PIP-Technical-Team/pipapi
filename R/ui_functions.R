@@ -613,7 +613,13 @@ ui_cp_download_single <- function(country,
   return(out)
 }
 
-
+#' Country Profile Key Indicators download
+#'
+#' Helper function to download Country Profile data
+#'
+#' @inheritParams ui_cp_download
+#' @return list
+#' @keywords internal
 ui_cp_download_multiple <- function(country,
                                     povline = 1.9,
                                     lkup,
