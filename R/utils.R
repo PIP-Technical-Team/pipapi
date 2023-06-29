@@ -456,7 +456,7 @@ subset_ctry_years <- function(country,
     } else {
       keep_regions <- rep(FALSE, length(lkup$country_code))
     }
-    keep_countries <- lkup$country_code %in% country
+    keep_countries <- lkup$country_code %chin% country
     keep <- keep & (keep_countries | keep_regions)
   }
 
@@ -474,9 +474,10 @@ subset_ctry_years <- function(country,
     keep <- keep & lkup$reporting_year %in% max_year
   }
   if (!year[1] %in% c("ALL", "MRV")) {
-    keep <- keep & lkup$reporting_year %in% year
+    keep <- keep & lkup$reporting_year %in% as.numeric(year)
   }
 
+  lkup <- as.data.frame(lkup)
   lkup <- lkup[keep, ]
 
   return(lkup)
@@ -542,7 +543,7 @@ select_years <- function(lkup, keep, year, country) {
   #                   .i := seq_len(.N),
   #                   by = .(country_code, reporting_year)]
 
-  dtmp <- data.table::copy(lkup)
+  dtmp <- lkup
 
   year       <- toupper(year)
   country    <- toupper(country)
@@ -579,8 +580,7 @@ select_years <- function(lkup, keep, year, country) {
   }
   # STEP 2 - If specific years are specified. Filter for these years
   if (!any(c("ALL", "MRV") %in% year)) {
-    keep_years <- keep_years & dtmp$reporting_year %in% year
-
+    keep_years <- keep_years & dtmp$reporting_year %in% as.numeric(year)
   }
 
   # STEP 3 - Otherwise return all years
