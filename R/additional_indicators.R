@@ -12,7 +12,8 @@ additional_indicators <- function(dt) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## get current var names --------
-  original_names <- names(dt)
+  df <- as.data.frame(dt)
+  original_names <- names(df)
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Add new navariables --------

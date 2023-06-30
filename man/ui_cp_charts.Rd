@@ -21,6 +21,8 @@ ui_cp_charts(
 to million)}
 
 \item{lkup}{list: A list of lkup tables}
+
+\item{lkup_hash}{character: hash of pip}
 }
 \value{
 list
