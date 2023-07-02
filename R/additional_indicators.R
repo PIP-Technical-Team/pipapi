@@ -12,7 +12,7 @@ additional_indicators <- function(dt) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## get current var names --------
-  df <- as.data.frame(dt)
+  df <- as.data.frame(dt[1, ])
   original_names <- names(df)
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
