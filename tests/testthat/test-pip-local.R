@@ -670,6 +670,17 @@ test_that("Additional indicators are returned correctly", {
     lkup = lkups
   )
 
+  nnames1 <- attr(adi, "new_indicators_names")
+
+  nreg <- names(reg)
+  nadi <- names(adi)
+
+  nnames2 <- nadi[!nadi %in% nreg]
+
+  expect_equal(sort(nnames1), sort(nnames2))
+  expect_gt(length(nadi), length(nreg))
+
+
 })
 
 # Check pip country name case insensitive ----
