@@ -217,6 +217,8 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param identity:[chr] One of "PROD" (production) (default), "INT" (internal) and "TEST"
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @param additional_ind:[bool] Additional indicators based on standard PIP output.
+#* Default is FALSE
 #* @serializer switch
 function(req) {
   # Process request
