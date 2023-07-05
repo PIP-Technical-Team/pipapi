@@ -339,16 +339,21 @@ create_query_controls <- function(svy_lkup,
     values = c(min = 0, max = 1),
     type = "numeric"
   )
-  # Fill gaps
-  fill_gaps <- aggregate <- long_format <- list(
-    values = c(TRUE, FALSE),
-    type = "logical"
-  )
+
+  # Boolean parameters
+  fill_gaps        <-
+    aggregate      <-
+    long_format    <-
+    additional_ind <-
+    list(values = c(TRUE, FALSE),
+         type = "logical")
+
   # Group by
   group_by <- list(
     values = c("none", "wb"),
     type = "character"
   )
+
   # Welfare type
   welfare_type <- list(
     values = c("all", sort(unique(c(
@@ -411,6 +416,7 @@ create_query_controls <- function(svy_lkup,
     fill_gaps       = fill_gaps,
     aggregate       = aggregate,
     long_format     = long_format,
+    additional_ind  = additional_ind,
     group_by        = group_by,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
