@@ -196,7 +196,7 @@ pip <- function(country         = "ALL",
 
   # Select columns
   if (additional_ind) {
-    out         <- additional_indicators(out)
+    additional_indicators(out)
     added_names <- attr(out, "new_indicators_names")
     names2keep  <- c(lkup$pip_cols, added_names)
 
