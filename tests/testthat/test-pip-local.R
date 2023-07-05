@@ -648,7 +648,31 @@ test_that("pop_share option is disabled for aggregate distributions", {
   expect_equal(pl$distribution_type, "aggregate")
 })
 
-#Check pip country name case insensitive
+# Check additional indicators -----
+
+test_that("Additional indicators are returned correctly", {
+  povline <- 2.15
+  country <- "PRY"
+  year <- 2018
+
+  reg <- pip(
+    country = country,
+    year    = year,
+    povline = povline,
+    lkup = lkups
+  )
+
+  adi <- pip(
+    country = country,
+    year    = year,
+    povline = povline,
+    additional_ind = TRUE,
+    lkup = lkups
+  )
+
+})
+
+# Check pip country name case insensitive ----
 
 test_that("pip country name case insensitive", {
   skip("Code to handle mixed casing has been moved to API filter level")
@@ -667,20 +691,22 @@ test_that("pip country name case insensitive", {
 })
 
 
-#Better error message when more than one data set is passed.
+# Better error message when more than one data set is passed /////
 
 test_that("error when more than one dataset is passed", {
 
   expect_error(
     pip(
       country = "all",
-      year = "all",
+      year    = "all",
       povline = 1.9,
-      lkup = lkups_ver
+      lkup    = lkups_ver
     ),
     "You are probably passing more than one dataset as lkup argument.
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD",
   fixed = TRUE
   )
 })
+
+
 
