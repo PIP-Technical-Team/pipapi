@@ -222,23 +222,9 @@ function(req) {
 #* @serializer switch
 function(req) {
   # Process request
-  params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[params$version]]
-  # # Subset lkup object to pass only required element and save some memory
-  # req_lkup_elements <- c("svy_lkup",
-  #                        "ref_lkup",
-  #                        "dist_stats",
-  #                        "interpolation_list",
-  #                        "query_controls",
-  #                        "pop_region",
-  #                        "censored",
-  #                        "pip_cols",
-  #                        "valid_years",
-  #                        "aux_files",
-  #                        "cache_data_id"
-  # )
-  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
-  params$format <- NULL
+  params         <- req$argsQuery
+  params$lkup    <- lkups$versions_paths[[params$version]]
+  params$format  <- NULL
   params$version <- NULL
 
   # Parallel processing for slow requests
@@ -267,24 +253,14 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* for all available versions
+#* @param additional_ind:[bool] Additional indicators based on standard PIP output.
+#* Default is FALSE
 #* @serializer switch
 function(req, res) {
   # Process request
-  params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[params$version]]
-  # # Subset lkup object to pass only required element and save some memory
-  # req_lkup_elements <- c("ref_lkup",
-  #                        "interpolation_list",
-  #                        "query_controls",
-  #                        "pop_region",
-  #                        "censored",
-  #                        "pip_cols",
-  #                        "valid_years",
-  #                        "aux_files",
-  #                        "cache_data_id"
-  # )
-  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
-  params$format <- NULL
+  params         <- req$argsQuery
+  params$lkup    <- lkups$versions_paths[[params$version]]
+  params$format  <- NULL
   params$version <- NULL
 
   # Parallel processing for slow requests

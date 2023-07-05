@@ -13,7 +13,8 @@ pip_grp_logic(
   reporting_level = c("all", "national"),
   lkup,
   censor = TRUE,
-  lkup_hash = lkup$cache_data_id$hash_pip_grp
+  lkup_hash = lkup$cache_data_id$hash_pip_grp,
+  additional_ind = FALSE
 )
 }
 \arguments{
@@ -35,6 +36,9 @@ sub-groups}
 \item{censor}{logical: Triggers censoring of country/year statistics}
 
 \item{lkup_hash}{character: hash of pip}
+
+\item{additional_ind}{logical: If TRUE add new set of indicators. Default if
+FALSE}
 }
 \value{
 data.table
