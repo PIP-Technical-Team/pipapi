@@ -3,8 +3,8 @@
 #' @param dt data.frame: country level out from PIP
 #'
 #' @return data.frame
-#' @noRd
-additional_indicators <- function(dt) {
+#' @keywords internal
+get_additional_indicators <- function(dt) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ADd variables   ---------
@@ -69,13 +69,13 @@ additional_indicators <- function(dt) {
 
 
 
-#' Add set of extra indicators to pip output
+#' Add set of extra indicators to pip output in aggregate data.
 #'
 #' @param dt data.frame: global/regional level  from PIP-grp
 #'
 #' @return data.frame
-#' @noRd
-additional_indicators_grp <- function(dt) {
+#' @keywords internal
+get_additional_indicators_grp <- function(dt) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ADd variables   ---------

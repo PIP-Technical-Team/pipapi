@@ -54,7 +54,7 @@ pip_grp_logic <- function(country         = "ALL",
 
     # Select columns
     if (additional_ind) {
-      additional_indicators_grp(res)
+      get_additional_indicators_grp(res)
     }
 
     #Order rows by country code and reporting year
@@ -214,7 +214,7 @@ pip_grp_logic <- function(country         = "ALL",
 
   # Select columns
   if (additional_ind) {
-    additional_indicators_grp(ret)
+    get_additional_indicators_grp(ret)
   }
 
   #Order rows by country code and reporting year
