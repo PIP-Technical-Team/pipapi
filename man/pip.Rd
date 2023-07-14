@@ -16,7 +16,8 @@ pip(
   ppp = NULL,
   lkup,
   censor = TRUE,
-  lkup_hash = lkup$cache_data_id$hash_pip
+  lkup_hash = lkup$cache_data_id$hash_pip,
+  additional_ind = FALSE
 )
 }
 \arguments{
@@ -44,6 +45,11 @@ sub-groups}
 \item{lkup}{list: A list of lkup tables}
 
 \item{censor}{logical: Triggers censoring of country/year statistics}
+
+\item{lkup_hash}{character: hash of pip}
+
+\item{additional_ind}{logical: If TRUE add new set of indicators. Default if
+FALSE}
 }
 \value{
 data.table

@@ -15,28 +15,14 @@ pip_grp_logic <- function(country         = "ALL",
                           reporting_level = c("all", "national"),
                           lkup,
                           censor          = TRUE,
-                          lkup_hash       = lkup$cache_data_id$hash_pip_grp) {
+                          lkup_hash       = lkup$cache_data_id$hash_pip_grp,
+                          additional_ind  = FALSE) {
   #   ________________________________________________________________________
   #   Set up                                                      ####
 
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
-
-
-  #   ______________________________________________________________
-  #   Defenses                                                ####
-  # check_inputs_pip_grp_logic(
-  #   country         =  country,
-  #   year            =  year,
-  #   povline         =  povline,
-  #   popshare        =  popshare,
-  #   group_by        =  group_by,
-  #   welfare_type    =  welfare_type,
-  #   reporting_level =  reporting_level,
-  #   lkup            =  lkup,
-  #   censor          =  censor
-  # )
 
   #   ___________________________________________________________________
   #   filter countries and years                                 ####
@@ -65,6 +51,15 @@ pip_grp_logic <- function(country         = "ALL",
             reporting_level =  reporting_level,
             lkup            =  lkup,
             censor          =  censor)
+
+    # Select columns
+    if (additional_ind) {
+      get_additional_indicators_grp(res)
+    }
+
+    #Order rows by country code and reporting year
+    setorder(res, region_code , reporting_year)
+
     return(res)
 
   } else if (lcv$off_alt_agg == "both") {
@@ -216,6 +211,15 @@ pip_grp_logic <- function(country         = "ALL",
   if (censor) {
     ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
   }
+
+  # Select columns
+  if (additional_ind) {
+    get_additional_indicators_grp(ret)
+  }
+
+  #Order rows by country code and reporting year
+  setorder(ret, region_code , reporting_year)
+
 
   #   ____________________________________________________________________
   #   Return                                                         ####

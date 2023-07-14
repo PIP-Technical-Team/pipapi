@@ -33,6 +33,8 @@ sub-groups}
 \item{lkup}{list: A list of lkup tables}
 
 \item{censor}{logical: Triggers censoring of country/year statistics}
+
+\item{lkup_hash}{character: hash of pip}
 }
 \value{
 data.table

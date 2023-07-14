@@ -16,6 +16,9 @@
 #' @param ppp numeric: Custom Purchase Power Parity value
 #' @param lkup list: A list of lkup tables
 #' @param censor logical: Triggers censoring of country/year statistics
+#' @param lkup_hash character: hash of pip
+#' @param additional_ind logical: If TRUE add new set of indicators. Default if
+#'   FALSE
 #'
 #' @return data.table
 #' @examples
@@ -61,7 +64,9 @@ pip <- function(country         = "ALL",
                 ppp             = NULL,
                 lkup,
                 censor          = TRUE,
-                lkup_hash       = lkup$cache_data_id$hash_pip) {
+                lkup_hash       = lkup$cache_data_id$hash_pip,
+                additional_ind  = FALSE) {
+
 
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
@@ -188,11 +193,24 @@ pip <- function(country         = "ALL",
     out <- censor_rows(out, lkup[["censored"]], type = "countries")
   }
 
+
   # Select columns
-  out <- out[, .SD, .SDcols = lkup$pip_cols]
+  if (additional_ind) {
+    get_additional_indicators(out)
+    added_names <- attr(out, "new_indicators_names")
+    names2keep  <- c(lkup$pip_cols, added_names)
+
+    # Keep relevant variables
+    out  <- out[, ..names2keep]
+
+  } else {
+
+    out <- out[, .SD, .SDcols = lkup$pip_cols]
+
+  }
 
   #Order rows by country code and reporting year
-  out <- out[order(country_code, reporting_year)]
+  setorder(out, country_code, reporting_year, reporting_level, welfare_type)
 
 
   return(out)

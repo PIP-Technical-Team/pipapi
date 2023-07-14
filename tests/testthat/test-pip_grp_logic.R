@@ -38,7 +38,9 @@ test_that("expected results", {
   lp$year    <- year
 
   de1 <- do.call(pip_grp_logic, lp)
+  #de1 <- de1 |> dplyr::arrange(region_code, reporting_year) # TEMPORARY FIX FOR THE TEST TO PASS
   dc <- do.call(pip_grp, lp)
+  #dc <- dc |> dplyr::arrange(region_code, reporting_year) # TEMPORARY FIX FOR THE TEST TO PASS
   expect_equal(de1, dc, label = "same results for official aggregates
                between grp and grp_logic")
 
