@@ -22,30 +22,30 @@ get_additional_indicators <- function(dt) {
       bottom40 := decile1 + decile2 + decile3 + decile4,
   ][,
     `:=`(
-      pop_in_poverty = wbpip::get_lh_number_poor(
+      pop_in_poverty = wbpip::get_number_poor(
            headcount = headcount,
            pop       = reporting_pop),
 
-      average_shortfall = wbpip::get_lh_average_shortfall(
+      average_shortfall = wbpip::get_average_shortfall(
         headcount = headcount,
         povgap    = poverty_gap,
         povline   = poverty_line),
 
-      total_shortfall = wbpip::get_lh_total_shortfall(
+      total_shortfall = wbpip::get_total_shortfall(
         headcount = headcount,
         pop       = reporting_pop,
         povgap    = poverty_gap,
         povline   = poverty_line),
 
-      income_gap_ratio = wbpip::get_lh_income_gap_ratio(
+      income_gap_ratio = wbpip::get_income_gap_ratio(
         headcount = headcount,
         povgap    = poverty_gap),
 
-      palma_ratio = wbpip::get_lh_palma_ratio(
+      palma_ratio = wbpip::get_palma_ratio(
         top10     = decile10,
         bottom40  = bottom40),
 
-      p90p10_ratio = wbpip::get_lh_9010_ratio(top10    = decile9,
+      p90p10_ratio = wbpip::get_9010_ratio(top10    = decile9,
                                               bottom10 = decile1)
 
     )
