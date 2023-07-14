@@ -1,6 +1,7 @@
 # pipapi (development version)
 
 ## New features
+- New indicators available. Optional with `additional_ind = TRUE`
 - /citation endpoint now returns additional information: `version_id` and `accessed_date`
 - Limit accepted poverty lines to 3 decimals
 - Add new /version parameter that returns information about a specific data version
