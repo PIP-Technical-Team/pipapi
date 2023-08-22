@@ -54,7 +54,8 @@ Imports:
     future,
     promises,
     methods,
-    joyn
+    joyn,
+    qs
 Remotes:
     PIP-Technical-Team/wbpip@master
 Depends: 
