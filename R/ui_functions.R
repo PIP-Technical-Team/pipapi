@@ -184,11 +184,15 @@ ui_pc_regional <- function(country = "ALL",
 #' Provides numbers that will population for country profiles key indicators.
 #'
 #' @inheritParams pip
+#' @param indicators returns all key indicators when indicators is set to ALL,
+#' otherwise will return one or more of c("headcount", "mpm_headcount",
+#' "headcount_national", "reporting_pop", "gni", "gdp_growth", "shared_prosperity")
 #' @return list
 #' @export
 ui_cp_key_indicators <- function(country = "AGO",
                                  povline = NULL,
-                                 lkup) {
+                                 lkup,
+                                 indicators = "ALL") {
 
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
@@ -197,12 +201,21 @@ ui_cp_key_indicators <- function(country = "AGO",
     country_codes <- unique(lkup$svy_lkup$country_code)
     dl <- lapply(country_codes, function(country)
       ui_cp_key_indicators_single(
-        country = country, povline = povline, lkup = lkup))
+        country = country, povline = povline, lkup = lkup, year = "ALL"))
   } else {
     dl <- ui_cp_key_indicators_single(
-      country = country, povline = povline, lkup = lkup)
+      country = country, povline = povline, lkup = lkup, year = "ALL")
     dl <- list(dl)
   }
+
+  ### select which indicators to show
+
+  if (!all(indicators == "ALL")) {
+
+    dl[[1]] <- dl[[1]][names(dl[[1]]) %in% indicators]
+
+  }
+
   return(dl)
 
 }
@@ -216,17 +229,18 @@ ui_cp_key_indicators <- function(country = "AGO",
 #' @keywords internal
 ui_cp_key_indicators_single <- function(country,
                                         povline,
-                                        lkup) {
+                                        lkup,
+                                        year) {
 
   if (is.null(povline)) {
     poverty_lines <- lkup$pl_lkup$poverty_line
     hc <- lapply(poverty_lines, function(pl) {
-      ui_cp_ki_headcount(country, pl, lkup)
+      ui_cp_ki_headcount(country, pl, lkup, year)
     })
     hc <- data.table::rbindlist(hc)
     # names(hc) <- poverty_lines
   } else {
-    hc <- ui_cp_ki_headcount(country, povline, lkup)
+    hc <- ui_cp_ki_headcount(country, povline, lkup, year)
     # hc <- list(hc)
     # names(hc) <- povline
   }
@@ -247,10 +261,10 @@ ui_cp_key_indicators_single <- function(country,
 #' @inheritParams cp_key_indicators
 #' @return data.table
 #' @noRd
-ui_cp_ki_headcount <- function(country, povline, lkup) {
+ui_cp_ki_headcount <- function(country, povline, lkup, year = "mrv") {
 
   # Fetch most recent year (for CP-display)
-  res <- pip(country = country, year = "mrv",
+  res <- pip(country = country, year = year,
              povline = povline, popshare = NULL,
              welfare_type = "all",
              reporting_level = "all", ppp = NULL,
@@ -612,3 +626,19 @@ ui_cp_download_single <- function(country,
 
   return(out)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
