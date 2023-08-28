@@ -184,11 +184,15 @@ ui_pc_regional <- function(country = "ALL",
 #' Provides numbers that will population for country profiles key indicators.
 #'
 #' @inheritParams pip
+#' @param indicators returns all key indicators when indicators is set to ALL,
+#' otherwise will return one or more of c("headcount", "mpm_headcount",
+#' "headcount_national", "reporting_pop", "gni", "gdp_growth", "shared_prosperity")
 #' @return list
 #' @export
 ui_cp_key_indicators <- function(country = "AGO",
                                  povline = NULL,
-                                 lkup) {
+                                 lkup,
+                                 indicators = "ALL") {
 
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
@@ -197,12 +201,21 @@ ui_cp_key_indicators <- function(country = "AGO",
     country_codes <- unique(lkup$svy_lkup$country_code)
     dl <- lapply(country_codes, function(country)
       ui_cp_key_indicators_single(
-        country = country, povline = povline, lkup = lkup))
+        country = country, povline = povline, lkup = lkup, year = "ALL"))
   } else {
     dl <- ui_cp_key_indicators_single(
-      country = country, povline = povline, lkup = lkup)
+      country = country, povline = povline, lkup = lkup, year = "ALL")
     dl <- list(dl)
   }
+
+  ### select which indicators to show
+
+  if (!all(indicators == "ALL")) {
+
+    dl[[1]] <- dl[[1]][names(dl[[1]]) %in% indicators]
+
+  }
+
   return(dl)
 
 }
@@ -216,17 +229,18 @@ ui_cp_key_indicators <- function(country = "AGO",
 #' @keywords internal
 ui_cp_key_indicators_single <- function(country,
                                         povline,
-                                        lkup) {
+                                        lkup,
+                                        year) {
 
   if (is.null(povline)) {
     poverty_lines <- lkup$pl_lkup$poverty_line
     hc <- lapply(poverty_lines, function(pl) {
-      ui_cp_ki_headcount(country, pl, lkup)
+      ui_cp_ki_headcount(country, pl, lkup, year)
     })
     hc <- data.table::rbindlist(hc)
     # names(hc) <- poverty_lines
   } else {
-    hc <- ui_cp_ki_headcount(country, povline, lkup)
+    hc <- ui_cp_ki_headcount(country, povline, lkup, year)
     # hc <- list(hc)
     # names(hc) <- povline
   }
@@ -247,10 +261,10 @@ ui_cp_key_indicators_single <- function(country,
 #' @inheritParams cp_key_indicators
 #' @return data.table
 #' @noRd
-ui_cp_ki_headcount <- function(country, povline, lkup) {
+ui_cp_ki_headcount <- function(country, povline, lkup, year = "mrv") {
 
   # Fetch most recent year (for CP-display)
-  res <- pip(country = country, year = "mrv",
+  res <- pip(country = country, year = year,
              povline = povline, popshare = NULL,
              welfare_type = "all",
              reporting_level = "all", ppp = NULL,
@@ -611,97 +625,6 @@ ui_cp_download_single <- function(country,
   out$headcount_national <- out$headcount_national / 100
 
   return(out)
-}
-
-#' Country Profile Key Indicators download
-#'
-#' Helper function to download Country Profile data
-#'
-#' @inheritParams ui_cp_download
-#' @return list
-#' @keywords internal
-ui_cp_download_multiple <- function(country,
-                                    povline = 1.9,
-                                    lkup,
-                                    indicators = "all") {
-
-
-  ### get indicator list of interest
-  ind_table <- pip(country = country,
-                   povline = povline,
-                   lkup = lkup,
-                   welfare_type = "all",
-                   reporting_level = "all")
-
-  ind_table <- ind_table[,c("country_code", "reporting_year",
-                            "headcount")]
-
-  ##NOTICE THAT THIS USES cp_lkups INSTEAD OF cp. I am using version
-  ##`20220909_2017_01_02_PROD` please check before running
-  # lkup$cp_lkups$key_indicators$shared_prosperity <- NULL
-
-  dl <- lkup$cp_lkups$key_indicators
-
-  ### include all the mpm and sp data as well
-  dl$mpm_headcount <- lkup$cp_lkups$charts$mpm[, c("country_code",
-                                                   "reporting_year",
-                                                   "mpm_headcount")]
-
-  sp_dt <- lkup$cp_lkups$charts$sp[,c("country_code",
-                                      "year_range",
-                                      "distribution",
-                                      "shared_prosperity")]
-
-  sp_dt <- dcast(sp_dt,
-                 country_code + year_range ~ distribution,
-                 value.var = "shared_prosperity",
-                 fun.aggregate = mean)
-
-  dl$shared_prosperity <- sp_dt
-
-  ### get key indicators and merge into ind_table
-  if (country != "all"){
-
-    dl <- lapply(dl,
-                 function(X) {
-
-                   X <- X[country_code %in% country,]
-
-                   if ("latest" %in% names(X)) {
-
-                     X <- X[, !(names(X) %in% "latest"), with = F]
-
-                   }
-
-                   return(X)
-
-                 })
-
-  }
-
-  dl$headcount_national$headcount_national <-
-    dl$headcount_national$headcount_national / 100
-
-  dl$headcount <- ind_table
-
-
-
-
-
-  ### pick which indicators to show
-
-  if (!all(indicators == "all")) {
-
-    dl <- dl[names(dl) %in% indicators]
-
-  }
-
-
-
-
-
-  return(dl)
-
 }
 
 
