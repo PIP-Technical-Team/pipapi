@@ -232,7 +232,7 @@ test_that("Imputation is working", {
     fill_gaps = TRUE,
     lkup      = lkups
   )
-  # Why is this correct? E.g. tmp %>% group_by(country_code) %>% summarise(n = n())
+  # Why is this correct? E.g. tmp |> group_by(country_code) |> summarise(n = n())
   # expect_equal(nrow(tmp), 6680)
   # Expect there are no duplicates
   expect_equal(nrow(unique(tmp[, c("country_code",
