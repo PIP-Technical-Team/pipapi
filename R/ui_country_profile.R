@@ -13,16 +13,16 @@ ui_cp_key_indicators <- function(country   = "AGO",
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
-  if (country == "all") {
-    country_codes <- unique(lkup$svy_lkup$country_code)
-    dl <- lapply(country_codes, function(country)
-      ui_cp_key_indicators_single(
-        country = country, povline = povline, lkup = lkup))
-  } else {
+  # if (country == "all") {
+  #   country_codes <- unique(lkup$svy_lkup$country_code)
+  #   dl <- lapply(country_codes, function(country)
+  #     ui_cp_key_indicators_single(
+  #       country = country, povline = povline, lkup = lkup))
+  # } else {
     dl <- ui_cp_key_indicators_single(
       country = country, povline = povline, lkup = lkup)
     dl <- list(dl)
-  }
+  # }
   return(dl)
 
 }
@@ -38,22 +38,22 @@ ui_cp_key_indicators_single <- function(country,
                                         povline,
                                         lkup) {
 
-  if (is.null(povline)) {
-    poverty_lines <- lkup$pl_lkup$poverty_line
-    hc <- lapply(poverty_lines, function(pl) {
-      ui_cp_ki_headcount(country = country,
-                         povline = pl,
-                         lkup = lkup)
-    })
-    hc <- data.table::rbindlist(hc)
+  # if (is.null(povline)) {
+  #   poverty_lines <- lkup$pl_lkup$poverty_line
+  #   hc <- lapply(poverty_lines, function(pl) {
+  #     ui_cp_ki_headcount(country = country,
+  #                        povline = pl,
+  #                        lkup = lkup)
+  #   })
+  #   hc <- data.table::rbindlist(hc)
     # names(hc) <- poverty_lines
-  } else {
+  # } else {
     hc <- ui_cp_ki_headcount(country = country,
                              povline = povline,
                              lkup = lkup)
     # hc <- list(hc)
     # names(hc) <- povline
-  }
+  # }
 
   dl <- lapply(lkup[["cp_lkups"]]$key_indicators, function(x) {
     x[country_code == country]
@@ -127,26 +127,26 @@ ui_cp_charts <- function(country   = "AGO",
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
-  if (country == "all") {
-    country_codes <- unique(lkup$svy_lkup$country_code)
-    pov_lkup <- pip(country         = "all",
-                    year            = "all",
-                    povline         = povline,
-                    lkup            = lkup)
-    dl <- lapply(country_codes, function(country) {
-      ui_cp_charts_single(country = country, povline = povline,
-                          pop_units = pop_units, lkup = lkup,
-                          pov_lkup = pov_lkup)
-    })
-    names(dl) <- country_codes
-  } else {
+  # if (country == "all") {
+  #   country_codes <- unique(lkup$svy_lkup$country_code)
+  #   pov_lkup <- pip(country         = "all",
+  #                   year            = "all",
+  #                   povline         = povline,
+  #                   lkup            = lkup)
+  #   dl <- lapply(country_codes, function(country) {
+  #     ui_cp_charts_single(country = country, povline = povline,
+  #                         pop_units = pop_units, lkup = lkup,
+  #                         pov_lkup = pov_lkup)
+  #   })
+  #   names(dl) <- country_codes
+  # } else {
     dl <- ui_cp_charts_single(country = country,
                               povline = povline,
                               pop_units = pop_units,
                               lkup = lkup)
     dl <- list(dl)
     names(dl) <- country
-  }
+  # }
   return(dl)
 }
 
@@ -156,8 +156,10 @@ ui_cp_charts <- function(country   = "AGO",
 #' @param pov_lkup data.frame: Look up table for poverty charts.
 #' @return list
 #' @keywords internal
-ui_cp_charts_single <- function(country, povline,
-                                pop_units, lkup,
+ui_cp_charts_single <- function(country,
+                                povline,
+                                pop_units,
+                                lkup,
                                 pov_lkup = NULL) {
 
   # Create list with poverty charts data
@@ -167,6 +169,7 @@ ui_cp_charts_single <- function(country, povline,
     pop_units = pop_units,
     lkup = lkup,
     pov_lkup = pov_lkup)
+
   dl <- list(dl)
   dl <- list(pov_charts = dl)
 
@@ -238,10 +241,10 @@ ui_cp_poverty_charts <- function(country,
 
   # Fetch data for poverty bar chart
   region <-
-    lkup$svy_lkup[country_code == country]$region_code %>%
+    lkup$svy_lkup[country_code == country]$region_code |>
     unique()
   countries <-
-    lkup$svy_lkup[region_code == region]$country_code %>%
+    lkup$svy_lkup[region_code == region]$country_code |>
     unique()
 
   if (is.null(pov_lkup)) {
