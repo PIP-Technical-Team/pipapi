@@ -311,32 +311,32 @@ test_that("ui_cp_key_indicators() works as expected", {
   )
   expect_identical(dl[[1]]$headcount$poverty_line, 1.9)
 
-  # All countries
-  dl <- ui_cp_key_indicators(country = "all", povline = 1.9, lkup = lkups2)
-  expect_length(dl, 2) # 2 countries
-  expect_length(dl[[1]], 7) # # 7 KI objects
-  expect_identical(
-    names(dl[[2]]),
-    c(
-      "headcount", "headcount_national", "mpm_headcount",
-      "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
-    )
-  )
-  expect_identical(dl[[2]]$headcount$poverty_line, 1.9)
+  # All countries - NO LONGER SUPPORTED (single country only)
+  # dl <- ui_cp_key_indicators(country = "all", povline = 1.9, lkup = lkups2)
+  # expect_length(dl, 2) # 2 countries
+  # expect_length(dl[[1]], 7) # # 7 KI objects
+  # expect_identical(
+  #   names(dl[[2]]),
+  #   c(
+  #     "headcount", "headcount_national", "mpm_headcount",
+  #     "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
+  #   )
+  # )
+  # expect_identical(dl[[2]]$headcount$poverty_line, 1.9)
 
-  # All countries and poverty lines
-  dl <- ui_cp_key_indicators(country = "all", lkup = lkups2)
-  expect_length(dl, 2) # 2 countries
-  expect_length(dl[[1]], 7) # # 7 KI objects
-  expect_equal(nrow(dl[[1]]$headcount), 10) # 10 poverty lines
-  expect_identical(
-    names(dl[[2]]),
-    c(
-      "headcount", "headcount_national", "mpm_headcount",
-      "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
-    )
-  )
-  expect_identical(nrow(dl[[2]]$headcount), length(lkups2$pl_lkup$name))
+  # All countries and poverty lines - NO LONGER SUPPORTED (single country only)
+  # dl <- ui_cp_key_indicators(country = "all", lkup = lkups2)
+  # expect_length(dl, 2) # 2 countries
+  # expect_length(dl[[1]], 7) # # 7 KI objects
+  # expect_equal(nrow(dl[[1]]$headcount), 10) # 10 poverty lines
+  # expect_identical(
+  #   names(dl[[2]]),
+  #   c(
+  #     "headcount", "headcount_national", "mpm_headcount",
+  #     "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
+  #   )
+  # )
+  # expect_identical(nrow(dl[[2]]$headcount), length(lkups2$pl_lkup$name))
 
   # Only CP relevant surveys
   dl <- ui_cp_key_indicators(country = "POL", povline = 1.9, lkup = lkups)
@@ -360,20 +360,20 @@ test_that("ui_cp_charts() works as expected", {
   expect_identical(names(dl1[[1]]$pov_charts[[1]]),
                    c("pov_trend", "pov_mrv"))
 
-    # All countries
-  dl3 <- ui_cp_charts(country = "all", povline = 1.9, lkup = lkups)
-
-  expect_length(dl3, length(lkups$query_controls$country$values) -
-                  length(lkups$query_controls$region$values)) # All countries
-  expect_length(dl3[[2]], 5) # 5 chart objects (2 inside pov_charts)
-  expect_length(dl3[[2]]$pov_charts, 1) # 1 poverty line
-  expect_identical(names(dl3[[2]]), c(
-    "pov_charts", "ineq_trend",
-    "ineq_bar", "mpm", "sp"
-  ))
-  expect_identical(names(dl3[[2]]$pov_charts[[1]]),
-                   c("pov_trend", "pov_mrv"))
-  expect_equal(dl1$AGO, dl3$AGO)
+    # All countries - NO LONGER SUPPORTED (single country only)
+  # dl3 <- ui_cp_charts(country = "all", povline = 1.9, lkup = lkups)
+  #
+  # expect_length(dl3, length(lkups$query_controls$country$values) -
+  #                 length(lkups$query_controls$region$values)) # All countries
+  # expect_length(dl3[[2]], 5) # 5 chart objects (2 inside pov_charts)
+  # expect_length(dl3[[2]]$pov_charts, 1) # 1 poverty line
+  # expect_identical(names(dl3[[2]]), c(
+  #   "pov_charts", "ineq_trend",
+  #   "ineq_bar", "mpm", "sp"
+  # ))
+  # expect_identical(names(dl3[[2]]$pov_charts[[1]]),
+  #                  c("pov_trend", "pov_mrv"))
+  # expect_equal(dl1$AGO, dl3$AGO)
 
   # Only CP relevant surveys
   dl <- ui_cp_charts(country = "POL", povline = 1.9, lkup = lkups)
