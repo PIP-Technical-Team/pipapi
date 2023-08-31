@@ -651,28 +651,9 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-  # # Subset lkup object to pass only required element and save some memory
-  # req_lkup_elements <- c("svy_lkup",
-  #                        "dist_stats",
-  #                        "query_controls",
-  #                        "pop_region",
-  #                        "censored",
-  #                        "pip_cols",
-  #                        "valid_years",
-  #                        "aux_files",
-  #                        "pl_lkup",
-  #                        "cp_lkups",
-  #                        "cache_data_id"
-  # )
-  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
+
   params$version <- NULL
-  if (params$country == "ALL") {
-    promises::future_promise({
-      do.call(pipapi::ui_cp_charts, params)
-    }, seed = TRUE)
-  } else {
     do.call(pipapi::ui_cp_charts, params)
-  }
 }
 
 #* Return Country Profile - Downloads

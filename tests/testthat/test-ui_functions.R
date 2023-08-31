@@ -311,33 +311,6 @@ test_that("ui_cp_key_indicators() works as expected", {
   )
   expect_identical(dl[[1]]$headcount$poverty_line, 1.9)
 
-  # All countries - NO LONGER SUPPORTED (single country only)
-  # dl <- ui_cp_key_indicators(country = "all", povline = 1.9, lkup = lkups2)
-  # expect_length(dl, 2) # 2 countries
-  # expect_length(dl[[1]], 7) # # 7 KI objects
-  # expect_identical(
-  #   names(dl[[2]]),
-  #   c(
-  #     "headcount", "headcount_national", "mpm_headcount",
-  #     "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
-  #   )
-  # )
-  # expect_identical(dl[[2]]$headcount$poverty_line, 1.9)
-
-  # All countries and poverty lines - NO LONGER SUPPORTED (single country only)
-  # dl <- ui_cp_key_indicators(country = "all", lkup = lkups2)
-  # expect_length(dl, 2) # 2 countries
-  # expect_length(dl[[1]], 7) # # 7 KI objects
-  # expect_equal(nrow(dl[[1]]$headcount), 10) # 10 poverty lines
-  # expect_identical(
-  #   names(dl[[2]]),
-  #   c(
-  #     "headcount", "headcount_national", "mpm_headcount",
-  #     "reporting_pop", "gni", "gdp_growth", "shared_prosperity"
-  #   )
-  # )
-  # expect_identical(nrow(dl[[2]]$headcount), length(lkups2$pl_lkup$name))
-
   # Only CP relevant surveys
   dl <- ui_cp_key_indicators(country = "POL", povline = 1.9, lkup = lkups)
   expect_equal(nrow(dl[[1]]$headcount), 1)
@@ -359,21 +332,6 @@ test_that("ui_cp_charts() works as expected", {
   ))
   expect_identical(names(dl1[[1]]$pov_charts[[1]]),
                    c("pov_trend", "pov_mrv"))
-
-    # All countries - NO LONGER SUPPORTED (single country only)
-  # dl3 <- ui_cp_charts(country = "all", povline = 1.9, lkup = lkups)
-  #
-  # expect_length(dl3, length(lkups$query_controls$country$values) -
-  #                 length(lkups$query_controls$region$values)) # All countries
-  # expect_length(dl3[[2]], 5) # 5 chart objects (2 inside pov_charts)
-  # expect_length(dl3[[2]]$pov_charts, 1) # 1 poverty line
-  # expect_identical(names(dl3[[2]]), c(
-  #   "pov_charts", "ineq_trend",
-  #   "ineq_bar", "mpm", "sp"
-  # ))
-  # expect_identical(names(dl3[[2]]$pov_charts[[1]]),
-  #                  c("pov_trend", "pov_mrv"))
-  # expect_equal(dl1$AGO, dl3$AGO)
 
   # Only CP relevant surveys
   dl <- ui_cp_charts(country = "POL", povline = 1.9, lkup = lkups)
@@ -445,5 +403,127 @@ test_that("ui_svy_meta() works as expected", {
     names(res$metadata[[1]]),
     expected_metadata
   )
+
+})
+
+test_that("cp_correct_reporting_level() is working as expected for countries with 3 reporting levels", {
+  # China returns national, urban, and rural data
+  region <-
+    lkups$svy_lkup[country_code == "CHN"]$region_code |>
+    unique()
+  # All countries from the same region
+  countries <-
+    lkups$svy_lkup[region_code == region]$country_code |>
+    unique()
+
+  tmp <- pip(country         = "CHN",
+             year            = "all",
+             povline         = povline,
+             lkup            = lkup)
+  expect_equal(length(unique(tmp$reporting_level)), 3)
+
+  tmp2 <- cp_correct_reporting_level(tmp)
+  expect_equal(length(unique(tmp2$reporting_level)), 1)
+  expect_equal(unique(tmp2$reporting_level), "national")
+})
+
+test_that("cp_correct_reporting_level() is working as expected for countries with 1 sub-national reporting level", {
+  # ARG returns only sub-national data
+  region <-
+    lkups$svy_lkup[country_code == "ARG"]$region_code |>
+    unique()
+  # All countries from the same region
+  countries <-
+    lkups$svy_lkup[region_code == region]$country_code |>
+    unique()
+
+  tmp <- pip(country         = "ARG",
+             year            = "all",
+             povline         = povline,
+             lkup            = lkup)
+  expect_equal(length(unique(tmp$reporting_level)), 1)
+  expect_equal(unique(tmp$reporting_level), "urban")
+
+  tmp2 <- cp_correct_reporting_level(tmp)
+  expect_equal(length(unique(tmp2$reporting_level)), 1)
+  expect_equal(unique(tmp2$reporting_level), "urban")
+})
+
+test_that("cp_correct_reporting_level() is working as expected for countries with 2 reporting levels: 1 national, 1 sub-national", {
+  # COL returns urban and national data
+  region <-
+    lkups$svy_lkup[country_code == "COL"]$region_code |>
+    unique()
+  # All countries from the same region
+  countries <-
+    lkups$svy_lkup[region_code == region]$country_code |>
+    unique()
+
+  tmp <- pip(country         = "COL",
+             year            = "all",
+             povline         = povline,
+             lkup            = lkup)
+  expect_equal(length(unique(tmp$reporting_level)), 2)
+
+  tmp2 <- cp_correct_reporting_level(tmp)
+  expect_equal(length(unique(tmp2$reporting_level)), 1)
+  expect_equal(unique(tmp2$reporting_level), "national")
+})
+
+test_that("cp_correct_reporting_level() is working as expected for countries with 1 national reporting level", {
+  # FRA returns only national data
+  region <-
+    lkups$svy_lkup[country_code == "FRA"]$region_code |>
+    unique()
+  # All countries from the same region
+  countries <-
+    lkups$svy_lkup[region_code == region]$country_code |>
+    unique()
+
+  tmp <- pip(country         = "FRA",
+             year            = "all",
+             povline         = povline,
+             lkup            = lkup)
+  expect_equal(length(unique(tmp$reporting_level)), 1)
+  expect_equal(unique(tmp$reporting_level), "national")
+
+  tmp2 <- cp_correct_reporting_level(tmp)
+  expect_equal(length(unique(tmp2$reporting_level)), 1)
+  expect_equal(unique(tmp2$reporting_level), "national")
+})
+
+test_that("ui_cp_charts() optimized version returns same results as previous version", {
+  # COL
+  dl1 <- ui_cp_charts(country = c("COL"), povline = 1.9, lkup = lkups)
+  dl2 <- ui_cp_charts_optim(country = c("COL"), povline = 1.9, lkup = lkups)
+  expect_equal(dl1, dl2)
+
+  # ARG
+  dl1 <- ui_cp_charts(country = c("ARG"), povline = 1.9, lkup = lkups)
+  dl2 <- ui_cp_charts_optim(country = c("ARG"), povline = 1.9, lkup = lkups)
+  expect_equal(dl1, dl2)
+
+  # CHN
+  dl1 <- ui_cp_charts(country = c("CHN"), povline = 1.9, lkup = lkups)
+  dl2 <- ui_cp_charts_optim(country = c("CHN"), povline = 1.9, lkup = lkups)
+  expect_equal(dl1, dl2)
+
+})
+
+test_that("ui_cp_key_indicators() optimized version returns same results as previous version", {
+  # COL
+  dl1 <- ui_cp_key_indicators(country = c("COL"), povline = 1.9, lkup = lkups)
+  dl2 <- ui_cp_key_indicators_optim(country = c("COL"), povline = 1.9, lkup = lkups)
+  expect_equal(dl1, dl2)
+
+  # ARG
+  dl1 <- ui_cp_key_indicators(country = c("ARG"), povline = 1.9, lkup = lkups)
+  dl2 <- ui_cp_key_indicators_optim(country = c("ARG"), povline = 1.9, lkup = lkups)
+  expect_equal(dl1, dl2)
+
+  # CHN
+  dl1 <- ui_cp_key_indicators(country = c("CHN"), povline = 1.9, lkup = lkups)
+  dl2 <- ui_cp_key_indicators_optim(country = c("CHN"), povline = 1.9, lkup = lkups)
+  expect_equal(dl1, dl2)
 
 })
