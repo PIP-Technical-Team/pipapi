@@ -13,16 +13,9 @@ ui_cp_key_indicators <- function(country   = "AGO",
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
-  # if (country == "all") {
-  #   country_codes <- unique(lkup$svy_lkup$country_code)
-  #   dl <- lapply(country_codes, function(country)
-  #     ui_cp_key_indicators_single(
-  #       country = country, povline = povline, lkup = lkup))
-  # } else {
     dl <- ui_cp_key_indicators_single(
       country = country, povline = povline, lkup = lkup)
     dl <- list(dl)
-  # }
   return(dl)
 
 }
@@ -38,22 +31,9 @@ ui_cp_key_indicators_single <- function(country,
                                         povline,
                                         lkup) {
 
-  # if (is.null(povline)) {
-  #   poverty_lines <- lkup$pl_lkup$poverty_line
-  #   hc <- lapply(poverty_lines, function(pl) {
-  #     ui_cp_ki_headcount(country = country,
-  #                        povline = pl,
-  #                        lkup = lkup)
-  #   })
-  #   hc <- data.table::rbindlist(hc)
-    # names(hc) <- poverty_lines
-  # } else {
     hc <- ui_cp_ki_headcount(country = country,
                              povline = povline,
                              lkup = lkup)
-    # hc <- list(hc)
-    # names(hc) <- povline
-  # }
 
   dl <- lapply(lkup[["cp_lkups"]]$key_indicators, function(x) {
     x[country_code == country]
@@ -127,19 +107,6 @@ ui_cp_charts <- function(country   = "AGO",
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
-  # if (country == "all") {
-  #   country_codes <- unique(lkup$svy_lkup$country_code)
-  #   pov_lkup <- pip(country         = "all",
-  #                   year            = "all",
-  #                   povline         = povline,
-  #                   lkup            = lkup)
-  #   dl <- lapply(country_codes, function(country) {
-  #     ui_cp_charts_single(country = country, povline = povline,
-  #                         pop_units = pop_units, lkup = lkup,
-  #                         pov_lkup = pov_lkup)
-  #   })
-  #   names(dl) <- country_codes
-  # } else {
     dl <- ui_cp_charts_single(country = country,
                               povline = povline,
                               pop_units = pop_units,
@@ -311,6 +278,29 @@ cp_select_reporting_level <- function(x) {
   return(x)
 }
 
+#' cp_correct_reporting_level
+#' We can't use reporting_level == "national" in pip() since this excludes
+#' rows where the reporting level is urban/rural, e.g ARG, SUR.
+#' But we still need to sub-select only national rows for e.g CHN.
+#' @noRd
+cp_correct_reporting_level <- function(df) {
+
+  df[, N := .N, by = list(country_code, reporting_year)]
+  df <- df[, cp_select_reporting_level(.SD),
+                                 by = .(country_code, reporting_year)]
+  # Make sure keep only national rows for countries with multiple
+  # reporting levels, e.g URY
+  df[, N := ifelse(length(unique(reporting_level)) != 1
+                              & reporting_level != "national",
+                              length(unique(reporting_level)), 1),
+                by = .(country_code)]
+  df <- df[, cp_select_reporting_level(.SD),
+                                 by = .(country_code)]
+  df$N <- NULL
+
+  return(df)
+}
+
 #' Select countries to display for CP Poverty MRV Chart
 #' @param dt data.table: Result from `pip()` query
 #' @param country character: Country code
@@ -356,6 +346,7 @@ cp_pov_mrv_select_values <- function(v, h) {
   vals <- sort(vals)
   return(vals)
 }
+
 
 #' Country Profiles Key Indicators download
 #'
