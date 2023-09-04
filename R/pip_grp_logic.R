@@ -57,15 +57,14 @@ pip_grp_logic <- function(country         = "ALL",
   ## This will trigger an early return as no additional imputations are needed
   if (all(lcv$off_alt_agg == "off")) { # Users only request the official regions
     ### Early return -----------
-    res <-
-      pip_grp(country         =  country,
-              year            =  year,
-              povline         =  povline,
-              group_by        =  "wb",
-              welfare_type    =  welfare_type,
-              reporting_level =  reporting_level,
-              lkup            =  lkup,
-              censor          =  censor)
+    res <- pip_grp(country         =  country,
+                   year            =  year,
+                   povline         =  povline,
+                   group_by        =  "wb",
+                   welfare_type    =  welfare_type,
+                   reporting_level =  reporting_level,
+                   lkup            =  lkup,
+                   censor          =  censor)
     return(res)
 
   } else {
@@ -126,22 +125,13 @@ pip_grp_logic <- function(country         = "ALL",
 
   if (lcv$grp_use %in% c("append", "not")) {
 
-    grp <-
-      # pip_grp(country         =  lcv$md_off_reg,
-      #         year            =  lcv$md_year,
-      #         povline         =  povline,
-      #         group_by        =  "wb",
-      #         welfare_type    =  welfare_type,
-      #         reporting_level =  reporting_level,
-      #         lkup            =  lkup,
-      #         censor          =  censor)
-      pip_grp_helper(lcv_country         = lcv$md_off_reg,
-                     country             = country,
-                     year                = lcv$md_year,
-                     povline             = povline,
-                     reporting_level     = reporting_level,
-                     censor              = censor,
-                     fg_pip              = fg_pip_master)
+    grp <- pip_grp_helper(lcv_country         = lcv$md_off_reg,
+                          country             = country,
+                          year                = lcv$md_year,
+                          povline             = povline,
+                          reporting_level     = reporting_level,
+                          censor              = censor,
+                          fg_pip              = fg_pip_master)
 
     if (lcv$grp_use == "append") {
       grp <- data.table::rbindlist(list(off_ret, grp))
@@ -181,19 +171,6 @@ pip_grp_logic <- function(country         = "ALL",
 
 
   ## Fill gaps estimates with countries with Survey  -----
-  # fg <- fg_pip(
-  #   country         = lcv$fg_ctrs,
-  #   year            = year,
-  #   povline         = povline,
-  #   popshare        = NULL,
-  #   welfare_type    = welfare_type,
-  #   reporting_level = reporting_level,
-  #   ppp             = NULL,
-  #   ref_lkup           = lkup[["ref_lkup"]],
-  #   valid_regions      = lkup$query_controls$region$values,
-  #   interpolation_list = lkup$interpolation_list
-  # )
-
   fg <- fg_pip_master[fg_pip_master$country_code %chin% lcv$fg_ctrs, ]
 
   if (!"ALL" %in% year) {
