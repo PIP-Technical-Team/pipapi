@@ -441,6 +441,8 @@ citation_from_version <- function(version) {
 #' @param req R6 object: Plumber API request
 #'
 #' @return character
+#'
+#' @export
 
 create_etag_header <- function(req){
   lkup_hash   <- lkups$versions_paths[[req$argsQuery$version]]

@@ -160,7 +160,7 @@ function(req, res) {
                 "no-referrer")
 
   res$setHeader("ETag",
-                create_etag_header(req))
+                pipapi::create_etag_header(req))
 
   plumber::forward()
 
