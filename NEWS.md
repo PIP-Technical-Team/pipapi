@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.2.1
 
 ## New features
 - New indicators available. Optional with `additional_ind = TRUE`
