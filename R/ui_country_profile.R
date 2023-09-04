@@ -6,43 +6,28 @@
 #' @return list
 #' @export
 ui_cp_key_indicators <- function(country   = "AGO",
-                                 povline   = NULL,
-                                 lkup,
-                                 lkup_hash = lkup$cache_data_id$hash_ui_cp) {
+                                       povline   = NULL,
+                                       lkup,
+                                       lkup_hash = lkup$cache_data_id$hash_ui_cp) {
 
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
-    dl <- ui_cp_key_indicators_single(
-      country = country, povline = povline, lkup = lkup)
-    dl <- list(dl)
-  return(dl)
-
-}
-
-#' Country Profile Key Indicators Single
-#'
-#' Country profile key indicators for a single country.
-#'
-#' @inheritParams ui_cp_key_indicators
-#' @return list
-#' @keywords internal
-ui_cp_key_indicators_single <- function(country,
-                                        povline,
-                                        lkup) {
-
-    hc <- ui_cp_ki_headcount(country = country,
-                             povline = povline,
-                             lkup = lkup)
+  hc <- ui_cp_ki_headcount(country = country,
+                                 povline = povline,
+                                 lkup = lkup)
 
   dl <- lapply(lkup[["cp_lkups"]]$key_indicators, function(x) {
     x[country_code == country]
   })
 
-  out <- list(headcount = hc)
-  out <- append(out, dl)
-  return(out)
+  tmp <- list(headcount = hc)
+  dl <- list(append(tmp, dl))
+
+  return(dl)
+
 }
+
 
 #' CP Key Indicator Headcount
 #'
@@ -52,9 +37,9 @@ ui_cp_key_indicators_single <- function(country,
 #' @return data.table
 #' @noRd
 ui_cp_ki_headcount <- function(country,
-                               year = "MRV",
-                               povline,
-                               lkup) {
+                                     year = "MRV",
+                                     povline,
+                                     lkup) {
 
   # Fetch most recent year (for CP-display)
   res <- pip(country         = country,
@@ -63,20 +48,7 @@ ui_cp_ki_headcount <- function(country,
              lkup            = lkup)
 
   ### TEMP FIX for reporting level
-  # We can't use reporting_level == "national" in pip() since this excludes
-  # rows where the reporting level is urban/rural, e.g ARG, SUR.
-  # But we still need to sub-select only national rows for e.g CHN.
-  res[, N := .N, by = list(country_code, reporting_year)]
-  res <- res[, cp_select_reporting_level(.SD),
-             by = .(country_code, reporting_year)]
-  # Make sure keep only national rows for countries with multiple
-  # reporting levels, e.g URY
-  res[, N := ifelse(length(unique(reporting_level)) != 1
-                    & reporting_level != "national",
-                    length(unique(reporting_level)), 1),
-      by = .(country_code)]
-  res <- res[, cp_select_reporting_level(.SD), by = .(country_code)]
-  res$N <- NULL
+  res <- cp_correct_reporting_level(res)
   ### TEMP FIX END
 
   out <- data.table::data.table(
@@ -96,10 +68,10 @@ ui_cp_ki_headcount <- function(country,
 #' @return list
 #' @export
 ui_cp_charts <- function(country   = "AGO",
-                         povline   = 1.9,
-                         pop_units = 1e6,
-                         lkup,
-                         lkup_hash = lkup$cache_data_id$hash_ui_cp) {
+                               povline   = 1.9,
+                               pop_units = 1e6,
+                               lkup,
+                               lkup_hash = lkup$cache_data_id$hash_ui_cp) {
   # Only supports single country selection
   # Make it explicit
   country <- country[1]
@@ -107,48 +79,24 @@ ui_cp_charts <- function(country   = "AGO",
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
-    dl <- ui_cp_charts_single(country = country,
-                              povline = povline,
-                              pop_units = pop_units,
-                              lkup = lkup)
-    dl <- list(dl)
-    names(dl) <- country
-  # }
-  return(dl)
-}
-
-#' Country profile charts for a single country
-#'
-#' @inheritParams ui_cp_charts
-#' @param pov_lkup data.frame: Look up table for poverty charts.
-#' @return list
-#' @keywords internal
-ui_cp_charts_single <- function(country,
-                                povline,
-                                pop_units,
-                                lkup,
-                                pov_lkup = NULL) {
-
   # Create list with poverty charts data
   dl <- ui_cp_poverty_charts(
     country = country,
     povline = povline,
     pop_units = pop_units,
-    lkup = lkup,
-    pov_lkup = pov_lkup)
+    lkup = lkup)
 
-  dl <- list(dl)
-  dl <- list(pov_charts = dl)
+  dl <- list(pov_charts = list(dl))
 
   # Fetch pre-calculated data (filter selected country)
   dl2 <- lapply(lkup[["cp_lkups"]]$charts, function(x) {
     x[country_code == country]
   })
 
-  out <- append(dl, dl2)
+  dl <- list(append(dl, dl2))
+  names(dl) <- country
 
-  return(out)
-
+  return(dl)
 }
 
 
@@ -162,38 +110,30 @@ ui_cp_charts_single <- function(country,
 ui_cp_poverty_charts <- function(country,
                                  povline,
                                  pop_units,
-                                 lkup,
-                                 pov_lkup) {
+                                 lkup) {
+  # STEP 1: Identify all regional countries to be used in comparison chart ----
+  # Region of the selected country
+  region <-
+    lkup$svy_lkup[country_code == country]$region_code |>
+    unique()
+  # All countries from the same region
+  countries <-
+    lkup$svy_lkup[region_code == region]$country_code |>
+    unique()
 
-  # Fetch data for poverty trend chart
-  if (is.null(pov_lkup)) {
-    res_pov_trend <-
-      pip(country         = country,
-          year            = "all",
-          povline         = povline,
-          lkup            = lkup)
-  } else {
-    res_pov_trend <- pov_lkup[country_code == country]
-  }
+  # STEP 2: Compute stats for all countries from the region ----
+  res_pov <- pip(country         = countries,
+                 year            = "all",
+                 povline         = povline,
+                 lkup            = lkup)
+
+  # STEP 3: Prepare data for poverty trend chart ----
+    res_pov_trend <- res_pov[res_pov$country_code == country, ]
   if (nrow(res_pov_trend) == 0) {
     return(pipapi::empty_response_cp_poverty)
   }
   ### TEMP FIX for reporting level
-  # We can't use reporting_level == "national" in pip() since this excludes
-  # rows where the reporting level is urban/rural, e.g ARG, SUR.
-  # But we still need to sub-select only national rows for e.g CHN.
-  res_pov_trend[, N := .N, by = list(country_code, reporting_year)]
-  res_pov_trend <- res_pov_trend[, cp_select_reporting_level(.SD),
-                                 by = .(country_code, reporting_year)]
-  # Make sure keep only national rows for countries with multiple
-  # reporting levels, e.g URY
-  res_pov_trend[, N := ifelse(length(unique(reporting_level)) != 1
-                              & reporting_level != "national",
-                              length(unique(reporting_level)), 1),
-                by = .(country_code)]
-  res_pov_trend <- res_pov_trend[, cp_select_reporting_level(.SD),
-                                 by = .(country_code)]
-  res_pov_trend$N <- NULL
+    res_pov_trend <- cp_correct_reporting_level(res_pov_trend)
   ### TEMP FIX END
 
   res_pov_trend$pop_in_poverty <-
@@ -206,40 +146,10 @@ ui_cp_poverty_charts <- function(country,
       "reporting_level"
     )]
 
-  # Fetch data for poverty bar chart
-  region <-
-    lkup$svy_lkup[country_code == country]$region_code |>
-    unique()
-  countries <-
-    lkup$svy_lkup[region_code == region]$country_code |>
-    unique()
-
-  if (is.null(pov_lkup)) {
-    res_pov_mrv <- pip(country         = countries,
-                       year            = "all",
-                       povline         = povline,
-                       lkup            = lkup)
-  } else {
-    res_pov_mrv <- pov_lkup[country_code %in% countries]
-  }
+  # STEP 4 - Prepare data for poverty bar chart ----
   ### TEMP FIX for reporting level
-  # We can't use reporting_level == "national" in pip() since this excludes
-  # rows where the reporting level is urban/rural, e.g ARG, SUR.
-  # But we still need to sub-select only national rows for e.g CHN.
-  res_pov_mrv[, N := .N, by = list(country_code, reporting_year)]
-  res_pov_mrv <- res_pov_mrv[, cp_select_reporting_level(.SD),
-                             by = .(country_code, reporting_year)]
-  # Make sure keep only national rows for countries with multiple
-  # reporting levels, e.g URY
-  res_pov_mrv[, N := ifelse(length(unique(reporting_level)) != 1
-                            & reporting_level != "national",
-                            length(unique(reporting_level)), 1),
-              by = .(country_code)]
-  res_pov_mrv <- res_pov_mrv[, cp_select_reporting_level(.SD),
-                             by = .(country_code)]
-  res_pov_mrv$N <- NULL
+  res_pov_mrv <- cp_correct_reporting_level(res_pov)
   ### TEMP FIX END
-
 
   res_pov_mrv <-
     res_pov_mrv[, .SD[which.max(reporting_year)],
@@ -287,15 +197,15 @@ cp_correct_reporting_level <- function(df) {
 
   df[, N := .N, by = list(country_code, reporting_year)]
   df <- df[, cp_select_reporting_level(.SD),
-                                 by = .(country_code, reporting_year)]
+           by = .(country_code, reporting_year)]
   # Make sure keep only national rows for countries with multiple
   # reporting levels, e.g URY
   df[, N := ifelse(length(unique(reporting_level)) != 1
-                              & reporting_level != "national",
-                              length(unique(reporting_level)), 1),
-                by = .(country_code)]
+                   & reporting_level != "national",
+                   length(unique(reporting_level)), 1),
+     by = .(country_code)]
   df <- df[, cp_select_reporting_level(.SD),
-                                 by = .(country_code)]
+           by = .(country_code)]
   df$N <- NULL
 
   return(df)
@@ -385,3 +295,4 @@ ui_cp_download <- function(country   = "AGO",
 
   return(out)
 }
+
