@@ -54,9 +54,10 @@ Imports:
     future,
     promises,
     methods,
-    joyn
+    joyn,
+    qs
 Remotes:
-    PIP-Technical-Team/wbpip@master
+    PIP-Technical-Team/wbpip@PROD
 Depends: 
     R (>= 3.5.0)
 VignetteBuilder: knitr

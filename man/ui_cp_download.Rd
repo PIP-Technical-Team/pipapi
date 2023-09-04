@@ -20,6 +20,8 @@ ui_cp_download(
 \item{povline}{numeric: Poverty line}
 
 \item{lkup}{list: A list of lkup tables}
+
+\item{lkup_hash}{character: hash of pip}
 }
 \value{
 list

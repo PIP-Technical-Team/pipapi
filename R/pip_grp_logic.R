@@ -15,13 +15,15 @@ pip_grp_logic <- function(country         = "ALL",
                           reporting_level = c("all", "national"),
                           lkup,
                           censor          = TRUE,
-                          lkup_hash       = lkup$cache_data_id$hash_pip_grp) {
+                          lkup_hash       = lkup$cache_data_id$hash_pip_grp,
+                          additional_ind  = FALSE) {
   #   ________________________________________________________________________
   #   STEP 1: Set up                                                      ####
 
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
+
 
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
@@ -259,6 +261,15 @@ pip_grp_logic <- function(country         = "ALL",
   if (censor) {
     ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
   }
+
+  # Select columns
+  if (additional_ind) {
+    get_additional_indicators_grp(ret)
+  }
+
+  #Order rows by country code and reporting year
+  setorder(ret, region_code , reporting_year)
+
 
   #   ____________________________________________________________________
   #   Return                                                         ####
