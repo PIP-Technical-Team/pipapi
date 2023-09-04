@@ -143,7 +143,7 @@ function(req, res) {
 ## Set response headers ----
 #* Set required response headers
 #* @filter response_headers
-function(res) {
+function(req, res) {
   res$setHeader("Strict-Transport-Security",
                 "max-age=63072000; includeSubDomains; preload")
 
@@ -158,6 +158,9 @@ function(res) {
 
   res$setHeader("Referrer-Policy",
                 "no-referrer")
+
+  res$setHeader("ETag",
+                create_etag_header(req))
 
   plumber::forward()
 
