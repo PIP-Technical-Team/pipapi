@@ -8,10 +8,10 @@ lkup <- lkups$versions_paths[[lkups$latest_release]]
 # lkup_path <- test_path("testdata", "lkup.rds")
 # lkup      <- readRDS(lkup_path)
 
-cd        <- readRDS(test_path("testdata", "cd-ex.RDS"))
-
-skip_if_not(dir.exists(cd$info()$dir),
-            message = sprintf("The cache directory '%s' doesn't exist", cd$info()$dir))
+# cd        <- readRDS(test_path("testdata", "cd-ex.RDS"))
+#
+# skip_if_not(dir.exists(cd$info()$dir),
+#             message = sprintf("The cache directory '%s' doesn't exist", cd$info()$dir))
 
 test_that("clear_cache() is working as expected", {
 

@@ -51,6 +51,8 @@ test_that("expected results", {
   de2 <- do.call(pip_grp_logic, lp)
   de3 <- de2[region_code %in% c("SSA", "LAC")]
   data.table::setcolorder(de3, names(dc))
+  data.table::setorder(de3, region_code, reporting_year)
+  data.table::setorder(dc, region_code, reporting_year)
 
   expect_equal(de3, dc, label = "same results for official aggregates
                between grp and grp_logic when alt aggregate is included")
@@ -64,6 +66,7 @@ test_that("expected results", {
   de4 <- do.call(pip_grp_logic, lp)
   de5 <- de4[region_code %in% c("SSA", "LAC")]
   data.table::setcolorder(de5, names(dc))
+  data.table::setorder(de5, region_code, reporting_year)
 
   expect_equal(de5, dc, label = "same results for official aggregates
                between grp and grp_logic when alt aggregate is included")
