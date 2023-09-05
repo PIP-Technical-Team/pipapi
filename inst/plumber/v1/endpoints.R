@@ -158,6 +158,9 @@ function(req, res) {
 
   res$setHeader("Referrer-Policy",
                 "no-referrer")
+  # Set max-age to 48hours (specified in seconds)
+  res$setHeader("max-age",
+                172800)
 
   res$setHeader("ETag",
                 pipapi::create_etag_header(req))

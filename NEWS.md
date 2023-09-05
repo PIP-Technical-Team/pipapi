@@ -10,7 +10,7 @@
 - A new `/ui_aux` endpoint has been created with the opposite behavior: tables are
 returned in wide format by default.
 - `/pip-info` returns additional information
-- New "etag" header returned by the API to facilitate caching of API responses
+- New "etag" and "max-age" headers returned by the API to facilitate caching of API responses
 
 ## Enhancements
 - pip-grp and cp-chart endpoint small optimization
