@@ -177,10 +177,18 @@ pip <- function(country         = "ALL",
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   # Add pre-computed distributional statistics
-  out <- add_dist_stats(
-    df = out,
-    dist_stats = lkup[["dist_stats"]]
-  )
+  names2keep <- lkup$pip_cols
+  if (!fill_gaps) {
+    out <- add_dist_stats(
+      df = out,
+      dist_stats = lkup[["dist_stats"]]
+    )
+  } else {
+    # Remove distribution variables from
+    # inequality indicators
+    crr_names <- names(out)
+    names2keep <- names2keep[names2keep %in% crr_names]
+  }
 
   # Handle survey coverage
   if (reporting_level != "all") {
@@ -195,17 +203,17 @@ pip <- function(country         = "ALL",
 
 
   # Select columns
-  if (additional_ind) {
+  if (additional_ind && isFALSE(fill_gaps)) {
     get_additional_indicators(out)
     added_names <- attr(out, "new_indicators_names")
-    names2keep  <- c(lkup$pip_cols, added_names)
+    names2keep  <- c(names2keep, added_names)
 
     # Keep relevant variables
     out  <- out[, ..names2keep]
 
   } else {
 
-    out <- out[, .SD, .SDcols = lkup$pip_cols]
+    out <- out[, .SD, .SDcols = names2keep]
 
   }
 

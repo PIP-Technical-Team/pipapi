@@ -70,7 +70,8 @@ fg_pip <- function(country,
     for (ctry_year_id in seq_along(ctry_years$interpolation_id)) {
 
       # Extract records to be used for a single country-year estimation
-      tmp_metadata <- metadata[metadata$interpolation_id == ctry_years[["interpolation_id"]][ctry_year_id], ]
+      interp_id    <- ctry_years[["interpolation_id"]][ctry_year_id]
+      tmp_metadata <- metadata[metadata$interpolation_id == interp_id, ]
 
       # Compute estimated statistics using the fill_gap method
       tmp_stats <- wbpip:::prod_fg_compute_pip_stats(
@@ -109,6 +110,10 @@ fg_pip <- function(country,
 
   out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
+
+
+  # Remove median
+  out[, median := NULL]
 
   # Ensure that out does not have duplicates
   out <- fg_remove_duplicates(out)
