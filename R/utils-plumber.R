@@ -179,6 +179,9 @@ serializer_switch <- function() {
         } else if (format == "rds") {
           type <- "application/rds"
           sfn <- function(x) base::serialize(x, NULL)
+        } else if (format == "feather") {
+          type <- "application/vnd.apache.arrow.file"
+          sfn <- serializer_feather()
         }
         val <- sfn(val)
         res$setHeader("Content-Type", type)

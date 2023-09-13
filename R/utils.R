@@ -384,7 +384,7 @@ create_query_controls <- function(svy_lkup,
     type = "character"
   )
   # Formats
-  format <- list(values = c("json", "csv", "rds"),
+  format <- list(values = c("json", "csv", "rds", "feather"),
                  type = "character")
   # Tables
   table <- list(values = aux_tables, type = "character")
