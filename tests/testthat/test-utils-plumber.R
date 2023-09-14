@@ -318,3 +318,33 @@ test_that("citation_from_version works as expected", {
   expect_equal(citation$version_id, "20220609_2011_02_02_PROD")
   expect_equal(as.character(citation$date_accessed), as.character(Sys.Date()))
 })
+
+test_that("assign_serializer() returns a function", {
+  x <- assign_serializer(format = NULL)
+  expect_equal(class(x), "function")
+  x <- assign_serializer(format = "json")
+  expect_equal(class(x), "function")
+})
+
+test_that("assign_serializer() returns a the correct serialization function", {
+  # JSON returned by default
+  x <- assign_serializer(format = NULL)
+  x_env <- environment(x)
+  content_type <- x_env$headers$`Content-Type`
+  expect_equal(content_type, "application/json")
+  # CSV type is correct
+  x <- assign_serializer(format = "csv")
+  x_env <- environment(x)
+  content_type <- x_env$headers$`Content-Type`
+  expect_equal(content_type, "text/csv; charset=UTF-8")
+  # RDS type is correct
+  x <- assign_serializer(format = "rds")
+  x_env <- environment(x)
+  content_type <- x_env$headers$`Content-Type`
+  expect_equal(content_type, "application/rds")
+  # RDS type is correct
+  x <- assign_serializer(format = "feather")
+  x_env <- environment(x)
+  content_type <- x_env$headers$`Content-Type`
+  expect_equal(content_type, "application/vnd.apache.arrow.file")
+})
