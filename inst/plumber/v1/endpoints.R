@@ -739,7 +739,7 @@ function(req) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
-function(req, res) {
+function(req) {
   params <- req$argsQuery
   #res$serializer <- pipapi::assign_serializer(format = params$format)
   params$lkup <- lkups$versions_paths[[params$version]]
