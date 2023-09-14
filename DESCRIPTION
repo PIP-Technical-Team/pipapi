@@ -55,7 +55,8 @@ Imports:
     promises,
     methods,
     joyn,
-    qs
+    qs,
+    arrow
 Remotes:
     PIP-Technical-Team/wbpip@PROD
 Depends: 
