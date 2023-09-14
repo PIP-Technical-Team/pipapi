@@ -210,7 +210,7 @@ pip <- function(country         = "ALL",
     names2keep  <- c(names2keep, added_names)
 
     # Keep relevant variables
-    out  <- out[, ..names2keep]
+    out  <- out[, .SD, .SDcols = names2keep]
 
   } else {
 
@@ -219,7 +219,7 @@ pip <- function(country         = "ALL",
   }
 
   #Order rows by country code and reporting year
-  setorder(out, country_code, reporting_year, reporting_level, welfare_type)
+  data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
 
 
   return(out)
