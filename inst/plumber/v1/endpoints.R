@@ -72,7 +72,6 @@ function(req, res) {
 function(req, res) {
   lkups <- lkups$versions_paths[[req$argsQuery$version]]
   query_controls = lkups$query_controls
-  # browser()
 
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     #### STEP 1
@@ -173,10 +172,6 @@ function(req, res) {
 
 }
 
-## Register switch serializer ----
-plumber::register_serializer("switch", pipapi:::serializer_switch)
-
-
 # Endpoints definition ----------------------------------------------------
 ## Endpoints: Core endpoints ----
 
@@ -193,17 +188,18 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 #* @param endpoint:[chr] Endpoint for which to return the valid parameters
-#* @serializer switch
-function(req) {
+function(req, res) {
+  format <- req$argsQuery$format
+  res$serializer <- pipapi::assign_serializer(format = format)
   version <- req$argsQuery$version
   endpoint <- req$argsQuery$endpoint
+
   out <- pipapi::get_param_values(
     lkup = lkups,
     version = version,
     endpoint = endpoint)
-  attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
 
@@ -222,14 +218,15 @@ function(req) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param identity:[chr] One of "PROD" (production) (default), "INT" (internal) and "TEST"
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 #* @param additional_ind:[bool] Additional indicators based on standard PIP output.
 #* Default is FALSE
-#* @serializer switch
-function(req) {
+
+function(req, res) {
   # Process request
   params         <- req$argsQuery
   params$lkup    <- lkups$versions_paths[[params$version]]
+  res$serializer <- pipapi::assign_serializer(format = params$format)
   params$format  <- NULL
   params$version <- NULL
 
@@ -237,12 +234,10 @@ function(req) {
   if (params$country == "all" && params$year == "all") {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::pip, params)
-      attr(tmp, "serialize_format") <- req$argsQuery$format
       tmp
     }, seed = TRUE)
   } else {
     out <- do.call(pipapi::pip, params)
-    attr(out, "serialize_format") <- req$argsQuery$format
   }
   out
 }
@@ -257,15 +252,15 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 #* for all available versions
 #* @param additional_ind:[bool] Additional indicators based on standard PIP output.
 #* Default is FALSE
-#* @serializer switch
 function(req, res) {
   # Process request
   params         <- req$argsQuery
   params$lkup    <- lkups$versions_paths[[params$version]]
+  res$serializer <- pipapi::assign_serializer(format = params$format)
   params$format  <- NULL
   params$version <- NULL
 
@@ -273,12 +268,10 @@ function(req, res) {
   if (params$country %in% c("ALL", "WLD") && params$year == "ALL") {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::pip_grp_logic, params)
-      attr(tmp, "serialize_format") <- req$argsQuery$format
       tmp
     }, seed = TRUE)
   } else {
     out <- do.call(pipapi::pip_grp_logic, params)
-    attr(out, "serialize_format") <- req$argsQuery$format
   }
   out
 }
@@ -290,10 +283,11 @@ function(req, res) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param long_format:[bool] Data in long format
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
-#* @serializer switch
-function(req) {
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
+function(req, res) {
   params <- req$argsQuery
+  res$serializer <- pipapi::assign_serializer(format = params$format)
+
   if (is.null(req$args$table)) {
     # return all available tables if none selected
     list_of_tables <- lkups$versions_paths[[params$version]]$aux_tables
@@ -305,16 +299,14 @@ function(req) {
     params$version <- NULL
     out <- do.call(pipapi::get_aux_table, params)
   }
-  attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
 
 #* Return available data versions
 #* @get /api/v1/versions
-#* @serializer switch
-function(req) {
+function(req, res) {
+  res$serializer <- pipapi::assign_serializer(format = req$argsQuery$format)
   out <- pipapi::version_dataframe(lkups$versions)
-  attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
 
@@ -323,11 +315,10 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer switch
-function(req) {
+function(req, res) {
+  res$serializer <- pipapi::assign_serializer(format = req$argsQuery$format)
   out <- pipapi::version_dataframe(lkups$versions)
   out <- out[out$version == req$argsQuery$version, ]
-  attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
 
@@ -669,9 +660,9 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer switch
-function(req) {
+function(req, res) {
   params <- req$argsQuery
+  res$serializer <- pipapi::assign_serializer(format = params$format)
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   # # Subset lkup object to pass only required element and save some memory
   # req_lkup_elements <- c("svy_lkup",
@@ -693,12 +684,10 @@ function(req) {
   if (params$country == "ALL") {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::ui_cp_download, params)
-      attr(tmp, "serialize_format") <- req$argsQuery$format
       tmp
     }, seed = TRUE)
   } else {
     out <- do.call(pipapi::ui_cp_download, params)
-    attr(out, "serialize_format") <- req$argsQuery$format
   }
   out
 }
@@ -711,10 +700,10 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
-#* @serializer switch
-function(req) {
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
+function(req, res) {
   params <- req$argsQuery
+  res$serializer <- pipapi::assign_serializer(format = params$format)
   if (is.null(req$args$table)) {
     # return all available tables if none selected
     list_of_tables <- lkups$versions_paths[[params$version]]$aux_tables
@@ -726,7 +715,6 @@ function(req) {
     params$version <- NULL
     out <- do.call(pipapi::get_aux_table_ui, params)
   }
-  attr(out, "serialize_format") <- req$argsQuery$format
   out
 }
 
@@ -741,7 +729,8 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi::ui_svy_meta, params)
+  out <- do.call(pipapi::ui_svy_meta, params)
+  out
 }
 
 #* Return valid years
@@ -749,11 +738,13 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer switch
+#* @serializer json list(na="null")
 function(req) {
   params <- req$argsQuery
+  #res$serializer <- pipapi::assign_serializer(format = params$format)
   params$lkup <- lkups$versions_paths[[params$version]]
-  pipapi::valid_years(data_dir = params$lkup$data_root)
+  out <- pipapi::valid_years(data_dir = params$lkup$data_root)
+  out
 }
 
 
@@ -762,8 +753,9 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
-#* @serializer switch
 function(req) {
   params <- req$argsQuery
-  pipapi::citation_from_version(params$version)
+  res$serializer <- pipapi::assign_serializer(format = params$format)
+  out <- pipapi::citation_from_version(params$version)
+  out
 }

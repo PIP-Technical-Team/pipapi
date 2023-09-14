@@ -14,9 +14,7 @@ returned in wide format by default.
 
 ## Enhancements
 - pip-grp and cp-chart endpoint small optimization
-
-## Enhancements
-
+- support to arrow/feather serialization with `format=arrow`
 - [Implement checks for long_format parameter in API filter](https://github.com/PIP-Technical-Team/pipapi/pull/332)
 
 ## Bug fixes
