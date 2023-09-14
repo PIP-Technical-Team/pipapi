@@ -176,6 +176,13 @@ function(req, res) {
 ## Register switch serializer ----
 plumber::register_serializer("switch", pipapi:::serializer_switch)
 
+serializers <- list(
+  "json"    = plumber::serializer_json(),
+  "csv"     = plumber::serializer_csv(),
+  "rds"     = plumber::serializer_rds(),
+  "feather" = plumber::serializer_feather()
+)
+
 
 # Endpoints definition ----------------------------------------------------
 ## Endpoints: Core endpoints ----
@@ -225,11 +232,14 @@ function(req) {
 #* @param format:[chr] Response format. Options are "json", "csv", or "rds".
 #* @param additional_ind:[bool] Additional indicators based on standard PIP output.
 #* Default is FALSE
-#* @serializer switch
-function(req) {
+
+function(req, res) {
+  browser()
   # Process request
   params         <- req$argsQuery
   params$lkup    <- lkups$versions_paths[[params$version]]
+  format <- params$format
+  res$serializer <- serializers[[format]]
   params$format  <- NULL
   params$version <- NULL
 
@@ -237,12 +247,12 @@ function(req) {
   if (params$country == "all" && params$year == "all") {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::pip, params)
-      attr(tmp, "serialize_format") <- req$argsQuery$format
+      #attr(tmp, "serialize_format") <- req$argsQuery$format
       tmp
     }, seed = TRUE)
   } else {
     out <- do.call(pipapi::pip, params)
-    attr(out, "serialize_format") <- req$argsQuery$format
+    #attr(out, "serialize_format") <- req$argsQuery$format
   }
   out
 }
