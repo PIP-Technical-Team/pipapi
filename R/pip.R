@@ -189,7 +189,7 @@ pip <- function(country         = "ALL",
     # Convert inequality indicators to NA
     dist_vars  <- names2keep[!(names2keep %in% crr_names)]
     out[,
-        (dist_vars) := NA]
+        (dist_vars) := NA_real_]
   }
 
   # Handle survey coverage

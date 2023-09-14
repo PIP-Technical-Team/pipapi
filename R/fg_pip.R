@@ -113,7 +113,7 @@ fg_pip <- function(country,
 
 
   # Remove median
-  out[, median := NA]
+  out[, median := NA_real_]
 
   # Ensure that out does not have duplicates
   out <- fg_remove_duplicates(out)
