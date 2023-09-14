@@ -172,13 +172,6 @@ function(req, res) {
 
 }
 
-## Create serializers lookup ----
-serializers <- list(
-  "json"    = plumber::serializer_json(),
-  "csv"     = plumber::serializer_csv(),
-  "rds"     = plumber::serializer_rds()
-)
-
 # Endpoints definition ----------------------------------------------------
 ## Endpoints: Core endpoints ----
 
