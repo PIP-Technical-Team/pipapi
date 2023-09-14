@@ -343,7 +343,7 @@ test_that("assign_serializer() returns a the correct serialization function", {
   content_type <- x_env$headers$`Content-Type`
   expect_equal(content_type, "application/rds")
   # RDS type is correct
-  x <- assign_serializer(format = "feather")
+  x <- assign_serializer(format = "arrow")
   x_env <- environment(x)
   content_type <- x_env$headers$`Content-Type`
   expect_equal(content_type, "application/vnd.apache.arrow.file")

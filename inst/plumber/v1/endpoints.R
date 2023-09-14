@@ -195,7 +195,7 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 #* @param endpoint:[chr] Endpoint for which to return the valid parameters
 function(req, res) {
   format <- req$argsQuery$format
@@ -225,7 +225,7 @@ function(req, res) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param identity:[chr] One of "PROD" (production) (default), "INT" (internal) and "TEST"
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 #* @param additional_ind:[bool] Additional indicators based on standard PIP output.
 #* Default is FALSE
 
@@ -259,7 +259,7 @@ function(req, res) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 #* for all available versions
 #* @param additional_ind:[bool] Additional indicators based on standard PIP output.
 #* Default is FALSE
@@ -290,7 +290,7 @@ function(req, res) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param long_format:[bool] Data in long format
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 function(req, res) {
   params <- req$argsQuery
   res$serializer <- pipapi::assign_serializer(format = params$format)
@@ -667,7 +667,7 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-function(req) {
+function(req, res) {
   params <- req$argsQuery
   res$serializer <- pipapi::assign_serializer(format = params$format)
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
@@ -707,8 +707,8 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @param format:[chr] Response format. Options are "json", "csv", or "rds".
-function(req) {
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
+function(req, res) {
   params <- req$argsQuery
   res$serializer <- pipapi::assign_serializer(format = params$format)
   if (is.null(req$args$table)) {
@@ -745,9 +745,10 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-function(req) {
+#* @serializer json list(na="null")
+function(req, res) {
   params <- req$argsQuery
-  res$serializer <- pipapi::assign_serializer(format = params$format)
+  #res$serializer <- pipapi::assign_serializer(format = params$format)
   params$lkup <- lkups$versions_paths[[params$version]]
   out <- pipapi::valid_years(data_dir = params$lkup$data_root)
   out

@@ -441,7 +441,8 @@ assign_serializer <- function(format) {
   serializers <- list(
     "json"    = plumber::serializer_json(),
     "csv"     = plumber::serializer_csv(),
-    "rds"     = plumber::serializer_rds()
+    "rds"     = plumber::serializer_rds(),
+    "arrow"     = plumber::serializer_feather()
   )
 
   return(serializers[[format]])
