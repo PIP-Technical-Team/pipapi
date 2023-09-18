@@ -741,7 +741,6 @@ function(req) {
 #* @serializer json list(na="null")
 function(req) {
   params <- req$argsQuery
-  #res$serializer <- pipapi::assign_serializer(format = params$format)
   params$lkup <- lkups$versions_paths[[params$version]]
   out <- pipapi::valid_years(data_dir = params$lkup$data_root)
   out
@@ -753,7 +752,7 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
-function(req) {
+function(req, res) {
   params <- req$argsQuery
   res$serializer <- pipapi::assign_serializer(format = params$format)
   out <- pipapi::citation_from_version(params$version)
