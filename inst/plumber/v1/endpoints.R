@@ -10,7 +10,7 @@ library(pipapi)
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
-
+# browser()
   ### STEP 1:
   # If no arguments are passed, use the latest version
   if (is.null(req$argsQuery$release_version) &
@@ -231,7 +231,7 @@ function(req, res) {
   params$version <- NULL
 
   # Parallel processing for slow requests
-  if (params$country == "all" && params$year == "all") {
+  if (params$country == "ALL" && params$year == "ALL") {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::pip, params)
       tmp
@@ -664,20 +664,6 @@ function(req, res) {
   params <- req$argsQuery
   res$serializer <- pipapi::assign_serializer(format = params$format)
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-  # # Subset lkup object to pass only required element and save some memory
-  # req_lkup_elements <- c("svy_lkup",
-  #                        "dist_stats",
-  #                        "query_controls",
-  #                        "pop_region",
-  #                        "censored",
-  #                        "pip_cols",
-  #                        "valid_years",
-  #                        "aux_files",
-  #                        "pl_lkup",
-  #                        "cp_lkups",
-  #                        "cache_data_id"
-  # )
-  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$version <- NULL
   params$format  <- NULL
 
@@ -741,7 +727,6 @@ function(req) {
 #* @serializer json list(na="null")
 function(req) {
   params <- req$argsQuery
-  #res$serializer <- pipapi::assign_serializer(format = params$format)
   params$lkup <- lkups$versions_paths[[params$version]]
   out <- pipapi::valid_years(data_dir = params$lkup$data_root)
   out
@@ -753,9 +738,9 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
+#* @serializer json
 function(req) {
   params <- req$argsQuery
-  res$serializer <- pipapi::assign_serializer(format = params$format)
   out <- pipapi::citation_from_version(params$version)
   out
 }
