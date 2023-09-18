@@ -10,7 +10,7 @@ library(pipapi)
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
-
+# browser()
   ### STEP 1:
   # If no arguments are passed, use the latest version
   if (is.null(req$argsQuery$release_version) &
@@ -752,9 +752,9 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
-function(req, res) {
+#* @serializer json
+function(req) {
   params <- req$argsQuery
-  res$serializer <- pipapi::assign_serializer(format = params$format)
   out <- pipapi::citation_from_version(params$version)
   out
 }
