@@ -4,11 +4,13 @@
 #'
 #' @param povline numeric: Poverty line
 #' @param lkup list: A list of lkup tables
+#' @param lkup_hash character: hash of pip
 #'
 #' @return data.table
 #' @export
 ui_hp_stacked <- function(povline = 1.9,
-                          lkup) {
+                          lkup,
+                          lkup_hash = lkup$cache_data_id$hash_pip_grp) {
 
   ref_years <- sort(unique(lkup$ref_lkup$reporting_year))
   ref_years <- ref_years[!ref_years %in% c(1981:1989, 2020, 2021)]

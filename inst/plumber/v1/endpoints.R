@@ -513,7 +513,7 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
   promises::future_promise({
-    do.call(pipapi:::ui_hp_stacked, params)
+    do.call(pipapi::ui_hp_stacked, params)
   }, seed = TRUE)
 }
 
