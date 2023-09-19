@@ -10,17 +10,17 @@ library(pipapi)
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
-# browser()
+  # browser()
   ### STEP 1:
   # If no arguments are passed, use the latest version
   if (is.null(req$argsQuery$release_version) &
       is.null(req$argsQuery$ppp_version) &
       is.null(req$argsQuery$version) &
       is.null(req$argsQuery$identity)) {
-      version <- lkups$latest_release
+    version <- lkups$latest_release
   } else {
-  ### STEP 2:
-  # If partial version information is passed, use selection algorithm
+    ### STEP 2:
+    # If partial version information is passed, use selection algorithm
     if (is.null(req$argsQuery$identity)) req$argsQuery$identity <- 'PROD'
     version <-
       pipapi::return_correct_version(req$argsQuery$version,
@@ -30,18 +30,18 @@ function(req, res) {
   }
   ### STEP 3:
   # If the version is still not found (404) or it is not present in valid versions
-    # vector return an error.
-    if (!version %in% lkups$versions) {
-        res$status <- 404
-        out <- list(
-          error = "Invalid query arguments have been submitted.",
-          details = list(msg = "The selected value is not available.
+  # vector return an error.
+  if (!version %in% lkups$versions) {
+    res$status <- 404
+    out <- list(
+      error = "Invalid query arguments have been submitted.",
+      details = list(msg = "The selected value is not available.
                          Please select one of the valid values",
-                         valid = pipapi::version_dataframe(lkups$versions)))
-        return(out)
-    } else {
-      req$argsQuery$version <- version
-    }
+                     valid = pipapi::version_dataframe(lkups$versions)))
+    return(out)
+  } else {
+    req$argsQuery$version <- version
+  }
 
   plumber::forward()
 }
@@ -123,7 +123,7 @@ function(req, res) {
           out <- list(
             error = "Invalid query arguments have been submitted.",
             details = list(msg = "The selected table is not available in long format. Please select one of the valid values",
-                         valid = pipapi::get_valid_aux_long_format_tables()))
+                           valid = pipapi::get_valid_aux_long_format_tables()))
           return(out)
         }
       }
@@ -178,9 +178,10 @@ function(req, res) {
 #* Return PIP information
 #* @get /api/v1/pip-info
 function(req) {
-  pipapi::get_pip_version(pip_packages = c("pipapi",
-                                           "wbpip"),
-                          data_versions = lkups$versions)
+  out <- pipapi::get_pip_version(pip_packages = c("pipapi",
+                                                  "wbpip"),
+                                 data_versions = lkups$versions)
+  return(out)
 }
 
 #* Return valid parameters
@@ -200,7 +201,7 @@ function(req, res) {
     lkup = lkups,
     version = version,
     endpoint = endpoint)
-  out
+  return(out)
 }
 
 #* Return main poverty and inequality statistics
@@ -239,7 +240,7 @@ function(req, res) {
   } else {
     out <- do.call(pipapi::pip, params)
   }
-  out
+  return(out)
 }
 
 #* Return aggregated poverty and inequality statistics
@@ -273,7 +274,7 @@ function(req, res) {
   } else {
     out <- do.call(pipapi::pip_grp_logic, params)
   }
-  out
+  return(out)
 }
 
 #* Return auxiliary data table
@@ -299,7 +300,7 @@ function(req, res) {
     params$version <- NULL
     out <- do.call(pipapi::get_aux_table, params)
   }
-  out
+  return(out)
 }
 
 #* Return available data versions
@@ -307,7 +308,7 @@ function(req, res) {
 function(req, res) {
   res$serializer <- pipapi::assign_serializer(format = req$argsQuery$format)
   out <- pipapi::version_dataframe(lkups$versions)
-  out
+  return(out)
 }
 
 #* Return information about a specific data version
@@ -319,7 +320,7 @@ function(req, res) {
   res$serializer <- pipapi::assign_serializer(format = req$argsQuery$format)
   out <- pipapi::version_dataframe(lkups$versions)
   out <- out[out$version == req$argsQuery$version, ]
-  out
+  return(out)
 }
 
 ## Endpoints: Cache endpoints ----
@@ -378,7 +379,7 @@ function() {
 #* Check status of API
 #* @get /api/v1/health-check
 function() {
-  "PIP API is running"
+  return("PIP API is running")
 }
 
 #* Check timestamp for the data
@@ -389,7 +390,8 @@ function() {
 #* @serializer unboxedJSON
 function(req) {
   dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
-  readLines(sprintf("%s/data_update_timestamp.txt", dir))
+  out <- readLines(sprintf("%s/data_update_timestamp.txt", dir))
+  return(out)
 }
 
 #* Retrieve data signature hash
@@ -399,7 +401,8 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer unboxedJSON
 function(req) {
-  lkups$versions_paths[[req$argsQuery$version]]$cache_data_id
+  out <- lkups$versions_paths[[req$argsQuery$version]]$cache_data_id
+  return(out)
 }
 
 #* Get information on directory contents
@@ -412,11 +415,14 @@ function(req) {
   x <- fs::dir_info(dir, recurse = TRUE, type = "file")
   x$file <- sub(".*/", "", x$path)
   x <- x[c("path", "file", "size", "birth_time", "modification_time", "change_time", "access_time")]
-  list(
+
+  out <- list(
     aux_files = x[grepl("aux", x$path),],
     estimation_files = x[grepl("estimation", x$path),],
     survey_data = x[grepl("survey_data", x$path),]
   )
+
+  return(out)
 }
 
 #* Check Github hash for the PIP packages
@@ -426,19 +432,23 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer unboxedJSON
 function(req) {
-  list(pipapi = packageDescription("pipapi")$GithubSHA1,
-       wbpip = packageDescription("wbpip")$GithubSHA1)
+  out <- list(pipapi = packageDescription("pipapi")$GithubSHA1,
+              wbpip = packageDescription("wbpip")$GithubSHA1)
+
+  return(out)
 }
 
 #* Return number of workers
 #* @get /api/v1/n-workers
 #* @serializer unboxedJSON
 function() {
-  list(
+  out <- list(
     n_cores = unname(future::availableCores()),
     n_workers = future::nbrOfWorkers(),
     n_free_workers = future::nbrOfFreeWorkers()
   )
+
+  return(out)
 }
 
 # #* Return system info
@@ -475,8 +485,10 @@ function() {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
-  pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
-                        table = "poverty_lines")
+  out <- pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
+                               table = "poverty_lines")
+
+  return(out)
 }
 
 #* Return indicators master table
@@ -486,8 +498,10 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req) {
-  pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
-                        table = "indicators")
+  out <- pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
+                               table = "indicators")
+
+  return(out)
 }
 
 #* Return list of variables used for decomposition
@@ -497,8 +511,10 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
-  pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
-                        table = "decomposition_master")
+  out <- pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
+                               table = "decomposition_master")
+
+  return(out)
 }
 
 #* Return data for home page main chart
@@ -512,9 +528,11 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  promises::future_promise({
+  out <- promises::future_promise({
     do.call(pipapi:::ui_hp_stacked, params)
   }, seed = TRUE)
+
+  return(out)
 }
 
 #* Return data for home page country charts
@@ -528,7 +546,9 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi:::ui_hp_countries, params)
+  out <- do.call(pipapi:::ui_hp_countries, params)
+
+  return(out)
 }
 
 
@@ -552,12 +572,14 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
   if (params$country == "ALL" && params$year == "ALL") {
-    promises::future_promise({
+    out <- promises::future_promise({
       do.call(pipapi::ui_pc_charts, params)
     }, seed = TRUE)
   } else {
-    do.call(pipapi::ui_pc_charts, params)
+    out <- do.call(pipapi::ui_pc_charts, params)
   }
+
+  return(out)
 }
 
 #* Return data for Poverty Calculator download
@@ -579,12 +601,14 @@ function(req) {
   params$pop_units <- 1
   params$version <- NULL
   if (params$country == "ALL" && params$year == "ALL") {
-    promises::future_promise({
+    out <- promises::future_promise({
       do.call(pipapi::ui_pc_charts, params)
     }, seed = TRUE)
   } else {
-    do.call(pipapi::ui_pc_charts, params)
+    out <- do.call(pipapi::ui_pc_charts, params)
   }
+
+  return(out)
 }
 
 #* Return regional aggregations for all years
@@ -600,9 +624,11 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  promises::future_promise({
+  out <- promises::future_promise({
     do.call(pipapi::ui_pc_regional, params)
   }, seed = TRUE)
+
+  return(out)
 }
 
 ## UI Endpoints: Country Profiles ----------------------------------------
@@ -618,22 +644,10 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-  # # Subset lkup object to pass only required element and save some memory
-  # req_lkup_elements <- c("svy_lkup",
-  #                        "dist_stats",
-  #                        "query_controls",
-  #                        "pop_region",
-  #                        "censored",
-  #                        "pip_cols",
-  #                        "valid_years",
-  #                        "aux_files",
-  #                        "pl_lkup",
-  #                        "cp_lkups",
-  #                        "cache_data_id"
-  # )
-  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$version <- NULL
-  do.call(pipapi::ui_cp_key_indicators, params)
+  out <- do.call(pipapi::ui_cp_key_indicators, params)
+
+  return(out)
 }
 
 
@@ -648,9 +662,10 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-
   params$version <- NULL
-    do.call(pipapi::ui_cp_charts, params)
+  out <- do.call(pipapi::ui_cp_charts, params)
+
+  return(out)
 }
 
 #* Return Country Profile - Downloads
@@ -675,7 +690,8 @@ function(req, res) {
   } else {
     out <- do.call(pipapi::ui_cp_download, params)
   }
-  out
+
+  return(out)
 }
 
 ## UI endpoints: Miscellaneous ----
@@ -701,7 +717,8 @@ function(req, res) {
     params$version <- NULL
     out <- do.call(pipapi::get_aux_table_ui, params)
   }
-  out
+
+  return(out)
 }
 
 #* Return metadata for the Data Sources page
@@ -716,7 +733,8 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
   out <- do.call(pipapi::ui_svy_meta, params)
-  out
+
+  return(out)
 }
 
 #* Return valid years
@@ -729,7 +747,8 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   out <- pipapi::valid_years(data_dir = params$lkup$data_root)
-  out
+
+  return(out)
 }
 
 
@@ -742,5 +761,6 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   out <- pipapi::citation_from_version(params$version)
-  out
+
+  return(out)
 }
