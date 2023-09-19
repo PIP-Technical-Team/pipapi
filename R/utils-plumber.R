@@ -162,36 +162,6 @@ parse_parameter <- function(param,
   return(param)
 }
 
-#' Switch serializer
-#' @return A plumber response
-#' @noRd
-serializer_switch <- function() {
-  function(val, req, res, errorHandler) {
-    tryCatch(
-      {
-        format <- attr(val, "serialize_format")
-        if (is.null(format) || format == "json") {
-          type <- "application/json"
-          sfn <- function(x) jsonlite::toJSON(x, na = "null")
-        } else if (format == "csv") {
-          type <- "text/csv; charset=UTF-8"
-          sfn <- function(x) readr::format_csv(x, na = "")
-        } else if (format == "rds") {
-          type <- "application/rds"
-          sfn <- function(x) base::serialize(x, NULL)
-        }
-        val <- sfn(val)
-        res$setHeader("Content-Type", type)
-        res$body <- val
-        res$toResponse()
-      },
-      error = function(err) {
-        errorHandler(req, res, err)
-      }
-    )
-  }
-}
-
 #' Assign PIP API required parameters if missing
 #'
 #' @param req list: plumber `req` object
@@ -430,4 +400,50 @@ citation_from_version <- function(version) {
     date_accessed = current_date
   )
   )
+}
+
+#' create_etag_header
+#'
+#' helper function that creates a unique hash of code + data
+#' this hash value will be used as the value of the etag header
+#' to facilitate caching of PIP API responses
+#'
+#' @param req R6 object: Plumber API request
+#'
+#' @return character
+#'
+#' @export
+
+create_etag_header <- function(req){
+  lkup_hash   <- lkups$versions_paths[[req$argsQuery$version]]
+  pipapi_hash <- packageDescription("pipapi")$GithubSHA1
+  wbpip_hash  <- packageDescription("wbpip")$GithubSHA1
+
+  etag_hash <- rlang::hash(c(lkup_hash, pipapi_hash, wbpip_hash))
+
+  return(etag_hash)
+}
+
+#' Helper function to return correct serializer
+#'
+#' @param format characer: Response format. Options are "json", "csv", or "rds"
+#'
+#' @return serializer function
+#' @export
+#'
+
+assign_serializer <- function(format) {
+  # json as default format
+  if (is.null(format)) {
+    format <- "json"
+  }
+  # List of supported serializers
+  serializers <- list(
+    "json"    = plumber::serializer_json(na = "null"),
+    "csv"     = plumber::serializer_csv(),
+    "rds"     = plumber::serializer_rds(),
+    "arrow"     = plumber::serializer_feather()
+  )
+
+  return(serializers[[format]])
 }

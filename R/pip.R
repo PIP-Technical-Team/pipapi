@@ -177,10 +177,20 @@ pip <- function(country         = "ALL",
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   # Add pre-computed distributional statistics
+  crr_names  <- names(out)    # current variables
+  names2keep <- lkup$pip_cols # all variables
+
   out <- add_dist_stats(
     df = out,
     dist_stats = lkup[["dist_stats"]]
   )
+
+  if (fill_gaps) {
+    # Convert inequality indicators to NA
+    dist_vars  <- names2keep[!(names2keep %in% crr_names)]
+    out[,
+        (dist_vars) := NA_real_]
+  }
 
   # Handle survey coverage
   if (reporting_level != "all") {
@@ -193,24 +203,23 @@ pip <- function(country         = "ALL",
     out <- censor_rows(out, lkup[["censored"]], type = "countries")
   }
 
-
   # Select columns
   if (additional_ind) {
     get_additional_indicators(out)
     added_names <- attr(out, "new_indicators_names")
-    names2keep  <- c(lkup$pip_cols, added_names)
+    names2keep  <- c(names2keep, added_names)
 
     # Keep relevant variables
-    out  <- out[, ..names2keep]
+    out  <- out[, .SD, .SDcols = names2keep]
 
   } else {
 
-    out <- out[, .SD, .SDcols = lkup$pip_cols]
+    out <- out[, .SD, .SDcols = names2keep]
 
   }
 
   #Order rows by country code and reporting year
-  setorder(out, country_code, reporting_year, reporting_level, welfare_type)
+  data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
 
 
   return(out)

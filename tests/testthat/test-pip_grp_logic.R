@@ -29,7 +29,7 @@ lkup             =  lkup
 )
 
 
-test_that("expected results", {
+test_that("pip_grp and pip_grp_logic give the same results for official and alternative region selection", {
 
   ## regular official regions
   country <- c("SSA", "LAC")
@@ -38,9 +38,7 @@ test_that("expected results", {
   lp$year    <- year
 
   de1 <- do.call(pip_grp_logic, lp)
-  #de1 <- de1 |> dplyr::arrange(region_code, reporting_year) # TEMPORARY FIX FOR THE TEST TO PASS
   dc <- do.call(pip_grp, lp)
-  #dc <- dc |> dplyr::arrange(region_code, reporting_year) # TEMPORARY FIX FOR THE TEST TO PASS
   expect_equal(de1, dc, label = "same results for official aggregates
                between grp and grp_logic")
 
@@ -51,6 +49,8 @@ test_that("expected results", {
   de2 <- do.call(pip_grp_logic, lp)
   de3 <- de2[region_code %in% c("SSA", "LAC")]
   data.table::setcolorder(de3, names(dc))
+  data.table::setorder(de3, region_code, reporting_year)
+  data.table::setorder(dc, region_code, reporting_year)
 
   expect_equal(de3, dc, label = "same results for official aggregates
                between grp and grp_logic when alt aggregate is included")
@@ -64,15 +64,9 @@ test_that("expected results", {
   de4 <- do.call(pip_grp_logic, lp)
   de5 <- de4[region_code %in% c("SSA", "LAC")]
   data.table::setcolorder(de5, names(dc))
+  data.table::setorder(de5, region_code, reporting_year)
 
   expect_equal(de5, dc, label = "same results for official aggregates
                between grp and grp_logic when alt aggregate is included")
-
-
-  ## Just alternative aggregations
-  country <- c("AFE", "AFW", "LIC", "IDX")
-  lp$country <- country
-
-  # de6 <- do.call(pip_grp_logic, lp)
 
 })

@@ -59,15 +59,16 @@ create_countries_vctr <- function(country,
     grouping_type <- NULL
 
   ## Official grouping type
-  off_gt <-  c("region", "world")
+  # off_gt <-  c("region", "world")
+  off_gt <-  c("region")
 
   # Official valid region codes
   off_reg <- aggs[["region_code"]][aggs[["grouping_type"]] %in% off_gt]
 
   #  Aggregates selected by user
-  if ("ALL" %in% country) {
+  if (any(c("ALL", "WLD") %in% country)) {
 
-    user_aggs <- unique(aggs[["region_code"]])
+    user_aggs <- off_reg
 
   } else {
 
@@ -75,7 +76,7 @@ create_countries_vctr <- function(country,
   }
 
   ## all and WLD to off_reg
-  off_reg <- unique(c("ALL", off_reg))
+  off_reg <- unique(c("ALL", off_reg, "WLD"))
 
   # Alternative  aggregates code
   alt_agg <- aggs[["region_code"]][!aggs[["grouping_type"]] %in% off_gt]
@@ -256,8 +257,8 @@ create_countries_vctr <- function(country,
 
   fg_ctrs <- est_ctrs # survey countries
 
-#   _____________________________________________________________________
-#   Return                                                           ####
+  #   _____________________________________________________________________
+  #   Return                                                           ####
 
   # Add to return list
   fillin_list(lret)
@@ -276,14 +277,12 @@ create_countries_vctr <- function(country,
 filter_md <- function(md, ctr_alt_agg, year) {
   # Filter countries
   md <-  md[md[["country_code"]] %in% ctr_alt_agg, ]
-    numeric_years <- suppressWarnings(as.numeric(year))
-    numeric_years <- numeric_years[!is.na(numeric_years)]
+  numeric_years <- suppressWarnings(as.numeric(year))
+  numeric_years <- numeric_years[!is.na(numeric_years)]
 
   # Filter years
-    if (length(numeric_years) > 0) {
-      md <- md[md[["year"]] %in% numeric_years, ]
-    }
-    return(md)
+  if (length(numeric_years) > 0) {
+    md <- md[md[["year"]] %in% numeric_years, ]
+  }
+  return(md)
 }
-
-
