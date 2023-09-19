@@ -504,18 +504,18 @@ function(req) {
   return(out)
 }
 
-#* Return list of variables used for decomposition
-#* @get /api/v1/decomposition-vars
-#* @param release_version:[chr] date when the data was published in YYYYMMDD format
-#* @param ppp_version:[chr] ppp year to be used
-#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
-#* @serializer json
-function(req) {
-  out <- pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
-                               table = "decomposition_master")
-
-  return(out)
-}
+# #* Return list of variables used for decomposition
+# #* @get /api/v1/decomposition-vars
+# #* @param release_version:[chr] date when the data was published in YYYYMMDD format
+# #* @param ppp_version:[chr] ppp year to be used
+# #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+# #* @serializer json
+# function(req) {
+#   out <- pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
+#                                table = "decomposition_master")
+#
+#   return(out)
+# }
 
 #* Return data for home page main chart
 #* @get /api/v1/hp-stacked
