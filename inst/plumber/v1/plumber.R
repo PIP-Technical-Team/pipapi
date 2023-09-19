@@ -4,31 +4,31 @@ library(glue)
 
 endpoints_path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
 api_spec_path <-  system.file("plumber/v1/openapi.yaml", package = "pipapi")
-# convert_empty <- pipapi:::convert_empty
+
+# Enable / Disable logging
+if (Sys.getenv("PIPAPI_LOGGING") == "TRUE") {
+  log_dir <- rappdirs::user_log_dir("pipapi")
+  if (!fs::dir_exists(log_dir)) {fs::dir_create(log_dir)}
+  if (!fs::file_exists(paste0(log_dir, "/pipapi_logs"))) {
+    fs::file_create(paste0(log_dir, "/pipapi_logs"))
+  }
+  log_file <- paste0(log_dir, "/pipapi_logs")
+  logger::log_appender(logger::appender_file(log_file))
+}
 
 plumber::pr(endpoints_path) |>
   # pre-route log
-  plumber::pr_hook("preroute", function() {
-    # log_separator()
-    # tictoc::tic("route") # Start timer for log info
-  }) |>
-  # post-route log
-  plumber::pr_hook("postroute", function(req, res) {
-    # end_route <- tictoc::toc(quiet = TRUE)
-    # log_info('route: {convert_empty(req$REMOTE_ADDR)} {convert_empty(req$REQUEST_METHOD)} {convert_empty(req$PATH_INFO)} {convert_empty(req$QUERY_STRING)}  {convert_empty(res$status)} {round(end_route$toc - end_route$tic, digits = getOption("digits", 6))}')
-  }) |>
-  # pre-serialization log
-  plumber::pr_hook("preserialize", function() {
-    # tictoc::tic("serialize")
+  plumber::pr_hook("preroute", function(req) {
+    logger::log_info("{convert_empty(req$PATH_INFO)} {convert_empty(req$QUERY_STRING)}")
   }) |>
   # post-serialization log
-  plumber::pr_hook("postserialize", function(req) {
-    # end_serial <- tictoc::toc(quiet = TRUE)
-    # log_info('serialize: {convert_empty(req$PATH_INFO)} {round(end_serial$toc - end_serial$tic, digits = getOption("digits", 6))}')
-    # log_separator()
-  }) |>
-  plumber::pr_hook("exit", function() {
-    # log_info('Bye bye: {proc.time()[["elapsed"]]}')
+  plumber::pr_hook("postserialize", function(res) {
+    if (res$status != 200) {
+      tmp <- substr(res$body, start = 1, stop = 30)
+      logger::log_info("{convert_empty(res$status)} {convert_empty(tmp)}...")
+    } else {
+      logger::log_info("{convert_empty(res$status)}")
+    }
   }) |>
   # Set API spec
   plumber::pr_set_api_spec(api = function(spec) {
