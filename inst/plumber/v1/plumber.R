@@ -4,6 +4,7 @@ library(glue)
 
 endpoints_path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
 api_spec_path <-  system.file("plumber/v1/openapi.yaml", package = "pipapi")
+convert_empty <- pipapi:::convert_empty
 
 # Enable / Disable logging
 if (Sys.getenv("PIPAPI_LOGGING") == "TRUE") {
