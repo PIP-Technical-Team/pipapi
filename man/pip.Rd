@@ -5,8 +5,8 @@
 \title{Compute PIP statistics}
 \usage{
 pip(
-  country = "all",
-  year = "all",
+  country = "ALL",
+  year = "ALL",
   povline = 1.9,
   popshare = NULL,
   fill_gaps = FALSE,
@@ -15,8 +15,9 @@ pip(
   reporting_level = c("all", "national", "rural", "urban"),
   ppp = NULL,
   lkup,
-  debug = FALSE,
-  censor = TRUE
+  censor = TRUE,
+  lkup_hash = lkup$cache_data_id$hash_pip,
+  additional_ind = FALSE
 )
 }
 \arguments{
@@ -43,10 +44,12 @@ sub-groups}
 
 \item{lkup}{list: A list of lkup tables}
 
-\item{debug}{logical: If TRUE poverty calculations from \code{wbpip} will run in
-debug mode}
-
 \item{censor}{logical: Triggers censoring of country/year statistics}
+
+\item{lkup_hash}{character: hash of pip}
+
+\item{additional_ind}{logical: If TRUE add new set of indicators. Default if
+FALSE}
 }
 \value{
 data.table

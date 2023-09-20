@@ -134,11 +134,14 @@ get_svy_data <- function(svy_id,
   )
   # tictoc::tic("read_single")
   out <- lapply(path, function(x) {
-    tmp <- fst::read_fst(x)
+
     if (reporting_level %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
+      tmp <- fst::read_fst(x)
       tmp <- tmp[tmp$area == reporting_level, ]
+      tmp <- tmp[, c("welfare", "weight")]
+    } else {
+      tmp <- fst::read_fst(x, columns = c("welfare", "weight"))
     }
-    tmp <- tmp[, c("welfare", "weight")]
 
     return(tmp)
   })
@@ -303,7 +306,6 @@ create_query_controls <- function(svy_lkup,
   country <- list(
     values = c(
       "ALL",
-      "WLD",
       sort(c(
         countries,
         regions)
@@ -313,13 +315,13 @@ create_query_controls <- function(svy_lkup,
   )
 
   region <- list(
-    values = sort(c("ALL", "WLD", regions)),
+    values = sort(c("ALL", regions)),
     type = "character"
   )
   # Year
   year <- list(
     values = c(
-      "all", "mrv",
+      "all", "MRV",
       sort(unique(c(
         svy_lkup$reporting_year,
         ref_lkup$reporting_year
@@ -329,7 +331,7 @@ create_query_controls <- function(svy_lkup,
   )
   # Poverty line
   povline <- list(
-    values = c(min = 0, max = 10000),
+    values = c(min = 0, max = 2700),
     type = "numeric"
   )
   # Popshare
@@ -337,16 +339,21 @@ create_query_controls <- function(svy_lkup,
     values = c(min = 0, max = 1),
     type = "numeric"
   )
-  # Fill gaps
-  fill_gaps <- aggregate <- long_format <- list(
-    values = c(TRUE, FALSE),
-    type = "logical"
-  )
+
+  # Boolean parameters
+  fill_gaps        <-
+    aggregate      <-
+    long_format    <-
+    additional_ind <-
+    list(values = c(TRUE, FALSE),
+         type = "logical")
+
   # Group by
   group_by <- list(
     values = c("none", "wb"),
     type = "character"
   )
+
   # Welfare type
   welfare_type <- list(
     values = c("all", sort(unique(c(
@@ -377,7 +384,7 @@ create_query_controls <- function(svy_lkup,
     type = "character"
   )
   # Formats
-  format <- list(values = c("json", "csv", "rds"),
+  format <- list(values = c("json", "csv", "rds", "arrow"),
                  type = "character")
   # Tables
   table <- list(values = aux_tables, type = "character")
@@ -409,6 +416,7 @@ create_query_controls <- function(svy_lkup,
     fill_gaps       = fill_gaps,
     aggregate       = aggregate,
     long_format     = long_format,
+    additional_ind  = additional_ind,
     group_by        = group_by,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
@@ -454,7 +462,7 @@ subset_ctry_years <- function(country,
     } else {
       keep_regions <- rep(FALSE, length(lkup$country_code))
     }
-    keep_countries <- lkup$country_code %in% country
+    keep_countries <- lkup$country_code %chin% country
     keep <- keep & (keep_countries | keep_regions)
   }
 
@@ -472,9 +480,10 @@ subset_ctry_years <- function(country,
     keep <- keep & lkup$reporting_year %in% max_year
   }
   if (!year[1] %in% c("ALL", "MRV")) {
-    keep <- keep & lkup$reporting_year %in% year
+    keep <- keep & lkup$reporting_year %in% as.numeric(year)
   }
 
+  lkup <- as.data.frame(lkup)
   lkup <- lkup[keep, ]
 
   return(lkup)
@@ -540,7 +549,7 @@ select_years <- function(lkup, keep, year, country) {
   #                   .i := seq_len(.N),
   #                   by = .(country_code, reporting_year)]
 
-  dtmp <- data.table::copy(lkup)
+  dtmp <- lkup
 
   year       <- toupper(year)
   country    <- toupper(country)
@@ -564,7 +573,7 @@ select_years <- function(lkup, keep, year, country) {
     } else {
       # STEP 1.2 - If only some countries selected. Select MRV for each selected
       # country
-      dtmp[country_code %in% country,
+      dtmp[dtmp[["country_code"]] %in% country,
            max_year := reporting_year == max(reporting_year),
            by = country_code]
     }
@@ -577,7 +586,7 @@ select_years <- function(lkup, keep, year, country) {
   }
   # STEP 2 - If specific years are specified. Filter for these years
   if (!any(c("ALL", "MRV") %in% year)) {
-    keep_years <- keep_years & dtmp$reporting_year %in% year
+    keep_years <- keep_years & dtmp$reporting_year %in% as.numeric(year)
 
   }
 
@@ -694,6 +703,14 @@ fillin_list <- function(l,
 
   # x = get(x_name, envir = parent.frame())
   # x_name = deparse(substitute(x))
+}
+
+#' Returns all auxiliary tables that support the long_format=TRUE parameter
+#' @return character vector
+#' @export
+
+get_valid_aux_long_format_tables <- function() {
+  c('cpi', 'ppp', 'gdp', 'pce', 'pop')
 }
 
 

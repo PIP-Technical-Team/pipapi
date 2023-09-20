@@ -22,8 +22,8 @@ pip_grp <- function(country         = "ALL",
                     welfare_type    = c("all", "consumption", "income"),
                     reporting_level = c("all", "national"),
                     lkup,
-                    debug           = FALSE,
-                    censor          = TRUE) {
+                    censor          = TRUE,
+                    lkup_hash       = lkup$cache_data_id$hash_pip_grp) {
 
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
@@ -32,6 +32,11 @@ pip_grp <- function(country         = "ALL",
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
   year <- toupper(year)
+
+  # If ref_lkup is not part of lkup throw an error.
+  if (!all(c('ref_lkup') %in% names(lkup)))
+    stop("You are probably passing more than one dataset as lkup argument.
+  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
 
 
   # Custom aggregations only supported at the national level
@@ -52,9 +57,10 @@ pip_grp <- function(country         = "ALL",
     popshare        = NULL,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
-    lkup            = lkup,
     ppp             = NULL,
-    debug           = debug
+    ref_lkup           = lkup[["ref_lkup"]],
+    valid_regions      = lkup$query_controls$region$values,
+    interpolation_list = lkup$interpolation_list
   )
 
   # return empty dataframe if no metadata is found
@@ -111,7 +117,7 @@ pip_grp <- function(country         = "ALL",
 #'
 #' @param df data.table from `pip_fg()`
 #' @param by character: Additional variable to use in `by` when doing the
-#'   aggragations. Default is `NULL`, but it should be use to include
+#'   aggregations. Default is `NULL`, but it should be use to include
 #'   aggregations variables
 #'
 #' @return data.table

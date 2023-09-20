@@ -7,7 +7,7 @@
 version_dataframe(versions)
 }
 \arguments{
-\item{version}{character vector of data version}
+\item{versions}{character: All available versions}
 }
 \value{
 Dataframe with 4 columns, versions, release_version, ppp_version and identity

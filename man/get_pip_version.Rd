@@ -4,12 +4,15 @@
 \alias{get_pip_version}
 \title{Return the versions of the pip packages used for computations}
 \usage{
-get_pip_version(pip_package = c("pipapi"), lkup)
+get_pip_version(
+  pip_packages = c("pipapi", "wbpip"),
+  data_versions = lkups$versions
+)
 }
 \arguments{
-\item{pip_package}{character: Custom packages powering the API}
+\item{pip_packages}{character: Custom packages powering the API}
 
-\item{lkup}{list: A list of lkup tables}
+\item{data_versions}{character: Available data_versions}
 }
 \value{
 list

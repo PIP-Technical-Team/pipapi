@@ -11,7 +11,7 @@ pip_aggregate(df, by = NULL)
 \item{df}{data.table from \code{pip_fg()}}
 
 \item{by}{character: Additional variable to use in \code{by} when doing the
-aggragations. Default is \code{NULL}, but it should be use to include
+aggregations. Default is \code{NULL}, but it should be use to include
 aggregations variables}
 }
 \value{

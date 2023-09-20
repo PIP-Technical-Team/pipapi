@@ -4,10 +4,10 @@
 #' @param query_controls list: List of valid values
 #' @return logical
 #' @noRd
-check_parameters <- function(req, query_controls) {
+check_parameters_values <- function(req, query_controls) {
   out <- lapply(seq_along(req$argsQuery), function(i) {
     param_name <- names(req$argsQuery)[i]
-    check_parameter(
+    check_parameter_values(
       values = req$argsQuery[[i]],
       valid_values = query_controls[[param_name]][["values"]],
       type = query_controls[[param_name]][["type"]]
@@ -23,7 +23,7 @@ check_parameters <- function(req, query_controls) {
 #' @param type character: Type of value
 #' @return logical
 #' @noRd
-check_parameter <- function(values, valid_values, type) {
+check_parameter_values <- function(values, valid_values, type) {
   if (type == "character") {
     check_param_chr(values, valid_values)
   } else if (type == "numeric") {
@@ -65,7 +65,7 @@ check_param_lgl <- function(value) {
 }
 
 #' Format error
-#' Format error if check_parameters() returns TRUE
+#' Format error if check_parameters_values() returns TRUE
 #' @param params character: Vector with parsed parameters
 #' @param query_controls list: Query controls
 #' @return list
@@ -104,7 +104,8 @@ validate_query_parameters <-
     "table",
     "parameter",
     "endpoint",
-    "long_format"
+    "long_format",
+    "additional_ind"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]
@@ -139,7 +140,13 @@ parse_parameter <- function(param,
   param <- unlist(param)
 
   # Make API case insensitive
-  if (param_name %in% c("country", "fill_gaps", "version", "aggregate", "long_format")) {
+  if (param_name %in% c("country",
+                        "fill_gaps",
+                        "version",
+                        "aggregate",
+                        "long_format",
+                        "additional_ind")) {
+
     param <- toupper(param)
     if (param_name == "country") {
       if (length(param[param == "ALL"]) > 0) {
@@ -153,36 +160,6 @@ parse_parameter <- function(param,
   param <- type.convert(param, as.is = TRUE)
 
   return(param)
-}
-
-#' Switch serializer
-#' @return A plumber response
-#' @noRd
-serializer_switch <- function() {
-  function(val, req, res, errorHandler) {
-    tryCatch(
-      {
-        format <- attr(val, "serialize_format")
-        if (is.null(format) || format == "json") {
-          type <- "application/json"
-          sfn <- function(x) jsonlite::toJSON(x, na = "null")
-        } else if (format == "csv") {
-          type <- "text/csv; charset=UTF-8"
-          sfn <- function(x) readr::format_csv(x, na = "")
-        } else if (format == "rds") {
-          type <- "application/rds"
-          sfn <- function(x) base::serialize(x, NULL)
-        }
-        val <- sfn(val)
-        res$setHeader("Content-Type", type)
-        res$body <- val
-        res$toResponse()
-      },
-      error = function(err) {
-        errorHandler(req, res, err)
-      }
-    )
-  }
 }
 
 #' Assign PIP API required parameters if missing
@@ -213,12 +190,17 @@ assign_required_params <- function(req, pl_lkup) {
         req$argsQuery$group_by <- "none"
       }
     }
-    # Turn all country codes to upper case
-    req$args$country <- toupper(req$args$country)
-    req$argsQuery$country <- toupper(req$argsQuery$country)
-    # Turn all year codes to upper case
-    req$args$year <- toupper(req$args$year)
-    req$argsQuery$year <- toupper(req$argsQuery$year)
+  }
+
+  # Turn all country codes to upper case
+  if (!is.null(req$args$country)) {
+  req$args$country <- toupper(req$args$country)
+  req$argsQuery$country <- toupper(req$argsQuery$country)
+  }
+  # Turn all year codes to upper case
+  if (!is.null(req$args$year)) {
+  req$args$year <- toupper(req$args$year)
+  req$argsQuery$year <- toupper(req$argsQuery$year)
   }
 
   # Handle default poverty line
@@ -234,6 +216,32 @@ assign_required_params <- function(req, pl_lkup) {
     if (is.null(req$args$povline)) {
       req$args$povline <- pl_lkup$poverty_line[pl_lkup$is_default == TRUE]
       req$argsQuery$povline <- pl_lkup$poverty_line[pl_lkup$is_default == TRUE]
+    }
+  }
+
+  # Handle long_format argument for /aux endpoint
+  # Behavior: long_format argument will be forced to FALSE is the selected
+  # table is not suppported for long format
+  # Long format of tables
+  if (endpoint == "aux") {
+    # If no table is defined
+    if (is.null(req$argsQuery$table)) {
+      req$argsQuery$long_format <- FALSE
+    }
+
+    # If long format is not selected
+    if (is.null(req$argsQuery$long_format)) {
+
+      # Check if belongs to list of tables available in long format
+      if (req$argsQuery$table %in%
+          pipapi::get_valid_aux_long_format_tables()) {
+        req$argsQuery$long_format <- TRUE
+      } else {
+        req$argsQuery$long_format <- FALSE
+      }
+      # end of if NULL long_format
+    } else {
+      req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
     }
   }
   return(req)
@@ -274,13 +282,13 @@ return_correct_version <- function(version = NULL,
   if (!is.null(release_version) & !is.null(ppp_version) & !is.null(identity)) {
     selected_version <- rpi_version(release_version, ppp_version, identity, versions_available)
   } else if (!is.null(release_version) & !is.null(ppp_version)) {
-  # STEP 2.2 - If identity is NULL, return closest matching version if it exists
+    # STEP 2.2 - If identity is NULL, return closest matching version if it exists
     # This probably would never be executed since identity would never be NULL unless explicitly specified.
     selected_version <- rp_version(release_version, ppp_version, versions_available)
-  # STEP 2.3 - If ppp_version is NULL, return closest matching version if it exists
+    # STEP 2.3 - If ppp_version is NULL, return closest matching version if it exists
   } else if (!is.null(release_version) & !is.null(identity)) {
     selected_version <- ri_version(release_version, identity, versions_available)
-  # STEP 2.4 - If release_version is NULL, return closest matching version if it exists
+    # STEP 2.4 - If release_version is NULL, return closest matching version if it exists
   } else if (!is.null(ppp_version) & !is.null(identity)) {
     selected_version <- pi_version(ppp_version, identity, versions_available)
   }
@@ -330,13 +338,14 @@ extract_identity <- function(version) {
 
 #' Return versions of the data available.
 #'
-#' @param version character vector of data version
+#' @param versions character: All available versions
 #'
 #' @return Dataframe with 4 columns, versions, release_version, ppp_version and identity
 #'
 #' @export
 #'
 version_dataframe <- function(versions) {
+
   ppp_version <- format(extract_ppp_date(versions), '%Y')
   release_version <- format(extract_release_date(versions), "%Y%m%d")
   identity <- extract_identity(versions)
@@ -344,6 +353,7 @@ version_dataframe <- function(versions) {
                     release_version = release_version,
                     ppp_version = ppp_version,
                     identity = identity)
+
   return(out)
 }
 
@@ -375,7 +385,65 @@ pi_version <- function(ppp_version, identity, versions_available) {
 #' @export
 #'
 citation_from_version <- function(version) {
+  current_date <- Sys.Date()
+  current_year <- format(current_date, '%Y')
   release_date <- extract_release_date(version)
   ppp_date <- extract_ppp_date(version)
-  sprintf('Poverty and Inequality Platform, %s, %s PPPs.', release_date, format(ppp_date, '%Y'))
+  citation <- sprintf('World Bank (%s), Poverty and Inequality Platform (version %s) [data set]. pip.worldbank.org. Accessed on %s',
+                      current_year,
+                      version,
+                      current_date)
+
+  return(list(
+    citation = citation,
+    version_id  = version,
+    date_accessed = current_date
+  )
+  )
+}
+
+#' create_etag_header
+#'
+#' helper function that creates a unique hash of code + data
+#' this hash value will be used as the value of the etag header
+#' to facilitate caching of PIP API responses
+#'
+#' @param req R6 object: Plumber API request
+#'
+#' @return character
+#'
+#' @export
+
+create_etag_header <- function(req){
+  lkup_hash   <- lkups$versions_paths[[req$argsQuery$version]]
+  pipapi_hash <- packageDescription("pipapi")$GithubSHA1
+  wbpip_hash  <- packageDescription("wbpip")$GithubSHA1
+
+  etag_hash <- rlang::hash(c(lkup_hash, pipapi_hash, wbpip_hash))
+
+  return(etag_hash)
+}
+
+#' Helper function to return correct serializer
+#'
+#' @param format characer: Response format. Options are "json", "csv", or "rds"
+#'
+#' @return serializer function
+#' @export
+#'
+
+assign_serializer <- function(format) {
+  # json as default format
+  if (is.null(format)) {
+    format <- "json"
+  }
+  # List of supported serializers
+  serializers <- list(
+    "json"    = plumber::serializer_json(na = "null"),
+    "csv"     = plumber::serializer_csv(),
+    "rds"     = plumber::serializer_rds(),
+    "arrow"     = plumber::serializer_feather()
+  )
+
+  return(serializers[[format]])
 }

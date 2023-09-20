@@ -1,6 +1,6 @@
 Package: pipapi
 Title: API for the Poverty and Inequality Platform
-Version: 1.2.0
+Version: 1.2.1
 Authors@R: 
     c(person(given = "Tony",
             family = "Fujs",
@@ -19,7 +19,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 URL: https://pip-technical-team.github.io/pipapi, https://github.com/PIP-Technical-Team/pipapi
 BugReports: https://github.com/PIP-Technical-Team/pipapi/issues
 Suggests: 
@@ -54,9 +54,11 @@ Imports:
     future,
     promises,
     methods,
-    joyn
+    joyn,
+    qs,
+    arrow
 Remotes:
-    PIP-Technical-Team/wbpip@master
+    PIP-Technical-Team/wbpip@PROD
 Depends: 
     R (>= 3.5.0)
 VignetteBuilder: knitr

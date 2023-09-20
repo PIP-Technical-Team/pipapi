@@ -5,15 +5,15 @@
 \title{Compute various aggregations of PIP statistics}
 \usage{
 pip_grp(
-  country = "all",
-  year = "all",
+  country = "ALL",
+  year = "ALL",
   povline = 1.9,
   group_by = c("none", "wb"),
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national"),
   lkup,
-  debug = FALSE,
-  censor = TRUE
+  censor = TRUE,
+  lkup_hash = lkup$cache_data_id$hash_pip_grp
 )
 }
 \arguments{
@@ -32,10 +32,9 @@ sub-groups}
 
 \item{lkup}{list: A list of lkup tables}
 
-\item{debug}{logical: If TRUE poverty calculations from \code{wbpip} will run in
-debug mode}
-
 \item{censor}{logical: Triggers censoring of country/year statistics}
+
+\item{lkup_hash}{character: hash of pip}
 }
 \value{
 data.table

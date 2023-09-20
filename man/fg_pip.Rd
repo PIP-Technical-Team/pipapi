@@ -12,8 +12,9 @@ fg_pip(
   welfare_type,
   reporting_level,
   ppp,
-  lkup,
-  debug
+  ref_lkup,
+  valid_regions,
+  interpolation_list
 )
 }
 \arguments{
@@ -32,10 +33,13 @@ poverty line}
 
 \item{ppp}{numeric: Custom Purchase Power Parity value}
 
-\item{lkup}{list: A list of lkup tables}
+\item{ref_lkup}{data.frame: Lookup table with necessary information to compute
+inter/extra-polated values}
 
-\item{debug}{logical: If TRUE poverty calculations from \code{wbpip} will run in
-debug mode}
+\item{valid_regions}{character: Vector of accepted country codes for regions}
+
+\item{interpolation_list}{list: List of surveys to be used for computing
+inter/extra-polated values}
 }
 \value{
 data.frame

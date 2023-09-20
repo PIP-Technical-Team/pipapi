@@ -72,69 +72,85 @@ extract_data_dirs <-
 #' @return list
 create_lkups <- function(data_dir, versions) {
 
-  # Get survey paths
+  # Get survey paths ----
   paths <- list.files(fs::path(data_dir, "survey_data"))
-
   paths_ids <- tools::file_path_sans_ext(paths)
 
-  # TEMP FIX to add country and region name
+  # CREATE OBJECT: aux_files ----
+  # Files with country and region information
+  ## missing_data ----
+  # Countries with Missing data
+  msd_lkup_path    <- fs::path(data_dir, "_aux/missing_data.fst")
+  missing_data     <- fst::read_fst(msd_lkup_path, as.data.table = TRUE)
+
+  ## country_list ----
+  cl_lkup_path    <- fs::path(data_dir, "_aux/country_list.fst")
+  country_list     <- fst::read_fst(cl_lkup_path, as.data.table = TRUE)
+
+  ## countries ----
   cts_path <- fs::path(data_dir, "_aux/countries.fst")
+  countries <-  fst::read_fst(cts_path, as.data.table = TRUE)
+  data.table::setnames(countries, 'region', 'region_name') # Why is this necessary?
+
+  ## regions ----
   reg_path <- fs::path(data_dir, "_aux/regions.fst")
+  regions   <-  fst::read_fst(reg_path, as.data.table = TRUE)
 
-  countries <-  fst::read_fst(cts_path,as.data.table = TRUE)
-  regions   <-  fst::read_fst(reg_path,as.data.table = TRUE)
+  ## pop ----
+  # population
+  pop_path    <- fs::path(data_dir, "_aux/pop.fst")
+  pop         <- fst::read_fst(pop_path, as.data.table = TRUE)
 
-  data.table::setnames(countries, 'region', 'region_name')
+  aux_files <- list(missing_data = missing_data,
+                    country_list = country_list,
+                    countries    = countries,
+                    regions      = regions,
+                    pop          = pop)
 
-  # TEMP fix - END (see further code chunks below )
-
-  # Clean svy_lkup
+  # CREATE OBJECT: svy_lkup ----
   svy_lkup_path <- fs::path(data_dir, "estimations/prod_svy_estimation.fst")
   svy_lkup      <- fst::read_fst(svy_lkup_path, as.data.table = TRUE)
 
-  # TEMP cleaning - START
+  ## TEMP cleaning - START ----
   svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
 
-  # TEMP cleaning - END
+
   svy_lkup$path <- fs::path(data_dir,"survey_data", svy_lkup$cache_id, ext = "fst")
 
-  # TEMP: Ideally, region should come from one single place
+  ## TEMP: Ideally, region should come from one single place
   if ("region_code" %in% names(svy_lkup)) {
     svy_lkup[,
              region_code := NULL]
   }
 
-  # TEMP fix to add country and region name
+  ## TEMP fix to add country and region name
   svy_lkup <- merge(svy_lkup, countries,
                     by = 'country_code',
                     all.x = TRUE)
+  ## TEMP cleaning - END
 
-  # TEMP fix - END
-  # Clean ref_lkup
+  # CREATE OBJECT: ref_lkup ----
   ref_lkup_path <- fs::path(data_dir, "estimations/prod_ref_estimation.fst")
   ref_lkup      <- fst::read_fst(ref_lkup_path, as.data.table = TRUE)
 
-
-  # TEMP cleaning - START
+  ## TEMP cleaning - START ----
   ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
+
   # TEMP: Ideally, region should come from one single place
   if ("region_code" %in% names(ref_lkup)) {
     ref_lkup[,
              region_code := NULL]
   }
 
-
-  # TEMP cleaning - END
-  ref_lkup$path <-
-    fs::path(data_dir, "survey_data", ref_lkup$cache_id, ext = "fst")
-
-
   # TEMP fix to add country and region name
   ref_lkup <-  merge(ref_lkup, countries,
                      by = 'country_code',
                      all.x = TRUE)
+  ## TEMP cleaning - END
 
-  # TEMP fix - END
+  # Add path to survey files
+  ref_lkup$path <-
+  fs::path(data_dir, "survey_data", ref_lkup$cache_id, ext = "fst")
 
   # Add data interpolation ID (unique combination of survey files used for one
   # or more reporting years)
@@ -151,7 +167,8 @@ create_lkups <- function(data_dir, versions) {
                                             collapse = "|"),
              by = .(interpolation_id)]
 
-  # Create interpolation list.
+
+  # CREATE OBJECT: interpolation_list ----
   # This is to facilitate interpolation computations
   unique_survey_files <- unique(ref_lkup$data_interpolation_id)
   interpolation_list  <- vector(mode = "list", length = length(unique_survey_files))
@@ -167,61 +184,44 @@ create_lkups <- function(data_dir, versions) {
                                                "reporting_year",
                                                "reporting_level",
                                                "interpolation_id"
-                                               )
-                                           ])
+    )
+    ])
 
     interpolation_list[[i]] <-
-      list(tmp_metadata    = tmp_metadata,
-           cache_ids       = cache_ids,
-           reporting_level = reporting_level,
-           paths           = paths,
-           ctry_years      = ctry_years
-           )
+      list(#tmp_metadata    = tmp_metadata,
+        cache_ids       = cache_ids,
+        reporting_level = reporting_level,
+        paths           = paths,
+        ctry_years      = ctry_years
+      )
   }
 
   names(interpolation_list) <- unique_survey_files
 
-  # Load dist_stats
+  # CREATE OBJECT: dist_stats ----
   dist_stats_path <- fs::path(data_dir, "estimations/dist_stats.fst")
   dist_stats      <- fst::read_fst(dist_stats_path, as.data.table = TRUE)
 
-  # Load pop_region
+  # CREATE OBJECT: pop_region ----
   pop_region_path <- fs::path(data_dir, "_aux/pop_region.fst")
   pop_region      <- fst::read_fst(pop_region_path,as.data.table = TRUE)
 
-  # Load country profiles lkups
+  # CREATE OBJECT: cp_lkups ----
+  # country profiles lkups
   cp_lkups_path   <- fs::path(data_dir, "_aux/country_profiles.rds")
   cp_lkups        <- readRDS(cp_lkups_path)
 
-  # Load poverty lines table
+  # CREATE OBJECT: pl_lkup ----
+  # poverty lines table
   pl_lkup_path    <- fs::path(data_dir, "_aux/poverty_lines.fst")
   pl_lkup         <- fst::read_fst(pl_lkup_path, as.data.table = TRUE)
 
-  # Load list with censor tables
+  # CREATE OBJECT: censored
+  # list with censor tables
   censored_path   <- fs::path(data_dir, "_aux/censored.rds")
   censored        <- readRDS(censored_path)
 
-
-  # Files with country and region information -----
-
-  # Countries with Missing data
-  msd_lkup_path    <- fs::path(data_dir, "_aux/missing_data.fst")
-  missing_data     <- fst::read_fst(msd_lkup_path, as.data.table = TRUE)
-
-  # Country list
-  cl_lkup_path    <- fs::path(data_dir, "_aux/country_list.fst")
-  country_list     <- fst::read_fst(cl_lkup_path, as.data.table = TRUE)
-
-  # Population
-  pop_path    <- fs::path(data_dir, "_aux/pop.fst")
-  pop         <- fst::read_fst(pop_path, as.data.table = TRUE)
-
-  aux_files <- list(missing_data = missing_data,
-                    country_list = country_list,
-                    countries    = countries,
-                    regions      = regions,
-                    pop          = pop)
-
+  # CREATE OBJECT: pip_cols ----
   # Create pip return columns
   pip_cols <-
     c(
@@ -257,32 +257,26 @@ create_lkups <- function(data_dir, versions) {
       'decile8',
       'decile9',
       'decile10',
-      # 'survey_mean_lcu', 'survey_mean_ppp', # Do we need these?
-      # 'predicted_mean_ppp', # Do we need this?
       'cpi',
-      #'cpi_data_level',
       'ppp',
-      #'ppp_data_level',
       'reporting_pop',
-      #'pop_data_level',
       'reporting_gdp',
-      #'gdp_data_level',
       'reporting_pce',
-      #'pce_data_level',
       'is_interpolated',
-      # 'is_used_for_aggregation',
       'distribution_type',
       'estimation_type'
-      # 'gd_type', 'path',
-      # 'cache_id', 'survey_id', 'surveyid_year'
-      # 'wb_region_code', 'interpolation_id'
     )
 
+  # CREATE OBJECT: aux_tables ----
   # Create list of available auxiliary data tables
   aux_tables <- list.files(fs::path(data_dir, "_aux"),pattern = "\\.fst$")
   aux_tables <- tools::file_path_sans_ext(aux_tables)
   aux_tables <- sort(aux_tables)
+
+  # CREATE OBJECT: valid_years ----
   valid_years <- valid_years(data_dir)
+
+  # CREATE OBJECT: query_controls ----
   # Create list of query controls
   query_controls <-
     create_query_controls(
@@ -292,8 +286,100 @@ create_lkups <- function(data_dir, versions) {
       aux_tables = aux_tables,
       versions   = versions)
 
+  # CREATE OBJECT: cache_data_id ----
+  # The cache_data_id will be used to trigger cache invalidation
+  # Using this cache_data_id as a function argument, cache can be pre-computed
+  # and then deployed to the server
+
+  ## Remove non-hash-able variables ----
+  ## Some variables contain information that is specific to the local machine
+  ## `pipapi` runs onto, such as path to data files, which will not be the same
+  ## on my laptop, and on the PROD VM. These variables therefore need to be removed
+  ## prior to the creation of the cache_data_id
+  hash_svy_lkup <- svy_lkup
+  hash_svy_lkup$path <- NULL
+
+  hash_ref_lkup <- ref_lkup
+  hash_ref_lkup$path <- NULL
+
+  query_controls_hash <- query_controls
+  query_controls_hash$version <- NULL
+
+  ## Create cache_data_id for complete lkup ----
+  hash_lkup <- list(hash_svy_lkup,
+                    hash_ref_lkup,
+                    dist_stats,
+                    pop_region,
+                    cp_lkups,
+                    pl_lkup,
+                    censored,
+                    aux_files,
+                    pip_cols,
+                    query_controls,
+                    aux_tables,
+                    valid_years
+                    )
+  hash_lkup <- rlang::hash(hash_lkup)
+
+  ## Create cache_data_id for pip() ----
+  hash_pip <- list(hash_svy_lkup,
+                   hash_ref_lkup,
+                   dist_stats,
+                   pop_region,
+                   censored,
+                   aux_files,
+                   pip_cols,
+                   query_controls$region$values,
+                   valid_years
+                   )
+  hash_pip <- rlang::hash(hash_pip)
+
+  ## Create cache_data_id for pip_grp() ----
+  ## Same data signature for pip_grp and pip_grp_logic
+  hash_pip_grp <- list(hash_ref_lkup,
+                       dist_stats,
+                       pop_region,
+                       censored,
+                       aux_files,
+                       pip_cols,
+                       query_controls$region$values,
+                       valid_years
+  )
+  hash_pip_grp <- rlang::hash(hash_pip_grp)
+
+  ## Create cache_data_id for ui_cp ----
+  ## Same data signature for ui_cp_key_indicators, ui_cp_charts and ui_cp_download
+  hash_ui_cp <- list(hash_svy_lkup,
+                     dist_stats,
+                     pop_region,
+                     censored,
+                     aux_files,
+                     pip_cols,
+                     query_controls$region$values,
+                     valid_years,
+                     pl_lkup,
+                     cp_lkups
+  )
+  hash_ui_cp <- rlang::hash(hash_ui_cp)
+
+
+  ## Create cache_data_id list ----
+  cache_data_id <- list(
+    hash_lkup    = hash_lkup,
+    hash_pip     = hash_pip,
+    hash_pip_grp = hash_pip_grp,
+    hash_ui_cp   = hash_ui_cp
+
+  )
+
+
+  # COERCE character to factors
+  # svy_lkup <- coerce_chr_to_fct(svy_lkup)
+  # dist_stats <- coerce_chr_to_fct(dist_stats)
+  # ref_lkup <- coerce_chr_to_fct(ref_lkup)
+
   # Create list of lkups
-  lkups <- list(
+  lkup <- list(
     svy_lkup           = svy_lkup,
     ref_lkup           = ref_lkup,
     dist_stats         = dist_stats,
@@ -307,10 +393,11 @@ create_lkups <- function(data_dir, versions) {
     data_root          = data_dir,
     aux_tables         = aux_tables,
     interpolation_list = interpolation_list,
-    valid_years        = valid_years
+    valid_years        = valid_years,
+    cache_data_id      = cache_data_id
   )
 
-  return(lkups)
+  return(lkup)
 }
 
 #' Return regular expression needed for extracting data folders
@@ -466,4 +553,14 @@ sort_versions <- function(versions,
   sorted_versions <- c(versions_prod, versions_int, versions_test)
 
   return(sorted_versions)
+}
+
+
+coerce_chr_to_fct <- function(df) {
+  df <- as.data.frame(df)
+  character_vec <- unname(unlist(lapply(df, is.character)))
+  df[, character_vec] <- lapply(df[, character_vec], as.factor)
+  df <- data.table::as.data.table(df)
+
+  return(df)
 }

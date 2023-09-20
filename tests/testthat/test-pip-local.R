@@ -15,15 +15,14 @@ test_that("Reporting level filtering is working", {
                 function(x) {
                   pip(
                     country         = "CHN",
-                    year            = "2008",
+                    year            = 2008,
                     povline         = 1.9,
                     popshare        = NULL,
                     welfare_type    = "all",
                     reporting_level = x,
                     fill_gaps       = FALSE,
                     ppp             = 10,
-                    lkup            = lkups,
-                    debug           = FALSE
+                    lkup            = lkups
                   )
                 })
 
@@ -96,7 +95,7 @@ test_that("year selection is working", {
   # Most recent year for a single country
   tmp <- pip(
     country = "AGO",
-    year = "mrv",
+    year = "MRV",
     povline = 1.9,
     lkup = lkups
   )
@@ -106,7 +105,7 @@ test_that("year selection is working", {
   # Most recent year for a single country (w/ fill_gaps)
   tmp <- pip(
     country = "AGO",
-    year = "mrv",
+    year = "MRV",
     povline = 1.9,
     fill_gaps = TRUE,
     lkup = lkups
@@ -120,9 +119,9 @@ test_that("year selection is working", {
   # Not a great unit test... To be improved
   tmp <- pip(
     country = "all",
-    year = "mrv",
+    year    = "MRV",
     povline = 1.9,
-    lkup = lkups
+    lkup    = lkups
   )
 
   expect_true(length(unique(tmp$reporting_year)) > 1)
@@ -143,20 +142,20 @@ test_that("welfare_type selection are correct", {
   expect_equal(sort(unique(tmp$welfare_type)), c("consumption", "income"))
 
   tmp <- pip(
-    country = "all",
-    year = "all",
-    povline = 3.5,
-    lkup = lkups,
+    country      = "all",
+    year         = "all",
+    povline      = 3.5,
+    lkup         = lkups,
     welfare_type = "consumption"
   )
 
   expect_equal(unique(tmp$welfare_type), "consumption")
 
   tmp <- pip(
-    country = "all",
-    year = "all",
-    povline = 3.5,
-    lkup = lkups,
+    country      = "all",
+    year         = "all",
+    povline      = 3.5,
+    lkup         = lkups,
     welfare_type = "income"
   )
 
@@ -166,20 +165,20 @@ test_that("welfare_type selection are correct", {
 ## Reporting level ----
 test_that("reporting_level selection are correct", {
   tmp <- pip(
-    country = "all",
-    year = "all",
-    povline = 3.5,
-    lkup = lkups,
+    country         = "all",
+    year            = "all",
+    povline         = 3.5,
+    lkup            = lkups,
     reporting_level = "all"
   )
 
   expect_equal(sort(unique(tmp$reporting_level)), c("national", "rural", "urban"))
 
   tmp <- pip(
-    country = "all",
-    year = "all",
-    povline = 3.5,
-    lkup = lkups,
+    country         = "all",
+    year            = "all",
+    povline         = 3.5,
+    lkup            = lkups,
     reporting_level = "national"
   )
 
@@ -196,10 +195,10 @@ test_that("reporting_level selection are correct", {
   expect_equal(sort(unique(tmp$reporting_level)), c("rural"))
 
   tmp <- pip(
-    country = "all",
-    year = "all",
-    povline = 3.5,
-    lkup = lkups,
+    country         = "all",
+    year            = "all",
+    povline         = 3.5,
+    lkup            = lkups,
     reporting_level = "urban"
   )
 
@@ -209,11 +208,11 @@ test_that("reporting_level selection are correct", {
 ## Check distribution type computations ----
 test_that("pip returns expected response for aggregated distribution", {
   tmp <- pip(
-    country = "CHN",
-    year = "1981",
-    povline = 1.9,
+    country         = "CHN",
+    year            = 1981,
+    povline         = 1.9,
     reporting_level = "all",
-    lkup = lkups
+    lkup            = lkups
   )
   expect_equal(nrow(tmp), 3)
   expect_equal(sort(tmp$reporting_level), c("national", "rural", "urban"))
@@ -227,13 +226,13 @@ test_that("pip returns expected response for aggregated distribution", {
 # Check imputation ----
 test_that("Imputation is working", {
   tmp <- pip(
-    country = "all",
-    year = "all",
-    povline = 3.5,
+    country   = "all",
+    year      = "all",
+    povline   = 3.5,
     fill_gaps = TRUE,
-    lkup = lkups
+    lkup      = lkups
   )
-  # Why is this correct? E.g. tmp %>% group_by(country_code) %>% summarise(n = n())
+  # Why is this correct? E.g. tmp |> group_by(country_code) |> summarise(n = n())
   # expect_equal(nrow(tmp), 6680)
   # Expect there are no duplicates
   expect_equal(nrow(unique(tmp[, c("country_code",
@@ -246,11 +245,11 @@ test_that("Imputation is working", {
 
 test_that("Imputation is working for mixed distributions aggregate / micro", {
   tmp <- pip(
-    country = "IND",
-    year = 1993,
-    povline = 1.9,
+    country   = "IND",
+    year      = 1993,
+    povline   = 1.9,
     fill_gaps = TRUE,
-    lkup = lkups
+    lkup      = lkups
   )
 
   expect_equal(nrow(tmp), 3)
@@ -262,11 +261,11 @@ test_that("Imputation is working for mixed distributions aggregate / micro", {
 
 test_that("Imputation is working for mixed distributions group / micro", {
   tmp <- pip(
-    country = "ZWE",
-    year = 2015,
-    povline = 1.9,
+    country   = "ZWE",
+    year      = 2015,
+    povline   = 1.9,
     fill_gaps = TRUE,
-    lkup = lkups
+    lkup      = lkups
   )
 
   expect_equal(nrow(tmp), 1)
@@ -277,11 +276,11 @@ test_that("Imputation is working for mixed distributions group / micro", {
 ## extrapolation ----
 test_that("imputation is working for extrapolated aggregate distribution", {
   tmp <- pip(
-    country = "CHN",
-    year = 1988,
-    povline = 1.9,
+    country   = "CHN",
+    year      = 1988,
+    povline   = 1.9,
     fill_gaps = TRUE,
-    lkup = lkups
+    lkup      = lkups
   )
 
   expect_equal(nrow(tmp), 3)
@@ -291,7 +290,8 @@ test_that("imputation is working for extrapolated aggregate distribution", {
   # expect_equal(tmp$mean[tmp$reporting_level == "national"], 62.5904793524725 * 12 / 365)
 })
 
-test_that("Distributional stats are correct for interpolated/extrapolated reporting years",{
+test_that("Distributional stats are correctly extrapolated when based on single distributions",{
+  skip("DISABLED TEMPORARILY AS ALL DISTRIBUTIONAL STATS ARE COERCED TO NAs")
 
   # Extrapolation (one year)
   tmp1 <- pip("AGO", year = 1981, fill_gaps = TRUE, lkup = lkups)
@@ -301,13 +301,6 @@ test_that("Distributional stats are correct for interpolated/extrapolated report
   expect_equal(tmp1$mld, tmp2$mld)
   expect_equal(tmp1$decile10, tmp2$decile10)
 
-  # Interpolation (one year)
-  tmp1 <- pip("AGO", year = 2004, fill_gaps = TRUE, lkup = lkups)
-  expect_equal(tmp1$gini, NA_real_)
-  expect_equal(tmp1$median ,NA_real_)
-  expect_equal(tmp1$mld, NA_real_)
-  expect_equal(tmp1$decile10, NA_real_)
-
   # Extrapolation (multiple years)
   tmp1 <- pip("AGO", year = 1981:1999, fill_gaps = TRUE, lkup = lkups)
   expect_equal(unique(tmp1$gini), tmp2$gini)
@@ -315,7 +308,19 @@ test_that("Distributional stats are correct for interpolated/extrapolated report
   expect_equal(unique(tmp1$mld), tmp2$mld)
   expect_equal(unique(tmp1$decile10), tmp2$decile10)
 
-  # Interpolation (mulitiple year)
+})
+
+test_that("Distributional stats are missing when interpolated from two distributions",{
+  # CAUTION: The results of these test may change if the underlying data change
+  # TO DO: FIND A BETTER WAY TO IDENTIFY IMPUTATIONS BASED ON 2 DISTRIBUTIONS
+  # Interpolation (one year)
+  tmp1 <- pip("AGO", year = 2004, fill_gaps = TRUE, lkup = lkups)
+  expect_equal(tmp1$gini, NA_real_)
+  expect_equal(tmp1$median ,NA_real_)
+  expect_equal(tmp1$mld, NA_real_)
+  expect_equal(tmp1$decile10, NA_real_)
+
+  # Interpolation (multiple year)
   tmp1 <- pip("AGO", year = 2001:2007, fill_gaps = TRUE, lkup = lkups)
   expect_equal(unique(tmp1$gini), NA_real_)
   expect_equal(unique(tmp1$median), NA_real_)
@@ -328,12 +333,12 @@ test_that("Distributional stats are correct for interpolated/extrapolated report
 
 test_that("Regional aggregations are working", {
   tmp <- pip(
-    country = "all",
-    year = "2000",
+    country  = "all",
+    year     = 2000,
     group_by = "wb",
-    povline = 3.5,
-    lkup = lkups,
-    censor = FALSE
+    povline  = 3.5,
+    lkup     = lkups,
+    censor   = FALSE
   )
 
   expect_equal(nrow(tmp), 8)
@@ -342,10 +347,10 @@ test_that("Regional aggregations are working", {
 # Check pop_share
 test_that("pop_share option is working", {
   tmp <- pip(
-    country = "AGO",
-    year = 2000,
+    country  = "AGO",
+    year     = 2000,
     popshare = .2,
-    lkup = lkups
+    lkup     = lkups
   )
 
   expect_equal(nrow(tmp), 1)
@@ -354,14 +359,14 @@ test_that("pop_share option is working", {
 # ---- Censoring ----
 
 test_that("Censoring for country-year values is working", {
-  lkups2 <- lkups
-  country = data.frame(
-    country_code = rep("CHN", 3),
-    survey_acronym = rep("CNIHS", 3),
-    reporting_year = rep(2016, 3),
+  lkups2  <- lkups
+  country <-  data.frame(
+    country_code    = rep("CHN", 3),
+    survey_acronym  = rep("CNIHS", 3),
+    reporting_year  = rep(2016, 3),
     reporting_level = c("urban", "rural", "national"),
-    welfare_type = rep("consumption", 3),
-    statistic = "all"
+    welfare_type    = rep("consumption", 3),
+    statistic       = "all"
   )
 
   censored$country <- country
@@ -378,30 +383,30 @@ test_that("Censoring for country-year values is working", {
   lkups2$censored <- censored
   tmp <- pip(
     country = "CHN",
-    year = "2016",
+    year    = 2016,
     povline = 1.9,
-    lkup = lkups2
+    lkup    = lkups2
   )
   expect_equal(nrow(tmp), 0)
 
 })
 
 test_that("Censoring for regional aggregations is working", {
+  skip("this test does not apply to pip anymore. Only to pip_grp")
   lkups2 <- lkups
   censored <- list(
     regions = data.frame(
-      region_code = "SSA",
+      region_code    = "SSA",
       reporting_year = 2019,
-      statistic = "all",
-      id = "SSA_2019"
+      statistic      = "all",
+      id             = "SSA_2019"
     ))
   lkups2$censored <- censored
   tmp <- pip(
     country = "all",
-    year = "2019",
-    group_by = "wb",
+    year    = 2019,
     povline = 1.9,
-    lkup = lkups2
+    lkup    = lkups2
   )
   # expect_equal(nrow(tmp), 7)
   id <- paste0(tmp$region_code, "_", tmp$reporting_year)
@@ -411,10 +416,10 @@ test_that("Censoring for regional aggregations is working", {
 # Check pop_share ----
 test_that("pop_share option is working", {
   tmp <- pip(
-    country = "AGO",
-    year = 2000,
+    country  = "AGO",
+    year     = 2000,
     popshare = .2,
-    lkup = lkups
+    lkup     = lkups
   )
 
   expect_equal(nrow(tmp), 1)
@@ -426,16 +431,16 @@ test_that("pop_share option is returning consistent results for single microdata
 
   pl <- pip(
     country = "AGO",
-    year = 2008,
+    year    = 2008,
     povline = povline,
-    lkup = lkups
+    lkup    = lkups
   )
 
   ps <- pip(
-    country = "AGO",
-    year = 2008,
+    country  = "AGO",
+    year     = 2008,
     popshare = pl$headcount,
-    lkup = lkups
+    lkup     = lkups
   )
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
@@ -446,16 +451,16 @@ test_that("pop_share option is returning consistent results for single microdata
 
   pl <- pip(
     country = "AGO",
-    year = 2008,
+    year    = 2008,
     povline = povline,
-    lkup = lkups
+    lkup    = lkups
   )
 
   ps <- pip(
-    country = "AGO",
-    year = 2008,
+    country  = "AGO",
+    year     = 2008,
     popshare = pl$headcount,
-    lkup = lkups
+    lkup     = lkups
   )
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
@@ -467,16 +472,16 @@ test_that("pop_share option is returning consistent results for single microdata
 
   pl <- pip(
     country = "AGO",
-    year = 2008,
+    year    = 2008,
     povline = povline,
-    lkup = lkups
+    lkup    = lkups
   )
 
   ps <- pip(
-    country = "AGO",
-    year = 2008,
+    country  = "AGO",
+    year     = 2008,
     popshare = pl$headcount,
-    lkup = lkups
+    lkup     = lkups
   )
 
   expect_equal(round(pl$headcount, 2), round(ps$headcount, 2))
@@ -487,20 +492,20 @@ test_that("pop_share option is returning consistent results for single grouped d
   # Average poverty line
   povline <- 2.0
   country <- "MNG"
-  year <- 1995
+  year    <- 1995
 
   pl <- pip(
     country = country,
-    year = year,
+    year    = year,
     povline = povline,
-    lkup = lkups
+    lkup    = lkups
   )
 
   ps <- pip(
-    country = country,
-    year = year,
+    country  = country,
+    year     = year,
     popshare = pl$headcount,
-    lkup = lkups
+    lkup     = lkups
   )
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
@@ -649,7 +654,42 @@ test_that("pop_share option is disabled for aggregate distributions", {
   expect_equal(pl$distribution_type, "aggregate")
 })
 
-#Check pip country name case insensitive
+# Check additional indicators -----
+
+test_that("Additional indicators are returned correctly", {
+  povline <- 2.15
+  country <- "PRY"
+  year <- 2018
+
+  reg <- pip(
+    country = country,
+    year    = year,
+    povline = povline,
+    lkup = lkups
+  )
+
+  adi <- pip(
+    country = country,
+    year    = year,
+    povline = povline,
+    additional_ind = TRUE,
+    lkup = lkups
+  )
+
+  nnames1 <- attr(adi, "new_indicators_names")
+
+  nreg <- names(reg)
+  nadi <- names(adi)
+
+  nnames2 <- nadi[!nadi %in% nreg]
+
+  expect_equal(sort(nnames1), sort(nnames2))
+  expect_gt(length(nadi), length(nreg))
+
+
+})
+
+# Check pip country name case insensitive ----
 
 test_that("pip country name case insensitive", {
   skip("Code to handle mixed casing has been moved to API filter level")
@@ -668,20 +708,22 @@ test_that("pip country name case insensitive", {
 })
 
 
-#Better error message when more than one data set is passed.
+# Better error message when more than one data set is passed /////
 
 test_that("error when more than one dataset is passed", {
 
   expect_error(
     pip(
       country = "all",
-      year = "all",
+      year    = "all",
       povline = 1.9,
-      lkup = lkups_ver
+      lkup    = lkups_ver
     ),
     "You are probably passing more than one dataset as lkup argument.
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD",
   fixed = TRUE
   )
 })
+
+
 

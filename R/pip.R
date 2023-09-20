@@ -15,9 +15,10 @@
 #' @param reporting_level character: Geographical reporting level
 #' @param ppp numeric: Custom Purchase Power Parity value
 #' @param lkup list: A list of lkup tables
-#' @param debug logical: If TRUE poverty calculations from `wbpip` will run in
-#'   debug mode
 #' @param censor logical: Triggers censoring of country/year statistics
+#' @param lkup_hash character: hash of pip
+#' @param additional_ind logical: If TRUE add new set of indicators. Default if
+#'   FALSE
 #'
 #' @return data.table
 #' @examples
@@ -62,8 +63,10 @@ pip <- function(country         = "ALL",
                 reporting_level = c("all", "national", "rural", "urban"),
                 ppp             = NULL,
                 lkup,
-                debug           = FALSE,
-                censor          = TRUE) {
+                censor          = TRUE,
+                lkup_hash       = lkup$cache_data_id$hash_pip,
+                additional_ind  = FALSE) {
+
 
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
@@ -71,10 +74,12 @@ pip <- function(country         = "ALL",
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
-  year <- toupper(year)
+  if (is.character(year)) {
+    year <- toupper(year)
+  }
 
-  # If svy_lkup and ref_lkup are not part of lkup throw an error.
-  if (!all(c('svy_lkup', 'ref_lkup') %in% names(lkup)))
+  # If svy_lkup is not part of lkup throw an error.
+  if (!all(c('svy_lkup') %in% names(lkup)))
     stop("You are probably passing more than one dataset as lkup argument.
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
 
@@ -91,22 +96,24 @@ pip <- function(country         = "ALL",
     create_countries_vctr(
       country         =  country,
       year            =  year,
-      lkup            =  lkup
+      valid_years     =  lkup$valid_years,
+      aux_files       =  lkup$aux_files
     )
 
 
   if (fill_gaps) {
     # Compute imputed stats
     out <- fg_pip(
-      country         = lcv$est_ctrs,
-      year            = year,
-      povline         = povline,
-      popshare        = popshare,
-      welfare_type    = welfare_type,
-      reporting_level = reporting_level,
-      ppp             = ppp,
-      lkup            = lkup,
-      debug           = debug
+      country            = lcv$est_ctrs,
+      year               = year,
+      povline            = povline,
+      popshare           = popshare,
+      welfare_type       = welfare_type,
+      reporting_level    = reporting_level,
+      ppp                = ppp,
+      ref_lkup           = lkup[["ref_lkup"]],
+      valid_regions      = lkup$query_controls$region$values,
+      interpolation_list = lkup$interpolation_list
     )
   } else {
     # Compute survey year stats
@@ -118,8 +125,8 @@ pip <- function(country         = "ALL",
       welfare_type    = welfare_type,
       reporting_level = reporting_level,
       ppp             = ppp,
-      lkup            = lkup,
-      debug           = debug
+      svy_lkup        = lkup[["svy_lkup"]],
+      valid_regions   = lkup$query_controls$region$values
     )
   }
 
@@ -170,10 +177,20 @@ pip <- function(country         = "ALL",
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   # Add pre-computed distributional statistics
+  crr_names  <- names(out)    # current variables
+  names2keep <- lkup$pip_cols # all variables
+
   out <- add_dist_stats(
     df = out,
     dist_stats = lkup[["dist_stats"]]
   )
+
+  if (fill_gaps) {
+    # Convert inequality indicators to NA
+    dist_vars  <- names2keep[!(names2keep %in% crr_names)]
+    out[,
+        (dist_vars) := NA_real_]
+  }
 
   # Handle survey coverage
   if (reporting_level != "all") {
@@ -187,10 +204,22 @@ pip <- function(country         = "ALL",
   }
 
   # Select columns
-  out <- out[, .SD, .SDcols = lkup$pip_cols]
+  if (additional_ind) {
+    get_additional_indicators(out)
+    added_names <- attr(out, "new_indicators_names")
+    names2keep  <- c(names2keep, added_names)
+
+    # Keep relevant variables
+    out  <- out[, .SD, .SDcols = names2keep]
+
+  } else {
+
+    out <- out[, .SD, .SDcols = names2keep]
+
+  }
 
   #Order rows by country code and reporting year
-  out <- out[order(country_code, reporting_year)]
+  data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
 
 
   return(out)
