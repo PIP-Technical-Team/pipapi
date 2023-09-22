@@ -348,3 +348,75 @@ test_that("assign_serializer() returns a the correct serialization function", {
   content_type <- x_env$headers$`Content-Type`
   expect_equal(content_type, "application/vnd.apache.arrow.file")
 })
+
+test_that("is_forked() respect the response contract", {
+  country <- c("SSA", "COL", "FRA")
+  year <- c("2010", "2011", "2012")
+  x <- is_forked(country = country, year = year)
+  expect_equal(length(x), 1)
+  expect_true(is.logical(x))
+})
+
+test_that("is_forked() correctly identifies intensive requests", {
+  country <- c("ALL")
+  year <- c("ALL")
+  x <- is_forked(country = country, year = year)
+  expect_true(x)
+
+  country <- c("WLD")
+  year <- c("ALL")
+  x <- is_forked(country = country, year = year)
+  expect_true(x)
+
+  country <- c("WLD", "COL", "FRA")
+  year <- c("ALL")
+  x <- is_forked(country = country, year = year)
+  expect_true(x)
+
+  country <- c("ALL")
+  year <- c("2008", "ALL", "2010")
+  x <- is_forked(country = country, year = year)
+  expect_true(x)
+
+  country <- c("COL")
+  year <- c("2008", "ALL", "2010")
+  x <- is_forked(country = country, year = year)
+  expect_false(x)
+
+  country <- c("ALL")
+  year <- c("2008", "2010")
+  x <- is_forked(country = country, year = year)
+  expect_false(x)
+
+  country <- c("FRA", "COL", "AFG", "BTN", "USA")
+  year <- c("2008", "2010")
+  x <- is_forked(country = country, year = year, intensity_threshold = 4)
+  expect_false(x)
+
+  country <- c("FRA", "COL")
+  year <- c("2008", "2010", "2011", "2012", "2013")
+  x <- is_forked(country = country, year = year, intensity_threshold = 4)
+  expect_false(x)
+
+  country <- c("FRA", "COL", "AFG", "BTN", "USA")
+  year <- c("2008", "2010", "2011", "2012", "2013")
+  x <- is_forked(country = country, year = year, intensity_threshold = 4)
+  expect_true(x)
+})
+
+test_that("is_forked() include_year argument works correctly", {
+
+  country <- c("ALL")
+  x <- is_forked(country = country, include_year = FALSE)
+  expect_true(x)
+
+  country <- c("ALL")
+  year <- c("2010")
+  x <- is_forked(country = country, year = year, include_year = FALSE)
+  expect_true(x)
+
+  country <- c("ALL")
+  year <- c("2010")
+  x <- is_forked(country = country, year = year, include_year = TRUE)
+  expect_false(x)
+})
