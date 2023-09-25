@@ -5,7 +5,9 @@
 library(pipapi)
 
 # API filters -------------------------------------------------------------
-## Validate version parameter ----
+# The filters are here to ensure that the API requests are correct, and
+# only valid parameters are being sent to R functions powering the PIP API
+## STEP 1: Validate version parameter ----
 
 #* Ensure that version parameter is correct
 #* @filter validate_version
@@ -46,7 +48,7 @@ function(req, res) {
   plumber::forward()
 }
 
-## Filter out invalid parameters ----
+## STEP 2: Filter out invalid parameters ----
 #* Ensure that only valid parameters are being forwarded
 #* @filter validate_query_parameters
 function(req, res) {
@@ -56,7 +58,7 @@ function(req, res) {
   plumber::forward()
 }
 
-## Parse query parameters ----
+## STEP 3: Parse query parameters ----
 #* Parse query parameters of incoming request
 #* @filter parse_parameters
 function(req, res) {
@@ -66,7 +68,7 @@ function(req, res) {
   plumber::forward()
 }
 
-## Validate parameter values ----
+## STEP 4: Validate parameter values ----
 #* Protect against invalid arguments
 #* @filter check_parameters_values
 function(req, res) {
@@ -139,7 +141,7 @@ function(req, res) {
   plumber::forward()
 }
 
-## Set response headers ----
+# Set response headers ----
 #* Set required response headers
 #* @filter response_headers
 function(req, res) {
@@ -380,6 +382,28 @@ function() {
 #* @get /api/v1/health-check
 function() {
   return("PIP API is running")
+}
+
+#* Check API logs
+#* @get /api/v1/logs
+#* @param last_n:[chr] Last n lines of the log file
+#* @serializer text
+function(req) {
+  params <- req$argsQuery
+  params$last_n <- as.numeric(params$last_n)
+  params$log_file <- log_file
+  params$version <- NULL
+
+  out <- do.call(pipapi::get_logs, params)
+  return(out)
+}
+
+#* Reset API logs
+#* @get /api/v1/clear_logs
+#*
+function() {
+  fs::file_delete(log_file)
+  fs::file_create(log_file)
 }
 
 #* Check timestamp for the data

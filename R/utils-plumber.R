@@ -105,7 +105,8 @@ validate_query_parameters <-
     "parameter",
     "endpoint",
     "long_format",
-    "additional_ind"
+    "additional_ind",
+    "last_n"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]
@@ -446,4 +447,21 @@ assign_serializer <- function(format) {
   )
 
   return(serializers[[format]])
+}
+
+#' Helper function to retrieve most recent logs
+#'
+#' @param last_n numeric: Last n lines of the log file
+#' @param log_file character: Path to log file
+#'
+#' @return character
+#' @export
+#'
+get_logs <- function(last_n = 20,
+                     log_file) {
+
+  cmd <- paste0("tail -n ", last_n, " ", log_file)
+  out <- system(cmd, intern = TRUE)
+
+  return(out)
 }

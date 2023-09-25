@@ -321,7 +321,7 @@ create_query_controls <- function(svy_lkup,
   # Year
   year <- list(
     values = c(
-      "all", "MRV",
+      "ALL", "MRV",
       sort(unique(c(
         svy_lkup$reporting_year,
         ref_lkup$reporting_year
@@ -388,13 +388,18 @@ create_query_controls <- function(svy_lkup,
                  type = "character")
   # Tables
   table <- list(values = aux_tables, type = "character")
+
+  # last_n
+  last_n <- list(values = c(min = 1, max = 100),
+                 type = "numeric")
+
   # parameters
   parameter <-
     list(values = c("country", "year", "povline",
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format", "table", "long_format"),
+                    "format", "table", "long_format", "additional_ind", "last_n"),
          type = "character")
   # Endpoint
   endpoint <-
@@ -424,6 +429,7 @@ create_query_controls <- function(svy_lkup,
     version         = version,
     format          = format,
     table           = table,
+    last_n          = last_n,
     parameter       = parameter,
     endpoint        = endpoint
   )

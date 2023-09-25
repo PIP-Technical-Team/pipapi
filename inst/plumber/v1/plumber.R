@@ -20,7 +20,9 @@ if (Sys.getenv("PIPAPI_LOGGING") == "TRUE") {
 plumber::pr(endpoints_path) |>
   # pre-route log
   plumber::pr_hook("preroute", function(req) {
+    if (req$PATH_INFO != "/api/v1/logs") {
     logger::log_info("{convert_empty(req$PATH_INFO)} {convert_empty(req$QUERY_STRING)}")
+    }
   }) |>
   # post-serialization log
   plumber::pr_hook("postserialize", function(res) {
