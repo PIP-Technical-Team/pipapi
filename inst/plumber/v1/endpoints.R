@@ -387,7 +387,7 @@ function() {
 #* Check API logs
 #* @get /api/v1/logs
 #* @param last_n:[chr] Last n lines of the log file
-#* @serializer text
+#* @serializer json
 function(req) {
   params <- req$argsQuery
   params$last_n <- as.numeric(params$last_n)
