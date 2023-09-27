@@ -402,8 +402,7 @@ function(req) {
 #* @get /api/v1/clear_logs
 #*
 function() {
-  fs::file_delete(log_file)
-  fs::file_create(log_file)
+  clear_logs(log_file)
 }
 
 #* Check timestamp for the data
