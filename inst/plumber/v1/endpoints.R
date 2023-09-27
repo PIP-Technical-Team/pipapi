@@ -223,6 +223,7 @@ function(req, res) {
 #* Default is FALSE
 
 function(req, res) {
+  browser()
   # Process request
   params         <- req$argsQuery
   params$lkup    <- lkups$versions_paths[[params$version]]
@@ -231,7 +232,7 @@ function(req, res) {
   params$version <- NULL
 
   # Parallel processing for slow requests
-  if (params$country == "ALL" && params$year == "ALL") {
+  if (is_forked(country = params$country, year = params$year)) {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::pip, params)
       tmp
@@ -265,7 +266,7 @@ function(req, res) {
   params$version <- NULL
 
   # Parallel processing for slow requests
-  if (params$country %in% c("ALL", "WLD") && params$year == "ALL") {
+  if (is_forked(country = params$country, year = params$year)) {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::pip_grp_logic, params)
       tmp
@@ -551,7 +552,7 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  if (params$country == "ALL" && params$year == "ALL") {
+  if (is_forked(country = params$country, year = params$year)) {
     promises::future_promise({
       do.call(pipapi::ui_pc_charts, params)
     }, seed = TRUE)
@@ -578,7 +579,7 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$pop_units <- 1
   params$version <- NULL
-  if (params$country == "ALL" && params$year == "ALL") {
+  if (is_forked(country = params$country, year = params$year)) {
     promises::future_promise({
       do.call(pipapi::ui_pc_charts, params)
     }, seed = TRUE)
@@ -667,7 +668,7 @@ function(req, res) {
   params$version <- NULL
   params$format  <- NULL
 
-  if (params$country == "ALL") {
+  if (is_forked(country = params$country, include_year = FALSE)) {
     out <- promises::future_promise({
       tmp <- do.call(pipapi::ui_cp_download, params)
       tmp
