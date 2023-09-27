@@ -525,17 +525,17 @@ clear_cache <- function(cd) {
 #' @param logs_path character: Path to log file
 #' @return list
 clear_logs <- function(logs_path) {
-  if (fs::file_exists(logs_path)) {
-    fs::file_delete(log_file)
+  if (!fs::file_exists(logs_path)) {
+    out <- list(status = 'error', msg = 'Log file not found')
+  } else {
+    fs::file_delete(log_paths)
     if (!fs::file_exists(logs_path)) {
       out <- list(status = 'success', msg = 'Logs cleared.')
-      fs::file_create(log_file)
+      fs::file_create(log_paths)
     } else {
       out <- list(status = 'error',
                   msg = 'Something went wrong. Logs have not been cleared')
     }
-  } else {
-    out <- list(status = 'error', msg = 'Log file not found')
   }
   return(out)
 }
