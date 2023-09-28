@@ -110,7 +110,7 @@ fg_pip <- function(country,
 
 
   # Remove median
-  out[, median := NA_real_]
+  out[, median := NULL]
 
   # Ensure that out does not have duplicates
   out <- fg_remove_duplicates(out)
@@ -119,6 +119,29 @@ fg_pip <- function(country,
   out[,
       poverty_line := round(poverty_line, digits = 3) ]
 
+
+  # add SPL
+
+  data_dir <- lkup$data_root
+  spl <-
+    get_aux_table(data_dir = data_dir,
+                  table = "spl")
+
+  out <- merge.data.table(
+    x = out,
+    y = spl,
+    by = c(
+      "country_code",
+      "reporting_year",
+      "welfare_type",
+      "reporting_level"
+    ),
+    all.x = TRUE
+  )
+
+  if (any(names(out) == "spl_headcount")) {
+    data.table::setnames(out, "spl_headcount", "spr")
+  }
 
   return(out)
 }
