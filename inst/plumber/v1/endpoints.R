@@ -223,7 +223,6 @@ function(req, res) {
 #* Default is FALSE
 
 function(req, res) {
-  browser()
   # Process request
   params         <- req$argsQuery
   params$lkup    <- lkups$versions_paths[[params$version]]
