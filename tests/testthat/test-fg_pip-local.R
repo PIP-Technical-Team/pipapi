@@ -8,31 +8,27 @@ lkup <- lkups$versions_paths[[lkups$latest_release]]
 ## Extrapolation ----
 test_that("Imputation is working for extrapolated aggregated distribution", {
   tmp <- fg_pip(
-    country = "CHN",
-    year = 1988,
-    povline = 1.9,
-    popshare = NULL,
-    welfare_type = "all",
+    country         = "CHN",
+    year            = 1988,
+    povline         = 1.9,
+    popshare        = NULL,
+    welfare_type    = "all",
     reporting_level = "all",
-    ppp = NULL,
-    ref_lkup           = lkup[["ref_lkup"]],
-    valid_regions      = lkup$query_controls$region$values,
-    interpolation_list = lkup$interpolation_list
+    ppp             = NULL,
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp), 2)
 
   tmp <- fg_pip(
-    country = "CHN",
-    year = 1988,
-    povline = 1.9,
-    popshare = NULL,
-    welfare_type = "all",
+    country         = "CHN",
+    year            = 1988,
+    povline         = 1.9,
+    popshare        = NULL,
+    welfare_type    = "all",
     reporting_level = "national",
-    ppp = NULL,
-    ref_lkup           = lkup[["ref_lkup"]],
-    valid_regions      = lkup$query_controls$region$values,
-    interpolation_list = lkup$interpolation_list
+    ppp             = NULL,
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp), 2)
@@ -41,31 +37,27 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
 ## Interpolation ----
 test_that("Imputation is working for interpolated mixed distribution", {
   tmp <- fg_pip(
-    country = "IND",
-    year = 1993,
-    povline = 1.9,
-    popshare = NULL,
-    welfare_type = "all",
+    country         = "IND",
+    year            = 1993,
+    povline         = 1.9,
+    popshare        = NULL,
+    welfare_type    = "all",
     reporting_level = "all",
-    ppp = NULL,
-    ref_lkup           = lkup[["ref_lkup"]],
-    valid_regions      = lkup$query_controls$region$values,
-    interpolation_list = lkup$interpolation_list
+    ppp             = NULL,
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp), 2)
 
   tmp <- fg_pip(
-    country = "IND",
-    year = 1993,
-    povline = 1.9,
-    popshare = NULL,
-    welfare_type = "all",
+    country         = "IND",
+    year            = 1993,
+    povline         = 1.9,
+    popshare        = NULL,
+    welfare_type    = "all",
     reporting_level = "national",
-    ppp = NULL,
-    ref_lkup           = lkup[["ref_lkup"]],
-    valid_regions      = lkup$query_controls$region$values,
-    interpolation_list = lkup$interpolation_list
+    ppp             = NULL,
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp), 2)
@@ -73,31 +65,27 @@ test_that("Imputation is working for interpolated mixed distribution", {
 
 test_that("Imputation is working for interpolated aggregate distribution", {
   tmp <- fg_pip(
-    country = "CHN",
-    year = 2000,
-    povline = 1.9,
-    popshare = NULL,
-    welfare_type = "all",
+    country         = "CHN",
+    year            = 2000,
+    povline         = 1.9,
+    popshare        = NULL,
+    welfare_type    = "all",
     reporting_level = "all",
-    ppp = NULL,
-    ref_lkup           = lkup[["ref_lkup"]],
-    valid_regions      = lkup$query_controls$region$values,
-    interpolation_list = lkup$interpolation_list
+    ppp             = NULL,
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp), 2)
 
   tmp <- fg_pip(
-    country = "CHN",
-    year = 2000,
-    povline = 1.9,
-    popshare = NULL,
-    welfare_type = "all",
+    country         = "CHN",
+    year            = 2000,
+    povline         = 1.9,
+    popshare        = NULL,
+    welfare_type    = "all",
     reporting_level = "national",
-    ppp = NULL,
-    ref_lkup           = lkup[["ref_lkup"]],
-    valid_regions      = lkup$query_controls$region$values,
-    interpolation_list = lkup$interpolation_list
+    ppp             = NULL,
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp), 2)
