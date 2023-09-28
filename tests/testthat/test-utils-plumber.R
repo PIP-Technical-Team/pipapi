@@ -8,7 +8,6 @@ if (Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") != "") {
   lkups <-
     test_path("testdata", "query-controls.rds") |>
     readRDS()
-
 }
 
 pl_lkup <- lkups$pl_lkup
@@ -419,4 +418,30 @@ test_that("is_forked() include_year argument works correctly", {
   year <- c("2010")
   x <- is_forked(country = country, year = year, include_year = TRUE)
   expect_false(x)
+})
+
+test_that("csv serialization returns empty string for missing values", {
+  # Load a saved API response that contains missing values
+  value <- readr::read_rds(test_path("testdata",
+                                     "response_with_missing_values.rds"))
+  req <- readr::read_rds(test_path("testdata",
+                                   "req_missing_value.rds"))
+  res <- readr::read_rds(test_path("testdata",
+                                   "res_missing_value.rds"))
+  error_handler <- readr::read_rds(test_path("testdata",
+                                             "error_handler_missing_value.rds"))
+  # Assign API csv serializer function
+  res$serializer <- pipapi::assign_serializer(format = "csv")
+
+  # Capture the serialized response
+  serialized_response <- res$serializer(val = value,
+                                        req = req,
+                                        res = res,
+                                        errorHandler = error_handler)
+  serialized_response <- serialized_response$body
+  # Check that it contains no NAs
+  # NAs are avoided because they are tricky to parse for Stata
+  expect_true(grepl(",,,,,,,,,,,,,,,,",
+                    serialized_response,
+                    fixed = TRUE))
 })
