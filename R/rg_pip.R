@@ -16,7 +16,7 @@ rg_pip <- function(country,
                    lkup) {
 
   # get values from lkup
-  valid_regions <-  lkup$query_controls$region$values
+  valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
 
 
@@ -74,8 +74,27 @@ rg_pip <- function(country,
   out <- data.table::rbindlist(out)
 
 
-  lkup$data_root
+  # Add SPL ------------
+  spl <- lkup$dist_stats[, c(
+    "country_code",
+    "reporting_year",
+    "welfare_type",
+    "reporting_level",
+    "spl",
+    "spr"
+  )]
 
+  out <- merge.data.table(
+    x = out,
+    y = spl,
+    by = c(
+      "country_code",
+      "reporting_year",
+      "welfare_type",
+      "reporting_level"
+    ),
+    all.x = TRUE
+  )
 
 
   return(out)
