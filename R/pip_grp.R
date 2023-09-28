@@ -58,10 +58,7 @@ pip_grp <- function(country         = "ALL",
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
     ppp             = NULL,
-    ref_lkup           = lkup[["ref_lkup"]],
-    valid_regions      = lkup$query_controls$region$values,
-    interpolation_list = lkup$interpolation_list
-  )
+    lkup           = lkup)
 
   # return empty dataframe if no metadata is found
   if (nrow(out) == 0) {
