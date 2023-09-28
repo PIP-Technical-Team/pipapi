@@ -122,29 +122,25 @@ fg_pip <- function(country,
 
   # add SPL ---------
 
-  if (nrow(out) == 0) {
-    out[, c("spl", "spr") := as.numeric()]
-  } else {
-    data_dir <- lkup$data_root
-    spl <-
-      get_aux_table(data_dir = data_dir,
-                    table = "spl")
+  data_dir <- lkup$data_root
+  spl <-
+    get_aux_table(data_dir = data_dir,
+                  table = "spl")
 
-    out <- merge.data.table(
-      x = out,
-      y = spl,
-      by = c(
-        "country_code",
-        "reporting_year",
-        "welfare_type",
-        "reporting_level"
-      ),
-      all.x = TRUE
-    )
+  out <- merge.data.table(
+    x = out,
+    y = spl,
+    by = c(
+      "country_code",
+      "reporting_year",
+      "welfare_type",
+      "reporting_level"
+    ),
+    all.x = TRUE
+  )
 
-    if (any(names(out) == "spl_headcount")) {
-      data.table::setnames(out, "spl_headcount", "spr")
-    }
+  if (any(names(out) == "spl_headcount")) {
+    data.table::setnames(out, "spl_headcount", "spr")
   }
 
   return(out)

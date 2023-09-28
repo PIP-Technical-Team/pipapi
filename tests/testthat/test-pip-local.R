@@ -94,17 +94,17 @@ test_that("year selection is working", {
 
   # Most recent year for a single country
   tmp <- pip(
-    country = "AGO",
+    country = "PRY", # change country because AGO is censored
     year = "MRV",
     povline = 1.9,
     lkup = lkups
   )
-  check <- max(lkups$svy_lkup[country_code == "AGO"]$reporting_year)
+  check <- max(lkups$svy_lkup[country_code == "PRY"]$reporting_year)
   expect_equal(tmp$reporting_year, sum(check))
 
   # Most recent year for a single country (w/ fill_gaps)
   tmp <- pip(
-    country = "AGO",
+    country = "PRY",
     year = "MRV",
     povline = 1.9,
     fill_gaps = TRUE,

@@ -75,29 +75,27 @@ rg_pip <- function(country,
 
 
   # Add SPL ------------
-  if (nrow(out) == 0) {
-    out[, c("spl", "spr") := as.numeric()]
-  } else {
-    spl <- lkup$dist_stats[, c(
+
+  spl <- lkup$dist_stats[, c(
+    "country_code",
+    "reporting_year",
+    "welfare_type",
+    "reporting_level",
+    "spl",
+    "spr"
+  )]
+
+  out <- merge.data.table(
+    x = out,
+    y = spl,
+    by = c(
       "country_code",
       "reporting_year",
       "welfare_type",
-      "reporting_level",
-      "spl",
-      "spr"
-    )]
+      "reporting_level"
+    ),
+    all.x = TRUE
+  )
 
-    out <- merge.data.table(
-      x = out,
-      y = spl,
-      by = c(
-        "country_code",
-        "reporting_year",
-        "welfare_type",
-        "reporting_level"
-      ),
-      all.x = TRUE
-    )
-  }
   return(out)
 }
