@@ -440,10 +440,44 @@ assign_serializer <- function(format) {
   # List of supported serializers
   serializers <- list(
     "json"    = plumber::serializer_json(na = "null"),
-    "csv"     = plumber::serializer_csv(),
+    "csv"     = plumber::serializer_csv(na = ""),
     "rds"     = plumber::serializer_rds(),
-    "arrow"     = plumber::serializer_feather()
+    "arrow"   = plumber::serializer_feather()
   )
 
   return(serializers[[format]])
+}
+
+#' Helper function to determine whether an API call is compute intensive
+#' and should be forked to a parallel process to avoid blocking the main
+#' R process
+#'
+#' @param country character: selected countries
+#' @param year character: selected years
+#' @param intensity_threshold numeric: Number of selected country/year above which
+#' the request will be considered intensive
+#' @param include_year logical: Whether year selection should be included to determine
+#' the intensity of the request
+#'
+#' @return logical
+#' @export
+#'
+
+is_forked <- function(country,
+                      year,
+                      intensity_threshold = 40,
+                      include_year = TRUE) {
+
+  is_country_intensive <- any(country %in% c("ALL", "WLD") |
+                                length(country) > intensity_threshold)
+  if (include_year) {
+    is_year_intensive <- any(year %in% c("ALL") |
+                               length(year) > intensity_threshold)
+  } else {
+    is_year_intensive <- TRUE
+  }
+
+  is_intensive <- is_country_intensive & is_year_intensive
+
+  return(is_intensive)
 }

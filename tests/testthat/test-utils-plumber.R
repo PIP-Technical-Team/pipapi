@@ -8,7 +8,6 @@ if (Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") != "") {
   lkups <-
     test_path("testdata", "query-controls.rds") |>
     readRDS()
-
 }
 
 pl_lkup <- lkups$pl_lkup
@@ -347,4 +346,102 @@ test_that("assign_serializer() returns a the correct serialization function", {
   x_env <- environment(x)
   content_type <- x_env$headers$`Content-Type`
   expect_equal(content_type, "application/vnd.apache.arrow.file")
+})
+
+test_that("is_forked() respect the response contract", {
+  country <- c("SSA", "COL", "FRA")
+  year <- c("2010", "2011", "2012")
+  x <- is_forked(country = country, year = year)
+  expect_equal(length(x), 1)
+  expect_true(is.logical(x))
+})
+
+test_that("is_forked() correctly identifies intensive requests", {
+  country <- c("ALL")
+  year <- c("ALL")
+  x <- is_forked(country = country, year = year)
+  expect_true(x)
+
+  country <- c("WLD")
+  year <- c("ALL")
+  x <- is_forked(country = country, year = year)
+  expect_true(x)
+
+  country <- c("WLD", "COL", "FRA")
+  year <- c("ALL")
+  x <- is_forked(country = country, year = year)
+  expect_true(x)
+
+  country <- c("ALL")
+  year <- c("2008", "ALL", "2010")
+  x <- is_forked(country = country, year = year)
+  expect_true(x)
+
+  country <- c("COL")
+  year <- c("2008", "ALL", "2010")
+  x <- is_forked(country = country, year = year)
+  expect_false(x)
+
+  country <- c("ALL")
+  year <- c("2008", "2010")
+  x <- is_forked(country = country, year = year)
+  expect_false(x)
+
+  country <- c("FRA", "COL", "AFG", "BTN", "USA")
+  year <- c("2008", "2010")
+  x <- is_forked(country = country, year = year, intensity_threshold = 4)
+  expect_false(x)
+
+  country <- c("FRA", "COL")
+  year <- c("2008", "2010", "2011", "2012", "2013")
+  x <- is_forked(country = country, year = year, intensity_threshold = 4)
+  expect_false(x)
+
+  country <- c("FRA", "COL", "AFG", "BTN", "USA")
+  year <- c("2008", "2010", "2011", "2012", "2013")
+  x <- is_forked(country = country, year = year, intensity_threshold = 4)
+  expect_true(x)
+})
+
+test_that("is_forked() include_year argument works correctly", {
+
+  country <- c("ALL")
+  x <- is_forked(country = country, include_year = FALSE)
+  expect_true(x)
+
+  country <- c("ALL")
+  year <- c("2010")
+  x <- is_forked(country = country, year = year, include_year = FALSE)
+  expect_true(x)
+
+  country <- c("ALL")
+  year <- c("2010")
+  x <- is_forked(country = country, year = year, include_year = TRUE)
+  expect_false(x)
+})
+
+test_that("csv serialization returns empty string for missing values", {
+  # Load a saved API response that contains missing values
+  value <- readr::read_rds(test_path("testdata",
+                                     "response_with_missing_values.rds"))
+  req <- readr::read_rds(test_path("testdata",
+                                   "req_missing_value.rds"))
+  res <- readr::read_rds(test_path("testdata",
+                                   "res_missing_value.rds"))
+  error_handler <- readr::read_rds(test_path("testdata",
+                                             "error_handler_missing_value.rds"))
+  # Assign API csv serializer function
+  res$serializer <- pipapi::assign_serializer(format = "csv")
+
+  # Capture the serialized response
+  serialized_response <- res$serializer(val = value,
+                                        req = req,
+                                        res = res,
+                                        errorHandler = error_handler)
+  serialized_response <- serialized_response$body
+  # Check that it contains no NAs
+  # NAs are avoided because they are tricky to parse for Stata
+  expect_true(grepl(",,,,,,,,,,,,,,,,",
+                    serialized_response,
+                    fixed = TRUE))
 })
