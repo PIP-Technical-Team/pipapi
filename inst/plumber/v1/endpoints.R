@@ -739,7 +739,9 @@ function(req) {
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
 #* @param ppp_version:[chr] ppp year to be used
 #* @serializer json
-function(req) {
+function(req, res) {
+  # Remove browser cache of citation endpoint as it returns the current date
+  res$headers["Cache-Control"] <- NULL
   params <- req$argsQuery
   out <- pipapi::citation_from_version(params$version)
   out
