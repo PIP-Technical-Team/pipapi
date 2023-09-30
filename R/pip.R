@@ -215,6 +215,14 @@ pip <- function(country         = "ALL",
 
   }
 
+  # make sure we always report the same precision in all numeric variables
+  doub_vars <-
+    names(out)[unlist(lapply(out, is.double))] |>
+    data.table::copy()
+
+  out[, (doub_vars) := lapply(.SD, round, digits = 12),
+     .SDcols = doub_vars]
+
   #Order rows by country code and reporting year
   data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
 
