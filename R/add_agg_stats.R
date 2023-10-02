@@ -181,7 +181,7 @@ ag_average_poverty_stats <- function(df) {
     collapse::get_vars(c("reporting_pop", avg_names)) |>
     collapse::fmean(reporting_pop,
                     keep.group_vars = FALSE,
-                    keep.w = TRUE)
+                    keep.w = FALSE)
 
 
   ## Sum: National total of reporting vars ------
