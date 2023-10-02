@@ -223,7 +223,7 @@ pip <- function(country         = "ALL",
   out[, (doub_vars) := lapply(.SD, round, digits = 12),
      .SDcols = doub_vars]
 
-  #Order rows by country code and reporting year
+  # Order rows by country code and reporting year
   data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
 
 

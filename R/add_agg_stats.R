@@ -112,27 +112,28 @@ ag_average_poverty_stats <- function(df) {
   # This should be removed eventually
   assertthat::assert_that(assertthat::are_equal(length(df$reporting_level), 2))
 
-  # set different groups of variables --------
-
-  ## original names -------
+  # STEP 1: Identify groups of variables that will be handled differently ------
+  ## original names
   orig_names <- data.table::copy(names(df))
-  # convert years variables te chracter temporarily.
 
-  ## years variables to character ------
+  ## convert years variables to character temporarily ------
+  ## Only numeric variables will be aggregated or averaged
+  ## Year variables must not be modified
   years_vars <- grep("year", names(df), value = TRUE)
   df[, (years_vars) :=
        lapply(.SD, as.character),
      .SDcols = years_vars]
 
-  ## names of vars to average ------
+  ## Identify vars to average ------
   num_names <- names(df)[unlist(lapply(df, is.numeric))]
   nonum_names <- names(df)[ !names(df) %in% num_names]
-
   avg_names <- grep("^reporting", num_names, value = TRUE, invert = TRUE)
+
+  ## Identify vars to aggregate ------
   rep_names <- grep("^reporting", num_names, value = TRUE)
 
-  # treat negatives  and Zeros -----------
-  ## negatives ------
+  # STEP 2: Handle negative and zero values -----------
+  ## Handle negatives ------
   noneg_vars <-
     c("mean",
       "median",
@@ -152,7 +153,7 @@ ag_average_poverty_stats <- function(df) {
        }),
      .SDcols = noneg_vars]
 
-  ## zeros -------------
+  ## Handle zeros -------------
   zero_vars <-
     c("mean",
       "median",
@@ -168,25 +169,12 @@ ag_average_poverty_stats <- function(df) {
          }),
      .SDcols = zero_vars]
 
-  # Calculations ----------
+  # STEP 3: Calculations ----------
   ## weighted average  ------
   totpop <- sum(df$reporting_pop)
-  # df[,
-  #    wgt := reporting_pop/totpop]
+
   wgt <-  df$reporting_pop/totpop
 
-  # wgt_df <-
-  #   df[,
-  #      lapply(.SD, weighted.mean, w = wgt),
-  #      .SDcols = avg_names]
-
-  # wgt_df <- df |>
-  #   # this grouping is not necessary, but ensures data.frame as output
-  #   collapse::fgroup_by(c("country_code", "reporting_year", "welfare_type")) |>
-  #   collapse::get_vars(avg_names) |>
-  #   collapse::fmean(wgt,
-  #                   keep.group_vars = FALSE,
-  #                   keep.w = FALSE)
   wgt_df <- df |>
     # this grouping is not necessary, but ensures data.frame as output
     collapse::fgroup_by(c("country_code", "reporting_year", "welfare_type")) |>
@@ -196,18 +184,17 @@ ag_average_poverty_stats <- function(df) {
                     keep.w = TRUE)
 
 
-  ## National total of reporting vars ------
+  ## Sum: National total of reporting vars ------
   sum_df <-
     df[,
        lapply(.SD, sum),
        .SDcols = rep_names]
 
-  # Bind resulting tables  ------
+  # STEP 4: Format results ----
+  ## Bind resulting tables ----
   out <- cbind(df[1, ..nonum_names], wgt_df, sum_df)
 
-
-  # format variables  ----
-  ## convert years back to numeric
+  ## convert years back to numeric ----
   out[, (years_vars) :=
        lapply(.SD, as.numeric),
      .SDcols = years_vars]
@@ -228,7 +215,6 @@ ag_average_poverty_stats <- function(df) {
   out[, (national_cols) := "national"]
 
   ## set order of obs anc col -------
-
   out <- out[, ..orig_names]
   data.table::setcolorder(out, orig_names)
   data.table::setorderv(out, c("country_code", "reporting_year","welfare_type"))
