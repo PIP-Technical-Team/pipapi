@@ -44,7 +44,7 @@ ui_pc_charts <- function(country = c("AGO"),
       'comparable_spell', 'survey_year',
       'reporting_pop', 'ppp', 'cpi', 'distribution_type',
       'is_interpolated', 'poverty_line', 'mean', 'headcount',
-      'poverty_gap', 'poverty_severity', 'watts', 'pop_in_poverty'
+      'poverty_gap', 'poverty_severity', 'watts', 'pop_in_poverty', 'spr'
     )]
     return(out)
   } else {
@@ -64,7 +64,7 @@ ui_pc_charts <- function(country = c("AGO"),
       'comparable_spell', 'survey_year',
       'reporting_pop', 'ppp', 'cpi', 'distribution_type',
       'is_interpolated', 'poverty_line', 'mean', 'headcount',
-      'poverty_gap', 'poverty_severity', 'watts', 'pop_in_poverty'
+      'poverty_gap', 'poverty_severity', 'watts', 'pop_in_poverty', 'spr'
     )]
 
     inequality_indicators <- c('median', 'gini', 'polarization',

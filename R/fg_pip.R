@@ -3,11 +3,6 @@
 #' Compute the main PIP poverty and inequality statistics for imputed years.
 #'
 #' @inheritParams pip
-#' @param ref_lkup data.frame: Lookup table with necessary information to compute
-#' inter/extra-polated values
-#' @param valid_regions character: Vector of accepted country codes for regions
-#' @param interpolation_list list: List of surveys to be used for computing
-#' inter/extra-polated values
 #' @return data.frame
 #' @keywords internal
 fg_pip <- function(country,
@@ -17,11 +12,13 @@ fg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   ref_lkup,
-                   valid_regions,
-                   interpolation_list) {
+                   lkup) {
+
+  valid_regions       <- lkup$query_controls$region$values
+  interpolation_list  <- lkup$interpolation_list
 
   # Handle interpolation
+  ref_lkup <- lkup[["ref_lkup"]]
   metadata <- subset_lkup(
     country         = country,
     year            = year,
@@ -113,7 +110,7 @@ fg_pip <- function(country,
 
 
   # Remove median
-  out[, median := NA_real_]
+  out[, median := NULL]
 
   # Ensure that out does not have duplicates
   out <- fg_remove_duplicates(out)
@@ -122,6 +119,29 @@ fg_pip <- function(country,
   out[,
       poverty_line := round(poverty_line, digits = 3) ]
 
+
+  # add SPL ---------
+
+  data_dir <- lkup$data_root
+  spl <-
+    get_aux_table(data_dir = data_dir,
+                  table = "spl")
+
+  out <- merge.data.table(
+    x = out,
+    y = spl,
+    by = c(
+      "country_code",
+      "reporting_year",
+      "welfare_type",
+      "reporting_level"
+    ),
+    all.x = TRUE
+  )
+
+  if (any(names(out) == "spl_headcount")) {
+    data.table::setnames(out, "spl_headcount", "spr")
+  }
 
   return(out)
 }

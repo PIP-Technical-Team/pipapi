@@ -56,7 +56,8 @@ Imports:
     methods,
     joyn,
     qs,
-    arrow
+    arrow,
+    collapse
 Remotes:
     PIP-Technical-Team/wbpip@PROD
 Depends: 
