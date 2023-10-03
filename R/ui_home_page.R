@@ -42,7 +42,7 @@ ui_hp_stacked <- function(povline = 1.9,
 #'   to million)
 #' @return data.table
 #' @export
-ui_hp_countries <- function(country = c("BGD", "CIV"),
+ui_hp_countries <- function(country = c("IDN", "CIV"),
                             povline = 1.9,
                             pop_units = 1e6,
                             lkup) {
