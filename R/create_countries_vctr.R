@@ -85,9 +85,6 @@ create_countries_vctr <- function(country,
   ctr_alt_agg      <- get_ctr_alt_agg(user_alt_gt      = user_alt_gt,
                                       user_alt_gt_code = user_alt_gt_code,
                                       cl               = aux_files$country_list )
-  ## Survey countries in official regions -----
-  ctr_off_reg <- get_ctr_off_reg(user_off_reg = user_off_reg,
-                                 ctrs = ctrs)
   ## Implicit SURVEY countries in both, official and alternative ----
   impl_ctrs <- get_impl_ctrs(user_gt = user_gt,
                              user_gt_code = user_gt_code,
@@ -301,25 +298,6 @@ get_ctr_alt_agg <- function(user_alt_gt,
       {\(.) cl[eval(.), country_code] }()
   } else {
     out      <- character()
-  }
-  return(out)
-}
-
-#' Helper function to retrieve the required countries
-#' needed to compute official aggregates
-#'
-#' @param user_off_reg character: Official regions requested by user
-#' @param ctrs data.frame: Countries lookup table
-#'
-#' @return character
-#' @export
-#'
-get_ctr_off_reg <- function(user_off_reg,
-                            ctrs) {
-  if (!is_empty(user_off_reg)) {
-    out <- ctrs[["country_code"]][ctrs[["region_code"]] %in% user_off_reg]
-  } else {
-    out <- character()
   }
   return(out)
 }
