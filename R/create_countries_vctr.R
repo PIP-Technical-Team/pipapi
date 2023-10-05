@@ -78,7 +78,8 @@ create_countries_vctr <- function(country,
   ## Countries selected by user ----
   user_ctrs <- unique(ctrs[["country_code"]][ctrs[["country_code"]]  %in% country])
   ## Countries need to compute alternative aggregates ----
-  user_alt_gt      <- get_user_alt_gt(user_gt)
+  user_alt_gt      <- get_user_alt_gt(user_gt = user_gt,
+                                      off_gt = off_gt)
   user_gt_code     <- get_user_x_code(user_gt)
   user_alt_gt_code <- get_user_x_code(user_alt_gt)
   ctr_alt_agg      <- get_ctr_alt_agg(user_alt_gt      = user_alt_gt,
@@ -95,7 +96,7 @@ create_countries_vctr <- function(country,
 
   # STEP 4: Create variable to help compute stats for countries with missing data ----
   ## Countries with  missing data ----
-  md_vars <- get_md_vars(md           = md,
+  md_vars <- get_md_vars(md           = aux_files$missing_data,
                          ctr_alt_agg  = ctr_alt_agg,
                          year         = year,
                          off_alt_agg  = off_alt_agg,
@@ -172,11 +173,11 @@ select_user_aggs <- function(country, off_reg, aggs) {
 #' Helper function to define user_alt_gt
 #'
 #' @param user_gt character: Grouping type needed by user
-#'
+#' @param off_gt character: Official grouping type
 #' @return character
 #' @export
 #'
-get_user_alt_gt <- function(user_gt) {
+get_user_alt_gt <- function(user_gt, off_gt) {
   if (!is_empty(user_gt)) {
     out  <- user_gt[!user_gt %in% off_gt]
   } else {
