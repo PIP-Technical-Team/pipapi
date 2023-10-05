@@ -92,6 +92,8 @@ create_countries_vctr <- function(country,
                              ctrs = ctrs)
   ## All countries needed for estimations -----
   est_ctrs <- unique(c(user_ctrs, impl_ctrs))
+
+  # STEP 4: Create variable to help compute stats for countries with missing data ----
   ## Countries with  missing data ----
   md_vars <- get_md_vars(md           = md,
                          ctr_alt_agg  = ctr_alt_agg,
