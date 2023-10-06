@@ -60,9 +60,9 @@ create_countries_vctr <- function(country,
   ## All aggregates available including WLD and all ----
   all_agg <- c(off_reg_ext, alt_agg)
   ##  Aggregates selected by user ----
-  user_aggs <- select_user_aggs(country = country,
-                                off_reg = off_reg,
-                                aggs = aggs)
+  user_aggs <- select_user_aggs(country     = country,
+                                off_reg_ext = off_reg_ext,
+                                aggs        = aggs)
   ## Official aggregates requested by user ----
   user_off_reg <- off_reg_ext[off_reg_ext %in% user_aggs]
   ## Alternative aggregates requested by user ----
@@ -158,10 +158,10 @@ select_off_alt_agg <- function(user_gt, off_gt) {
 #' @return character
 #' @export
 #'
-select_user_aggs <- function(country, off_reg, aggs) {
+select_user_aggs <- function(country, off_reg_ext, aggs) {
   if (any(c("ALL", "WLD") %in% country)) {
     # Select all official regions
-    out <- off_reg
+    out <- off_reg_ext
 
   } else {
     # Select only official regions that correspond to selected countries
@@ -195,9 +195,13 @@ get_user_alt_gt <- function(user_gt, off_gt) {
 #'
 get_user_x_code <- function(x) {
   if (!is_empty(x)) {
-    out <- paste0(x, "_code")
+    if (!all("" %in% x)) {
+      out <- paste0(x, "_code")
+    } else {
+      out <- character(0)
+    }
   } else {
-    out <- character()
+    out <- character(0)
   }
   return(out)
 }
@@ -233,7 +237,7 @@ get_ctr_alt_agg <- function(user_alt_gt,
       # filter and get country codes
       {\(.) cl[eval(.), country_code] }()
   } else {
-    out      <- character()
+    out      <- character(0)
   }
   return(out)
 }
@@ -339,7 +343,7 @@ get_md_vars <- function(md,
 
       # filter region code and year to calculate
       md_off_reg <- unique(grp_to_compute[["region_code"]])
-      md_year    <- unique(grp_to_compute[["year"]])
+      md_year    <- unique(grp_to_compute[["reporting_year"]])
 
       if (length(md_off_reg) > 0) {
         # If length of `md_off_reg` is still positive, we need to append the
@@ -356,14 +360,14 @@ get_md_vars <- function(md,
       # before.
       grp_use <- "not"
     }
-    md_ctrs <- unique(md[["country_code"]]) # missing data countries
+    # md_ctrs <- unique(md[["country_code"]]) # missing data countries
 
   } else { # if yes_md == FALSE
-    md_ctrs    <- character() # missing data countries
-    md_off_reg <- character()
-    md_year    <- numeric()
-    grp_use    <- character()
-    md         <- character()
+    # md_ctrs    <- character(0) # missing data countries
+    md_off_reg <- character(0)
+    md_year    <- numeric(0)
+    grp_use    <- character(0)
+    # md         <- character(0)
   }
 
   return(list(md         = md,
