@@ -26,18 +26,20 @@ create_countries_vctr <- function(country,
       md_year           = NULL, # years to input to missing data countries
       grp_use           = NULL, # Instruction for the next function call
       md                = NULL, # missing data  and pop table
-      user_alt_gt_code  = NULL#,  # code of alt grouping data
+      user_alt_gt_code  = NULL,#,  # code of alt grouping data
+      off_alt_agg       = NULL, # what to do with alt and reg
+      ctr_off_reg       = NULL # Survey countries in official regions
       # user_aggs         = NULL, # all aggregates requested by user
       # user_ctrs         = NULL, # countries requested by user
       # impl_ctrs         = NULL, # implicit countries requested by user
       # alt_agg           = NULL, # Alt aggregates available
       # off_reg           = NULL, # Official regions available
       # all_agg           = NULL, # All aggs available, including WLD and ALL
-      # off_alt_agg       = NULL, # what to do with alt and reg
+
       # user_gt           = NULL, # gt implicitly selected by user
       # user_alt_gt       = NULL, # Alternative gt implicitly selected by user
       # ctr_alt_agg       = NULL, # ctrs in alt aggs based on gt by user
-      # ctr_off_reg       = NULL, # Survey countries in official regions
+
       # md_ctrs           = NULL  # missing data countries
     )
 
@@ -49,7 +51,7 @@ create_countries_vctr <- function(country,
   ## All available aggregates ----
   aggs      <- aux_files$regions  ## all aggregates
   ## Official grouping type ----
-  off_gt <-  c("region") # c("region", "world")
+  off_gt <- c("region", "world") #c("region")
   ## Official valid region codes ----
   off_reg <- aggs[["region_code"]][aggs[["grouping_type"]] %in% off_gt]
   ## Extended list of regions ----
@@ -61,6 +63,7 @@ create_countries_vctr <- function(country,
   all_agg <- c(off_reg_ext, alt_agg)
   ##  Aggregates selected by user ----
   user_aggs <- select_user_aggs(country     = country,
+                                all_agg     = all_agg,
                                 off_reg_ext = off_reg_ext,
                                 aggs        = aggs)
   ## Official aggregates requested by user ----
@@ -86,6 +89,13 @@ create_countries_vctr <- function(country,
                                       user_alt_gt_code = user_alt_gt_code,
                                       user_alt_agg = user_alt_agg,
                                       cl               = aux_files$country_list )
+
+  ## Survey countries in official regions -----
+  if (!is_empty(user_off_reg)) {
+    ctr_off_reg <- ctrs[["country_code"]][ctrs[["region_code"]] %in% user_off_reg]
+  } else {
+    ctr_off_reg <- character()
+  }
   ## Implicit SURVEY countries in both, official and alternative ----
   impl_ctrs <- get_impl_ctrs(user_gt = user_gt,
                              user_gt_code = user_gt_code,
@@ -158,16 +168,24 @@ select_off_alt_agg <- function(user_gt, off_gt) {
 #' @return character
 #' @export
 #'
-select_user_aggs <- function(country, off_reg_ext, aggs) {
-  if (any(c("ALL", "WLD") %in% country)) {
-    # Select all official regions
-    out <- off_reg_ext
+select_user_aggs <- function(country,
+                             all_agg,
+                             off_reg_ext,
+                             aggs) {
+  if ("ALL" %in% country) {
+    # Select ALL available regions
+    return(all_agg)
+
+  } else if ("WLD" %in% country) {
+    # Select ALL official regions and other user selected regions
+    out <- unique(aggs[["region_code"]][aggs[["region_code"]] %in% country])
+    return(sort(unique(c(out, off_reg_ext))))
 
   } else {
-    # Select only official regions that correspond to selected countries
+    # Select only regions that correspond to selected countries
     out <- unique(aggs[["region_code"]][aggs[["region_code"]] %in% country])
+    return(out)
   }
-  return(out)
 }
 
 #' Helper function to define user_alt_gt
