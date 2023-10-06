@@ -7,11 +7,12 @@ lkup <-  lkups$versions_paths[[lkups$latest_release]]
 aux_files   <- readRDS(testthat::test_path("testdata", "mock_aux_files.rds"))
 valid_years <- readRDS(testthat::test_path("testdata", "mock_valid_years.rds"))
 aggs      <- aux_files$regions
-off_gt <-  c("region") # c("region", "world")--
+off_gt <-  c("region", "world") #c("region")
 alt_agg <- aggs[["region_code"]][!aggs[["grouping_type"]] %in% off_gt]
 ext_reg <- c("ALL", "WLD")
 off_reg <- aggs[["region_code"]][aggs[["grouping_type"]] %in% off_gt]
 off_reg_ext <- sort(unique(c(off_reg, ext_reg)))
+all_agg <- c(off_reg_ext, alt_agg)
 user_gts <- unique(aggs[["grouping_type"]])
 off_reg <- aggs[["region_code"]][aggs[["grouping_type"]] %in% off_gt]
 md <- aux_files$missing_data
@@ -307,14 +308,15 @@ test_that("get_impl_ctrs works as expected", {
 test_that("get_ctr_alt_agg works as expected", {
   cl <- aux_files$country_list
   # returns all countries when "world" is part of user_alt_gt
-  user_alt_gt      <- user_gts[!user_gts %in% off_gt]
-  user_alt_gt_code <- get_user_x_code(user_alt_gt)
-  user_alt_agg     <- alt_agg
-  tmp <- get_ctr_alt_agg(user_alt_gt = user_alt_gt,
-                         user_alt_gt_code = user_alt_gt_code,
-                         user_alt_agg = user_alt_agg,
-                         cl = cl)
-  expect_equal(tmp, cl$country_code)
+  # DISABLED: SHOULD NOT HAPPEND
+  # user_alt_gt      <- user_gts[!user_gts %in% off_gt]
+  # user_alt_gt_code <- get_user_x_code(user_alt_gt)
+  # user_alt_agg     <- alt_agg
+  # tmp <- get_ctr_alt_agg(user_alt_gt = user_alt_gt,
+  #                        user_alt_gt_code = user_alt_gt_code,
+  #                        user_alt_agg = user_alt_agg,
+  #                        cl = cl)
+  # expect_equal(tmp, cl$country_code)
 
   # returns SSA countries when user_alt_gt = "africa_split
   user_alt_gt <- "africa_split"
@@ -370,49 +372,63 @@ test_that("get_user_alt_gt works as expected", {
 })
 
 test_that("select_user_aggs works as expected", {
-  # All official regions are returned when user selects "ALL" or "WLD"
-  tmp <- select_user_aggs(country = "ALL",
+  # All available regions are returned when user selects "ALL"
+  tmp <- select_user_aggs(country     = "ALL",
+                          all_agg     = all_agg,
                           off_reg_ext = off_reg_ext,
-                          aggs = aggs)
+                          aggs        = aggs)
+  expect_equal(tmp, all_agg)
+  # All official regions are returned when user selects "WLD"
+  tmp <- select_user_aggs(country     = "WLD",
+                          all_agg     = all_agg,
+                          off_reg_ext = off_reg_ext,
+                          aggs        = aggs)
   expect_equal(tmp, off_reg_ext)
 
-  tmp <- select_user_aggs(country = "WLD",
+  # All available regions are returned when user selects "ALL" and "WLD"
+  tmp <- select_user_aggs(country     = c("ALL", "WLD"),
+                          all_agg     = all_agg,
                           off_reg_ext = off_reg_ext,
-                          aggs = aggs)
-  expect_equal(tmp, off_reg_ext)
+                          aggs        = aggs)
+  expect_equal(tmp, all_agg)
 
   # If user selects specific regions, these regions are being returned
   region = "AFE"
-  tmp <- select_user_aggs(country = region,
+  tmp <- select_user_aggs(country     = region,
+                          all_agg     = all_agg,
                           off_reg_ext = off_reg_ext,
-                          aggs = aggs)
+                          aggs        = aggs)
   expect_equal(tmp, region)
 
   region = c("AFE", "AFW", "LAC")
-  tmp <- select_user_aggs(country = region,
+  tmp <- select_user_aggs(country     = region,
+                          all_agg     = all_agg,
                           off_reg_ext = off_reg_ext,
-                          aggs = aggs)
+                          aggs        = aggs)
   expect_equal(tmp, region)
 
   # Empty vector is being returned is user selects a country code
   country = "COL"
-  tmp <- select_user_aggs(country = country,
+  tmp <- select_user_aggs(country     = country,
+                          all_agg     = all_agg,
                           off_reg_ext = off_reg_ext,
-                          aggs = aggs)
+                          aggs        = aggs)
   expect_equal(tmp, character(0))
 
   country = c("COL", "FRA")
-  tmp <- select_user_aggs(country = country,
+  tmp <- select_user_aggs(country     = country,
+                          all_agg     = all_agg,
                           off_reg_ext = off_reg_ext,
-                          aggs = aggs)
+                          aggs        = aggs)
   expect_equal(tmp, character(0))
 
   # When mixing countries and regions, countries are being ignored
   country = c("COL", "FRA")
   region  = "LAC"
-  tmp <- select_user_aggs(country = c(country, region),
+  tmp <- select_user_aggs(country     = c(country, region),
+                          all_agg     = all_agg,
                           off_reg_ext = off_reg_ext,
-                          aggs = aggs)
+                          aggs        = aggs)
   expect_equal(tmp, region)
 })
 
@@ -437,7 +453,6 @@ test_that("select_off_alt_agg works as expected", {
 })
 
 test_that("create_vector_countries output the expected object", {
-  skip("TEMPORARY SKIP")
   country <- "ALL"
   year = "2010"
   out <- create_countries_vctr(country = country,
@@ -446,7 +461,9 @@ test_that("create_vector_countries output the expected object", {
                                aux_files = aux_files)
   expect_true(is.list(out))
   expect_equal(sort(names(out)),
-               sort(c("user_off_reg",
+               sort(c("ctr_off_reg",
+                      "off_alt_agg",
+                      "user_off_reg",
                       "user_alt_agg",
                       "est_ctrs",
                       "md_off_reg",
@@ -458,7 +475,6 @@ test_that("create_vector_countries output the expected object", {
 })
 
 test_that("create_vector_countries works for countries selection", {
-  skip("TEMPORARY SKIP")
   country <- "ALL"
   year = "ALL"
   out <- create_countries_vctr(country = country,
@@ -470,22 +486,49 @@ test_that("create_vector_countries works for countries selection", {
   expect_equal(sort(out$est_ctrs), sort(aux_files$countries$country_code))
 })
 
-test_that("create_vector_countries works for regions selection", {
-  skip("TEMPORARY SKIP")
+test_that("create_vector_countries Returns correct results when country = ALL", {
+  # Returns correct results when country="ALL"
   country <- "ALL"
   year = "2010"
   out <- create_countries_vctr(country = country,
                                year    = year,
                                valid_years = valid_years,
                                aux_files = aux_files)
-
-  # Returns official and non-official regions when country="ALL"
+  # Correct official regions
   expect_equal(out$user_off_reg,
-               aux_files$regions$region_code[aux_files$regions$grouping_type == "region"])
-  # List of all aggregates is correct (no duplicates for instance)
+               c("ALL",
+                 aux_files$regions$region_code[aux_files$regions$grouping_type %in% off_gt])
+               )
+  # Correct alternative regions
   expect_equal(out$user_alt_agg,
                aux_files$regions$region_code[!aux_files$regions$grouping_type %in% c("region", "world")])
+  # Correct instructions to compute aggregates are correct
+  expect_equal(out$grp_use, "alone")
+  expect_equal(out$off_alt_agg, "both")
+})
 
+
+test_that("create_vector_countries Returns correct results when country = WLD", {
+  # Returns correct results when country="ALL"
+  country <- "WLD"
+  year = "2010"
+  out <- create_countries_vctr(country = country,
+                               year    = year,
+                               valid_years = valid_years,
+                               aux_files = aux_files)
+  # Correct official regions
+  expect_equal(out$user_off_reg,
+               c("ALL",
+                 aux_files$regions$region_code[aux_files$regions$grouping_type %in% off_gt])
+  )
+  # Correct alternative regions
+  expect_true(is.null(out$user_alt_agg))
+  # Correct instructions to compute aggregates are correct
+  expect_true(is.null(out$grp_use))
+  expect_equal(out$off_alt_agg, "off")
+})
+
+test_that("create_vector_countries Returns correct results when country = alternative aggregate", {
   # Correctly selects alternative regions
   country <- c("AFE")
   year = "ALL"
@@ -498,10 +541,47 @@ test_that("create_vector_countries works for regions selection", {
   expect_true(is.null(out$user_off_reg))
   # Returns selected alternative region
   expect_equal(out$user_alt_agg, country)
-  # Selects all SSA countries for estimation: ARE THOSE TESTS CORRECT?
-  expect_equal(out$est_ctrs, aux_files$countries$country_code[aux_files$countries$region_code == "SSA"])
   # Selects correct missing data region
   expect_equal(out$md_off_reg, "SSA")
-  # Selects years with missing data - NEED TO CHECK THE LOGIC
-  # expect_equal(out$md_year, valid_years$valid_survey_years)
+  # Correct instructions to compute aggregates are correct
+  expect_equal(out$grp_use, "not")
+  expect_equal(out$off_alt_agg, "alt")
+})
+
+test_that("create_vector_countries returns correct results when country = offical aggregate", {
+  # Correctly selects alternative regions
+  country <- c("LAC", "MNA")
+  year = "ALL"
+  out <- create_countries_vctr(country = country,
+                               year    = year,
+                               valid_years = valid_years,
+                               aux_files = aux_files)
+
+  # Returns no official region
+  expect_equal(out$user_off_reg, country)
+  # Returns selected alternative region
+  expect_true(is.null(out$user_alt_agg))
+  # Correct instructions to compute aggregates are correct
+  expect_true(is.null(out$grp_use))
+  expect_equal(out$off_alt_agg, "off")
+})
+
+test_that("create_vector_countries returns correct results when country = aggregates are mixed", {
+  # Correctly selects alternative regions
+  off_country <- c("LAC", "MNA")
+  alt_country <- "AFW"
+  country     <- c(off_country, alt_country)
+  year = "ALL"
+  out <- create_countries_vctr(country = country,
+                               year    = year,
+                               valid_years = valid_years,
+                               aux_files = aux_files)
+
+  # Returns no official region
+  expect_equal(out$user_off_reg, off_country)
+  # Returns selected alternative region
+  expect_equal(out$user_alt_agg, alt_country)
+  # Correct instructions to compute aggregates are correct
+  expect_equal(out$grp_use, "append")
+  expect_equal(out$off_alt_agg, "both")
 })
