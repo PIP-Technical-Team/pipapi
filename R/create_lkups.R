@@ -374,6 +374,49 @@ create_lkups <- function(data_dir, versions) {
 
   )
 
+  # CREATE OBJECT: Index ----
+  ## Indexing only applies to microdata and imputed files
+  index_lkup <- svy_lkup[svy_lkup$distribution_type %in% c("micro", "imputed"), ]
+  ## Initialize index object ----
+  povlines <- c(1.9, 6.85)
+  povlines_chr <- as.character(povlines)
+  povlines_chr <- paste0("x", povlines_chr)
+  # povlines_chr <- sub(pattern = "\\.", replacement = "_", x = povlines)
+  index <- vector(mode = "list", length = length(povlines))
+  names(index) <- povlines_chr
+
+  for (p in seq_along(povlines)) {
+    out <- vector(mode = "numeric", length = length(index_lkup$cache_id))
+  ## Compute indices ----
+  for (i in seq_along(index_lkup$cache_id)) {
+    tmp_lkup <- index_lkup[i, ]
+    index_id <- paste(tmp_lkup$cache_id, tmp_lkup$reporting_level, sep = "-")
+    names(out)[i] <- index_id
+    # Read survey file
+    df <- fst::read_fst(tmp_lkup$path)
+
+    # Compute povlines indices
+    mean      <- tmp_lkup$survey_mean_ppp
+    svy_mean_lcu <- tmp_lkup$survey_mean_lcu
+
+      adjusted_povline <- wbpip:::md_compute_povline_lcu(welfare = df$welfare,
+                                                         povline = povlines[p],
+                                                         weight = df$weight,
+                                                         popshare = NULL,
+                                                         requested_mean = mean,
+                                                         data_mean = svy_mean_lcu)
+      povline_lcu <- adjusted_povline$povline_lcu
+      out[[i]] <- max(which(df$welfare < povline_lcu))
+      # Address situation when no welfare record is below the poverty line
+      if (out[i] == -Inf) {
+        out[i] <- 1
+      }
+  }
+    index[[povlines_chr[p]]] <- out
+  }
+
+
+
 
   # COERCE character to factors
   # svy_lkup <- coerce_chr_to_fct(svy_lkup)
@@ -396,7 +439,8 @@ create_lkups <- function(data_dir, versions) {
     aux_tables         = aux_tables,
     interpolation_list = interpolation_list,
     valid_years        = valid_years,
-    cache_data_id      = cache_data_id
+    cache_data_id      = cache_data_id,
+    index              = index
   )
 
   return(lkup)
