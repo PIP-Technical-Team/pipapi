@@ -120,6 +120,9 @@ ag_average_poverty_stats <- function(df) {
   ## Only numeric variables will be aggregated or averaged
   ## Year variables must not be modified
   years_vars <- grep("year", names(df), value = TRUE)
+  years_vars <- years_vars[!vapply(df[, ..years_vars],
+                                   is.logical,
+                                   FUN.VALUE = logical(1))]
   df[, (years_vars) :=
        lapply(.SD, as.character),
      .SDcols = years_vars]

@@ -169,7 +169,7 @@ pip_grp_logic <- function(country         = "ALL",
 
 
   ## Fill gaps estimates with countries with Survey  -----
-  fg <- fg_pip_master[fg_pip_master$country_code %chin% lcv$fg_ctrs, ]
+  fg <- fg_pip_master[fg_pip_master$country_code %chin% lcv$est_ctrs, ]
 
   if (!"ALL" %in% year) {
     fg <- fg[fg[["reporting_year"]] %in% as.numeric(year), ]
