@@ -14,6 +14,10 @@ fg_pip <- function(country,
                    ppp,
                    lkup) {
 
+  # Retrieve correct index object
+  index <- retrieve_index(indexes = lkup$index,
+                          povline = povline)
+
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
 
@@ -31,7 +35,6 @@ fg_pip <- function(country,
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
   metadata <- filter_lkup(metadata = metadata,
                           popshare = popshare)
-  metadata <- as.data.frame(metadata) # data.tables speed only kicks in for big datasets
 
   # Return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
@@ -54,7 +57,9 @@ fg_pip <- function(country,
 
     svy_data <- get_svy_data(svy_id          = iteration$cache_ids,
                              reporting_level = iteration$reporting_level,
-                             path            = iteration$paths)
+                             path            = iteration$paths,
+                             index_id        = iteration$index_id,
+                             index           = index)
 
     # Extract unique combinations of country-year
     ctry_years <- subset_ctry_years(country       = country,
@@ -172,7 +177,8 @@ fg_remove_duplicates <- function(df,
                                           "survey_median_ppp",
                                           "survey_time",
                                           "survey_year",
-                                          "surveyid_year")) {
+                                          "surveyid_year",
+                                          "index_id")) {
   # Modify cache_id
   # * Ensures that cache_id is unique for both extrapolated and interpolated surveys
   # * Ensures that cache_id can be kept as an output of fg_pip() while still removing duplicated rows

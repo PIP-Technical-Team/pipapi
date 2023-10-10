@@ -120,12 +120,18 @@ select_reporting_level <- function(lkup,
 #' @param svy_id character: Survey ID
 #' @param reporting_level character: geographical reporting level
 #' @param path character: Path to survey data
+#' @param index_id character: Index ID that allows to match a particular index to
+#' a unique survey-reporting_level combination
+#' @param index numeric: Index value of the maximum number of rows to be read from
+#' survey data
 #'
 #' @return data.frame
 #' @keywords internal
 get_svy_data <- function(svy_id,
                          reporting_level,
-                         path) {
+                         path,
+                         index_id,
+                         index) {
   # Each call should be made at a unique reporting_level (equivalent to reporting_data_level: national, urban, rural)
   # This check should be conducted at the data validation stage
   reporting_level <- unique(reporting_level)
@@ -133,18 +139,43 @@ get_svy_data <- function(svy_id,
                           msg = "Problem with input data: Multiple reporting_levels"
   )
   # tictoc::tic("read_single")
-  out <- lapply(path, function(x) {
+  out <- .mapply(FUN = function(p, i) {
+    # Find index match
+    if (!is.null(index)) {
+      tmp_index <- index[i]
+    } else {
+      tmp_index <- NA
+    }
 
     if (reporting_level %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
-      tmp <- fst::read_fst(x)
+      # Apply index if index is found
+      if (!is.na(tmp_index)) {
+        tmp <- fst::read_fst(p,
+                             to = tmp_index,
+                             as.data.table = TRUE)
+      } else {
+        tmp <- fst::read_fst(p,
+                             as.data.table = TRUE)
+      }
       tmp <- tmp[tmp$area == reporting_level, ]
       tmp <- tmp[, c("welfare", "weight")]
     } else {
-      tmp <- fst::read_fst(x, columns = c("welfare", "weight"))
+      # Apply index if index is found
+      if (!is.na(tmp_index)) {
+        tmp <- fst::read_fst(p,
+                             columns = c("welfare", "weight"),
+                             to = tmp_index,
+                             as.data.table = TRUE)
+      } else {
+        tmp <- fst::read_fst(p,
+                             columns = c("welfare", "weight"),
+                             as.data.table = TRUE)
+      }
     }
-
     return(tmp)
-  })
+  },
+  dots = list(path, index_id),
+  MoreArgs = NULL)
 
   # Logging
   # end_read_single <- tictoc::toc(quiet = TRUE)

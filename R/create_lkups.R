@@ -127,6 +127,8 @@ create_lkups <- function(data_dir, versions) {
   svy_lkup <- merge(svy_lkup, countries,
                     by = 'country_code',
                     all.x = TRUE)
+
+  svy_lkup$index_id <- paste0(svy_lkup$cache_id, "-", svy_lkup$reporting_level)
   ## TEMP cleaning - END
 
   # CREATE OBJECT: ref_lkup ----
@@ -146,6 +148,8 @@ create_lkups <- function(data_dir, versions) {
   ref_lkup <-  merge(ref_lkup, countries,
                      by = 'country_code',
                      all.x = TRUE)
+
+  ref_lkup$index_id <- paste0(ref_lkup$cache_id, "-", ref_lkup$reporting_level)
   ## TEMP cleaning - END
 
   # Add path to survey files
@@ -179,6 +183,7 @@ create_lkups <- function(data_dir, versions) {
     cache_ids       <- unique(tmp_metadata[["cache_id"]])
     reporting_level <- unique(tmp_metadata[["reporting_level"]])
     paths           <- unique(tmp_metadata$path)
+    index_id        <- unique(tmp_metadata$index_id)
     ctry_years      <- unique(tmp_metadata[, c("region_code",
                                                "country_code",
                                                "reporting_year",
@@ -192,6 +197,7 @@ create_lkups <- function(data_dir, versions) {
         cache_ids       = cache_ids,
         reporting_level = reporting_level,
         paths           = paths,
+        index_id        = index_id,
         ctry_years      = ctry_years
       )
   }

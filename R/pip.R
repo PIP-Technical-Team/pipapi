@@ -72,13 +72,6 @@ pip <- function(country         = "ALL",
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
 
-  # Retrieve correct index object
-  povlines_index_names <- names(lkup$index)
-  povlines_index <- sub(pattern = "^x", replacement = "", povlines_index)
-  povlines_index <- as.numeric(povlines_index)
-  povlines_index_name <- povlines_index_names[min(which(povlines_index >= povline))]
-  index <- lkup$index[[povlines_index_name]]
-
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
   if (is.character(year)) {
@@ -235,4 +228,26 @@ pip <- function(country         = "ALL",
 
 
   return(out)
+}
+
+#' helper function to retrieve correct index object
+#'
+#' @param povline numeric: The poverty line
+#' @param indexes list: The list of indexes
+#'
+#' @return index object (list)
+#' @export
+retrieve_index <- function(povline, indexes) {
+  # Retrieve correct index object
+  indexes_names <- names(indexes)
+  povlines <- sub(pattern = "^x", replacement = "", indexes_names)
+  povlines <- as.numeric(povlines)
+  keep <- povlines >= povline
+  if (any(keep)) {
+  selected_index_name <- indexes_names[min(which(keep))]
+  index <- indexes[[selected_index_name]]
+  return(index)
+  } else {
+    return(NULL)
+  }
 }

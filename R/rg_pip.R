@@ -15,6 +15,10 @@ rg_pip <- function(country,
                    ppp,
                    lkup) {
 
+  # Retrieve correct index object
+  index <- retrieve_index(indexes = lkup$index,
+                          povline = povline)
+
   # get values from lkup
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
@@ -45,9 +49,11 @@ rg_pip <- function(country,
     tmp_metadata <- metadata[i, ]
 
     svy_data <- get_svy_data(
-      tmp_metadata$cache_id,
+      svy_id          = tmp_metadata$cache_id,
       reporting_level = tmp_metadata$reporting_level,
-      path = tmp_metadata$path
+      path            = tmp_metadata$path,
+      index_id        = tmp_metadata$index_id,
+      index           = index
     )
 
     tmp_stats <- wbpip:::prod_compute_pip_stats(
