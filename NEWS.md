@@ -1,3 +1,5 @@
+# pipapi 1.3.0
+
 # pipapi 1.2.1
 
 ## New features
