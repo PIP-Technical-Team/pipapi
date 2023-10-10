@@ -143,8 +143,9 @@ ag_average_poverty_stats <- function(df) {
       "headcount",
       "poverty_gap",
       "poverty_severity",
-      "watts",
-      "spr")
+      "watts"#,
+      #"spr"
+      )
 
   df[, (noneg_vars) :=
        lapply(.SD, \(x) {

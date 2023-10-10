@@ -81,8 +81,8 @@ rg_pip <- function(country,
     "reporting_year",
     "welfare_type",
     "reporting_level",
-    "spl",
-    "spr"
+    "spl"#,
+    #"spr"
   )]
 
   out <- merge.data.table(
