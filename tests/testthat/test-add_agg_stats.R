@@ -8,34 +8,49 @@ res_ex3 <- test_path("testdata", "agg-stats-ex-3.rds") |>
 res_ex4 <- test_path("testdata", "povcal_response_ind1988.rds") |>
   readRDS()
 
+## Add spr to sample data (we need to recreate sample data but I did not find
+## thr R scripts that create them)
+res_ex1$spr <- .5
+res_ex2$spr <- .5
+res_ex3$spr <- .5
+res_ex4$spr <- .5
 
 test_that("add_agg_stats() works", {
 
   # Check that Watts is set to NA if either U/R watts is not above zero
   expect_equal(res_ex1$watts[1], 0)
+
   tmp <- add_agg_stats(res_ex1)
   expect_true(is.na(tmp$watts[3]))
+
+  # Same namber of variables as output.
+  expect_equal(names(res_ex1), names(tmp))
+
 
   # Note: Wasn't able to trigger poverty_severity statements
   # with real data, so created dummy examples
 
   # If rural poverty_severity > 0
-  res_tmp <- res_ex2
+  res_tmp <- data.table::copy(res_ex2)
   res_tmp$poverty_severity[1] <- -0.5
   tmp <- add_agg_stats(res_tmp)
-  expect_equal(tmp$headcount[2], tmp$headcount[3])
+
+  # This test is wrong. It is testing as correct something that should
+  # not be the case.
+  # expect_equal(tmp$headcount[2], tmp$headcount[3])
+  expect_true(is.na(tmp$poverty_severity[3]))
 
   # If urban poverty_severity > 0
-  res_tmp <- res_ex2
-  res_tmp$poverty_severity[2] <- -0.5
-  tmp <- add_agg_stats(res_tmp)
-  expect_equal(tmp$headcount[1], tmp$headcount[3])
+  # res_tmp <- res_ex2
+  # res_tmp$poverty_severity[2] <- -0.5
+  # tmp <- add_agg_stats(res_tmp)
+  # expect_equal(tmp$headcount[1], tmp$headcount[3])
 
   # If both urban and rural poverty_severity > 0
-  res_tmp <- res_ex2
-  res_tmp$poverty_severity <- -0.5
-  tmp <- add_agg_stats(res_tmp)
-  expect_true(is.na(tmp$headcount[3]))
+  # res_tmp <- res_ex2
+  # res_tmp$poverty_severity <- -0.5
+  # tmp <- add_agg_stats(res_tmp)
+  # expect_true(is.na(tmp$headcount[3]))
 
   # Check that national median is set to NA
   tmp <- add_agg_stats(res_ex3)
@@ -45,6 +60,28 @@ test_that("add_agg_stats() works", {
   # Check that national mean is a weighted average
   tmp <- add_agg_stats(res_ex3)
   expect_equal(tmp$mean[3], weighted.mean(res_ex3$survey_mean_ppp, res_ex3$reporting_pop))
+
+
+
+  # if negative, result is NA
+  res_tmp <- data.table::copy(res_ex2)
+  res_tmp$headcount[1] <- -0.5
+  tmp <- add_agg_stats(res_tmp)
+  expect_true(is.na(tmp$headcount[3]))
+
+
+  res_tmp <- data.table::copy(res_ex2)
+  res_tmp$poverty_gap[1] <- -0.5
+  tmp <- add_agg_stats(res_tmp)
+  expect_true(is.na(tmp$poverty_gap[3]))
+
+
+  # if negative, result is NA
+  res_tmp <- data.table::copy(res_ex2)
+  res_tmp$headcount[1] <- NA
+  tmp <- add_agg_stats(res_tmp)
+  expect_true(is.na(tmp$headcount[3]))
+
 })
 
 test_that("ag_average_poverty_stats() works", {

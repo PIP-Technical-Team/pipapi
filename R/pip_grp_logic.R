@@ -80,10 +80,8 @@ pip_grp_logic <- function(country         = "ALL",
       welfare_type    = welfare_type,
       reporting_level = reporting_level,
       ppp             = NULL,
-      ref_lkup           = lkup[["ref_lkup"]],
-      valid_regions      = lkup$query_controls$region$values,
-      interpolation_list = lkup$interpolation_list
-    )
+      lkup            = lkup
+      )
 
     if (lcv$off_alt_agg == "both") {
       ### STEP 3.2.1 Estimates for official aggregates ----
@@ -171,7 +169,7 @@ pip_grp_logic <- function(country         = "ALL",
 
 
   ## Fill gaps estimates with countries with Survey  -----
-  fg <- fg_pip_master[fg_pip_master$country_code %chin% lcv$fg_ctrs, ]
+  fg <- fg_pip_master[fg_pip_master$country_code %chin% lcv$est_ctrs, ]
 
   if (!"ALL" %in% year) {
     fg <- fg[fg[["reporting_year"]] %in% as.numeric(year), ]
@@ -316,7 +314,8 @@ pip_grp_helper <- function(lcv_country,
                  "poverty_severity",
                  "watts",
                  "mean",
-                 "pop_in_poverty")]
+                 "pop_in_poverty",
+                 "spr")]
 
   return(out)
 }
