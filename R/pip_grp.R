@@ -103,8 +103,9 @@ pip_grp <- function(country         = "ALL",
                  "poverty_severity",
                  "watts",
                  "mean",
-                 "pop_in_poverty",
-                 "spr")]
+                 "pop_in_poverty"#,
+                 #"spr"
+                 )]
 
   return(out)
 }
@@ -138,8 +139,9 @@ pip_aggregate <- function(df, by = NULL) {
       "poverty_gap",
       "poverty_severity",
       "watts",
-      "reporting_pop",
-      "spr")
+      "reporting_pop"#,
+      #"spr"
+      )
 
 
   } else {
@@ -166,8 +168,9 @@ pip_aggregate <- function(df, by = NULL) {
       "poverty_gap",
       "poverty_severity",
       "watts",
-      "reporting_pop",
-      "spr")
+      "reporting_pop"#,
+      #"spr"
+      )
 
     by <- c(by_name, by_code)
   }
@@ -193,8 +196,9 @@ pip_aggregate <- function(df, by = NULL) {
             "poverty_gap",
             "poverty_severity",
             "watts",
-            "mean",
-            "spr")
+            "mean"#,
+            #"spr"
+            )
   df <- df[, lapply(.SD,
                       stats::weighted.mean,
                       w = reporting_pop,
@@ -247,16 +251,17 @@ pip_aggregate_by <- function(df,
     "poverty_gap",
     "poverty_severity",
     "watts",
-    "reporting_pop",
-    "spr"
+    "reporting_pop"#,
+    #"spr"
   )]
 
   cols <- c("headcount",
             "poverty_gap",
             "poverty_severity",
             "watts",
-            "mean",
-            "spr")
+            "mean"#,
+            #"spr"
+            )
   group_lkup <- group_lkup[,
                            c("region_code",
                              "reporting_year",

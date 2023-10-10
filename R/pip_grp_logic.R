@@ -314,8 +314,9 @@ pip_grp_helper <- function(lcv_country,
                  "poverty_severity",
                  "watts",
                  "mean",
-                 "pop_in_poverty",
-                 "spr")]
+                 "pop_in_poverty"#,
+                 #"spr"
+                 )]
 
   return(out)
 }

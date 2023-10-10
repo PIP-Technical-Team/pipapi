@@ -264,9 +264,9 @@ create_lkups <- function(data_dir, versions) {
       'reporting_pce',
       'is_interpolated',
       'distribution_type',
-      'estimation_type',
-      'spl',
-      'spr'
+      'estimation_type'#,
+      # 'spl',
+      # 'spr'
     )
 
   # CREATE OBJECT: aux_tables ----
