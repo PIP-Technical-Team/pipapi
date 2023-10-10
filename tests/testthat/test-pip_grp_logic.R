@@ -70,3 +70,53 @@ test_that("pip_grp and pip_grp_logic give the same results for official and alte
                between grp and grp_logic when alt aggregate is included")
 
 })
+
+test_that("pip_grp_logic selection works correctly", {
+  # Returns ALL official + alternative regions when country = "ALL"
+  country = "ALL"
+  tmp = pip_grp_logic(country         = country,
+                      year            = 2010,
+                      group_by = "wb",
+                      lkup            = lkup)
+  expect_equal(tmp$region_code, lkup$aux_files$regions$region_code)
+
+  # Returns only "WLD" when country = "WLD"
+  country = "WLD"
+  tmp = pip_grp_logic(country         = country,
+                      year            = 2010,
+                      group_by = "wb",
+                      lkup            = lkup)
+  expect_equal(tmp$region_code, country)
+
+  # Returns only "AFE" when country = "AFE"
+  country = "AFE"
+  tmp = pip_grp_logic(country         = country,
+                      year            = 2010,
+                      group_by = "wb",
+                      lkup            = lkup)
+  expect_equal(tmp$region_code, country)
+
+  # Returns only "SSA" when country = "SSA"
+  country = "SSA"
+  tmp = pip_grp_logic(country         = country,
+                      year            = 2010,
+                      group_by = "wb",
+                      lkup            = lkup)
+  expect_equal(tmp$region_code, country)
+
+  # Returns correct results when mixing official alternative regions
+  country = c("AFE", "LAC")
+  tmp = pip_grp_logic(country         = country,
+                      year            = 2010,
+                      group_by = "wb",
+                      lkup            = lkup)
+  expect_equal(tmp$region_code, country)
+
+  # Returns correct results when mixing official, alternative, and "WLD" regions
+  country = c("AFE", "LAC", "WLD")
+  tmp = pip_grp_logic(country         = country,
+                      year            = 2010,
+                      group_by = "wb",
+                      lkup            = lkup)
+  expect_equal(tmp$region_code, country)
+})

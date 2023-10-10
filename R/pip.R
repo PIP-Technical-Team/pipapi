@@ -111,10 +111,8 @@ pip <- function(country         = "ALL",
       welfare_type       = welfare_type,
       reporting_level    = reporting_level,
       ppp                = ppp,
-      ref_lkup           = lkup[["ref_lkup"]],
-      valid_regions      = lkup$query_controls$region$values,
-      interpolation_list = lkup$interpolation_list
-    )
+      lkup               = lkup
+      )
   } else {
     # Compute survey year stats
     out <- rg_pip(
@@ -125,8 +123,7 @@ pip <- function(country         = "ALL",
       welfare_type    = welfare_type,
       reporting_level = reporting_level,
       ppp             = ppp,
-      svy_lkup        = lkup[["svy_lkup"]],
-      valid_regions   = lkup$query_controls$region$values
+      lkup            = lkup
     )
   }
 
@@ -218,7 +215,15 @@ pip <- function(country         = "ALL",
 
   }
 
-  #Order rows by country code and reporting year
+  # make sure we always report the same precision in all numeric variables
+  doub_vars <-
+    names(out)[unlist(lapply(out, is.double))] |>
+    data.table::copy()
+
+  out[, (doub_vars) := lapply(.SD, round, digits = 12),
+     .SDcols = doub_vars]
+
+  # Order rows by country code and reporting year
   data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
 
 

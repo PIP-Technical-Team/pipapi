@@ -5,7 +5,7 @@
 \alias{empty_response}
 \title{Empty response schema}
 \format{
-An object of class \code{data.table} (inherits from \code{data.frame}) with 0 rows and 40 columns.
+An object of class \code{data.table} (inherits from \code{data.frame}) with 0 rows and 42 columns.
 }
 \usage{
 empty_response
