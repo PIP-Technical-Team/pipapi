@@ -1,4 +1,5 @@
-
+return_cols <- test_path("testdata", "add_agg_stats_return_cols.rds") |>
+  readRDS()
 res_ex1 <- test_path("testdata", "agg-stats-ex-1.rds") |>
   readRDS()
 res_ex2 <- test_path("testdata", "agg-stats-ex-2.rds") |>
@@ -20,7 +21,7 @@ test_that("add_agg_stats() works", {
   # Check that Watts is set to NA if either U/R watts is not above zero
   expect_equal(res_ex1$watts[1], 0)
 
-  tmp <- add_agg_stats(res_ex1)
+  tmp <- add_agg_stats(res_ex1, return_cols = return_cols)
   expect_true(is.na(tmp$watts[3]))
 
   # Same namber of variables as output.
@@ -33,7 +34,7 @@ test_that("add_agg_stats() works", {
   # If rural poverty_severity > 0
   res_tmp <- data.table::copy(res_ex2)
   res_tmp$poverty_severity[1] <- -0.5
-  tmp <- add_agg_stats(res_tmp)
+  tmp <- add_agg_stats(res_tmp, return_cols = return_cols)
 
   # This test is wrong. It is testing as correct something that should
   # not be the case.
@@ -53,12 +54,12 @@ test_that("add_agg_stats() works", {
   # expect_true(is.na(tmp$headcount[3]))
 
   # Check that national median is set to NA
-  tmp <- add_agg_stats(res_ex3)
+  tmp <- add_agg_stats(res_ex3, return_cols = return_cols)
   expect_true(is.na(tmp$median[3]))
   expect_true(is.na(tmp$survey_median_ppp[3]))
 
   # Check that national mean is a weighted average
-  tmp <- add_agg_stats(res_ex3)
+  tmp <- add_agg_stats(res_ex3, return_cols = return_cols)
   expect_equal(tmp$mean[3], weighted.mean(res_ex3$survey_mean_ppp, res_ex3$reporting_pop))
 
 
@@ -66,27 +67,27 @@ test_that("add_agg_stats() works", {
   # if negative, result is NA
   res_tmp <- data.table::copy(res_ex2)
   res_tmp$headcount[1] <- -0.5
-  tmp <- add_agg_stats(res_tmp)
+  tmp <- add_agg_stats(res_tmp, return_cols = return_cols)
   expect_true(is.na(tmp$headcount[3]))
 
 
   res_tmp <- data.table::copy(res_ex2)
   res_tmp$poverty_gap[1] <- -0.5
-  tmp <- add_agg_stats(res_tmp)
+  tmp <- add_agg_stats(res_tmp, return_cols = return_cols)
   expect_true(is.na(tmp$poverty_gap[3]))
 
 
   # if negative, result is NA
   res_tmp <- data.table::copy(res_ex2)
   res_tmp$headcount[1] <- NA
-  tmp <- add_agg_stats(res_tmp)
+  tmp <- add_agg_stats(res_tmp, return_cols = return_cols)
   expect_true(is.na(tmp$headcount[3]))
 
 })
 
 test_that("ag_average_poverty_stats() works", {
 
-  tmp <- ag_average_poverty_stats(res_ex4)
+  tmp <- ag_average_poverty_stats(res_ex4, return_cols = return_cols)
 
   # Benchmark values from PovcalNet API as of 20210929
   # http://iresearch.worldbank.org/povcalnet/povcalnetapi.ashx?YearSelected=1988&Countries=IND_5,IND_1,IND_2&PovertyLine=1.9&display=C&format=csv

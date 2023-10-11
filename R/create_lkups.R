@@ -338,7 +338,53 @@ create_lkups <- function(data_dir, versions) {
         'poverty_severity',
         'watts',
         'pop_in_poverty'#, 'spr'
+      ),
+      inequality_indicators = c(
+        'median',
+        'gini',
+        'polarization',
+        'mld',
+        'decile1',
+        'decile2',
+        'decile3',
+        'decile4',
+        'decile5',
+        'decile6',
+        'decile7',
+        'decile8',
+        'decile9',
+        'decile10'
       )
+    ),
+    ag_average_poverty_stats = list(
+      noneg_vars = c(
+        "mean",
+        "median",
+        "headcount",
+        "poverty_gap",
+        "poverty_severity",
+        "watts"#,
+        #"spr"
+      ),
+      zero_vars = c(
+        "mean",
+        "median",
+        "watts"
+      ),
+      na_cols = c(
+        "survey_mean_lcu",
+        "ppp",
+        "median",
+        "survey_median_ppp"
+      ),
+      national_cols = c(
+        "reporting_level",
+        "gdp_data_level",
+        "pce_data_level",
+        "cpi_data_level",
+        "ppp_data_level"
+      )
+
     )
   )
 

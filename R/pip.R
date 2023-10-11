@@ -134,7 +134,8 @@ pip <- function(country         = "ALL",
 
   # Handles aggregated distributions
   if (reporting_level %in% c("national", "all")) {
-    out <- add_agg_stats(out)
+    out <- add_agg_stats(out,
+                         return_cols = lkup$return_cols$ag_average_poverty_stats)
     if (reporting_level == "national") {
       out <- out[reporting_level == "national"]
     }
