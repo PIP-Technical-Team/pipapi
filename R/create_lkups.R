@@ -221,10 +221,11 @@ create_lkups <- function(data_dir, versions) {
   censored_path   <- fs::path(data_dir, "_aux/censored.rds")
   censored        <- readRDS(censored_path)
 
-  # CREATE OBJECT: pip_cols ----
-  # Create pip return columns
-  pip_cols <-
-    c(
+  # CREATE OBJECT: return_cols ----
+  ## Columns for pip call ----
+
+  return_cols <- create_return_cols(
+    pip = c( # Columns for pip call
       'region_name',
       'region_code',
       'country_name',
@@ -267,7 +268,22 @@ create_lkups <- function(data_dir, versions) {
       'estimation_type'#,
       # 'spl',
       # 'spr'
+    ),
+    pip_grp = c( # Columns for pip_grp call
+      "region_name",
+      "region_code",
+      "reporting_year",
+      "reporting_pop",
+      "poverty_line",
+      "headcount",
+      "poverty_gap",
+      "poverty_severity",
+      "watts",
+      "mean",
+      "pop_in_poverty"#,
+      #"spr"
     )
+  )
 
   # CREATE OBJECT: aux_tables ----
   # Create list of available auxiliary data tables
@@ -316,7 +332,7 @@ create_lkups <- function(data_dir, versions) {
                     pl_lkup,
                     censored,
                     aux_files,
-                    pip_cols,
+                    return_cols,
                     query_controls,
                     aux_tables,
                     valid_years
@@ -330,7 +346,7 @@ create_lkups <- function(data_dir, versions) {
                    pop_region,
                    censored,
                    aux_files,
-                   pip_cols,
+                   return_cols$pip,
                    query_controls$region$values,
                    valid_years
                    )
@@ -343,7 +359,7 @@ create_lkups <- function(data_dir, versions) {
                        pop_region,
                        censored,
                        aux_files,
-                       pip_cols,
+                       return_cols$pip_grp,
                        query_controls$region$values,
                        valid_years
   )
@@ -356,7 +372,7 @@ create_lkups <- function(data_dir, versions) {
                      pop_region,
                      censored,
                      aux_files,
-                     pip_cols,
+                     return_cols,
                      query_controls$region$values,
                      valid_years,
                      pl_lkup,
@@ -390,7 +406,7 @@ create_lkups <- function(data_dir, versions) {
     pl_lkup            = pl_lkup,
     censored           = censored,
     aux_files          = aux_files,
-    pip_cols           = pip_cols,
+    return_cols        = return_cols,
     query_controls     = query_controls,
     data_root          = data_dir,
     aux_tables         = aux_tables,
@@ -565,4 +581,16 @@ coerce_chr_to_fct <- function(df) {
   df <- data.table::as.data.table(df)
 
   return(df)
+}
+
+#' helper function to create a list of return columns for various pipapi functions
+#'
+#' @param ... Named vectors of columns to be returned
+#'
+#' @return list
+#' @export
+#'
+create_return_cols <- function(...) {
+  out <- list(...)
+  return(out)
 }
