@@ -176,7 +176,7 @@ pip <- function(country         = "ALL",
 
   # Add pre-computed distributional statistics
   crr_names  <- names(out)    # current variables
-  names2keep <- lkup$return_cols$pip # all variables
+  names2keep <- lkup$return_cols$pip$cols # all variables
 
   out <- add_dist_stats(
     df = out,

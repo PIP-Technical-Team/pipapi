@@ -57,11 +57,11 @@ get_additional_indicators <- function(dt) {
 
 
   # By the end of pip.R variables of final data are selected using the
-  #`lkup$return_cols$pip` vectors. Since both that vector of variable names and the set
+  #`lkup$return_cols$pip$cols` vectors. Since both that vector of variable names and the set
   #of additional indicators may change in the future, we need to make sure that
   #variables that are kept in the final data are just the additional variables
   #from this function {additional_indicators()} and the ones in the
-  #`lkup$return_cols$pip` vector.
+  #`lkup$return_cols$pip$cols` vector.
 
   add_names <- names(dt)
 
