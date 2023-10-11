@@ -222,8 +222,6 @@ create_lkups <- function(data_dir, versions) {
   censored        <- readRDS(censored_path)
 
   # CREATE OBJECT: return_cols ----
-  ## Columns for pip call ----
-
   return_cols <- create_return_cols(
     pip = c( # Columns for pip call
       'region_name',
@@ -269,19 +267,29 @@ create_lkups <- function(data_dir, versions) {
       # 'spl',
       # 'spr'
     ),
-    pip_grp = c( # Columns for pip_grp call
-      "region_name",
-      "region_code",
-      "reporting_year",
-      "reporting_pop",
-      "poverty_line",
-      "headcount",
-      "poverty_gap",
-      "poverty_severity",
-      "watts",
-      "mean",
-      "pop_in_poverty"#,
-      #"spr"
+    pip_grp = list(
+      cols = c( # Columns for pip_grp call
+        "region_name",
+        "region_code",
+        "reporting_year",
+        "reporting_pop",
+        "poverty_line",
+        "headcount",
+        "poverty_gap",
+        "poverty_severity",
+        "watts",
+        "mean",
+        "pop_in_poverty"#,
+        #"spr"
+      ),
+      weighted_average_cols = c(
+        "headcount",
+        "poverty_gap",
+        "poverty_severity",
+        "watts",
+        "mean"#,
+        #"spr"
+      )
     )
   )
 

@@ -2,10 +2,10 @@
 % Please edit documentation in R/pip_grp.R
 \name{pip_aggregate}
 \alias{pip_aggregate}
-\title{Calculate estiamtes for aggregates different to the official regional
+\title{Calculate estimates for aggregates different to the official regional
 aggregation}
 \usage{
-pip_aggregate(df, by = NULL)
+pip_aggregate(df, by = NULL, return_cols)
 }
 \arguments{
 \item{df}{data.table from \code{pip_fg()}}
@@ -13,11 +13,14 @@ pip_aggregate(df, by = NULL)
 \item{by}{character: Additional variable to use in \code{by} when doing the
 aggregations. Default is \code{NULL}, but it should be use to include
 aggregations variables}
+
+\item{return_cols}{list: lkup$return_cols$pip_grp object. Controls returned
+columns}
 }
 \value{
 data.table
 }
 \description{
-Calculate estiamtes for aggregates different to the official regional
+Calculate estimates for aggregates different to the official regional
 aggregation
 }

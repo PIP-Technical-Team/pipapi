@@ -4,10 +4,12 @@
 \alias{get_user_alt_gt}
 \title{Helper function to define user_alt_gt}
 \usage{
-get_user_alt_gt(user_gt)
+get_user_alt_gt(user_gt, off_gt)
 }
 \arguments{
 \item{user_gt}{character: Grouping type needed by user}
+
+\item{off_gt}{character: Official grouping type}
 }
 \value{
 character

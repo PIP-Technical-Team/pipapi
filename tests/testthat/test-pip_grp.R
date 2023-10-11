@@ -12,10 +12,10 @@ censored <-
 # Check pip_grp against current implementation
 # TO BE REMOVED ONCE pip() group_by OPTION is FULLY DEPRECATED
 test_that("output from pip_grp is the same as output from pip", {
-  skip("TEMPORARY SKIP")
+  # skip("TEMPORARY SKIP")
   out_pip <- pip(
     country = "all",
-    year = "all",
+    year = 2010,
     group_by = "wb",
     povline = 1.9,
     lkup = lkups
@@ -23,7 +23,7 @@ test_that("output from pip_grp is the same as output from pip", {
 
   out_pip_grp <- pip_grp(
     country = "all",
-    year = "all",
+    year = 2010,
     group_by = "wb",
     povline = 1.9,
     lkup = lkups
