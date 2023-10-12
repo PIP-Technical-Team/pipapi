@@ -101,22 +101,22 @@ get_additional_indicators_grp <- function(dt) {
 
   dt[,
     `:=`(
-      pop_in_poverty = wbpip::get_lh_number_poor(
+      pop_in_poverty = wbpip::get_number_poor(
         headcount = headcount,
         pop       = reporting_pop),
 
-      average_shortfall = wbpip::get_lh_average_shortfall(
+      average_shortfall = wbpip::get_average_shortfall(
         headcount = headcount,
         povgap    = poverty_gap,
         povline   = poverty_line),
 
-      total_shortfall = wbpip::get_lh_total_shortfall(
+      total_shortfall = wbpip::get_total_shortfall(
         headcount = headcount,
         pop       = reporting_pop,
         povgap    = poverty_gap,
         povline   = poverty_line),
 
-      income_gap_ratio = wbpip::get_lh_income_gap_ratio(
+      income_gap_ratio = wbpip::get_income_gap_ratio(
         headcount = headcount,
         povgap    = poverty_gap)
     )
