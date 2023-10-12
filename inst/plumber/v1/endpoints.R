@@ -157,9 +157,12 @@ function(req, res) {
 
   res$setHeader("Referrer-Policy",
                 "no-referrer")
+
+  res$setHeader("Access-Control-Allow-Origin",
+                "*")
   # Set max-age to 48hours (specified in seconds)
-  res$setHeader("Cache-Control",
-                "max-age=172800")
+  # res$setHeader("Cache-Control",
+  #               "max-age=172800")
 
   res$setHeader("ETag",
                 pipapi::create_etag_header(req))
@@ -231,14 +234,14 @@ function(req, res) {
   params$version <- NULL
 
   # Parallel processing for slow requests
-  if (is_forked(country = params$country, year = params$year)) {
-    out <- promises::future_promise({
-      tmp <- do.call(pipapi::pip, params)
-      tmp
-    }, seed = TRUE)
-  } else {
+  # if (is_forked(country = params$country, year = params$year)) {
+  #   out <- promises::future_promise({
+  #     tmp <- do.call(pipapi::pip, params)
+  #     tmp
+  #   }, seed = TRUE)
+  # } else {
     out <- do.call(pipapi::pip, params)
-  }
+  # }
   out
 }
 
@@ -265,14 +268,14 @@ function(req, res) {
   params$version <- NULL
 
   # Parallel processing for slow requests
-  if (is_forked(country = params$country, year = params$year)) {
-    out <- promises::future_promise({
-      tmp <- do.call(pipapi::pip_grp_logic, params)
-      tmp
-    }, seed = TRUE)
-  } else {
+  # if (is_forked(country = params$country, year = params$year)) {
+  #   out <- promises::future_promise({
+  #     tmp <- do.call(pipapi::pip_grp_logic, params)
+  #     tmp
+  #   }, seed = TRUE)
+  # } else {
     out <- do.call(pipapi::pip_grp_logic, params)
-  }
+  # }
   out
 }
 
@@ -551,13 +554,13 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  if (is_forked(country = params$country, year = params$year)) {
-    promises::future_promise({
+  # if (is_forked(country = params$country, year = params$year)) {
+  #   promises::future_promise({
       do.call(pipapi::ui_pc_charts, params)
-    }, seed = TRUE)
-  } else {
-    do.call(pipapi::ui_pc_charts, params)
-  }
+  #   }, seed = TRUE)
+  # } else {
+  #   do.call(pipapi::ui_pc_charts, params)
+  # }
 }
 
 #* Return data for Poverty Calculator download
@@ -578,13 +581,13 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$pop_units <- 1
   params$version <- NULL
-  if (is_forked(country = params$country, year = params$year)) {
-    promises::future_promise({
+  # if (is_forked(country = params$country, year = params$year)) {
+  #   promises::future_promise({
       do.call(pipapi::ui_pc_charts, params)
-    }, seed = TRUE)
-  } else {
-    do.call(pipapi::ui_pc_charts, params)
-  }
+  #   }, seed = TRUE)
+  # } else {
+  #   do.call(pipapi::ui_pc_charts, params)
+  # }
 }
 
 #* Return regional aggregations for all years
@@ -667,14 +670,14 @@ function(req, res) {
   params$version <- NULL
   params$format  <- NULL
 
-  if (is_forked(country = params$country, include_year = FALSE)) {
-    out <- promises::future_promise({
-      tmp <- do.call(pipapi::ui_cp_download, params)
-      tmp
-    }, seed = TRUE)
-  } else {
+  # if (is_forked(country = params$country, include_year = FALSE)) {
+  #   out <- promises::future_promise({
+  #     tmp <- do.call(pipapi::ui_cp_download, params)
+  #     tmp
+  #   }, seed = TRUE)
+  # } else {
     out <- do.call(pipapi::ui_cp_download, params)
-  }
+  # }
   out
 }
 
