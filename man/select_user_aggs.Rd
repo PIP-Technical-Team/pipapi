@@ -4,14 +4,14 @@
 \alias{select_user_aggs}
 \title{Helper function to select correct Official Regions}
 \usage{
-select_user_aggs(country, off_reg, aggs)
+select_user_aggs(country, all_agg, off_reg_ext, aggs)
 }
 \arguments{
 \item{country}{character: User selected countries}
 
-\item{off_reg}{character: Official region codes}
-
 \item{aggs}{data.frame: Regions lookup table}
+
+\item{off_reg}{character: Official region codes}
 }
 \value{
 character
