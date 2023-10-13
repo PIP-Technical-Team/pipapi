@@ -1,4 +1,7 @@
 # pipapi 1.3.3
+- Fix bug with ag_average_poverty_stats
+- Better control of returned columns
+- Fix bug that was causing wrong aggregates to be returned in some instances
 
 # pipapi 1.3.2
 
