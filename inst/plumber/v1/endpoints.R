@@ -157,9 +157,12 @@ function(req, res) {
 
   res$setHeader("Referrer-Policy",
                 "no-referrer")
+
+  res$setHeader("Access-Control-Allow-Origin",
+                "*")
   # Set max-age to 48hours (specified in seconds)
-  res$setHeader("Cache-Control",
-                "max-age=172800")
+  # res$setHeader("Cache-Control",
+  #               "max-age=172800")
 
   res$setHeader("ETag",
                 pipapi::create_etag_header(req))
@@ -553,11 +556,12 @@ function(req) {
   params$version <- NULL
   if (is_forked(country = params$country, year = params$year)) {
     promises::future_promise({
-      do.call(pipapi::ui_pc_charts, params)
+      out <- do.call(pipapi::ui_pc_charts, params)
     }, seed = TRUE)
   } else {
-    do.call(pipapi::ui_pc_charts, params)
+    out <- do.call(pipapi::ui_pc_charts, params)
   }
+  return(out)
 }
 
 #* Return data for Poverty Calculator download
