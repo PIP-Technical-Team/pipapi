@@ -38,12 +38,12 @@ ui_pc_charts <- function(country = c("AGO"),
   # handle different responses when fill_gaps = TRUE / FALSE
   if (fill_gaps == FALSE) {
     # Return all columns when survey years are requested
-    out <- out[, return_cols]
+    out <- out[, ..return_cols]
     return(out)
 
   } else {
     # Set non-interpolated variables to NA if line-up years are requested
-    out <- out[, return_cols]
+    out <- out[, ..return_cols]
     out[, inequality_indicators] <- NA
     return(out)
   }
