@@ -49,7 +49,15 @@ Imports:
     rappdirs,
     methods,
     qs,
-    collapse
+    collapse,
+    yaml,
+    readr,
+    glue,
+    logger,
+    future,
+    promises,
+    joyn,
+    arrow
 Remotes:
     PIP-Technical-Team/wbpip@PROD
 Depends: 
