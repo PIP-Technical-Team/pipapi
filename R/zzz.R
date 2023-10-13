@@ -16,8 +16,8 @@
     ui_cp_charts <<- memoise::memoise(ui_cp_charts, cache = cd, omit_args = "lkup")
     ui_cp_download <<- memoise::memoise(ui_cp_download, cache = cd, omit_args = "lkup")
     ui_cp_key_indicators <<- memoise::memoise(ui_cp_key_indicators, cache = cd, omit_args = "lkup")
-
-    assign("cd", cd, envir = .GlobalEnv)
+    env <- 1L
+    assign("cd", cd, pos = env)
     packageStartupMessage("Info: Disk based caching is enabled.")
   }
 }
