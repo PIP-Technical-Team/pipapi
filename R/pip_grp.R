@@ -67,7 +67,8 @@ pip_grp <- function(country         = "ALL",
 
   # Handles aggregated distributions
   if (reporting_level %in% c("national", "all")) {
-    out <- add_agg_stats(out)
+    out <- add_agg_stats(out,
+                         return_cols = lkup$return_cols$ag_average_poverty_stats)
   }
 
   # Handle potential (insignificant) difference in poverty_line values that
@@ -80,7 +81,8 @@ pip_grp <- function(country         = "ALL",
     out <- pip_aggregate_by(
       df = out,
       group_lkup = lkup[["pop_region"]],
-      country = country
+      country = country,
+      return_cols = lkup$return_cols$pip_grp
     )
 
     # Censor regional values
@@ -90,37 +92,32 @@ pip_grp <- function(country         = "ALL",
 
   } else {
     # Handle simple aggregation
-    out <- pip_aggregate(out)
+    out <- pip_aggregate(out,
+                         return_cols = lkup$return_cols$pip_grp)
   }
 
-  out <- out[, c("region_name",
-                 "region_code",
-                 "reporting_year",
-                 "reporting_pop",
-                 "poverty_line",
-                 "headcount",
-                 "poverty_gap",
-                 "poverty_severity",
-                 "watts",
-                 "mean",
-                 "pop_in_poverty"#,
-                 #"spr"
-                 )]
+  keep <- lkup$return_cols$pip_grp$cols
+  out <- out[, ..keep]
 
   return(out)
 }
 
 
-#' Calculate estiamtes for aggregates different to the official regional
+#' Calculate estimates for aggregates different to the official regional
 #' aggregation
 #'
 #' @param df data.table from `pip_fg()`
 #' @param by character: Additional variable to use in `by` when doing the
 #'   aggregations. Default is `NULL`, but it should be use to include
 #'   aggregations variables
+#' @param return_cols list: lkup$return_cols$pip_grp object. Controls returned
+#' columns
 #'
 #' @return data.table
-pip_aggregate <- function(df, by = NULL) {
+pip_aggregate <- function(df, by = NULL, return_cols) {
+
+  all_cols <- return_cols$cols
+  weighted_cols <- return_cols$weighted_average_cols
 
   ## Assess by parameter ---------
 
@@ -129,20 +126,7 @@ pip_aggregate <- function(df, by = NULL) {
     by_code <- "CUSTOM"
     by_name <- "CUSTOM"
 
-    to_keep <- c(
-      "region_name",
-      "region_code",
-      "reporting_year",
-      "poverty_line",
-      "mean",
-      "headcount",
-      "poverty_gap",
-      "poverty_severity",
-      "watts",
-      "reporting_pop"#,
-      #"spr"
-      )
-
+    to_keep <- all_cols[all_cols != "pop_in_poverty"]
 
   } else {
 
@@ -158,19 +142,10 @@ pip_aggregate <- function(df, by = NULL) {
 
     }
 
-    to_keep <- c(
-      by_name,
-      by_code,
-      "reporting_year",
-      "poverty_line",
-      "mean",
-      "headcount",
-      "poverty_gap",
-      "poverty_severity",
-      "watts",
-      "reporting_pop"#,
-      #"spr"
-      )
+    to_keep <- all_cols[!all_cols %in% c("pop_in_poverty",
+                                               "region_code",
+                                               "region_name")]
+    to_keep <- c(by_name, by_code, to_keep)
 
     by <- c(by_name, by_code)
   }
@@ -192,19 +167,12 @@ pip_aggregate <- function(df, by = NULL) {
   ]
 
   # Compute stats weighted average by groups
-  cols <- c("headcount",
-            "poverty_gap",
-            "poverty_severity",
-            "watts",
-            "mean"#,
-            #"spr"
-            )
   df <- df[, lapply(.SD,
                       stats::weighted.mean,
                       w = reporting_pop,
                       na.rm = TRUE),
              by = byvar,
-             .SDcols = cols
+             .SDcols = weighted_cols
   ]
 
   # Combine results
@@ -233,39 +201,27 @@ pip_aggregate <- function(df, by = NULL) {
 #' @param df data.frame: Response from `fg_pip()` or `rg_pip()`.
 #' @param group_lkup data.frame: Group lkup table (pop_region)
 #' @param country character: Selected countries / regions
+#' @param return_cols list: lkup$return_cols$pip_grp object. Controls returned
+#' columns
 #' @noRd
 pip_aggregate_by <- function(df,
                              group_lkup,
-                             country = "ALL") {
+                             country = "ALL",
+                             return_cols) {
+
+  all_cols <- return_cols$cols
+  weighted_cols <- return_cols$weighted_average_cols
 
   # Keep only rows necessary for regional aggregates
   df <- filter_for_aggregate_by(df)
 
-  df <- df[, c(
-    "region_name",
-    "region_code",
-    "reporting_year",
-    "poverty_line",
-    "mean",
-    "headcount",
-    "poverty_gap",
-    "poverty_severity",
-    "watts",
-    "reporting_pop"#,
-    #"spr"
-  )]
+  to_keep <- all_cols[all_cols != "pop_in_poverty"]
 
-  cols <- c("headcount",
-            "poverty_gap",
-            "poverty_severity",
-            "watts",
-            "mean"#,
-            #"spr"
-            )
-  group_lkup <- group_lkup[,
-                           c("region_code",
-                             "reporting_year",
-                             "reporting_pop")]
+  df <- df[, ..to_keep]
+
+  group_lkup <- group_lkup[, c("region_code",
+                               "reporting_year",
+                               "reporting_pop")]
 
   # Compute stats weighted average by groups
   rgn <- df[, lapply(.SD, stats::weighted.mean,
@@ -275,7 +231,7 @@ pip_aggregate_by <- function(df,
                    region_code,
                    reporting_year,
                    poverty_line),
-            .SDcols = cols
+            .SDcols = weighted_cols
             ]
 
   rgn <- group_lkup[rgn,
@@ -286,7 +242,7 @@ pip_aggregate_by <- function(df,
   if (any(c("ALL", "WLD") %in% country)) {
     # Compute world aggregates
     wld <- compute_world_aggregates(rgn = rgn,
-                                    cols = cols)
+                                    cols = weighted_cols)
     if (length(country) == 1) {
       if (country == "WLD") {
         # Return only world aggregate

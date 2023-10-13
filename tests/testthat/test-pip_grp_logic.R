@@ -19,13 +19,13 @@ lkup <-  lkups$versions_paths[[lkups$latest_release]]
 # default parameters
 
 lp <- list(
-year             = c(1990, 2000),
-povline          =  2.25,
-group_by         =  c("wb"),
-welfare_type     =  c("all"),
-reporting_level  =  c("all"),
-censor           =  TRUE,
-lkup             =  lkup
+  year             = c(1990, 2000),
+  povline          =  2.25,
+  group_by         =  c("wb"),
+  welfare_type     =  c("all"),
+  reporting_level  =  c("all"),
+  censor           =  TRUE,
+  lkup             =  lkup
 )
 
 

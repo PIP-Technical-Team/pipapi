@@ -10,11 +10,15 @@ ui_pc_charts <- function(country = c("AGO"),
                          year = "all",
                          povline = 1.9,
                          fill_gaps = FALSE,
-                         group_by = c("none", "wb"),
+                         group_by = "none",
                          welfare_type = c("all", "consumption", "income"),
                          reporting_level = c("all", "national", "rural", "urban"),
                          pop_units = 1e6,
                          lkup) {
+  # Set returned columns
+  return_cols           <- lkup$return_cols$ui_pc_charts$cols
+  inequality_indicators <- lkup$return_cols$ui_pc_charts$inequality_indicators
+
   group_by <- match.arg(group_by)
 
   out <- pip(
@@ -31,48 +35,16 @@ ui_pc_charts <- function(country = c("AGO"),
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
   out$reporting_pop <- out$reporting_pop / pop_units
 
-  # DO WE NEED THIS CODE CHUNK?
-  if (group_by != "none") {
+  # handle different responses when fill_gaps = TRUE / FALSE
+  if (fill_gaps == FALSE) {
+    # Return all columns when survey years are requested
+    out <- out[, ..return_cols]
     return(out)
-  } else if (fill_gaps == FALSE) {
-    out <- out[, c(
-      'country_code', 'reporting_year', 'welfare_type',
-      'reporting_level', 'median', 'gini', 'polarization',
-      'mld', 'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
-      'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
-      'region_code', 'survey_coverage', 'survey_comparability',
-      'comparable_spell', 'survey_year',
-      'reporting_pop', 'ppp', 'cpi', 'distribution_type',
-      'is_interpolated', 'poverty_line', 'mean', 'headcount',
-      'poverty_gap', 'poverty_severity', 'watts', 'pop_in_poverty'#, 'spr'
-    )]
-    return(out)
+
   } else {
-    # out <- out[, c(
-    #   "country_code", "reporting_year", "poverty_line", "mean",
-    #   "headcount", "poverty_gap", "poverty_severity", "watts",
-    #   "region_code", "reporting_pop", "is_interpolated",
-    #   "pop_in_poverty"
-    # )]
-
-    out <- out[, c(
-      'country_code', 'reporting_year', 'welfare_type',
-      'reporting_level', 'median', 'gini', 'polarization',
-      'mld', 'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
-      'decile6', 'decile7', 'decile8', 'decile9', 'decile10',
-      'region_code', 'survey_coverage', 'survey_comparability',
-      'comparable_spell', 'survey_year',
-      'reporting_pop', 'ppp', 'cpi', 'distribution_type',
-      'is_interpolated', 'poverty_line', 'mean', 'headcount',
-      'poverty_gap', 'poverty_severity', 'watts', 'pop_in_poverty'#, 'spr'
-    )]
-
-    inequality_indicators <- c('median', 'gini', 'polarization',
-                               'mld', 'decile1', 'decile2', 'decile3', 'decile4', 'decile5',
-                               'decile6', 'decile7', 'decile8', 'decile9', 'decile10')
-
+    # Set non-interpolated variables to NA if line-up years are requested
+    out <- out[, ..return_cols]
     out[, inequality_indicators] <- NA
-
     return(out)
   }
 }

@@ -9,7 +9,7 @@ ui_pc_charts(
   year = "all",
   povline = 1.9,
   fill_gaps = FALSE,
-  group_by = c("none", "wb"),
+  group_by = "none",
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
   pop_units = 1e+06,

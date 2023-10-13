@@ -157,7 +157,7 @@ parse_parameter <- function(param,
     param <- tolower(param)
   }
 
-  param <- type.convert(param, as.is = TRUE)
+  param <- utils::type.convert(param, as.is = TRUE)
 
   return(param)
 }
