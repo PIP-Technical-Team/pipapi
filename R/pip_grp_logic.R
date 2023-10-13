@@ -100,7 +100,8 @@ pip_grp_logic <- function(country         = "ALL",
                        povline         = povline,
                        reporting_level = reporting_level,
                        censor          = censor,
-                       fg_pip          = fg_pip_master)
+                       fg_pip          = fg_pip_master,
+                       lkup            = lkup)
     } else {
       ### STEP 3.2.2 Alternate aggregates only ----
       ### Prepare necessary variables
@@ -129,7 +130,8 @@ pip_grp_logic <- function(country         = "ALL",
                           povline             = povline,
                           reporting_level     = reporting_level,
                           censor              = censor,
-                          fg_pip              = fg_pip_master)
+                          fg_pip              = fg_pip_master,
+                          lkup                = lkup)
 
     if (lcv$grp_use == "append") {
       grp <- data.table::rbindlist(list(off_ret, grp))
@@ -210,7 +212,9 @@ pip_grp_logic <- function(country         = "ALL",
     x <- l_fg[[i]]
     y <- gt_code[i]
 
-    ld[[i]] <- pip_aggregate(x, y)
+    ld[[i]] <- pip_aggregate(df = x,
+                             by = y,
+                             return_cols = lkup$return_cols$pip_grp)
   }
   de <- data.table::rbindlist(ld, use.names = TRUE)
   rm(ld)
@@ -249,7 +253,6 @@ pip_grp_logic <- function(country         = "ALL",
   #   ____________________________________________________________________
   #   Return                                                         ####
   return(ret)
-
 }
 
 
@@ -260,7 +263,8 @@ pip_grp_helper <- function(lcv_country,
                            reporting_level,
                            censor,
                            fg_pip,
-                           group_by = "wb"){
+                           group_by = "wb",
+                           lkup){
 
   # Filter countries
   keep_countries <- fg_pip[["country_code"]] %chin% lcv_country |
@@ -278,7 +282,8 @@ pip_grp_helper <- function(lcv_country,
 
   # Handles aggregated distributions
   if (reporting_level %in% c("national", "all")) {
-    out <- add_agg_stats(out)
+    out <- add_agg_stats(out,
+                         return_cols = lkup$return_cols$ag_average_poverty_stats)
   }
 
   # Handle potential (insignificant) difference in poverty_line values that
@@ -291,7 +296,8 @@ pip_grp_helper <- function(lcv_country,
     out <- pip_aggregate_by(
       df = out,
       group_lkup = lkup[["pop_region"]],
-      country = country
+      country = country,
+      return_cols = lkup$return_cols$pip_grp
     )
 
     # Censor regional values
@@ -301,22 +307,12 @@ pip_grp_helper <- function(lcv_country,
 
   } else {
     # Handle simple aggregation
-    out <- pip_aggregate(out)
+    out <- pip_aggregate(df = out,
+                         return_cols = lkup$return_cols$pip_grp)
   }
 
-  out <- out[, c("region_name",
-                 "region_code",
-                 "reporting_year",
-                 "reporting_pop",
-                 "poverty_line",
-                 "headcount",
-                 "poverty_gap",
-                 "poverty_severity",
-                 "watts",
-                 "mean",
-                 "pop_in_poverty"#,
-                 #"spr"
-                 )]
+  keep <- lkup$return_cols$pip_grp$cols
+  out <- out[, ..keep]
 
   return(out)
 }

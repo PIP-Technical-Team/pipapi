@@ -1,9 +1,13 @@
 #' Add aggregated stats to `pip()`
 #' @param df data.frame: Response from `rg_pip()` or `fg_pip()`.
 #' @param except character: countries to be filtered out from computations
+#' @param return_cols list: lkup$return_cols$ag_average_poverty_stats object.
+#' Controls returned
+#' columns
 #' @return data.frame
 #' @noRd
-add_agg_stats <- function(df) {
+add_agg_stats <- function(df,
+                          return_cols) {
   # Keep only Urban / Rural observations that will be aggregated at the
   # national level
   aggregated <- df[df$is_used_for_aggregation, ]
@@ -16,7 +20,9 @@ add_agg_stats <- function(df) {
       ),
       drop = TRUE
     )
-    aggregated <- lapply(aggregated_list, ag_average_poverty_stats)
+    aggregated <- lapply(aggregated_list,
+                         ag_average_poverty_stats,
+                         return_cols)
     aggregated <- data.table::rbindlist(aggregated)
 
     df <- rbind(df, aggregated)
@@ -28,87 +34,17 @@ add_agg_stats <- function(df) {
 #' Compute poverty statistics for aggregated data distribution.
 #'
 #' @param df data.frame: Survey data
+#' @param return_cols list: lkup$return_cols$ag_average_poverty_stats object.
+#' Controls returned
 #' @return data.frame
 #' @noRd
-ag_average_poverty_stats_old <- function(df) {
-  assertthat::assert_that(assertthat::are_equal(length(df$reporting_level), 2))
-  dfu <- df[df$reporting_level == "urban", ]
-  dfr <- df[df$reporting_level == "rural", ]
+ag_average_poverty_stats <- function(df, return_cols) {
+  # Set column handlers
+  noneg_vars    <- return_cols$noneg_vars
+  zero_vars     <- return_cols$zero_vars
+  na_cols       <- return_cols$na_cols
+  national_cols <- return_cols$national_cols
 
-  # Compute stats for each sub-group
-  out <- dfr
-
-  # CHECK: CONDITION NOT NEEDED?
-  # Set distributional stats to NA if not based on microdata
-  # if (unique(df$distribution_type) == "micro") {
-  #   # Column to be set to NA
-  #   # Cannot be computed through weighted average because these measures are
-  #   # not additive
-  #   # na_cols <- c("survey_mean_lcu", "ppp", "median", "survey_median_ppp")
-  #   # out[, na_cols] <- NA_real_
-  # }
-
-  # Set distributional stats to NA if not based on microdata
-  na_cols <- c("survey_mean_lcu", "ppp", "median", "survey_median_ppp")
-  out[, na_cols] <- NA_real_
-
-  # Compute population weighted average
-  wgt_urban <- dfu$reporting_pop / sum(df$reporting_pop)
-  wgt_rural <- 1 - wgt_urban
-
-  # Weighted national mean
-  out$mean <- wgt_urban * dfu$mean +
-    wgt_rural * dfr$mean
-
-  if (dfr$poverty_severity < 0) { # Check if rural poverty severity < 0
-
-    if (dfu$poverty_severity < 0) { # Same for urban
-
-      out[, c("headcount", "poverty_gap", "poverty_severity")] <- NA_real_
-    } else {
-      out$headcount <- dfu$headcount
-      out$poverty_gap <- dfu$poverty_gap
-      out$poverty_severity <- dfu$poverty_severity
-    }
-  } else {
-    if (dfu$poverty_severity < 0) {
-      out$headcount <- dfr$headcount
-      out$poverty_gap <- dfr$poverty_gap
-      out$poverty_severity <- dfr$poverty_severity
-    } else {
-      out$headcount <- wgt_rural * dfr$headcount +
-        wgt_urban * dfu$headcount
-
-      out$poverty_gap <- wgt_rural * dfr$poverty_gap +
-        wgt_urban * dfu$poverty_gap
-
-      out$poverty_severity <- wgt_rural * dfr$poverty_severity +
-        wgt_urban * dfu$poverty_severity
-    }
-  }
-
-  if (dfu$watts > 0 & dfr$watts > 0) {
-    out$watts <- wgt_rural * dfr$watts +
-      wgt_urban * dfu$watts
-  } else {
-    out$watts <- NA_real_
-  }
-
-  # Update other variables
-  out$reporting_pop <- sum(df$reporting_pop)
-  national_cols <- c("reporting_level", "gdp_data_level",
-                     "pce_data_level", "cpi_data_level", "ppp_data_level")
-  out[, national_cols] <- "national"
-
-  return(out)
-}
-
-#' Compute poverty statistics for aggregated data distribution.
-#'
-#' @param df data.frame: Survey data
-#' @return data.frame
-#' @noRd
-ag_average_poverty_stats <- function(df) {
   # This should be removed eventually
   assertthat::assert_that(assertthat::are_equal(length(df$reporting_level), 2))
 
@@ -137,16 +73,6 @@ ag_average_poverty_stats <- function(df) {
 
   # STEP 2: Handle negative and zero values -----------
   ## Handle negatives ------
-  noneg_vars <-
-    c("mean",
-      "median",
-      "headcount",
-      "poverty_gap",
-      "poverty_severity",
-      "watts"#,
-      #"spr"
-      )
-
   df[, (noneg_vars) :=
        lapply(.SD, \(x) {
          if (any(x < 0, na.rm = TRUE) || anyNA(x)) {
@@ -158,11 +84,6 @@ ag_average_poverty_stats <- function(df) {
      .SDcols = noneg_vars]
 
   ## Handle zeros -------------
-  zero_vars <-
-    c("mean",
-      "median",
-      "watts")
-
   df[, (zero_vars) :=
        lapply(.SD, \(x) {
          if (any(x == 0, na.rm = TRUE)) {
@@ -204,18 +125,9 @@ ag_average_poverty_stats <- function(df) {
      .SDcols = years_vars]
 
   ## vars to intentionally set to NAs  ------
-  na_cols <- c("survey_mean_lcu", "ppp", "median", "survey_median_ppp")
   out[, na_cols] <- NA_real_
 
   ## Label as national -------
-  national_cols <- c(
-    "reporting_level",
-    "gdp_data_level",
-    "pce_data_level",
-    "cpi_data_level",
-    "ppp_data_level"
-  )
-
   out[, (national_cols) := "national"]
 
   ## set order of obs anc col -------

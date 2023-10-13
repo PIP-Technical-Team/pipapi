@@ -134,7 +134,8 @@ pip <- function(country         = "ALL",
 
   # Handles aggregated distributions
   if (reporting_level %in% c("national", "all")) {
-    out <- add_agg_stats(out)
+    out <- add_agg_stats(out,
+                         return_cols = lkup$return_cols$ag_average_poverty_stats)
     if (reporting_level == "national") {
       out <- out[reporting_level == "national"]
     }
@@ -149,8 +150,9 @@ pip <- function(country         = "ALL",
     out$poverty_line <- povline
 
     out <- pip_aggregate_by(
-      df = out,
-      group_lkup = lkup[["pop_region"]]
+      df          = out,
+      group_lkup  = lkup[["pop_region"]],
+      return_cols = lkup$return_cols$pip_grp
     )
     # Censor regional values
     if (censor) {
@@ -175,7 +177,7 @@ pip <- function(country         = "ALL",
 
   # Add pre-computed distributional statistics
   crr_names  <- names(out)    # current variables
-  names2keep <- lkup$pip_cols # all variables
+  names2keep <- lkup$return_cols$pip$cols # all variables
 
   out <- add_dist_stats(
     df = out,

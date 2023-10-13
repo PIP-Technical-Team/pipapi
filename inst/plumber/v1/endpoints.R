@@ -157,9 +157,12 @@ function(req, res) {
 
   res$setHeader("Referrer-Policy",
                 "no-referrer")
+
+  res$setHeader("Access-Control-Allow-Origin",
+                "*")
   # Set max-age to 48hours (specified in seconds)
-  res$setHeader("Cache-Control",
-                "max-age=172800")
+  # res$setHeader("Cache-Control",
+  #               "max-age=172800")
 
   res$setHeader("ETag",
                 pipapi::create_etag_header(req))
@@ -552,12 +555,13 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
   if (is_forked(country = params$country, year = params$year)) {
-    promises::future_promise({
+    out <- promises::future_promise({
       do.call(pipapi::ui_pc_charts, params)
     }, seed = TRUE)
   } else {
-    do.call(pipapi::ui_pc_charts, params)
+    out <- do.call(pipapi::ui_pc_charts, params)
   }
+  return(out)
 }
 
 #* Return data for Poverty Calculator download
@@ -618,20 +622,6 @@ function(req) {
 function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-  # # Subset lkup object to pass only required element and save some memory
-  # req_lkup_elements <- c("svy_lkup",
-  #                        "dist_stats",
-  #                        "query_controls",
-  #                        "pop_region",
-  #                        "censored",
-  #                        "pip_cols",
-  #                        "valid_years",
-  #                        "aux_files",
-  #                        "pl_lkup",
-  #                        "cp_lkups",
-  #                        "cache_data_id"
-  # )
-  # params$lkup <- params$lkup[names(params$lkup) %in% req_lkup_elements]
   params$version <- NULL
   do.call(pipapi::ui_cp_key_indicators, params)
 }

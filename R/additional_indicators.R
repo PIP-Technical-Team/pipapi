@@ -57,11 +57,11 @@ get_additional_indicators <- function(dt) {
 
 
   # By the end of pip.R variables of final data are selected using the
-  #`lkup$pip_cols` vectors. Since both that vector of variable names and the set
+  #`lkup$return_cols$pip$cols` vectors. Since both that vector of variable names and the set
   #of additional indicators may change in the future, we need to make sure that
   #variables that are kept in the final data are just the additional variables
   #from this function {additional_indicators()} and the ones in the
-  #`lkup$pip_cols` vector.
+  #`lkup$return_cols$pip$cols` vector.
 
   add_names <- names(dt)
 
@@ -101,22 +101,22 @@ get_additional_indicators_grp <- function(dt) {
 
   dt[,
     `:=`(
-      pop_in_poverty = wbpip::get_lh_number_poor(
+      pop_in_poverty = wbpip::get_number_poor(
         headcount = headcount,
         pop       = reporting_pop),
 
-      average_shortfall = wbpip::get_lh_average_shortfall(
+      average_shortfall = wbpip::get_average_shortfall(
         headcount = headcount,
         povgap    = poverty_gap,
         povline   = poverty_line),
 
-      total_shortfall = wbpip::get_lh_total_shortfall(
+      total_shortfall = wbpip::get_total_shortfall(
         headcount = headcount,
         pop       = reporting_pop,
         povgap    = poverty_gap,
         povline   = poverty_line),
 
-      income_gap_ratio = wbpip::get_lh_income_gap_ratio(
+      income_gap_ratio = wbpip::get_income_gap_ratio(
         headcount = headcount,
         povgap    = poverty_gap)
     )
