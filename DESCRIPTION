@@ -41,22 +41,14 @@ Imports:
     fst,
     plumber,
     urltools,
-    yaml,
-    magrittr,
     wbpip,
-    readr,
-    glue,
-    logger,
+    rlang,
     fs,
     memoise,
     cachem,
     rappdirs,
-    future,
-    promises,
     methods,
-    joyn,
     qs,
-    arrow,
     collapse
 Remotes:
     PIP-Technical-Team/wbpip@PROD
