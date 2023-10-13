@@ -221,53 +221,172 @@ create_lkups <- function(data_dir, versions) {
   censored_path   <- fs::path(data_dir, "_aux/censored.rds")
   censored        <- readRDS(censored_path)
 
-  # CREATE OBJECT: pip_cols ----
-  # Create pip return columns
-  pip_cols <-
-    c(
-      'region_name',
-      'region_code',
-      'country_name',
-      'country_code',
-      'reporting_year',
-      'reporting_level',
-      'survey_acronym',
-      'survey_coverage',
-      'survey_year',
-      'welfare_type',
-      'survey_comparability',
-      'comparable_spell',
-      'poverty_line',
-      'headcount',
-      'poverty_gap',
-      'poverty_severity',
-      'watts',
-      'mean',
-      'median',
-      'mld',
-      'gini',
-      'polarization',
-      'decile1',
-      'decile2',
-      'decile3',
-      'decile4',
-      'decile5',
-      'decile6',
-      'decile7',
-      'decile8',
-      'decile9',
-      'decile10',
-      'cpi',
-      'ppp',
-      'reporting_pop',
-      'reporting_gdp',
-      'reporting_pce',
-      'is_interpolated',
-      'distribution_type',
-      'estimation_type'#,
-      # 'spl',
-      # 'spr'
+  # CREATE OBJECT: return_cols ----
+  return_cols <- create_return_cols(
+    pip = list(
+      cols = c( # Columns for pip call
+        'region_name',
+        'region_code',
+        'country_name',
+        'country_code',
+        'reporting_year',
+        'reporting_level',
+        'survey_acronym',
+        'survey_coverage',
+        'survey_year',
+        'welfare_type',
+        'survey_comparability',
+        'comparable_spell',
+        'poverty_line',
+        'headcount',
+        'poverty_gap',
+        'poverty_severity',
+        'watts',
+        'mean',
+        'median',
+        'mld',
+        'gini',
+        'polarization',
+        'decile1',
+        'decile2',
+        'decile3',
+        'decile4',
+        'decile5',
+        'decile6',
+        'decile7',
+        'decile8',
+        'decile9',
+        'decile10',
+        'cpi',
+        'ppp',
+        'reporting_pop',
+        'reporting_gdp',
+        'reporting_pce',
+        'is_interpolated',
+        'distribution_type',
+        'estimation_type'#,
+        # 'spl',
+        # 'spr'
+      ),
+      dist_stats = c(
+        "country_code",
+        "reporting_year",
+        "welfare_type",
+        "reporting_level",
+        "spl"#,
+        #"spr"
+      )
+    ),
+    pip_grp = list(
+      cols = c( # Columns for pip_grp call
+        "region_name",
+        "region_code",
+        "reporting_year",
+        "reporting_pop",
+        "poverty_line",
+        "headcount",
+        "poverty_gap",
+        "poverty_severity",
+        "watts",
+        "mean",
+        "pop_in_poverty"#,
+        #"spr"
+      ),
+      weighted_average_cols = c(
+        "headcount",
+        "poverty_gap",
+        "poverty_severity",
+        "watts",
+        "mean"#,
+        #"spr"
+      )
+    ),
+    ui_pc_charts = list(
+      cols = c(
+        'country_code',
+        'reporting_year',
+        'welfare_type',
+        'reporting_level',
+        'median',
+        'gini',
+        'polarization',
+        'mld',
+        'decile1',
+        'decile2',
+        'decile3',
+        'decile4',
+        'decile5',
+        'decile6',
+        'decile7',
+        'decile8',
+        'decile9',
+        'decile10',
+        'region_code',
+        'survey_coverage',
+        'survey_comparability',
+        'comparable_spell',
+        'survey_year',
+        'reporting_pop',
+        'ppp',
+        'cpi',
+        'distribution_type',
+        'is_interpolated',
+        'poverty_line',
+        'mean',
+        'headcount',
+        'poverty_gap',
+        'poverty_severity',
+        'watts',
+        'pop_in_poverty'#, 'spr'
+      ),
+      inequality_indicators = c(
+        'median',
+        'gini',
+        'polarization',
+        'mld',
+        'decile1',
+        'decile2',
+        'decile3',
+        'decile4',
+        'decile5',
+        'decile6',
+        'decile7',
+        'decile8',
+        'decile9',
+        'decile10'
+      )
+    ),
+    ag_average_poverty_stats = list(
+      noneg_vars = c(
+        "mean",
+        "median",
+        "headcount",
+        "poverty_gap",
+        "poverty_severity",
+        "watts"#,
+        #"spr"
+      ),
+      zero_vars = c(
+        "mean",
+        "median",
+        "watts"
+      ),
+      na_cols = c(
+        "survey_mean_lcu",
+        "ppp",
+        "median",
+        "survey_median_ppp"
+      ),
+      national_cols = c(
+        "reporting_level",
+        "gdp_data_level",
+        "pce_data_level",
+        "cpi_data_level",
+        "ppp_data_level"
+      )
+
     )
+  )
 
   # CREATE OBJECT: aux_tables ----
   # Create list of available auxiliary data tables
@@ -316,7 +435,7 @@ create_lkups <- function(data_dir, versions) {
                     pl_lkup,
                     censored,
                     aux_files,
-                    pip_cols,
+                    return_cols,
                     query_controls,
                     aux_tables,
                     valid_years
@@ -330,7 +449,7 @@ create_lkups <- function(data_dir, versions) {
                    pop_region,
                    censored,
                    aux_files,
-                   pip_cols,
+                   return_cols$pip,
                    query_controls$region$values,
                    valid_years
                    )
@@ -343,7 +462,7 @@ create_lkups <- function(data_dir, versions) {
                        pop_region,
                        censored,
                        aux_files,
-                       pip_cols,
+                       return_cols$pip_grp,
                        query_controls$region$values,
                        valid_years
   )
@@ -356,7 +475,7 @@ create_lkups <- function(data_dir, versions) {
                      pop_region,
                      censored,
                      aux_files,
-                     pip_cols,
+                     return_cols,
                      query_controls$region$values,
                      valid_years,
                      pl_lkup,
@@ -390,7 +509,7 @@ create_lkups <- function(data_dir, versions) {
     pl_lkup            = pl_lkup,
     censored           = censored,
     aux_files          = aux_files,
-    pip_cols           = pip_cols,
+    return_cols        = return_cols,
     query_controls     = query_controls,
     data_root          = data_dir,
     aux_tables         = aux_tables,
@@ -565,4 +684,16 @@ coerce_chr_to_fct <- function(df) {
   df <- data.table::as.data.table(df)
 
   return(df)
+}
+
+#' helper function to create a list of return columns for various pipapi functions
+#'
+#' @param ... Named vectors of columns to be returned
+#'
+#' @return list
+#' @export
+#'
+create_return_cols <- function(...) {
+  out <- list(...)
+  return(out)
 }

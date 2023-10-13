@@ -75,15 +75,8 @@ rg_pip <- function(country,
 
 
   # Add SPL ------------
-
-  spl <- lkup$dist_stats[, c(
-    "country_code",
-    "reporting_year",
-    "welfare_type",
-    "reporting_level",
-    "spl"#,
-    #"spr"
-  )]
+  keep <- lkup$return_cols$pip$dist_stats
+  spl <- lkup$dist_stats[, ..keep]
 
   out <- merge.data.table(
     x = out,
