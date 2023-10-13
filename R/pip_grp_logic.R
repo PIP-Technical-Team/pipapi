@@ -100,7 +100,8 @@ pip_grp_logic <- function(country         = "ALL",
                        povline         = povline,
                        reporting_level = reporting_level,
                        censor          = censor,
-                       fg_pip          = fg_pip_master)
+                       fg_pip          = fg_pip_master,
+                       lkup            = lkup)
     } else {
       ### STEP 3.2.2 Alternate aggregates only ----
       ### Prepare necessary variables
@@ -129,7 +130,8 @@ pip_grp_logic <- function(country         = "ALL",
                           povline             = povline,
                           reporting_level     = reporting_level,
                           censor              = censor,
-                          fg_pip              = fg_pip_master)
+                          fg_pip              = fg_pip_master,
+                          lkup                = lkup)
 
     if (lcv$grp_use == "append") {
       grp <- data.table::rbindlist(list(off_ret, grp))
@@ -249,7 +251,6 @@ pip_grp_logic <- function(country         = "ALL",
   #   ____________________________________________________________________
   #   Return                                                         ####
   return(ret)
-
 }
 
 
@@ -260,7 +261,8 @@ pip_grp_helper <- function(lcv_country,
                            reporting_level,
                            censor,
                            fg_pip,
-                           group_by = "wb"){
+                           group_by = "wb",
+                           lkup){
 
   # Filter countries
   keep_countries <- fg_pip[["country_code"]] %chin% lcv_country |
