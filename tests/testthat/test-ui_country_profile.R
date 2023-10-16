@@ -5,11 +5,6 @@ skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
 lkups <- lkups$versions_paths[[lkups$latest_release]]
 
-# lkup_path <- test_path("testdata", "lkup.rds")
-# lkups      <- readRDS(lkup_path)
-
-
-
 set.seed(42)
 lkups$pl_lkup <- lkups$pl_lkup[sample(nrow(lkups$pl_lkup), 10)]
 lkups2 <- lkups
@@ -19,113 +14,6 @@ lkups2$ref_lkup <- lkups2$ref_lkup[country_code %in% c('AGO', 'ZWE')]
 
 dt_lac <- readRDS(test_path("testdata", "pip_lac_resp.rds"))
 dt_sas <- readRDS(test_path("testdata", "pip_sas_resp.rds"))
-
-test_that("ui_hp_stacked() works as expected", {
-  res                <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
-  countries_selected <- lkups2$svy_lkup[, unique(country_code)]
-  tmp                <- lkups2$aux_files$country_list[country_code %in% countries_selected]
-
-  var_code <- c("country_code", "region_code", "world_code")
-
-  regions_of_countries <-
-    tmp[, ..var_code] |>
-    melt(id.vars = "country_code") |>
-    {\(.) .[, value] }() |>
-    unique()
-
-
-  expect_identical(
-    names(res),
-    c(
-      "region_code", "reporting_year",
-      "poverty_line", "pop_in_poverty"
-    )
-  )
-  expect_identical(unique(res$region_code) |>
-                     sort(),
-                   regions_of_countries |>
-                     sort())
-  expect_true(all(res$pop_in_poverty == floor(res$pop_in_poverty))) # No decimals for population numbers
-})
-
-test_that("ui_hp_countries() works as expected", {
-  res <- ui_hp_countries(country = c("AGO", "CIV"), povline = 1.9, lkup = lkups)
-  expect_identical(
-    names(res),
-    c(
-      "region_code", "country_code",
-      "reporting_year", "poverty_line",
-      "reporting_pop", "pop_in_poverty"
-    )
-  )
-  expect_true(all(res$pop_in_poverty < 50))
-  check <- lkups$svy_lkup[country_code %in% c("AGO", "CIV")]$reporting_year
-  expect_equal(res$reporting_year, check)
-})
-
-test_that("ui_pc_charts() works as expected", {
-  skip("TEMPORARY SKIP")
-
-  # Regular query (fill_gaps = FALSE)
-  res <- ui_pc_charts(country = "AGO", povline = 1.9, lkup = lkups)
-  expect_equal(nrow(res), nrow(lkups$svy_lkup[country_code == "AGO"]))
-  expect_equal(length(names(res)), 35)
-
-  skip("TEMPORARY SKIP")
-  # Regular query (fill_gaps = TRUE)
-  res <- ui_pc_charts(country = "AGO", povline = 1.9, fill_gaps = TRUE, lkup = lkups)
-  expect_equal(nrow(res), length(unique(lkups$ref_lkup$reporting_year)))
-
-  # Group by
-  res <- ui_pc_charts(country = "AGO", group_by = "wb", povline = 1.9, lkup = lkups)
-  res2 <- pip(country = "AGO", group_by = "wb", povline = 1.9, lkup = lkups)
-  res2$reporting_pop <- res2$reporting_pop / 1e6
-  res2$pop_in_poverty <- res2$pop_in_poverty / 1e6
-  expect_equal(res, res2)
-})
-
-test_that("ui_pc_regional() works as expected", {
-  skip("This test fails but this situation should never arise in practice.
-       The lkup table is incomplete.")
-  res <- ui_pc_regional(povline = 1.9, lkup = lkups2)
-
-  countries_selected <- lkups2$svy_lkup[, unique(country_code)]
-  tmp                <- lkups2$aux_files$country_list[country_code %in% countries_selected]
-
-  var_code <- grep("_code$", names(tmp), value = TRUE)
-
-  regions_of_countries <-
-    tmp[, ..var_code] |>
-    melt(id.vars = "country_code") |>
-    {\(.) .[, value] }() |>
-    unique()
-
-  expect_identical(
-   names(res) |> sort(),
-    c(
-      "region_name",
-      "region_code",
-      "reporting_year",
-      "reporting_pop",
-      "poverty_line",
-      "headcount",
-      "poverty_gap",
-      "poverty_severity",
-      "watts",
-      "mean",
-      "pop_in_poverty"
-    ) |> sort()
-  )
-
-  # DISABLE TEMPORARILY: NEEDS TO BE UPDATED
-  # expect_identical(unique(res$region_code) |>
-  #                    sort(),
-  #                  regions_of_countries |>
-  #                    sort())
-
-
-  # expect_identical(unique(res$region_code), c("SSA", "WLD"))
-})
 
 test_that("ui_cp_poverty_charts() works as expected", {
   dl <- ui_cp_poverty_charts(
@@ -169,7 +57,7 @@ test_that("ui_cp_poverty_charts() works as expected", {
   )
   expect_equal(nrow(dl$pov_trend),
                nrow(lkups$dist_stats[country_code == "CHN" &
-                          reporting_level == "national"]))
+                                       reporting_level == "national"]))
   expect_equal(unique(dl$pov_trend$reporting_level), "national")
 
   # Test that ui_cp_poverty_charts() works correctly for
@@ -270,7 +158,7 @@ test_that("ui_cp_ki_headcount() works as expected", {
   df <- ui_cp_ki_headcount(country = "ARG", povline = 1.9, lkup = lkups)
   expect_false(is.na(df$headcount))
   expect_equal(df$reporting_year,
-    max(lkups$svy_lkup[country_code == "ARG"]$reporting_year))
+               max(lkups$svy_lkup[country_code == "ARG"]$reporting_year))
 
   df <- ui_cp_ki_headcount(country = "SUR", povline = 1.9, lkup = lkups)
   expect_false(is.na(df$headcount))
@@ -283,14 +171,14 @@ test_that("ui_cp_ki_headcount() works as expected", {
   expect_false(is.na(df$headcount))
   expect_equal(df$reporting_year,
                max(lkups$dist_stats[country_code == "CHN" &
-                                    reporting_level == "national"]$reporting_year))
+                                      reporting_level == "national"]$reporting_year))
   # Test that ui_cp_ki_headcount() works correctly for countries
   # w/ multiple reporting levels (only national rows are returned)
   df <- ui_cp_ki_headcount(country = "URY", povline = 1.9, lkup = lkups)
   expect_false(is.na(df$headcount))
   expect_equal(df$reporting_year,
                max(lkups$dist_stats[country_code == "URY" &
-                                    reporting_level == "national"]$reporting_year))
+                                      reporting_level == "national"]$reporting_year))
 
 })
 
@@ -346,63 +234,6 @@ test_that("ui_cp_charts() only returns first country if multiple countries are p
   dl1 <- ui_cp_charts(country = c("AGO", "AFG"), povline = 1.9, lkup = lkups)
   expect_length(dl1, 1) # 1 country
   expect_equal(names(dl1), "AGO")
-})
-
-test_that("ui_svy_meta() works as expected", {
-  expected_names <-
-    c(
-      "country_code",
-      "country_name",
-      "reporting_year" ,
-      "survey_year",
-      "surveyid_year",
-      "survey_title",
-      "survey_conductor",
-      "survey_coverage",
-      "welfare_type",
-      "distribution_type",
-      "metadata"
-    )
-  expected_metadata <- c(
-    #"surveyid_year",
-    "survey_acronym",
-    "year_start",
-    "year_end",
-    "authoring_entity_name",
-    "abstract",
-    "collection_dates_cycle",
-    "collection_dates_start",
-    "collection_dates_end",
-    "sampling_procedure",
-    "collection_mode",
-    "coll_situation",
-    "weight",
-    "cleaning_operations"
-  )
-
-  res <- ui_svy_meta(country = "AGO", lkup = lkups)
-  expect_equal(unique(res$country_code), "AGO")
-  expect_equal(names(res),
-               expected_names)
-
-  expect_equal(
-    names(res$metadata[[1]]),
-    expected_metadata
-  )
-
-  res <- ui_svy_meta(country = "all", lkup = lkups)
-
-  expect_true(all(unique(res$country_code) %in%
-                    lkups$query_controls$country$values))
-
-  expect_equal(names(res),
-               expected_names)
-
-  expect_equal(
-    names(res$metadata[[1]]),
-    expected_metadata
-  )
-
 })
 
 test_that("cp_correct_reporting_level() is working as expected for countries with 3 reporting levels", {
