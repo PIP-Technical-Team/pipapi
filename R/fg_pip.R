@@ -125,7 +125,7 @@ fg_pip <- function(country,
   data_dir <- lkup$data_root
   spl <-
     get_aux_table(data_dir = data_dir,
-                  table = "spl")
+                  table = "spr_lnp")
 
   out <- merge.data.table(
     x = out,
@@ -138,10 +138,6 @@ fg_pip <- function(country,
     ),
     all.x = TRUE
   )
-
-  if (any(names(out) == "spl_headcount")) {
-    data.table::setnames(out, "spl_headcount", "spr")
-  }
 
   return(out)
 }
