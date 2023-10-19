@@ -714,4 +714,36 @@ get_valid_aux_long_format_tables <- function() {
 }
 
 
+#' load SPR table from aux data
+#'
+#' If there is no data available, return an empty data.frame
+#'
+#' @inheritParams get_aux_table
+#'
+#' @return data.table
+get_spr_table <- function(data_dir,
+                          table = c("spr_svy", "spr_lnp")) {
 
+  table <- match.arg(table)
+
+  spr <-
+    tryCatch(
+      expr = {
+        # Your code...
+        get_aux_table(data_dir = lkup$data_root,
+                      table    = table)
+      }, # end of expr section
+      error = function(e) {
+        data.table::data.table(
+          country_code    = character(0),
+          reporting_year  = numeric(0),
+          welfare_type    = character(0),
+          reporting_level = character(0),
+          spl             = numeric(0),
+          spr             = numeric(0),
+          median          = numeric(0)
+        )
+      }
+    ) # End of trycatch
+  return(spr)
+}

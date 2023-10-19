@@ -76,7 +76,7 @@ rg_pip <- function(country,
 
   # Add SPL ------------
   spl <-
-    get_aux_table(data_dir = lkup$data_root,
+    get_spr_table(data_dir = lkup$data_root,
                   table = "spr_svy")
 
   out <- merge.data.table(

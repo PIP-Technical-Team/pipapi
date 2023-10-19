@@ -123,7 +123,7 @@ fg_pip <- function(country,
   # add SPL ---------
 
   spl <-
-    get_aux_table(data_dir = lkup$data_root,
+    get_spr_table(data_dir = lkup$data_root,
                   table = "spr_lnp")
 
   out <- merge.data.table(
