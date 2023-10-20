@@ -73,23 +73,10 @@ rg_pip <- function(country,
   }
   out <- data.table::rbindlist(out)
 
-
-  # Add SPL ------------
-  spl <-
-    get_spr_table(data_dir = lkup$data_root,
-                  table = "spr_svy")
-
-  out <- merge.data.table(
-    x = out,
-    y = spl,
-    by = c(
-      "country_code",
-      "reporting_year",
-      "welfare_type",
-      "reporting_level"
-    ),
-    all.x = TRUE
-  )
+  # Add SPL and SPR  ---------------
+  out <- add_spl(df        = out,
+                 fill_gaps = FALSE,
+                 data_dir  = lkup$data_root)
 
   return(out)
 }

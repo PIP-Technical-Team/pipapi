@@ -119,24 +119,10 @@ fg_pip <- function(country,
   out[,
       poverty_line := round(poverty_line, digits = 3) ]
 
-
-  # add SPL ---------
-
-  spl <-
-    get_spr_table(data_dir = lkup$data_root,
-                  table = "spr_lnp")
-
-  out <- merge.data.table(
-    x = out,
-    y = spl,
-    by = c(
-      "country_code",
-      "reporting_year",
-      "welfare_type",
-      "reporting_level"
-    ),
-    all.x = TRUE
-  )
+  # Add SPL and SPR  ---------------
+  out <- add_spl(df        = out,
+                 fill_gaps = TRUE,
+                 data_dir  = lkup$data_root)
 
   return(out)
 }
