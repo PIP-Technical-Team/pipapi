@@ -12,7 +12,7 @@ get_param_values <- function(lkup,
                                           "pip-grp",
                                           "pip-info",
                                           "valid-params")) {
-  endpoint <- endpoint[1] # Ensure it only passes one endpoint at a time
+  # endpoint <- endpoint[1] # Ensure it only passes one endpoint at a time
   endpoint <- match.arg(endpoint)
   # TO IMPROVE: Too much hard-coding here
   endpoint_map <- c("all",
