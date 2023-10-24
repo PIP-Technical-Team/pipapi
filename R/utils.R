@@ -730,7 +730,7 @@ get_spr_table <- function(data_dir,
     tryCatch(
       expr = {
         # Your code...
-        get_aux_table(data_dir = lkup$data_root,
+        get_aux_table(data_dir = data_dir,
                       table    = table)
       }, # end of expr section
       error = function(e) {

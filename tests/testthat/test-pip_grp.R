@@ -12,7 +12,7 @@ censored <-
 # Check pip_grp against current implementation
 # TO BE REMOVED ONCE pip() group_by OPTION is FULLY DEPRECATED
 test_that("output from pip_grp is the same as output from pip", {
-  # skip("TEMPORARY SKIP")
+  skip("Skip because `pip()` should not be used with `group_by` argument anymore.")
   out_pip <- pip(
     country = "all",
     year = 2010,
