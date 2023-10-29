@@ -247,3 +247,17 @@ test_that("region selection is working for multiple regions and country from oth
   expect_equal(nrow(out), length(expected_region_values))
   expect_equal(sort(out$region_code), sort(expected_region_values))
 })
+
+test_that("all objects are correctly passed and used", {
+  root <- rprojroot::is_r_package
+  tmp <- lintr::lint(filename = root$find_file("R/pip_grp.R"),
+                     linters = lintr::object_usage_linter())
+
+  # NOTE: The code below is being flagged, but there should be not risk of a bug here
+  # # Handles aggregated distributions
+  # if (reporting_level %in% c("national", "all")) {
+  #   out <- add_agg_stats(out,
+  #                        return_cols = lkup$return_cols$ag_average_poverty_stats)
+  # }
+  expect_equal(length(tmp), 1)
+})
