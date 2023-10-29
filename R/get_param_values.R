@@ -86,3 +86,11 @@ get_param_values <- function(lkup,
 
   return(out)
 }
+
+test_that("all objects are correctly passed and used", {
+  root <- rprojroot::is_r_package
+  tmp <- lintr::lint(filename = root$find_file("R/get_param_values.R"),
+                     linters = lintr::object_usage_linter())
+
+  expect_equal(length(tmp), 0)
+})
