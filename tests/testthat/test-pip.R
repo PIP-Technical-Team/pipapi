@@ -602,3 +602,11 @@ test_that("error when more than one dataset is passed", {
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD",
   fixed = TRUE)
 })
+
+test_that("all objects are correctly passed and used", {
+  root <- rprojroot::is_r_package
+  tmp <- lintr::lint(filename = root$find_file("R/pip.R"),
+                     linters = lintr::object_usage_linter())
+
+  expect_equal(length(tmp), 0)
+})
