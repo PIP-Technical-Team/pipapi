@@ -111,4 +111,11 @@ test_that("ui_svy_meta() works as expected", {
 
 })
 
+test_that("all objects are correctly passed and used", {
+  root <- rprojroot::is_r_package
+  tmp <- lintr::lint(filename = root$find_file("R/ui_miscellaneous.R"),
+                     linters = lintr::object_usage_linter())
+
+  expect_equal(length(tmp), 0)
+})
 

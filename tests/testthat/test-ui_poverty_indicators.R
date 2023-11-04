@@ -78,3 +78,12 @@ test_that("ui_pc_regional() works as expected", {
 
   # expect_identical(unique(res$region_code), c("SSA", "WLD"))
 })
+
+test_that("all objects are correctly passed and used", {
+  root <- rprojroot::is_r_package
+  tmp <- lintr::lint(filename = root$find_file("R/ui_poverty_indicators.R"),
+                     linters = lintr::object_usage_linter())
+
+  # NSE in data.table causing two lines to be flagged
+  expect_equal(length(tmp), 2)
+})
