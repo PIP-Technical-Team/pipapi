@@ -341,3 +341,11 @@ test_that("select_years works for MRV + specific year selections", {
                sort(unique(c(mrv_year, as.numeric(not_mrv_year)))))
 })
 
+test_that("all objects are correctly passed and used", {
+  root <- rprojroot::is_r_package
+  tmp <- lintr::lint(filename = root$find_file("R/utils.R"),
+                     linters = lintr::object_usage_linter())
+
+  # NSE in data.table causing two lines to be flagged
+  expect_equal(length(tmp), 2)
+})
