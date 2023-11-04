@@ -165,7 +165,8 @@ function(req, res) {
   #               "max-age=172800")
 
   res$setHeader("ETag",
-                pipapi::create_etag_header(req))
+                pipapi::create_etag_header(req,
+                                           lkups = lkups))
 
   plumber::forward()
 

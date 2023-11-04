@@ -4,10 +4,12 @@
 \alias{create_etag_header}
 \title{create_etag_header}
 \usage{
-create_etag_header(req)
+create_etag_header(req, lkups)
 }
 \arguments{
 \item{req}{R6 object: Plumber API request}
+
+\item{lkups}{list: pipapi master lkups}
 }
 \value{
 character
