@@ -259,5 +259,5 @@ test_that("all objects are correctly passed and used", {
   #   out <- add_agg_stats(out,
   #                        return_cols = lkup$return_cols$ag_average_poverty_stats)
   # }
-  expect_equal(length(tmp), 1)
+  expect_equal(length(tmp), 0)
 })

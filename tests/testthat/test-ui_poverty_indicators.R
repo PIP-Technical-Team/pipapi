@@ -84,6 +84,5 @@ test_that("all objects are correctly passed and used", {
   tmp <- lintr::lint(filename = root$find_file("R/ui_poverty_indicators.R"),
                      linters = lintr::object_usage_linter())
 
-  # NSE in data.table causing two lines to be flagged
-  expect_equal(length(tmp), 2)
+  expect_equal(length(tmp), 0)
 })
