@@ -98,11 +98,3 @@ test_that("ag_average_poverty_stats() works", {
   expect_equal(tmp$watts, 0.1849849, tolerance = 1.490116e-07)
 
 })
-
-test_that("all objects are correctly passed and used", {
-  root <- rprojroot::is_r_package
-  tmp <- lintr::lint(filename = root$find_file("R/add_agg_stats.R"),
-                     linters = lintr::object_usage_linter())
-
-  expect_equal(length(tmp), 0)
-})

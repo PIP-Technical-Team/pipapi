@@ -21,11 +21,3 @@ test_that("all objects are correctly passed and used", {
 
   expect_equal(length(tmp), 0)
 })
-
-test_that("all objects are correctly passed and used", {
-  root <- rprojroot::is_r_package
-  tmp <- lintr::lint(filename = root$find_file("R/get_pip_version.R"),
-                     linters = lintr::object_usage_linter())
-
-  expect_equal(length(tmp), 0)
-})

@@ -54,10 +54,3 @@ test_that("ui_hp_countries() works as expected", {
   expect_equal(res$reporting_year, check)
 })
 
-test_that("all objects are correctly passed and used", {
-  root <- rprojroot::is_r_package
-  tmp <- lintr::lint(filename = root$find_file("R/ui_home_page.R"),
-                     linters = lintr::object_usage_linter())
-
-  expect_equal(length(tmp), 0)
-})

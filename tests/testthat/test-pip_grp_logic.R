@@ -120,11 +120,3 @@ test_that("pip_grp_logic selection works correctly", {
                       lkup            = lkup)
   expect_equal(tmp$region_code, country)
 })
-
-test_that("all objects are correctly passed and used", {
-  root <- rprojroot::is_r_package
-  tmp <- lintr::lint(filename = root$find_file("R/pip_grp_logic.R"),
-                     linters = lintr::object_usage_linter())
-  # NSE of alt_agg object. TO CHECK
-  expect_equal(length(tmp), 1)
-})

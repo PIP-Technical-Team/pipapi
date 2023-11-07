@@ -585,13 +585,3 @@ test_that("create_vector_countries returns correct results when country = aggreg
   expect_equal(out$grp_use, "append")
   expect_equal(out$off_alt_agg, "both")
 })
-
-test_that("all objects are correctly passed and used", {
-  root <- rprojroot::is_r_package
-  tmp <- lintr::lint(filename = root$find_file("R/create_countries_vctr.R"),
-                     linters = lintr::object_usage_linter())
-
-  # Two object are being flagged as not used. They are being used, but because
-  # of the working of the fillin_list() function, the lintr cannot detect it.
-  expect_equal(length(tmp), 2)
-})

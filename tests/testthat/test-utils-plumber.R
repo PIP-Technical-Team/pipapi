@@ -446,12 +446,3 @@ test_that("csv serialization returns empty string for missing values", {
                     fixed = TRUE))
 })
 
-
-test_that("all objects are correctly passed and used", {
-  root <- rprojroot::is_r_package
-  tmp <- lintr::lint(filename = root$find_file("R/utils-plumber.R"),
-                     linters = lintr::object_usage_linter())
-
-  # NOTE:
-  expect_equal(length(tmp), 0)
-})

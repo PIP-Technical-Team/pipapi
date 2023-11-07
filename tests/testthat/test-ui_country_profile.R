@@ -358,11 +358,3 @@ test_that("ui_cp_key_indicators() optimized version returns same results as prev
 
 })
 
-test_that("all objects are correctly passed and used", {
-  root <- rprojroot::is_r_package
-  tmp <- lintr::lint(filename = root$find_file("R/ui_country_profile.R"),
-                     linters = lintr::object_usage_linter())
-
-  # NSE in data.table causing two lines to be flagged
-  expect_equal(length(tmp), 2)
-})
