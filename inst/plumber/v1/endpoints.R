@@ -532,7 +532,7 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi:::ui_hp_countries, params)
+  do.call(pipapi::ui_hp_countries, params)
 }
 
 
