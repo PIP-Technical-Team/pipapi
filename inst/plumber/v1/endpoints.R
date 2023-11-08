@@ -165,7 +165,8 @@ function(req, res) {
   #               "max-age=172800")
 
   res$setHeader("ETag",
-                pipapi::create_etag_header(req))
+                pipapi::create_etag_header(req,
+                                           lkups = lkups))
 
   plumber::forward()
 
@@ -531,7 +532,7 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  do.call(pipapi:::ui_hp_countries, params)
+  do.call(pipapi::ui_hp_countries, params)
 }
 
 

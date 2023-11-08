@@ -34,7 +34,8 @@ Suggests:
     httr,
     jsonlite,
     future.callr,
-    future.apply
+    future.apply,
+    lintr
 Language: en-US
 Imports: 
     data.table,

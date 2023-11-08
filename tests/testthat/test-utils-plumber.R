@@ -445,3 +445,4 @@ test_that("csv serialization returns empty string for missing values", {
                     serialized_response,
                     fixed = TRUE))
 })
+

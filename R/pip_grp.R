@@ -97,7 +97,7 @@ pip_grp <- function(country         = "ALL",
   }
 
   keep <- lkup$return_cols$pip_grp$cols
-  out <- out[, ..keep]
+  out <- out[, .SD, .SDcols = keep]
 
   return(out)
 }
@@ -154,7 +154,7 @@ pip_aggregate <- function(df, by = NULL, return_cols) {
 
   # Handle simple aggregation
 
-  df <- df[, ..to_keep]
+  df <- df[, .SD, .SDcols = to_keep]
 
   byvar <- c(by, "reporting_year", "poverty_line")
 
@@ -217,7 +217,7 @@ pip_aggregate_by <- function(df,
 
   to_keep <- all_cols[all_cols != "pop_in_poverty"]
 
-  df <- df[, ..to_keep]
+  df <- df[, .SD, .SDcols = to_keep]
 
   group_lkup <- group_lkup[, c("region_code",
                                "reporting_year",

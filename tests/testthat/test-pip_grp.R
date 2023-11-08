@@ -247,3 +247,4 @@ test_that("region selection is working for multiple regions and country from oth
   expect_equal(nrow(out), length(expected_region_values))
   expect_equal(sort(out$region_code), sort(expected_region_values))
 })
+

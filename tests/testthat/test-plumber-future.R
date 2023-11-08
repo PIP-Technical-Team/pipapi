@@ -18,7 +18,7 @@ api1 <- future.callr::callr(function() {
   library(pipapi)
   lkups <<- pipapi::create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
   pipapi::start_api(port = 8000)
-}, workers = 2, # n workers for API
+}, workers = 2#, # n workers for API
    #globals = list(lkups = lkups),
    #packages = c("pipapi")
 )
