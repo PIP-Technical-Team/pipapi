@@ -68,6 +68,8 @@ pip <- function(country         = "ALL",
                 additional_ind  = FALSE) {
 
 
+  # set up -------------
+
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
@@ -83,6 +85,7 @@ pip <- function(country         = "ALL",
     stop("You are probably passing more than one dataset as lkup argument.
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
 
+
   # **** TO BE REMOVED **** REMOVAL STARTS HERE
   # Once `pip-grp` has been integrated in ingestion pipeline
   # Forces fill_gaps to TRUE when using group_by option
@@ -92,6 +95,7 @@ pip <- function(country         = "ALL",
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
+  # Countries vector ------------
   lcv <- # List with countries vectors
     create_countries_vctr(
       country         =  country,
@@ -100,9 +104,9 @@ pip <- function(country         = "ALL",
       aux_files       =  lkup$aux_files
     )
 
-
+  # mains estimates ---------------
   if (fill_gaps) {
-    # Compute imputed stats
+    ## lineup years-----------------
     out <- fg_pip(
       country            = lcv$est_ctrs,
       year               = year,
@@ -114,7 +118,7 @@ pip <- function(country         = "ALL",
       lkup               = lkup
       )
   } else {
-    # Compute survey year stats
+    ## survey years ------------------
     out <- rg_pip(
       country         = lcv$est_ctrs,
       year            = year,
@@ -127,15 +131,17 @@ pip <- function(country         = "ALL",
     )
   }
 
-  # return empty dataframe if no metadata is found
+  # Eary return for empty table---------------
   if (nrow(out) == 0) {
     return(out)
   }
 
-  # Handles aggregated distributions
+  # aggregate distributions ------------------
   if (reporting_level %in% c("national", "all")) {
-    out <- add_agg_stats(out,
-                         return_cols = lkup$return_cols$ag_average_poverty_stats)
+    out <- add_agg_stats(
+      df = out,
+      return_cols = lkup$return_cols$ag_average_poverty_stats
+      )
     if (reporting_level == "national") {
       out <- out[reporting_level == "national"]
     }
@@ -175,7 +181,8 @@ pip <- function(country         = "ALL",
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
-  # Add pre-computed distributional statistics
+
+  # pre-computed distributional stats ---------------
   crr_names  <- names(out)    # current variables
   names2keep <- lkup$return_cols$pip$cols # all variables
 
@@ -184,14 +191,22 @@ pip <- function(country         = "ALL",
     dist_stats = lkup[["dist_stats"]]
   )
 
+  # Add aggregate medians ----------------
+  out <- add_agg_medians(
+    df        = out,
+    fill_gaps = fill_gaps,
+    data_dir  = lkup$data_root
+  )
+
+  # format ----------------
+  ## Ineq indicators to NA for lineup years ----
   if (fill_gaps) {
-    # Convert inequality indicators to NA
+
     dist_vars  <- names2keep[!(names2keep %in% crr_names)]
     out[,
         (dist_vars) := NA_real_]
   }
-
-  # Handle survey coverage
+  ## Handle survey coverage ------------
   if (reporting_level != "all") {
     keep <- out$reporting_level == reporting_level
     out <- out[keep, ]
@@ -228,6 +243,6 @@ pip <- function(country         = "ALL",
   # Order rows by country code and reporting year
   data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
 
-
+  # return -------------
   return(out)
 }

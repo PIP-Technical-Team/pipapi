@@ -51,16 +51,16 @@ rg_pip <- function(country,
     )
 
     tmp_stats <- wbpip:::prod_compute_pip_stats(
-      welfare = svy_data$df0$welfare,
-      povline = povline,
-      popshare = popshare,
-      population = svy_data$df0$weight,
-      requested_mean = tmp_metadata$survey_mean_ppp,
-      svy_mean_lcu = tmp_metadata$survey_mean_lcu,
-      svy_median_lcu = tmp_metadata$survey_median_lcu,
-      svy_median_ppp = tmp_metadata$survey_median_ppp,
-      default_ppp = tmp_metadata$ppp,
-      ppp = ppp,
+      welfare           = svy_data$df0$welfare,
+      povline           = povline,
+      popshare          = popshare,
+      population        = svy_data$df0$weight,
+      requested_mean    = tmp_metadata$survey_mean_ppp,
+      svy_mean_lcu      = tmp_metadata$survey_mean_lcu,
+      svy_median_lcu    = tmp_metadata$survey_median_lcu,
+      svy_median_ppp    = tmp_metadata$survey_median_ppp,
+      default_ppp       = tmp_metadata$ppp,
+      ppp               = ppp,
       distribution_type = tmp_metadata$distribution_type
     )
 
@@ -73,22 +73,10 @@ rg_pip <- function(country,
   }
   out <- data.table::rbindlist(out)
 
-
-  # Add SPL ------------
-  keep <- lkup$return_cols$pip$dist_stats
-  spl <- lkup$dist_stats[, .SD, .SDcols = keep]
-
-  out <- merge.data.table(
-    x = out,
-    y = spl,
-    by = c(
-      "country_code",
-      "reporting_year",
-      "welfare_type",
-      "reporting_level"
-    ),
-    all.x = TRUE
-  )
+  # Add SPL and SPR  ---------------
+  out <- add_spl(df        = out,
+                 fill_gaps = FALSE,
+                 data_dir  = lkup$data_root)
 
   return(out)
 }

@@ -697,8 +697,12 @@ fillin_list <- function(l,
     assign(nm_l, l, envir = parent.frame())
   }
 
+  #   ________________________________________________
+  #   Return                                        ####
   return(invisible(l))
 
+  # x = get(x_name, envir = parent.frame())
+  # x_name = deparse(substitute(x))
 }
 
 #' Returns all auxiliary tables that support the long_format=TRUE parameter
@@ -710,4 +714,163 @@ get_valid_aux_long_format_tables <- function() {
 }
 
 
+#' load SPR table from aux data
+#'
+#' If there is no data available, return an empty data.frame
+#'
+#' @inheritParams get_aux_table
+#'
+#' @return data.table
+get_spr_table <- function(data_dir,
+                          table = c("spr_svy", "spr_lnp")) {
 
+  table <- match.arg(table)
+
+  spr <-
+    tryCatch(
+      expr = {
+        # Your code...
+        get_aux_table(data_dir = data_dir,
+                      table    = table)
+      }, # end of expr section
+      error = function(e) {
+        data.table::data.table(
+          country_code    = character(0),
+          reporting_year  = numeric(0),
+          welfare_type    = character(0),
+          reporting_level = character(0),
+          spl             = numeric(0),
+          spr             = numeric(0),
+          median          = numeric(0)
+        )
+      }
+    ) # End of trycatch
+  return(spr)
+}
+
+
+
+
+
+
+#' Add SPL indicators to either fg* or rg PIP output
+#'
+#' @param df data frame inside [fg_pip] or [rg_pip]
+#' @param data_dir character: Directory path of auxiliary data. Usually
+#'   `lkup$data_root`
+#' @inheritParams pip
+#'
+#' @return data.table
+add_spl <- function(df, fill_gaps, data_dir) {
+
+  if (fill_gaps) {
+    spl <-
+      get_spr_table(data_dir = data_dir,
+                    table = "spr_lnp")
+
+    out <- merge.data.table(
+      x = df,
+      y = spl,
+      by = c(
+        "country_code",
+        "reporting_year",
+        "welfare_type",
+        "reporting_level"
+      ),
+      all.x = TRUE
+    )
+
+  } else {
+    # Add SPL ------------
+    spl <-
+      get_spr_table(data_dir = data_dir,
+                    table = "spr_svy")
+
+    # Remove median from survey file and use the one from wbpip:::prod_compute_pip_stats
+    spl[, median := NULL]
+
+    out <- merge.data.table(
+      x = df,
+      y = spl,
+      by = c(
+        "country_code",
+        "reporting_year",
+        "welfare_type",
+        "reporting_level"
+      ),
+      all.x = TRUE
+    )
+  }
+
+  return(out)
+}
+
+
+
+
+
+#' Add Aggregate medians
+#'
+#' @param df data frame from either [fg_pip] or [rg_pip]
+#' @param data_dir character: Directory path of auxiliary data. Usually
+#'   `lkup$data_root`
+#' @inheritParams pip
+#'
+#' @return data.table
+add_agg_medians <- function(df, fill_gaps, data_dir) {
+
+  # Remove Get only obs with median == NA --------
+  dtn <- df[is.na(median)]  # NAs
+  dtn[, median := NULL]
+
+  dtm <- df[!is.na(median)] # no NAs
+
+
+  ## early returns -----------
+  if (nrow(dtn) == 0) {
+    return(df)
+  }
+
+
+  # Get medians from SPL data -----------
+  if (fill_gaps) {
+    med <-
+      get_spr_table(data_dir = data_dir,
+                    table    = "spr_lnp")
+
+  } else {
+    med <-
+      get_spr_table(data_dir = data_dir,
+                    table    = "spr_svy")
+  }
+
+  med <- med |>
+    collapse::get_vars(c(
+      "country_code",
+      "reporting_year",
+      "welfare_type",
+      "reporting_level",
+      "median"
+    ))
+
+  # join medians to missing data ---------
+  dtnm <- merge.data.table( # joined medians
+    x = dtn,
+    y = med,
+    by = c(
+      "country_code",
+      "reporting_year",
+      "welfare_type",
+      "reporting_level"
+    ),
+    all.x = TRUE
+  )
+
+  # append ------
+  out <- data.table::rbindlist(list(dtnm, dtm),
+                               use.names = TRUE,
+                               fill      = TRUE)
+
+
+  return(out)
+}
