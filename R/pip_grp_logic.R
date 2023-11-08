@@ -193,8 +193,8 @@ pip_grp_logic <- function(country         = "ALL",
 
     # Find common variables
     common_vars <- intersect(names(fdt), names(mdt))
-    fdt         <- fdt[, ..common_vars]
-    mdt         <- mdt[, ..common_vars]
+    fdt         <- fdt[, .SD, .SDcols = common_vars]
+    mdt         <- mdt[, .SD, .SDcols = common_vars]
 
     ## Append with countries with missing data -----
     l_fg[[i]] <- data.table::rbindlist(list(fdt, mdt),
@@ -219,7 +219,7 @@ pip_grp_logic <- function(country         = "ALL",
   de <- data.table::rbindlist(ld, use.names = TRUE)
   rm(ld)
 
-  vars_to_keep <- names(off_ret)
+  # vars_to_keep <- names(off_ret)
   # de[, ]
 
   # Append official regions with Alt aggregates ---------
@@ -312,7 +312,7 @@ pip_grp_helper <- function(lcv_country,
   }
 
   keep <- lkup$return_cols$pip_grp$cols
-  out <- out[, ..keep]
+  out <- out[, .SD, .SDcols = keep]
 
   return(out)
 }

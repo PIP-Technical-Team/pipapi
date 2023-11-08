@@ -4,10 +4,7 @@
 \alias{get_pip_version}
 \title{Return the versions of the pip packages used for computations}
 \usage{
-get_pip_version(
-  pip_packages = c("pipapi", "wbpip"),
-  data_versions = lkups$versions
-)
+get_pip_version(pip_packages = c("pipapi", "wbpip"), data_versions)
 }
 \arguments{
 \item{pip_packages}{character: Custom packages powering the API}

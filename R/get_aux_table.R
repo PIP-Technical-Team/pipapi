@@ -29,7 +29,7 @@ get_aux_table <- function(data_dir, table, long_format = FALSE) {
     out <- data.table::melt(out,
                             id.vars = c('country_code', 'data_level'),
                             variable.name = "year")
-    data.table::setorder(out, country_code, year, data_level)
+    data.table::setorder(out, "country_code", "year", "data_level")
   }
 
   return(out)

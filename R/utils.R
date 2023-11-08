@@ -697,12 +697,8 @@ fillin_list <- function(l,
     assign(nm_l, l, envir = parent.frame())
   }
 
-  #   ________________________________________________
-  #   Return                                        ####
   return(invisible(l))
 
-  # x = get(x_name, envir = parent.frame())
-  # x_name = deparse(substitute(x))
 }
 
 #' Returns all auxiliary tables that support the long_format=TRUE parameter
