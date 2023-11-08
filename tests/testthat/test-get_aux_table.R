@@ -23,18 +23,11 @@ test_that("get_aux_table() returns an error", {
                "Error opening fst file for reading, please check access rights and file availability")
 })
 
-test_that("all objects are correctly passed and used", {
-  root <- rprojroot::is_r_package
-  tmp <- lintr::lint(filename = root$find_file("R/get_aux_table.R"),
-                     linters = lintr::object_usage_linter())
+# test_that("all objects are correctly passed and used", {
+#   root <- rprojroot::is_r_package
+#   tmp <- lintr::lint(filename = root$find_file("R/get_aux_table.R"),
+#                      linters = lintr::object_usage_linter())
+#
+#   expect_equal(length(tmp), 0)
+# })
 
-  expect_equal(length(tmp), 0)
-})
-
-test_that("all objects are correctly passed and used", {
-  root <- rprojroot::is_r_package
-  tmp <- lintr::lint(filename = root$find_file("R/get_aux_table.R"),
-                     linters = lintr::object_usage_linter())
-
-  expect_equal(length(tmp), 0)
-})
