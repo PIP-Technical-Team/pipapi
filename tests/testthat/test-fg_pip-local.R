@@ -1,5 +1,6 @@
 # skip_if(Sys.getenv('WBPIP_RUN_LOCAL_TESTS') != "TRUE")
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
 lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
 lkup <- lkups$versions_paths[[lkups$latest_release]]
@@ -126,3 +127,124 @@ test_that("fg_remove_duplicates test", {
   expect_equal(nrow(res), 2)
   expect_type(res$data_interpolation_id, "character")
 })
+
+
+# SPL and median --------------
+tmp <- fg_pip(
+  country         = "ALL",
+  year            = "ALL",
+  povline         = 2.15,
+  popshare        = NULL,
+  welfare_type    = "all",
+  reporting_level = "all",
+  ppp             = NULL,
+  lkup            = lkup
+)
+
+# dt <- pip(country =  "ALL",
+#           lkup = lkup,
+#           povline         = 2.15,
+#           fill_gaps = TRUE)
+# setDT(dt)
+
+
+censored <- lkup$censored$countries
+
+
+## no unexpected NAs ------------
+test_that("NAs only in censored data", {
+
+  ### Median ------------
+  expect_equal(
+    tmp[is.na(median)][!censored,
+                       on = c("country_code",
+                              "reporting_year",
+                              "reporting_level",
+                              "welfare_type")] |>
+      nrow(),
+    expected = 0)
+
+  ### SPR ---------------
+  expect_equal(
+    tmp[is.na(spr)][!censored,
+                       on = c("country_code",
+                              "reporting_year",
+                              "reporting_level",
+                              "welfare_type")] |>
+      nrow(),
+    expected = 0)
+
+})
+
+## Duplicates -------------
+test_that("median does not have duplicates", {
+
+  ### by reporting level----------------
+    anyDuplicated(tmp[!is.na(median),
+             c("country_code",
+               "reporting_year",
+               "welfare_type",
+               # "reporting_level",
+               "median")]) |>
+  expect_equal(0)
+
+  ### by welfare type -------------
+    anyDuplicated(tmp[!is.na(median),
+             c("country_code",
+               "reporting_year",
+               # "welfare_type",
+               "reporting_level",
+               "median")]) |>
+    expect_equal(0)
+
+})
+
+test_that("SPR does not have duplicates", {
+
+  ### by reporting level----------------
+    anyDuplicated(tmp[!is.na(spr),
+             c("country_code",
+               "reporting_year",
+               "welfare_type",
+               # "reporting_level",
+               "spr")]) |>
+  expect_equal(0)
+
+  ### by welfare type -------------
+    anyDuplicated(tmp[!is.na(spr),
+             c("country_code",
+               "reporting_year",
+               # "welfare_type",
+               "reporting_level",
+               "spr")]) |>
+    expect_equal(0)
+
+})
+
+
+test_that("SPL is the same by reporting level", {
+
+
+  no_na <-
+    tmp[!is.na(spl),
+      c("country_code",
+        "reporting_year",
+        "welfare_type",
+        "reporting_level",
+        "spl")
+      ]
+
+  no_na[, .N, by = c("country_code",
+                     "reporting_year",
+                     "welfare_type",
+                     "reporting_level",
+                     "spl")][,N] |>
+    expect_equal(
+      no_na[, .N, by = c("country_code",
+                         "reporting_year",
+                         "welfare_type",
+                         "reporting_level")][,N]
+    )
+})
+
+

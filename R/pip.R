@@ -199,7 +199,7 @@ pip <- function(country         = "ALL",
   )
 
   # format ----------------
-  ## Ineq indicators to NA for lineup years ----
+  ## Inequality indicators to NA for lineup years ----
   if (fill_gaps) {
 
     dist_vars  <- names2keep[!(names2keep %in% crr_names)]
