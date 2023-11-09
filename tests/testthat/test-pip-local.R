@@ -738,12 +738,28 @@ setDT(tmp)
 
 censored <- lkup$censored$countries
 
+## NAs -----------
+
+test_that("no NAs", {
+  ### median ------------
+  tmp[is.na(median)] |>
+    nrow() |>
+    expect_equal(0)
+  ### spl ------------
+  tmp[is.na(spl)] |>
+    nrow() |>
+    expect_equal(0)
+  ### spr ------------
+  tmp[is.na(spr)] |>
+    nrow() |>
+    expect_equal(0)
+})
 
 ## Duplicates -------------
 test_that("median does not have duplicates", {
 
   ### by reporting level----------------
-  anyDuplicated(tmp[!is.na(median),
+  anyDuplicated(tmp[,
                     c("country_code",
                       "reporting_year",
                       "welfare_type",
@@ -752,7 +768,7 @@ test_that("median does not have duplicates", {
     expect_equal(0)
 
   ### by welfare type -------------
-  anyDuplicated(tmp[!is.na(median),
+  anyDuplicated(tmp[,
                     c("country_code",
                       "reporting_year",
                       # "welfare_type",
@@ -765,7 +781,7 @@ test_that("median does not have duplicates", {
 test_that("SPR does not have duplicates", {
 
   ### by reporting level----------------
-  anyDuplicated(tmp[!is.na(spr),
+  anyDuplicated(tmp[,
                     c("country_code",
                       "reporting_year",
                       "welfare_type",
@@ -774,7 +790,7 @@ test_that("SPR does not have duplicates", {
     expect_equal(0)
 
   ### by welfare type -------------
-  anyDuplicated(tmp[!is.na(spr),
+  anyDuplicated(tmp[,
                     c("country_code",
                       "reporting_year",
                       # "welfare_type",
@@ -789,7 +805,7 @@ test_that("SPL is the same by reporting level", {
 
 
   no_na <-
-    tmp[!is.na(spl),
+    tmp[,
         c("country_code",
           "reporting_year",
           "welfare_type",
