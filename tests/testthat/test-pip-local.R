@@ -731,12 +731,10 @@ test_that("error when more than one dataset is passed", {
 # SPL and median --------------
 
 tmp <- pip(country    =  "ALL",
-          lkup       = lkup,
-          povline    = 2.15,
-          fill_gaps  = TRUE)
+           lkup       = lkups,
+           povline    = 2.15,
+           fill_gaps  = TRUE)
 setDT(tmp)
-
-censored <- lkup$censored$countries
 
 ## NAs -----------
 
