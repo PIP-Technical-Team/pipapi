@@ -726,5 +726,102 @@ test_that("error when more than one dataset is passed", {
   )
 })
 
+#
+
+# SPL and median --------------
+
+tmp <- pip(country    =  "ALL",
+           lkup       = lkups,
+           povline    = 2.15,
+           fill_gaps  = TRUE)
+setDT(tmp)
+
+## NAs -----------
+
+test_that("no NAs", {
+  ### median ------------
+  tmp[is.na(median)] |>
+    nrow() |>
+    expect_equal(0)
+  ### spl ------------
+  tmp[is.na(spl)] |>
+    nrow() |>
+    expect_equal(0)
+  ### spr ------------
+  tmp[is.na(spr)] |>
+    nrow() |>
+    expect_equal(0)
+})
+
+## Duplicates -------------
+test_that("median does not have duplicates", {
+
+  ### by reporting level----------------
+  anyDuplicated(tmp[,
+                    c("country_code",
+                      "reporting_year",
+                      "welfare_type",
+                      # "reporting_level",
+                      "median")]) |>
+    expect_equal(0)
+
+  ### by welfare type -------------
+  anyDuplicated(tmp[,
+                    c("country_code",
+                      "reporting_year",
+                      # "welfare_type",
+                      "reporting_level",
+                      "median")]) |>
+    expect_equal(0)
+
+})
+
+test_that("SPR does not have duplicates", {
+
+  ### by reporting level----------------
+  anyDuplicated(tmp[,
+                    c("country_code",
+                      "reporting_year",
+                      "welfare_type",
+                      # "reporting_level",
+                      "spr")]) |>
+    expect_equal(0)
+
+  ### by welfare type -------------
+  anyDuplicated(tmp[,
+                    c("country_code",
+                      "reporting_year",
+                      # "welfare_type",
+                      "reporting_level",
+                      "spr")]) |>
+    expect_equal(0)
+
+})
+
+
+test_that("SPL is the same by reporting level", {
+
+
+  no_na <-
+    tmp[,
+        c("country_code",
+          "reporting_year",
+          "welfare_type",
+          "reporting_level",
+          "spl")
+    ]
+
+  no_na[, .N, by = c("country_code",
+                     "reporting_year",
+                     "welfare_type",
+                     "reporting_level",
+                     "spl")][,N] |>
+    expect_equal(
+      no_na[, .N, by = c("country_code",
+                         "reporting_year",
+                         "welfare_type",
+                         "reporting_level")][,N]
+    )
+})
 
 

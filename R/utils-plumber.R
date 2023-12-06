@@ -387,8 +387,8 @@ pi_version <- function(ppp_version, identity, versions_available) {
 citation_from_version <- function(version) {
   current_date <- Sys.Date()
   current_year <- format(current_date, '%Y')
-  release_date <- extract_release_date(version)
-  ppp_date <- extract_ppp_date(version)
+  # release_date <- extract_release_date(version)
+  # ppp_date <- extract_ppp_date(version)
   citation <- sprintf('World Bank (%s), Poverty and Inequality Platform (version %s) [data set]. pip.worldbank.org. Accessed on %s',
                       current_year,
                       version,
@@ -409,12 +409,13 @@ citation_from_version <- function(version) {
 #' to facilitate caching of PIP API responses
 #'
 #' @param req R6 object: Plumber API request
+#' @param lkups list: pipapi master lkups
 #'
 #' @return character
 #'
 #' @export
 
-create_etag_header <- function(req){
+create_etag_header <- function(req, lkups){
   lkup_hash   <- lkups$versions_paths[[req$argsQuery$version]]
   pipapi_hash <- packageDescription("pipapi")$GithubSHA1
   wbpip_hash  <- packageDescription("wbpip")$GithubSHA1

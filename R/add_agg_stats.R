@@ -56,9 +56,10 @@ ag_average_poverty_stats <- function(df, return_cols) {
   ## Only numeric variables will be aggregated or averaged
   ## Year variables must not be modified
   years_vars <- grep("year", names(df), value = TRUE)
-  years_vars <- years_vars[!vapply(df[, ..years_vars],
+  years_vars <- years_vars[!vapply(df[, .SD, .SDcols = years_vars],
                                    is.logical,
                                    FUN.VALUE = logical(1))]
+
   df[, (years_vars) :=
        lapply(.SD, as.character),
      .SDcols = years_vars]
@@ -96,10 +97,6 @@ ag_average_poverty_stats <- function(df, return_cols) {
 
   # STEP 3: Calculations ----------
   ## weighted average  ------
-  totpop <- sum(df$reporting_pop)
-
-  wgt <-  df$reporting_pop/totpop
-
   wgt_df <- df |>
     # this grouping is not necessary, but ensures data.frame as output
     collapse::fgroup_by(c("country_code", "reporting_year", "welfare_type")) |>
@@ -117,7 +114,7 @@ ag_average_poverty_stats <- function(df, return_cols) {
 
   # STEP 4: Format results ----
   ## Bind resulting tables ----
-  out <- cbind(df[1, ..nonum_names], wgt_df, sum_df)
+  out <- cbind(df[1, .SD, .SDcols = nonum_names], wgt_df, sum_df)
 
   ## convert years back to numeric ----
   out[, (years_vars) :=
@@ -131,7 +128,7 @@ ag_average_poverty_stats <- function(df, return_cols) {
   out[, (national_cols) := "national"]
 
   ## set order of obs anc col -------
-  out <- out[, ..orig_names]
+  out <- out[, .SD, .SDcols = orig_names]
   data.table::setcolorder(out, orig_names)
   data.table::setorderv(out, c("country_code", "reporting_year","welfare_type"))
 

@@ -98,20 +98,20 @@ create_fake_data <- function(ver, pr = 0.01 ) {
 
 }
 
-
-vers <- c("20220810_2017_01_02_TEST", "20220609_2011_02_02_PROD", "20220810_2017_01_02_PROD")
-purrr::map(vers, create_fake_data)
-
-
-# ver <- "20220810_2017_01_02_PROD"
-data_dir <- Sys.getenv("PIPAPI_FAKEDATA_FOLDER")
-lkups <- create_versioned_lkups(data_dir = data_dir,
-                                vintage_pattern = "PROD$")
-
-lkup <-  lkups$versions_paths[[lkups$latest_release]]
-
-usethis::use_data(lkup, overwrite = TRUE)
-
-saveRDS(lkup, "tests/testthat/testdata/lkup.rds")
-
-
+#
+# vers <- c("20220810_2017_01_02_TEST", "20220609_2011_02_02_PROD", "20220810_2017_01_02_PROD")
+# purrr::map(vers, create_fake_data)
+#
+#
+# # ver <- "20220810_2017_01_02_PROD"
+# data_dir <- Sys.getenv("PIPAPI_FAKEDATA_FOLDER")
+# lkups <- create_versioned_lkups(data_dir = data_dir,
+#                                 vintage_pattern = "PROD$")
+#
+# lkup <-  lkups$versions_paths[[lkups$latest_release]]
+#
+# usethis::use_data(lkup, overwrite = TRUE)
+#
+# saveRDS(lkup, "tests/testthat/testdata/lkup.rds")
+#
+#
