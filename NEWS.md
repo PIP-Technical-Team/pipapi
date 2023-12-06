@@ -1,3 +1,11 @@
+# pipapi (development version)
+## New features
+- Add new SPR and SPL indicators
+
+## Enhancements
+- Address some linting issues
+- Increase test coverage
+
 # pipapi 1.3.3
 - Fix bug with ag_average_poverty_stats
 - Better control of returned columns

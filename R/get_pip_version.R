@@ -6,7 +6,7 @@
 #' @export
 get_pip_version <- function(pip_packages = c("pipapi",
                                              "wbpip"),
-                            data_versions = lkups$versions) {
+                            data_versions) {
 
   # PIP package versions
   core_packages <- lapply(pip_packages, function(x){

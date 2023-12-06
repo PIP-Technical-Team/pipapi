@@ -12,7 +12,7 @@ censored <-
 # Check pip_grp against current implementation
 # TO BE REMOVED ONCE pip() group_by OPTION is FULLY DEPRECATED
 test_that("output from pip_grp is the same as output from pip", {
-  # skip("TEMPORARY SKIP")
+  skip("Skip because `pip()` should not be used with `group_by` argument anymore.")
   out_pip <- pip(
     country = "all",
     year = 2010,
@@ -247,3 +247,4 @@ test_that("region selection is working for multiple regions and country from oth
   expect_equal(nrow(out), length(expected_region_values))
   expect_equal(sort(out$region_code), sort(expected_region_values))
 })
+
