@@ -42,7 +42,7 @@ Suggests:
     yaml,
     readr,
     logger,
-    promises
+    promises,
     arrow
 Language: en-US
 Imports: 
