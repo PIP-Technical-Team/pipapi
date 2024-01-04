@@ -35,7 +35,15 @@ Suggests:
     jsonlite,
     future.callr,
     future.apply,
-    lintr
+    future,
+    lintr, 
+    joyn,
+    glue,
+    yaml,
+    readr,
+    logger,
+    promises
+    arrow
 Language: en-US
 Imports: 
     data.table,
@@ -50,15 +58,7 @@ Imports:
     rappdirs,
     methods,
     qs,
-    collapse,
-    yaml,
-    readr,
-    glue,
-    logger,
-    future,
-    promises,
-    joyn,
-    arrow
+    collapse
 Remotes:
     PIP-Technical-Team/wbpip@PROD
 Depends: 
