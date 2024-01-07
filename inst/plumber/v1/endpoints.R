@@ -406,6 +406,21 @@ function(req) {
   lkups$versions_paths[[req$argsQuery$version]]$cache_data_id
 }
 
+#* Retrieve grouped data stats
+#* @get /api/v1/grouped-stats
+#* @param welfare:[dbl] numeric vector for welfare
+#* @param population:[dbl] numeric vector for population
+#* @param requested_mean:[dbl] mean value
+#* @param povline:[dbl] poverty line value
+#* @param default_ppp:[dbl] default value for ppp
+#* @serializer unboxedJSON
+function(req) {
+  params <- req$args
+  params <- lapply(params, as.numeric)
+  out <- do.call(wbpip:::gd_compute_pip_stats, params)
+  out
+}
+
 #* Get information on directory contents
 #* @get /api/v1/dir-info
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
