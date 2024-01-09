@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.3.4
 ## New features
 - Add new SPR and SPL indicators
 
