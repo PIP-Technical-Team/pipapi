@@ -416,6 +416,9 @@ function(req) {
 #* @serializer unboxedJSON
 function(req) {
   params <- req$args
+  # Split comma separated string as vector
+  params$welfare <- strsplit(params$welfare, ",")[[1]]
+  params$population <- strsplit(params$population, ",")[[1]]
   params <- lapply(params, as.numeric)
   out <- do.call(wbpip:::gd_compute_pip_stats, params)
   out
