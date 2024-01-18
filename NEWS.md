@@ -7,6 +7,7 @@
 ## Enhancements
 - Address some linting issues
 - Increase test coverage
+- Improve caching for `ui_cp_ki_headcount` and `ui_cp_poverty_charts`
 
 # pipapi 1.3.3
 - Fix bug with ag_average_poverty_stats

@@ -6,16 +6,16 @@
 #' @return list
 #' @export
 ui_cp_key_indicators <- function(country   = "AGO",
-                                       povline   = NULL,
-                                       lkup,
-                                       lkup_hash = lkup$cache_data_id$hash_ui_cp) {
+                                 povline   = NULL,
+                                 lkup,
+                                 lkup_hash = lkup$cache_data_id$hash_ui_cp) {
 
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
   hc <- ui_cp_ki_headcount(country = country,
-                                 povline = povline,
-                                 lkup = lkup)
+                           povline = povline,
+                           lkup = lkup)
 
   dl <- lapply(lkup[["cp_lkups"]]$key_indicators, function(x) {
     x[country_code == country]
@@ -37,16 +37,18 @@ ui_cp_key_indicators <- function(country   = "AGO",
 #' @return data.table
 #' @noRd
 ui_cp_ki_headcount <- function(country,
-                                     year = "MRV",
-                                     povline,
-                                     lkup) {
+                               year = "MRV",
+                               povline,
+                               lkup) {
 
   # Fetch most recent year (for CP-display)
-  res <- pip(country         = country,
-             year            = year,
-             povline         = povline,
-             lkup            = lkup)
+  # Fetch data for all countries for caching purposes
+  res_all <- pip(country         = "all",
+                 year            = year,
+                 povline         = povline,
+                 lkup            = lkup)
 
+  res <- res_all[res_all$country_code == country, ]
   ### TEMP FIX for reporting level
   res <- cp_correct_reporting_level(res)
   ### TEMP FIX END
@@ -122,13 +124,15 @@ ui_cp_poverty_charts <- function(country,
     unique()
 
   # STEP 2: Compute stats for all countries from the region ----
-  res_pov <- pip(country         = countries,
-                 year            = "all",
-                 povline         = povline,
-                 lkup            = lkup)
+  # Query for all countries for caching purpose
+  res_pov_all <- pip(country  = "all",
+                     year     = "all",
+                     povline  = povline,
+                     lkup     = lkup)
 
+  res_pov <- res_pov_all[res_pov_all$country_code %in% countries, ]
   # STEP 3: Prepare data for poverty trend chart ----
-    res_pov_trend <- res_pov[res_pov$country_code == country, ]
+  res_pov_trend <- res_pov[res_pov$country_code == country, ]
   if (nrow(res_pov_trend) == 0) {
     return(pipapi::empty_response_cp_poverty)
   }
