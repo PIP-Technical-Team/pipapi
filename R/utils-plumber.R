@@ -105,7 +105,11 @@ validate_query_parameters <-
     "parameter",
     "endpoint",
     "long_format",
-    "additional_ind"
+    "additional_ind"#,
+    #"welfare",
+    #"population",
+    #"requested_mean",
+    #"default_ppp"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]
@@ -481,4 +485,25 @@ is_forked <- function(country,
   is_intensive <- is_country_intensive & is_year_intensive
 
   return(is_intensive)
+}
+
+
+#' Validate grouped-stats endpoint input values
+#' @param welfare character: query values
+#' @param population character: valid values
+#' @return list of two vectors welfare and population
+#' @noRd
+validate_input_grouped_stats <- function(welfare, population) {
+  welfare <- parse_parameter(welfare,"welfare")
+  population <- parse_parameter(population,"population")
+  lw <- length(welfare)
+  # Only allow vector of length 100 and ensure the length of two vectors is same
+  correct <- lw <= 100 && lw == length(population)
+  if(correct) {
+    # dplyr::lst returns a named list. It is easier way of writing list(x = x, y = y)
+    return(dplyr::lst(welfare, population))
+  } else {
+    return(NULL)
+  }
+
 }

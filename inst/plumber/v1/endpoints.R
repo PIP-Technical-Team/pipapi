@@ -10,7 +10,6 @@ library(pipapi)
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
-# browser()
   ### STEP 1:
   # If no arguments are passed, use the latest version
   if (is.null(req$argsQuery$release_version) &
@@ -126,6 +125,22 @@ function(req, res) {
                          valid = pipapi::get_valid_aux_long_format_tables()))
           return(out)
         }
+      }
+    }
+
+    if (endpoint == "grouped-stats") {
+      # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
+      result <- validate_input_grouped_stats(req$args$welfare, req$args$population)
+      if(is.null(result)) {
+        res$status <- 404
+        out <- list(
+          error = "Invalid query arguments have been submitted.",
+          details = list(msg = "You have either passed more than 100 values or the length of two vectors is not the same")
+        )
+        return(out)
+      } else {
+        req$args$welfare <- result$welfare
+        req$args$population <- result$population
       }
     }
 
@@ -412,13 +427,14 @@ function(req) {
 #* @param population:[dbl] numeric vector for population
 #* @param requested_mean:[dbl] mean value
 #* @param povline:[dbl] poverty line value
-#* @param default_ppp:[dbl] default value for ppp
+#* @param default_ppp:[dbl] default value for ppp (defaults to 1)
 #* @serializer unboxedJSON
 function(req) {
+  ### TO DO :
+  # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
+  # We need to change `lkup` to have valid_values and type added
+  # Talk with Andres/Tony on doing it.
   params <- req$args
-  # Split comma separated string as vector
-  params$welfare <- strsplit(params$welfare, ",")[[1]]
-  params$population <- strsplit(params$population, ",")[[1]]
   params <- lapply(params, as.numeric)
   out <- do.call(wbpip:::gd_compute_pip_stats, params)
   out
