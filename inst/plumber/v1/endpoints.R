@@ -427,7 +427,6 @@ function(req) {
 #* @param population:[dbl] numeric vector for population
 #* @param requested_mean:[dbl] mean value
 #* @param povline:[dbl] poverty line value
-#* @param default_ppp:[dbl] default value for ppp (defaults to 1)
 #* @serializer unboxedJSON
 function(req) {
   ### TO DO :
