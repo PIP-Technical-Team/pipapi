@@ -505,5 +505,12 @@ validate_input_grouped_stats <- function(welfare, population) {
   } else {
     return(NULL)
   }
+}
 
+#' Return output format for regression-params endpoint
+#' @param vals list: Regression result values
+#' @return dataframe
+#' @noRd
+return_output_regression_params <- function(vals) {
+  do.call(cbind.data.frame, vals$reg_results)
 }

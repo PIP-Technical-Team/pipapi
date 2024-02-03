@@ -128,7 +128,7 @@ function(req, res) {
       }
     }
 
-    if (endpoint == "grouped-stats") {
+    if (endpoint %in% c("grouped-stats", "regression-params")) {
       # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
       result <- validate_input_grouped_stats(req$args$welfare, req$args$population)
       if(is.null(result)) {
@@ -437,6 +437,25 @@ function(req) {
   params <- lapply(params, as.numeric)
   out <- do.call(wbpip:::gd_compute_pip_stats, params)
   out
+}
+
+#* Retrieve regression parameters
+#* @get /api/v1/regression-params
+#* @param welfare:[dbl] numeric vector for welfare
+#* @param population:[dbl] numeric vector for population
+#* @serializer csv
+function(req) {
+  ### TO DO :
+  # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
+  # We need to change `lkup` to have valid_values and type added
+  # Talk with Andres/Tony on doing it.
+  params <- req$args
+  params$weight <- params$population
+  params$population <- NULL
+  out <- do.call(pipster::pipgd_params, params)
+  new <- purrr::map_df(out$gd_params, return_output_regression_params)
+  row.names(new) <- NULL
+  new
 }
 
 #* Get information on directory contents
