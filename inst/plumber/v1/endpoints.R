@@ -454,7 +454,6 @@ function(req) {
   params$population <- NULL
   out <- do.call(pipster::pipgd_params, params)
   new <- purrr::map_df(out$gd_params, return_output_regression_params)
-  row.names(new) <- NULL
   new
 }
 

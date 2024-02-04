@@ -512,5 +512,8 @@ validate_input_grouped_stats <- function(welfare, population) {
 #' @return dataframe
 #' @noRd
 return_output_regression_params <- function(vals) {
-  do.call(cbind.data.frame, vals$reg_results)
+  vals$reg_results$se <- paste0(vals$reg_results$se, collapse = ";")
+  coef_val <- t(vals$reg_results$coef)
+  vals$reg_results$coef <- NULL
+  cbind(coef_val, do.call(cbind.data.frame, vals$reg_results))
 }
