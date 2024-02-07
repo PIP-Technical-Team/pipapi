@@ -512,8 +512,9 @@ validate_input_grouped_stats <- function(welfare, population) {
 #' @return dataframe
 #' @noRd
 return_output_regression_params <- function(vals) {
-  vals$reg_results$se <- paste0(vals$reg_results$se, collapse = ";")
+  se_val <- matrix(vals$reg_results$se, ncol = 3, dimnames = list(NULL, c("se_A", "se_B", "se_C")))
   coef_val <- t(vals$reg_results$coef)
-  vals$reg_results$coef <- NULL
-  cbind(coef_val, do.call(cbind.data.frame, vals$reg_results))
+  vals$reg_results$coef <- vals$reg_results$se <- NULL
+  cbind(coef_val, do.call(cbind.data.frame, vals$reg_results), se_val,
+        validity = vals$validity$is_valid, normality = vals$validity$is_normal)
 }
