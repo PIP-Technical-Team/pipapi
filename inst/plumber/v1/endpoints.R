@@ -128,7 +128,7 @@ function(req, res) {
       }
     }
 
-    if (endpoint %in% c("grouped-stats", "regression-params")) {
+    if (endpoint %in% c("grouped-stats", "regression-params", "lorenz-curve")) {
       # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
       result <- validate_input_grouped_stats(req$args$welfare, req$args$population)
       if(is.null(result)) {
@@ -457,6 +457,27 @@ function(req) {
   new <- cbind(new, selected_for_dist = out$selected_lorenz$for_dist,
         selected_for_pov = out$selected_lorenz$for_pov, povline = 1)
   new
+}
+
+#* Lorenz curve data points
+#* @get /api/v1/lorenz-curve
+#* @param welfare:[dbl] numeric vector for welfare
+#* @param population:[dbl] numeric vector for population
+#* @param mean:[dbl] Welfare mean
+#* @param pop:[dbl] Cumulative proportion of population
+#* @param p0:[dbl] numeric
+#* @param nobs:[dbl] Number of observations to be used in synthetic vector. (default 100)
+#* @serializer csv
+function(req) {
+  ### TO DO :
+  # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
+  # We need to change `lkup` to have valid_values and type added
+  # Talk with Andres/Tony on doing it.
+  params <- req$args
+  if(is.null(params$nobs)) params$nobs <- 100L
+  params <- lapply(params, as.numeric)
+  out <- do.call(wbpip:::sd_create_synth_vector, params)
+  out
 }
 
 #* Get information on directory contents
