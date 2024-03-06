@@ -427,15 +427,18 @@ function(req) {
 #* @param population:[dbl] numeric vector for population
 #* @param requested_mean:[dbl] mean value
 #* @param povline:[dbl] poverty line value
-#* @serializer unboxedJSON
-function(req) {
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
+function(req, res) {
   ### TO DO :
   # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
   # We need to change `lkup` to have valid_values and type added
   # Talk with Andres/Tony on doing it.
   params <- req$args
-  params <- lapply(params, as.numeric)
-  out <- do.call(wbpip:::gd_compute_pip_stats, params)
+  relevant_params <- params[names(params) != "format"]
+  relevant_params <- lapply(relevant_params, as.numeric)
+  res$serializer <- pipapi::assign_serializer(format = params$format)
+  out <- do.call(wbpip:::gd_compute_pip_stats, relevant_params)
+  if(!is.null(params$format) && params$format == "csv") out <- data.frame(out)
   out
 }
 
@@ -443,8 +446,8 @@ function(req) {
 #* @get /api/v1/regression-params
 #* @param welfare:[dbl] numeric vector for welfare
 #* @param population:[dbl] numeric vector for population
-#* @serializer csv
-function(req) {
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
+function(req, res) {
   ### TO DO :
   # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
   # We need to change `lkup` to have valid_values and type added
@@ -452,7 +455,9 @@ function(req) {
   params <- req$args
   params$weight <- params$population
   params$population <- NULL
-  out <- do.call(pipapi:::pipgd_select_lorenz, params)
+  relevant_params <- params[names(params) != "format"]
+  res$serializer <- pipapi::assign_serializer(format = if(is.null(params$format)) "csv" else params$format)
+  out <- do.call(pipapi:::pipgd_select_lorenz, relevant_params)
   new <- purrr::map_df(out$gd_params, return_output_regression_params)
   new <- cbind(new, selected_for_dist = out$selected_lorenz$for_dist,
         selected_for_pov = out$selected_lorenz$for_pov, povline = 1)
@@ -463,20 +468,18 @@ function(req) {
 #* @get /api/v1/lorenz-curve
 #* @param welfare:[dbl] numeric vector for welfare
 #* @param population:[dbl] numeric vector for population
-#* @param mean:[dbl] Welfare mean
-#* @param pop:[dbl] Cumulative proportion of population
-#* @param p0:[dbl] numeric
-#* @param nobs:[dbl] Number of observations to be used in synthetic vector. (default 100)
-#* @serializer csv
-function(req) {
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
+function(req, res) {
   ### TO DO :
   # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
   # We need to change `lkup` to have valid_values and type added
   # Talk with Andres/Tony on doing it.
   params <- req$args
-  if(is.null(params$nobs)) params$nobs <- 100L
-  params <- lapply(params, as.numeric)
-  out <- do.call(wbpip:::sd_create_synth_vector, params)
+  relevant_params <- params[names(params) != "format"]
+  relevant_params <- lapply(relevant_params, as.numeric)
+  res$serializer <- pipapi::assign_serializer(format = params$format)
+  use_params <- pipgd_params(relevant_params$weight, relevant_params$population)
+  out <- pipgd_lorenz_curve(params = use_params)
   out
 }
 

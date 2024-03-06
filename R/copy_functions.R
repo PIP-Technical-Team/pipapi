@@ -488,3 +488,147 @@ gd_compute_headcount_lq <- function(
 
 }
 
+
+#' Lorenz curve
+#'
+#' Returns the Lorenz curve. User provides the cumulative welfare and
+#' cumulative weight, as well as the number of points on the lorenz curve required.
+#' By default, the best fitting Lorenz parameterization (quadratic or beta) is
+#' selected.
+#'
+#' @inheritParams pipgd_pov_headcount_nv
+#' @param n_bins atomic double vector of length 1: number of points on the
+#' lorenz curve
+#'
+#' @return Returns a list which contains:
+#'  * numeric lorenz curve,
+#'  * corresponding points on x-axis,
+#'  * whether lq or lb parameterization, and
+#'  * if `complete=TRUE`, also returns all params.
+#'
+#' @export
+#'
+#' @examples
+#' # Example 1: Generating a Lorenz Curve with default settings
+#' pipgd_lorenz_curve(welfare = pip_gd$L,
+#'                    weight = pip_gd$P)
+#'
+#' # Example 2: Specifying the number of bins for the Lorenz Curve
+#' pipgd_lorenz_curve(welfare = pip_gd$L,
+#'                    weight = pip_gd$P,
+#'                    n_bins = 50)
+#'
+#' # Example 3: Using pre-calculated parameters
+#' use_params <- pipgd_params(welfare = pip_gd$L,
+#'                            weight = pip_gd$P)
+#' pipgd_lorenz_curve(params = use_params)
+#'
+#'
+#' # Example 4: Generating Lorenz Curve with a specific Lorenz model(e.g. Lorenz beta)
+#' pipgd_lorenz_curve(params = use_params,
+#'                    lorenz = "lb")
+#'
+#'
+pipgd_lorenz_curve <- function(
+    params     = NULL,
+    welfare    = NULL,
+    weight     = NULL,
+    mean       = 1,
+    times_mean = 1,
+    popshare   = NULL,
+    povline    = ifelse(is.null(popshare),
+                        mean*times_mean,
+                        NA_real_),
+    complete   = getOption("pipster.return_complete"),
+    lorenz     = NULL,
+    n_bins     = 100
+){
+
+  #____________________________________________________________________
+  #   Defenses
+  #____________________________________________________________________
+  pl <- as.list(environment())
+  check_pipgd_params(pl)
+
+  #____________________________________________________________________
+  #   Params
+  #____________________________________________________________________
+  if (!is.null(welfare)) {
+    params <- pipgd_select_lorenz(
+      welfare  = welfare,
+      weight   = weight,
+      complete = TRUE,
+      mean     = mean,
+      povline  = povline
+    )
+  } else {
+    params <- pipgd_select_lorenz(
+      welfare  =  params$data$welfare,
+      weight   =  params$data$weight,
+      complete = TRUE,
+      mean     = mean,
+      povline  = povline
+    )
+  }
+
+  #   _________________________________________________________________
+  #   Select Lorenz
+  #   _________________________________________________________________
+  if (is.null(lorenz)) {
+    lorenz <- params$selected_lorenz$for_dist
+  } else {
+    match.arg(lorenz, c("lq", "lb"))
+  }
+
+  #   _________________________________________________________________
+  #   Lorenz Calculations
+  #   _________________________________________________________________
+
+  x_vec <- seq(from = 0, to = 1, length.out = n_bins)
+
+  if (lorenz == "lb") {
+
+
+    lc <- wbpip:::value_at_lb(
+      x = x_vec,
+      A = params$gd_params$lb$reg_results$coef[["A"]],
+      B = params$gd_params$lb$reg_results$coef[["B"]],
+      C = params$gd_params$lb$reg_results$coef[["C"]]
+    )
+
+  } else if (lorenz == "lq") {
+
+    lc <- sapply(
+      X   = x_vec,
+      FUN = function(x1){
+        wbpip::value_at_lq(
+          x = x1,
+          A = params$gd_params$lq$reg_results$coef[["A"]],
+          B = params$gd_params$lq$reg_results$coef[["B"]],
+          C = params$gd_params$lq$reg_results$coef[["C"]]
+        )
+
+      }
+    )
+
+  }
+
+  attributes(lc) <- NULL
+
+  #   _________________________________________________________________
+  #   Return
+  #   _________________________________________________________________
+  if (isFALSE(complete)) {
+    params <- vector("list")
+  }
+
+  params$lorenz_curve$output <- lc
+  params$lorenz_curve$points <- x_vec
+  params$lorenz_curve$lorenz <- lorenz
+
+  params
+
+
+}
+
+
