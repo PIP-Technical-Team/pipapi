@@ -518,3 +518,15 @@ return_output_regression_params <- function(vals) {
   cbind(coef_val, do.call(cbind.data.frame, vals$reg_results), se_val,
         validity = vals$validity$is_valid, normality = vals$validity$is_normal)
 }
+
+
+#' Change the list-output to dataframe
+#'
+#' @param out output from wbpip::gd_compute_pip_stats
+#'
+#' @return dataframe
+change_grouped_stats_to_csv <- function(out) {
+  out[paste0("decile", seq_along(out$deciles))] <- out$deciles
+  out$deciles <- NULL
+  data.frame(out)
+}
