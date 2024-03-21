@@ -35,8 +35,7 @@ Suggests:
     jsonlite,
     future.callr,
     future.apply,
-    future,
-    lintr, 
+    lintr,
     joyn,
     glue,
     yaml,
@@ -58,7 +57,8 @@ Imports:
     rappdirs,
     methods,
     qs,
-    collapse
+    collapse,
+    future
 Remotes:
     PIP-Technical-Team/wbpip@PROD
 Depends: 
