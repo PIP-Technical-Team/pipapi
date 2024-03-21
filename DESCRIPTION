@@ -41,7 +41,6 @@ Suggests:
     yaml,
     readr,
     logger,
-    promises,
     arrow
 Language: en-US
 Imports: 
@@ -58,7 +57,8 @@ Imports:
     methods,
     qs,
     collapse,
-    future
+    future,
+    promises
 Remotes:
     PIP-Technical-Team/wbpip@PROD
 Depends: 
