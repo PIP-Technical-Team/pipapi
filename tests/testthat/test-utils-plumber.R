@@ -446,3 +446,19 @@ test_that("csv serialization returns empty string for missing values", {
                     fixed = TRUE))
 })
 
+
+test_that("validate_input_grouped_stats works correctly", {
+  out <- validate_input_grouped_stats(c("1.2,2.3,3.4,6.5"), c("2,3,4,5"))
+  expect_length(out, 2L)
+  expect_equal(names(out), c("welfare", "population"))
+  expect_equal(out$welfare, c(1.2,2.3,3.4,6.5))
+  expect_equal(out$population, c(2,3,4,5))
+})
+
+test_that("validate_input_grouped_stats returns NULL", {
+  out <- validate_input_grouped_stats(c("1.2,2.3,3.4"), c("2,3,4,5"))
+  expect_null(out)
+  out1 <- validate_input_grouped_stats(1:101, 1:101)
+  expect_null(out1)
+})
+

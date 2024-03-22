@@ -105,7 +105,11 @@ validate_query_parameters <-
     "parameter",
     "endpoint",
     "long_format",
-    "additional_ind"
+    "additional_ind"#,
+    #"welfare",
+    #"population",
+    #"requested_mean",
+    #"default_ppp"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]
@@ -481,4 +485,48 @@ is_forked <- function(country,
   is_intensive <- is_country_intensive & is_year_intensive
 
   return(is_intensive)
+}
+
+
+#' Validate grouped-stats endpoint input values
+#' @param welfare character: query values
+#' @param population character: valid values
+#' @return list of two vectors welfare and population
+#' @noRd
+validate_input_grouped_stats <- function(welfare, population) {
+  welfare <- parse_parameter(welfare,"welfare")
+  population <- parse_parameter(population,"population")
+  lw <- length(welfare)
+  # Only allow vector of length 100 and ensure the length of two vectors is same
+  correct <- lw <= 100 && lw == length(population)
+  if(correct) {
+    # dplyr::lst returns a named list. It is easier way of writing list(x = x, y = y)
+    return(dplyr::lst(welfare, population))
+  } else {
+    return(NULL)
+  }
+}
+
+#' Return output format for regression-params endpoint
+#' @param vals list: Regression result values
+#' @return dataframe
+#' @noRd
+return_output_regression_params <- function(vals) {
+  se_val <- matrix(vals$reg_results$se, ncol = 3, dimnames = list(NULL, c("se_A", "se_B", "se_C")))
+  coef_val <- t(vals$reg_results$coef)
+  vals$reg_results$coef <- vals$reg_results$se <- NULL
+  cbind(coef_val, do.call(cbind.data.frame, vals$reg_results), se_val,
+        validity = vals$validity$is_valid, normality = vals$validity$is_normal)
+}
+
+
+#' Change the list-output to dataframe
+#'
+#' @param out output from wbpip::gd_compute_pip_stats
+#'
+#' @return dataframe
+change_grouped_stats_to_csv <- function(out) {
+  out[paste0("decile", seq_along(out$deciles))] <- out$deciles
+  out$deciles <- NULL
+  data.frame(out)
 }
