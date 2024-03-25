@@ -51,6 +51,18 @@ ui_cp_ki_headcount <- function(country,
   res <- res_all[res_all$country_code == country, ]
   ### TEMP FIX for reporting level
   res <- cp_correct_reporting_level(res)
+  res <-
+    if (nrow(res) > 1) {
+      if (all(c("consumption", "income") %in% res$welfare_type)) {
+        # Get consumpton when both are available
+        res[welfare_type == "consumption"]
+      } else {
+        # get the first observations. this must be revised.
+        res[1]
+      }
+  } else {
+    res
+  }
   ### TEMP FIX END
 
   out <- data.table::data.table(
