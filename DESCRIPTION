@@ -60,7 +60,7 @@ Imports:
     logger,
     arrow
 Remotes:
-    PIP-Technical-Team/wbpip@PROD
+    PIP-Technical-Team/wbpip@DEV
 Depends: 
     R (>= 3.5.0)
 VignetteBuilder: knitr
