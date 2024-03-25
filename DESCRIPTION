@@ -1,6 +1,6 @@
 Package: pipapi
 Title: API for the Poverty and Inequality Platform
-Version: 1.3.4
+Version: 1.3.4.9006
 Authors@R: 
     c(person(given = "Tony",
             family = "Fujs",
@@ -35,7 +35,8 @@ Suggests:
     jsonlite,
     future.callr,
     future.apply,
-    lintr
+    lintr,
+    joyn
 Language: en-US
 Imports: 
     data.table,
@@ -51,16 +52,15 @@ Imports:
     methods,
     qs,
     collapse,
+    future,
+    promises,
     yaml,
     readr,
     glue,
     logger,
-    future,
-    promises,
-    joyn,
     arrow
 Remotes:
-    PIP-Technical-Team/wbpip@PROD
+    PIP-Technical-Team/wbpip@DEV
 Depends: 
     R (>= 3.5.0)
 VignetteBuilder: knitr
