@@ -19,16 +19,18 @@ ui_pc_charts <- function(country = c("AGO"),
   return_cols           <- lkup$return_cols$ui_pc_charts$cols
   inequality_indicators <- lkup$return_cols$ui_pc_charts$inequality_indicators
 
-  group_by <- match.arg(group_by)
+  group_by         <- match.arg(group_by)
+  welfare_type     <- match.arg(welfare_type)
+  reporting_level  <- match.arg(reporting_level)
 
   out <- pip(
-    country = country,
-    year = year,
-    povline = povline,
-    fill_gaps = fill_gaps,
-    group_by = group_by,
+    country         = country,
+    year            = year,
+    povline         = povline,
+    fill_gaps       = fill_gaps,
+    group_by        = group_by,
     reporting_level = reporting_level,
-    lkup = lkup
+    lkup            = lkup
   )
 
   # Add pop_in_poverty and scale according to pop_units

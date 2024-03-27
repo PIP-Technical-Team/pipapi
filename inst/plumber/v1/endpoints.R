@@ -21,7 +21,10 @@ function(req, res) {
   } else {
   ### STEP 2:
   # If partial version information is passed, use selection algorithm
-    if (is.null(req$argsQuery$identity)) req$argsQuery$identity <- 'PROD'
+    if (is.null(req$argsQuery$identity)) {
+      req$argsQuery$identity <- 'PROD'
+    }
+
     version <-
       pipapi::return_correct_version(req$argsQuery$version,
                                      req$argsQuery$release_version,
