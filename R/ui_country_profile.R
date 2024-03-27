@@ -41,14 +41,31 @@ ui_cp_ki_headcount <- function(country,
                                povline,
                                lkup) {
 
-  # Fetch most recent year (for CP-display)
-  # Fetch data for all countries for caching purposes
+  # Fetch most recent year (for CP-display) Fetch data for all countries for
+  # caching purposes Even though this is more inefficient by itself, this call
+  # before should be already cached in the pre-caching, making it even faster
   res_all <- pip(country         = "all",
-                 year            = year,
+                 year            = "all",
                  povline         = povline,
+                 fill_gaps       = FALSE,
+                 group_by        = "none",
+                 reporting_level = "all",
                  lkup            = lkup)
 
-  res <- res_all[res_all$country_code == country, ]
+  # Select max year and country
+  # res <-
+  #   res_all[res_all[,
+  #                 .I[which.max(reporting_year)],
+  #                 by = country_code]$V1
+  #         ][
+  #           country_code == country
+  #           ]
+  res <-
+    res_all[country_code == country
+            ][,
+              .SD[which.max(reporting_year)]]
+
+
   ### TEMP FIX for reporting level
   res <- cp_correct_reporting_level(res)
   res <-
@@ -137,10 +154,13 @@ ui_cp_poverty_charts <- function(country,
 
   # STEP 2: Compute stats for all countries from the region ----
   # Query for all countries for caching purpose
-  res_pov_all <- pip(country  = "all",
-                     year     = "all",
-                     povline  = povline,
-                     lkup     = lkup)
+  res_pov_all <- pip(country         = "all",
+                     year            = "all",
+                     povline         = povline,
+                     fill_gaps       = FALSE,
+                     group_by        = "none",
+                     reporting_level = "all",
+                     lkup            = lkup)
 
   res_pov <- res_pov_all[res_pov_all$country_code %in% countries, ]
   # STEP 3: Prepare data for poverty trend chart ----
