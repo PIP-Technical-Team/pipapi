@@ -460,7 +460,7 @@ function(req, res) {
   relevant_params <- params[names(params) != "format"]
   res$serializer <- pipapi::assign_serializer(format = params$format)
   out <- do.call(pipapi:::pipgd_select_lorenz, relevant_params)
-  new <- purrr::map_df(out$gd_params, return_output_regression_params)
+  new <- purrr::map_df(out$gd_params, return_output_regression_params, .id = "lorenz")
   new <- cbind(new, selected_for_dist = out$selected_lorenz$for_dist,
         selected_for_pov = out$selected_lorenz$for_pov, povline = 1)
   new
@@ -473,7 +473,7 @@ function(req, res) {
 #* @param mean:[dbl] mean value
 #* @param times_mean:[dbl] times mean
 #* @param popshare:[dbl] share of population
-#* @param lorenz:[dbl] Lorenz number
+#* @param lorenz:[chr] Lorenz fit
 #* @param n_bins:[dbl] Number of bins (default 100)
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 function(req, res) {
@@ -488,7 +488,7 @@ function(req, res) {
   relevant_params <- lapply(relevant_params, as.numeric)
   res$serializer <- pipapi::assign_serializer(format = params$format)
   out <- do.call(pipgd_lorenz_curve, relevant_params)
-  out <- data.frame(output = out$lorenz_curve$output, points = out$lorenz_curve$points)
+  out <- data.frame(welfare = out$lorenz_curve$output, weight = out$lorenz_curve$points)
   out
 }
 
