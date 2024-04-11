@@ -491,14 +491,15 @@ is_forked <- function(country,
 #' Validate grouped-stats endpoint input values
 #' @param welfare character: query values
 #' @param population character: valid values
+#' @param max_length integer: Max length of welfare vector
 #' @return list of two vectors welfare and population
 #' @noRd
-validate_input_grouped_stats <- function(welfare, population) {
+validate_input_grouped_stats <- function(welfare, population, max_length = 100) {
   welfare    <- parse_parameter(welfare,"welfare")
   population <- parse_parameter(population,"population")
   lw         <- length(welfare)
   # Only allow vector of length 100 and ensure the length of two vectors is same
-  correct <- lw <= 100 && lw == length(population)
+  correct <- lw <= max_length && lw == length(population)
   if (correct) {
     # dplyr::lst returns a named list. It is easier way of writing list(x = x, y = y)
     return(dplyr::lst(welfare, population))
