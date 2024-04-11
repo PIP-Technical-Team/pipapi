@@ -129,7 +129,8 @@ function(req, res) {
     }
 
     if (endpoint %in% c("grouped-stats", "regression-params", "lorenz-curve")) {
-      # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
+      # Working with args instead of argsQuery because we do not have type and
+      # valid values in lkup$query_controls
       result <- validate_input_grouped_stats(req$args$welfare, req$args$population)
       if(is.null(result)) {
         res$status <- 404
@@ -463,7 +464,7 @@ function(req, res) {
   new <- purrr::map_df(out$gd_params, return_output_regression_params, .id = "lorenz")
   new <- cbind(new, selected_for_dist = out$selected_lorenz$for_dist,
         selected_for_pov = out$selected_lorenz$for_pov, povline = 1)
-  new
+  return(new)
 }
 
 #* Lorenz curve data points
@@ -488,8 +489,9 @@ function(req, res) {
   relevant_params <- lapply(relevant_params, as.numeric)
   res$serializer <- pipapi::assign_serializer(format = params$format)
   out <- do.call(pipgd_lorenz_curve, relevant_params)
-  out <- data.frame(welfare = out$lorenz_curve$output, weight = out$lorenz_curve$points)
-  out
+  out <- data.frame(welfare = out$lorenz_curve$output,
+                    weight = out$lorenz_curve$points)
+  return(out)
 }
 
 #* Get information on directory contents
