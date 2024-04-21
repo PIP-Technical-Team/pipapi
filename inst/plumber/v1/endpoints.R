@@ -434,9 +434,11 @@ function(req) {
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 function(req, res) {
   params <- req$argsQuery
-  relevant_params <- params[!names(params) %in% c("format", "version")]
-  relevant_params <- lapply(relevant_params, as.numeric)
   res$serializer <- pipapi::assign_serializer(format = params$format)
+  params$format <- NULL
+  params$version <- NULL
+  relevant_params <- lapply(params, as.numeric)
+
   out <- do.call(wbpip:::gd_compute_pip_stats, relevant_params)
   if(!is.null(params$format) && params$format == "csv") {
     out <- change_grouped_stats_to_csv(out)
@@ -451,10 +453,11 @@ function(req, res) {
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 function(req, res) {
   params <- req$argsQuery
+  res$serializer <- pipapi::assign_serializer(format = params$format)
+  params$format <- NULL
+  params$version <- NULL
   params$weight <- params$population
   params$population <- NULL
-  relevant_params <- params[!names(params) %in% c("format", "version")]
-  res$serializer <- pipapi::assign_serializer(format = params$format)
   out <- do.call(pipapi:::pipgd_select_lorenz, relevant_params)
   new <- purrr::map_df(out$gd_params, return_output_regression_params, .id = "lorenz")
   new <- cbind(new, selected_for_dist = out$selected_lorenz$for_dist,
@@ -474,11 +477,12 @@ function(req, res) {
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 function(req, res) {
   params <- req$argsQuery
-  params$weight <- params$population
-  params$population <- NULL
-  relevant_params <- params[!names(params) %in% c("format", "version")]
-  relevant_params <- lapply(relevant_params, as.numeric)
   res$serializer <- pipapi::assign_serializer(format = params$format)
+  params$weight <- params$population
+  params$format <- NULL
+  params$version <- NULL
+  params$population <- NULL
+  relevant_params <- lapply(params, as.numeric)
   out <- do.call(pipgd_lorenz_curve, relevant_params)
   out <- data.frame(welfare = out$lorenz_curve$output,
                     weight = out$lorenz_curve$points)
