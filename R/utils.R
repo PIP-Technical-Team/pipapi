@@ -396,6 +396,44 @@ create_query_controls <- function(svy_lkup,
                     "reporting_level", "ppp", "version",
                     "format", "table", "long_format"),
          type = "character")
+
+  # cum_welfare
+  cum_welfare <- list(
+    values = c(min = 0, max = 1),
+    type = "numeric"
+  )
+  # cum_population
+  cum_population <- list(
+    values = c(min = 0, max = 1),
+    type = "numeric"
+  )
+  # requested_mean
+  requested_mean <- list(
+    values = c(min = 0, max = 100),
+    type = "numeric"
+  )
+
+  # mean
+  mean <- list(
+    values = c(min = 0, max = 100),
+    type = "numeric"
+  )
+
+  # times_mean
+  times_mean <- list(
+    values = c(min = 0, max = 1),
+    type = "numeric"
+  )
+
+  # lorenz
+  lorenz <- list(values = c("lb", "lq"),type = "character")
+
+  # n_bins
+  n_bins <- list(
+    values = c(min = 0, max = 1000),
+    type = "numeric"
+  )
+
   # Endpoint
   endpoint <-
     list(values = c("all",
@@ -425,6 +463,13 @@ create_query_controls <- function(svy_lkup,
     format          = format,
     table           = table,
     parameter       = parameter,
+    cum_welfare     = cum_welfare,
+    cum_population  = cum_population,
+    requested_mean  = requested_mean,
+    mean            = mean,
+    times_mean      = times_mean,
+    lorenz          = lorenz,
+    n_bins          = n_bins,
     endpoint        = endpoint
   )
 

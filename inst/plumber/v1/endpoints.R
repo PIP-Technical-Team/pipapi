@@ -129,8 +129,7 @@ function(req, res) {
     }
 
     if (endpoint %in% c("grouped-stats", "regression-params", "lorenz-curve")) {
-      # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
-      result <- validate_input_grouped_stats(req$args$welfare, req$args$population)
+      result <- validate_input_grouped_stats(req$argsQuery$cum_welfare, req$argsQuery$cum_population)
       if(is.null(result)) {
         res$status <- 404
         out <- list(
@@ -139,8 +138,10 @@ function(req, res) {
         )
         return(out)
       } else {
-        req$args$welfare <- result$welfare
-        req$args$population <- result$population
+        req$argsQuery$welfare <- result$welfare
+        req$argsQuery$population <- result$population
+        req$argsQuery$cum_welfare <- NULL
+        req$argsQuery$cum_population <- NULL
       }
     }
 
@@ -423,18 +424,14 @@ function(req) {
 
 #* Retrieve grouped data stats
 #* @get /api/v1/grouped-stats
-#* @param welfare:[dbl] numeric vector for welfare
-#* @param population:[dbl] numeric vector for population
+#* @param cum_welfare:[dbl] numeric vector for welfare
+#* @param cum_population:[dbl] numeric vector for population
 #* @param requested_mean:[dbl] mean value
 #* @param povline:[dbl] poverty line value
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 function(req, res) {
-  ### TO DO :
-  # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
-  # We need to change `lkup` to have valid_values and type added
-  # Talk with Andres/Tony on doing it.
-  params <- req$args
-  relevant_params <- params[names(params) != "format"]
+  params <- req$argsQuery
+  relevant_params <- params[!names(params) %in% c("format", "version")]
   relevant_params <- lapply(relevant_params, as.numeric)
   res$serializer <- pipapi::assign_serializer(format = params$format)
   out <- do.call(wbpip:::gd_compute_pip_stats, relevant_params)
@@ -446,18 +443,14 @@ function(req, res) {
 
 #* Retrieve regression parameters
 #* @get /api/v1/regression-params
-#* @param welfare:[dbl] numeric vector for welfare
-#* @param population:[dbl] numeric vector for population
+#* @param cum_welfare:[dbl] numeric vector for welfare
+#* @param cum_population:[dbl] numeric vector for population
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 function(req, res) {
-  ### TO DO :
-  # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
-  # We need to change `lkup` to have valid_values and type added
-  # Talk with Andres/Tony on doing it.
-  params <- req$args
+  params <- req$argsQuery
   params$weight <- params$population
   params$population <- NULL
-  relevant_params <- params[names(params) != "format"]
+  relevant_params <- params[!names(params) %in% c("format", "version")]
   res$serializer <- pipapi::assign_serializer(format = params$format)
   out <- do.call(pipapi:::pipgd_select_lorenz, relevant_params)
   new <- purrr::map_df(out$gd_params, return_output_regression_params, .id = "lorenz")
@@ -468,8 +461,8 @@ function(req, res) {
 
 #* Lorenz curve data points
 #* @get /api/v1/lorenz-curve
-#* @param welfare:[dbl] numeric vector for population
-#* @param population:[dbl] numeric vector weight
+#* @param cum_welfare:[dbl] numeric vector for population
+#* @param cum_population:[dbl] numeric vector weight
 #* @param mean:[dbl] mean value
 #* @param times_mean:[dbl] times mean
 #* @param popshare:[dbl] share of population
@@ -477,14 +470,10 @@ function(req, res) {
 #* @param n_bins:[dbl] Number of bins (default 100)
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 function(req, res) {
-  ### TO DO :
-  # Working with args instead of argsQuery because we do not have type and valid values in lkup$query_controls
-  # We need to change `lkup` to have valid_values and type added
-  # Talk with Andres/Tony on doing it.
-  params <- req$args
+  params <- req$argsQuery
   params$weight <- params$population
   params$population <- NULL
-  relevant_params <- params[names(params) != "format"]
+  relevant_params <- params[!names(params) %in% c("format", "version")]
   relevant_params <- lapply(relevant_params, as.numeric)
   res$serializer <- pipapi::assign_serializer(format = params$format)
   out <- do.call(pipgd_lorenz_curve, relevant_params)

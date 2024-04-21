@@ -1,0 +1,18 @@
+---
+title: "How to include new endpoints in pipapi"
+author: "Ronak Shah"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How to include new endpoints in pipapi}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+In the recent update to `pipapi` we added three new endpoints `grouped-stats`, `regression-params` and `lorenz-curve`. The goal of this post is to share the process of adding new endpoints in `pipapi` as there are lot of checks in place in the code and it can be quite challenging to do so.
+
+**Arguments** : Every argument and it's value passed to the API is validated. This enhances the security of the API by making sure only expected arguments and it's value are passed through API.
+
+The arguments are validated in function `validate_query_parameters` which has a list of all valid arguments for all the endpoints. If your endpoint is using an existing argument then you don't need to do anything since both the argument and it's value is already validated. For eg - If your endpoint has an argument `ppp` which is an existing argument in the API then you don't need to do any changes since `ppp` is already validated.
+
+**Values :** Validate your input values in `create_query_controls` function by adding range or list of accepted values. If the arguments is character then you need to give all possible values that it can take. If the argument is numeric, then you need to supply `min` and `max` values to ensure that the numeric values stays in range. Based on the type of argument, `check_param_chr`, `check_param_num` or `check_param_lgl` is called. This also ensures that the argument name should mean the same everywhere. So it is not possible that the same argument can have two different meaning. For example, it is not possible that the argument `requested_mean` accepts value 0 to 1 in one endpoint and `c("yes"/"no")` in another endpoint again ensuring consistency.

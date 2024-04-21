@@ -105,11 +105,14 @@ validate_query_parameters <-
     "parameter",
     "endpoint",
     "long_format",
-    "additional_ind"#,
-    #"welfare",
-    #"population",
-    #"requested_mean",
-    #"default_ppp"
+    "additional_ind",
+    "cum_welfare",
+    "cum_population",
+    "requested_mean",
+    "mean",
+    "times_mean",
+    "lorenz",
+    "n_bins"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]
