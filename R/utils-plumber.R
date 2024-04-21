@@ -424,8 +424,8 @@ citation_from_version <- function(version) {
 
 create_etag_header <- function(req, lkups){
   lkup_hash   <- lkups$versions_paths[[req$argsQuery$version]]
-  pipapi_hash <- packageDescription("pipapi")$GithubSHA1
-  wbpip_hash  <- packageDescription("wbpip")$GithubSHA1
+  pipapi_hash <- utils::packageDescription("pipapi")$GithubSHA1
+  wbpip_hash  <- utils::packageDescription("wbpip")$GithubSHA1
 
   etag_hash <- rlang::hash(c(lkup_hash, pipapi_hash, wbpip_hash))
 
@@ -502,7 +502,7 @@ validate_input_grouped_stats <- function(welfare, population, max_length = 100) 
   population <- parse_parameter(population,"population")
   lw         <- length(welfare)
   # Only allow vector of length 100 and ensure the length of two vectors is same
-  correct <- lw <= max_length && lw == length(population)
+  correct <- lw > 0 && lw <= max_length && lw == length(population)
   if (correct) {
     return(list(welfare = welfare, population = population))
   } else {

@@ -59,11 +59,11 @@ pipgd_params <- function(welfare,
 
   ## STEP 1: Prep data to fit functional form-------------
   functional_form_lq <-
-    wbpip:::create_functional_form_lq(welfare    = welfare,
+    wbpip::create_functional_form_lq(welfare    = welfare,
                               population = weight)
 
   ## STEP 2: Estimate regression coefficients using LQ parametrization------
-  reg_results_lq <- wbpip:::regres(functional_form_lq, is_lq = TRUE)
+  reg_results_lq <- wbpip::regres(functional_form_lq, is_lq = TRUE)
   names(reg_results_lq$coef) <- c("A", "B", "C")
 
   # add to results list
@@ -83,11 +83,11 @@ pipgd_params <- function(welfare,
 
   ## STEP 1: Prep data to fit functional form --------------
   functional_form_lb <-
-    wbpip:::create_functional_form_lb(welfare    = welfare,
+    wbpip::create_functional_form_lb(welfare    = welfare,
                                       population = weight)
 
   ## STEP 2: Estimate regression coefficients using LB parameterization
-  reg_results_lb <- wbpip:::regres(functional_form_lb, is_lq = FALSE)
+  reg_results_lb <- wbpip::regres(functional_form_lb, is_lq = FALSE)
   names(reg_results_lb$coef) <- c("A", "B", "C")
 
   # add to results list
@@ -288,7 +288,7 @@ pipgd_validate_lorenz <-
   }
 
   # Validity or LQ
-  validity_lq <- wbpip:::check_curve_validity_lq(
+  validity_lq <- wbpip::check_curve_validity_lq(
     params$gd_params$lq$reg_results$coef[["A"]],
     params$gd_params$lq$reg_results$coef[["B"]],
     params$gd_params$lq$reg_results$coef[["C"]],
@@ -308,7 +308,7 @@ pipgd_validate_lorenz <-
 
   # Validity of LB
   # Compute poverty stats
-  headcount_lb <- wbpip:::gd_compute_headcount_lb(mean,
+  headcount_lb <- wbpip::gd_compute_headcount_lb(mean,
                                           povline_lb,
                                           params$gd_params$lb$reg_results$coef[["A"]],
                                           params$gd_params$lb$reg_results$coef[["B"]],
@@ -316,7 +316,7 @@ pipgd_validate_lorenz <-
 
   # Check validity
   validity_lb <-
-    wbpip:::check_curve_validity_lb(headcount = headcount_lb,
+    wbpip::check_curve_validity_lb(headcount = headcount_lb,
                             params$gd_params$lb$reg_results$coef[["A"]],
                             params$gd_params$lb$reg_results$coef[["B"]],
                             params$gd_params$lb$reg_results$coef[["C"]])
@@ -418,18 +418,18 @@ pipgd_select_lorenz <-
                params$gd_params$lb$reg_results["sse"])
 
   use_lq_for_dist <-
-    wbpip:::use_lq_for_distributional(lq,lb)
+    wbpip::use_lq_for_distributional(lq,lb)
 
   ## Selected Lorenz for Poverty -----------
 
-  fit_lb <- wbpip:::gd_compute_fit_lb(params$data$welfare,
+  fit_lb <- wbpip::gd_compute_fit_lb(params$data$welfare,
                               params$data$weight,
                               params$gd_params$lb$validity$headcount,
                               params$gd_params$lb$reg_results$coef[["A"]],
                               params$gd_params$lb$reg_results$coef[["B"]],
                               params$gd_params$lb$reg_results$coef[["C"]])
 
-  fit_lq <- wbpip:::gd_compute_fit_lq(params$data$welfare,
+  fit_lq <- wbpip::gd_compute_fit_lq(params$data$welfare,
                               params$data$weight,
                               params$gd_params$lq$validity$headcount,
                               params$gd_params$lb$reg_results$coef[["A"]],
@@ -442,7 +442,7 @@ pipgd_select_lorenz <-
                fit_lb["ssez"])
 
 
-  use_lq_for_pov <- wbpip:::use_lq_for_poverty(lq, lb)
+  use_lq_for_pov <- wbpip::use_lq_for_poverty(lq, lb)
 
   l_res <- list(for_dist = ifelse(use_lq_for_dist, "lq", "lb"),
                 for_pov  = ifelse(use_lq_for_pov, "lq", "lb"),
@@ -496,7 +496,16 @@ gd_compute_headcount_lq <- function(
 #' By default, the best fitting Lorenz parameterization (quadratic or beta) is
 #' selected.
 #'
-#' @inheritParams pipgd_pov_headcount_nv
+#' @param params list of parameters
+#' @param welfare numeric vector of cumulative share of welfare (income/consumption)
+#' @param weight numeric vector of cumulative share of the population
+#' @param mean numeric scalar of distribution mean. Default is 1
+#' @param times_mean factor that multiplies the mean to create a relative poverty line. Default is 1
+#' @param popshare range (0,1). Share of population. Provide share of population instead of poverty line
+#' @param povline value of poverty line. Default is the `mean` value
+#' @param complete If TRUE, returns a list a cumulative returns from
+#'   previously used `get_gd` functions. Default is `FALSE`
+#' @param lorenz either "lb" or "lq"
 #' @param n_bins atomic double vector of length 1: number of points on the
 #' lorenz curve
 #'
@@ -589,7 +598,7 @@ pipgd_lorenz_curve <- function(
   if (lorenz == "lb") {
 
 
-    lc <- wbpip:::value_at_lb(
+    lc <- wbpip::value_at_lb(
       x = x_vec,
       A = params$gd_params$lb$reg_results$coef[["A"]],
       B = params$gd_params$lb$reg_results$coef[["B"]],
