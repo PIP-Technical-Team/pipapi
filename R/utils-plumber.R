@@ -494,15 +494,16 @@ is_forked <- function(country,
 #' Validate grouped-stats endpoint input values
 #' @param welfare character: query values
 #' @param population character: valid values
+#' @param max_length integer: Max length of welfare vector
 #' @return list of two vectors welfare and population
 #' @noRd
-validate_input_grouped_stats <- function(welfare, population) {
-  welfare <- parse_parameter(welfare,"welfare")
+validate_input_grouped_stats <- function(welfare, population, max_length = 100) {
+  welfare    <- parse_parameter(welfare,"welfare")
   population <- parse_parameter(population,"population")
-  lw <- length(welfare)
+  lw         <- length(welfare)
   # Only allow vector of length 100 and ensure the length of two vectors is same
-  correct <- lw <= 100 && lw == length(population)
-  if(correct) {
+  correct <- lw <= max_length && lw == length(population)
+  if (correct) {
     # dplyr::lst returns a named list. It is easier way of writing list(x = x, y = y)
     return(dplyr::lst(welfare, population))
   } else {
@@ -515,11 +516,25 @@ validate_input_grouped_stats <- function(welfare, population) {
 #' @return dataframe
 #' @noRd
 return_output_regression_params <- function(vals) {
-  se_val <- matrix(vals$reg_results$se, ncol = 3, dimnames = list(NULL, c("se_A", "se_B", "se_C")))
+  # Convert standard error values into a matrix with 3 columns, named for ease
+  # of understanding
+  se_val <- matrix(vals$reg_results$se,
+                   ncol = 3,
+                   dimnames = list(NULL, c("se_A", "se_B", "se_C")))
+  # Transpose coefficient values to make each coefficient a row instead of a
+  # column
   coef_val <- t(vals$reg_results$coef)
+  # Remove coefficient and standard error elements from the results to avoid
+  # redundancy
   vals$reg_results$coef <- vals$reg_results$se <- NULL
-  cbind(coef_val, do.call(cbind.data.frame, vals$reg_results), se_val,
-        validity = vals$validity$is_valid, normality = vals$validity$is_normal)
+  # Combine coefficient values, other regression results, standard errors into
+  # a single dataframe and add columns for validity and normality checks from
+  # the 'validity' sublist
+  cbind(coef_val,
+        do.call(cbind.data.frame, vals$reg_results),
+        se_val,
+        validity = vals$validity$is_valid,
+        normality = vals$validity$is_normal)
 }
 
 

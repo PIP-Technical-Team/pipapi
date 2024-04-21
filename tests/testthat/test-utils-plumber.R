@@ -455,6 +455,34 @@ test_that("validate_input_grouped_stats works correctly", {
   expect_equal(out$population, c(2,3,4,5))
 })
 
+test_that("validate_input_grouped_stats handles correct input", {
+  welfare <- as.character(1:50)
+  population <- as.character(1:50)
+  result <- validate_input_grouped_stats(welfare, population)
+  expect_is(result, "list")
+  expect_equal(length(result$welfare), 50)
+  expect_equal(length(result$population), 50)
+})
+
+test_that("validate_input_grouped_stats returns NULL with mismatched lengths", {
+  welfare <- as.character(1:50)
+  population <- as.character(1:40)
+  expect_is(validate_input_grouped_stats(welfare, population), "NULL")
+})
+
+test_that("validate_input_grouped_stats handles excessive length", {
+  welfare <- as.character(1:101)
+  population <- as.character(1:101)
+  expect_is(validate_input_grouped_stats(welfare, population), "NULL")
+})
+
+test_that("validate_input_grouped_stats handles empty vectors", {
+  welfare <- character(0)
+  population <- character(0)
+  expect_is(validate_input_grouped_stats(welfare, population), "NULL")
+})
+
+
 test_that("validate_input_grouped_stats returns NULL", {
   out <- validate_input_grouped_stats(c("1.2,2.3,3.4"), c("2,3,4,5"))
   expect_null(out)
