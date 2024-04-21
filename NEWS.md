@@ -1,4 +1,8 @@
 # pipapi (development version)
+
+# pipapi 1.3.5
+
+# pipapi 1.3.4
 ## New features
 - Add new SPR and SPL indicators
 - Add new endpoint `grouped-stats` to return grouped data
@@ -6,6 +10,7 @@
 ## Enhancements
 - Address some linting issues
 - Increase test coverage
+- Improve caching for `ui_cp_ki_headcount` and `ui_cp_poverty_charts`
 
 # pipapi 1.3.3
 - Fix bug with ag_average_poverty_stats
