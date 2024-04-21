@@ -504,8 +504,7 @@ validate_input_grouped_stats <- function(welfare, population, max_length = 100) 
   # Only allow vector of length 100 and ensure the length of two vectors is same
   correct <- lw <= max_length && lw == length(population)
   if (correct) {
-    # dplyr::lst returns a named list. It is easier way of writing list(x = x, y = y)
-    return(dplyr::lst(welfare, population))
+    return(list(welfare = welfare, population = population))
   } else {
     return(NULL)
   }
