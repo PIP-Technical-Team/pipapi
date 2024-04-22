@@ -99,7 +99,7 @@ pip_grp_logic <- function(country         = "ALL",
                        year            = year,
                        povline         = povline,
                        reporting_level = reporting_level,
-                       censor          = censor,
+                       censor          = FALSE,
                        fg_pip          = fg_pip_master,
                        lkup            = lkup)
     } else {
@@ -129,7 +129,7 @@ pip_grp_logic <- function(country         = "ALL",
                           year                = lcv$md_year,
                           povline             = povline,
                           reporting_level     = reporting_level,
-                          censor              = censor,
+                          censor              = FALSE,
                           fg_pip              = fg_pip_master,
                           lkup                = lkup)
 
