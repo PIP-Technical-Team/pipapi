@@ -1,4 +1,5 @@
 # pipapi 1.3.7
+remove censoring of official regions to account for cases like GNQ in which they are not counted as part of the total population of AFE and AFW
 
 # pipapi 1.3.6
 
