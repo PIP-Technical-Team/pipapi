@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.3.6
 
 # pipapi 1.3.5
 
