@@ -17,7 +17,7 @@ get_md_vars(md, ctr_alt_agg, year, off_alt_agg, user_off_reg)
 \item{off_alt_agg}{character: Instruction about how to handle official and
 alternate aggregates}
 
-\item{user_off_reg:}{character: Official regions requested by user}
+\item{user_off_reg}{character: Official regions requested by user}
 }
 \value{
 list

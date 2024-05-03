@@ -39,7 +39,9 @@ Suggests:
     withr,
     joyn, 
     cli, 
-    readr
+    readr, 
+    devtools, 
+    arrow
 Language: en-US
 Imports: 
     data.table,
@@ -54,7 +56,8 @@ Imports:
     rappdirs,
     methods,
     qs,
-    collapse
+    collapse, 
+    future
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 

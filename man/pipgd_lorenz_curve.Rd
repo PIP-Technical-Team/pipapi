@@ -56,6 +56,7 @@ By default, the best fitting Lorenz parameterization (quadratic or beta) is
 selected.
 }
 \examples{
+\dontrun{
 # Example 1: Generating a Lorenz Curve with default settings
 pipgd_lorenz_curve(welfare = pip_gd$L,
                    weight = pip_gd$P)
@@ -74,6 +75,6 @@ pipgd_lorenz_curve(params = use_params)
 # Example 4: Generating Lorenz Curve with a specific Lorenz model(e.g. Lorenz beta)
 pipgd_lorenz_curve(params = use_params,
                    lorenz = "lb")
-
+}
 
 }

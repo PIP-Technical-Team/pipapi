@@ -518,6 +518,7 @@ gd_compute_headcount_lq <- function(
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' # Example 1: Generating a Lorenz Curve with default settings
 #' pipgd_lorenz_curve(welfare = pip_gd$L,
 #'                    weight = pip_gd$P)
@@ -536,7 +537,7 @@ gd_compute_headcount_lq <- function(
 #' # Example 4: Generating Lorenz Curve with a specific Lorenz model(e.g. Lorenz beta)
 #' pipgd_lorenz_curve(params = use_params,
 #'                    lorenz = "lb")
-#'
+#'}
 #'
 pipgd_lorenz_curve <- function(
     params     = NULL,

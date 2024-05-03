@@ -17,7 +17,7 @@ utils::globalVariables(
     "welfare_type", "pcn_region_code",
     "comparable_spell","..cols", "N", "check",
     "data_interpolation_id", "display_cp", "region_name",
-    "sessionInfo"
+    "sessionInfo", "bottom40", "max_year", "headcount_national"
   )
 )
 
@@ -644,7 +644,7 @@ select_years <- function(lkup, keep, year, country) {
 
 #' Test whether a vector is length zero and IS not NULL
 #'
-#' @param x
+#' @param x Value to be passed
 #'
 #' @return logical. TRUE if x is empty but it is not NULL
 #' @export
