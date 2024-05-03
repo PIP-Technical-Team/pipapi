@@ -409,19 +409,19 @@ create_query_controls <- function(svy_lkup,
   )
   # requested_mean
   requested_mean <- list(
-    values = c(min = 0, max = 100),
+    values = c(min = 0, max = 1e10),
     type = "numeric"
   )
 
   # mean
   mean <- list(
-    values = c(min = 0, max = 100),
+    values = c(min = 0, max = 1e10),
     type = "numeric"
   )
 
   # times_mean
   times_mean <- list(
-    values = c(min = 0, max = 1),
+    values = c(min = 0.01, max = 5),
     type = "numeric"
   )
 
@@ -647,6 +647,7 @@ select_years <- function(lkup, keep, year, country) {
 #' @param x Value to be passed
 #'
 #' @return logical. TRUE if x is empty but it is not NULL
+#' @import future
 #' @export
 #'
 #' @examples
