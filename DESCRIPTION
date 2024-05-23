@@ -58,7 +58,8 @@ Imports:
     readr,
     glue,
     logger,
-    arrow
+    arrow, 
+    tidyr
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 

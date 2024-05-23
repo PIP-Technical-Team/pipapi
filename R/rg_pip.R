@@ -14,7 +14,6 @@ rg_pip <- function(country,
                    reporting_level,
                    ppp,
                    lkup) {
-
   # get values from lkup
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
@@ -28,7 +27,6 @@ rg_pip <- function(country,
     lkup            = svy_lkup,
     valid_regions   = valid_regions
   )
-
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
   metadata <- filter_lkup(metadata = metadata,
@@ -49,7 +47,7 @@ rg_pip <- function(country,
       reporting_level = tmp_metadata$reporting_level,
       path = tmp_metadata$path
     )
-
+    #browser()
     tmp_stats <- wbpip:::prod_compute_pip_stats(
       welfare           = svy_data$df0$welfare,
       povline           = povline,
@@ -63,12 +61,12 @@ rg_pip <- function(country,
       ppp               = ppp,
       distribution_type = tmp_metadata$distribution_type
     )
-
     # Add stats columns to data frame
     for (j in seq_along(tmp_stats)) {
-      tmp_metadata[[names(tmp_stats)[j]]] <- tmp_stats[[j]]
+      tmp_metadata[[names(tmp_stats)[j]]] <- list(tmp_stats[[j]])
     }
-
+    # To allow multiple povline values, we store them in a list and unnest
+    tmp_metadata <- tmp_metadata %>% tidyr::unnest_longer(col = dplyr::everything())
     out[[i]] <- tmp_metadata
   }
   out <- data.table::rbindlist(out)
