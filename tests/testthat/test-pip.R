@@ -603,3 +603,12 @@ test_that("error when more than one dataset is passed", {
   fixed = TRUE)
 })
 
+
+test_that("pip works for multiple povline values", {
+  out1 <- pip(country = "AGO",year = 2000,povline = 1.9,lkup = lkup)
+  out2 <- pip(country = "AGO",year = 2000,povline = 1.675,lkup = lkup)
+  out3 <- pip(country = "AGO",year = 2000,povline = c(1.675, 1.9),lkup = lkup)
+
+  expect_identical(rbind(out2, out1), out3)
+})
+
