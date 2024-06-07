@@ -9,6 +9,7 @@
 # pipapi 1.3.4
 ## New features
 - Add new SPR and SPL indicators
+- Add new endpoint `grouped-stats` to return grouped data
 
 ## Enhancements
 - Address some linting issues

@@ -102,7 +102,7 @@ paths:
              name: format
              schema:
               type: string
-              enum: [json, csv, rds]
+              enum: [json, csv, rds, arrow]
              description: Response format. Defaults to json.
       responses:
        '200':
@@ -193,7 +193,7 @@ paths:
              name: format
              schema:
               type: string
-              enum: [json, csv, rds]
+              enum: [json, csv, rds, arrow]
              description: Response format. Defaults to json.
       responses:
        '200':
@@ -235,7 +235,7 @@ paths:
             name: format
             schema:
               type: string
-              enum: [json, csv, rds]
+              enum: [json, csv, rds, arrow]
             description: Response format. Defaults to json.
   /api/v1/valid-years:
     get:
@@ -313,7 +313,7 @@ paths:
             name: format
             schema:
               type: string
-              enum: [json, csv, rds]
+              enum: [json, csv, rds, arrow]
             description: Response format. Defaults to json.
   /api/v1/versions:
     get:
@@ -326,7 +326,7 @@ paths:
             name: format
             schema:
               type: string
-              enum: [json, csv, rds]
+              enum: [json, csv, rds, arrow]
             description: Response format. Defaults to json.
   /api/v1/pip-info:
     get:
@@ -335,3 +335,129 @@ paths:
         default:
           description: Default response.
       parameters: []
+  /api/v1/grouped-stats:
+    get:
+      summary: 'Retrieve grouped data stats'
+      responses:
+        default:
+          description: Default response.
+      parameters:
+        - in: query
+          name: cum_welfare
+          schema:
+            type: number
+          minimum: 0
+          maximum: 1
+          example: 0.234
+        - in: query
+          name: cum_population
+          schema:
+            type: number
+          minimum: 0
+          maximum: 1
+          example: 0.234
+        - in: query
+          name: requested_mean
+          schema:
+            type: number
+          minimum: 0
+          maximum: 1e10
+          example: 1.9
+        - in: query
+          name: povline
+          schema:
+            type: number
+          minimum: 0
+          maximum: 2700
+          example: 1.9
+        - in: query
+          name: format
+          schema:
+            type: string
+          enum: [json, csv, rds, arrow]
+  /api/v1/regression-params:
+    get:
+      summary: 'Retrieve regression parameters'
+      responses:
+        default:
+          description: Default response.
+      parameters:
+        - in: query
+          name: cum_welfare
+          schema:
+            type: number
+          minimum: 0
+          maximum: 1
+          example: 0.234
+        - in: query
+          name: cum_population
+          schema:
+            type: number
+          minimum: 0
+          maximum: 1
+          example: 0.234
+        - in: query
+          name: format
+          schema:
+            type: string
+          enum: [json, csv, rds, arrow]
+  /api/v1/lorenz-curve:
+    get:
+      summary: 'Lorenz curve data points'
+      responses:
+        default:
+          description: Default response.
+      parameters:
+        - in: query
+          name: cum_welfare
+          schema:
+            type: number
+          minimum: 0
+          maximum: 1
+          example: 0.234
+        - in: query
+          name: cum_population
+          schema:
+            type: number
+          minimum: 0
+          maximum: 1
+          example: 0.234
+        - in: query
+          name: mean
+          schema:
+            type: number
+          minimum: 0
+          maximum: 1e10
+          example: 1.9
+        - in: query
+          name: times_mean
+          schema:
+            type: number
+          minimum: 0.01
+          maximum: 5
+          example: 1.9
+        - in: query
+          name: popshare
+          schema:
+            type: number
+          minimum: 0
+          maximum: 1
+          example: 0.234
+        - in: query
+          name: lorenz
+          schema:
+            type: string
+          enum: [lb, lq]
+        - in: query
+          name: n_bins
+          schema:
+            type: number
+          minimum: 0
+          maximum: 1000
+          example: 100
+        - in: query
+          name: format
+          schema:
+            type: string
+          enum: [json, csv, rds, arrow]
+

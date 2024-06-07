@@ -19,7 +19,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 URL: https://pip-technical-team.github.io/pipapi, https://github.com/PIP-Technical-Team/pipapi
 BugReports: https://github.com/PIP-Technical-Team/pipapi/issues
 Suggests: 
@@ -36,7 +36,12 @@ Suggests:
     future.callr,
     future.apply,
     lintr,
-    joyn
+    withr,
+    joyn, 
+    cli, 
+    readr, 
+    devtools, 
+    arrow
 Language: en-US
 Imports: 
     data.table,
@@ -51,14 +56,8 @@ Imports:
     rappdirs,
     methods,
     qs,
-    collapse,
-    future,
-    promises,
-    yaml,
-    readr,
-    glue,
-    logger,
-    arrow
+    collapse, 
+    future
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 
