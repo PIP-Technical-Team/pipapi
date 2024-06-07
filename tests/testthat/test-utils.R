@@ -1,6 +1,5 @@
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
-library(data.table)
 
 lkups          <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
 latest_release <- lkups$latest_release
@@ -17,6 +16,7 @@ valid_regions <- sort(unique(ref_lkup$region_code))
 # ref_lkup <- fst::read_fst("./tests/testdata/app_data/20210401/estimations/interpolated_means.fst")
 
 test_that("select_reporting_level is working as expected", {
+  withr::local_package("jsonlite")
   keep <- rep(TRUE, nrow(ref_lkup))
   tmp <- select_reporting_level(lkup = ref_lkup,
                                 keep = keep,

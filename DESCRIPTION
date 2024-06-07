@@ -36,7 +36,12 @@ Suggests:
     future.callr,
     future.apply,
     lintr,
-    joyn
+    withr,
+    joyn, 
+    cli, 
+    readr, 
+    devtools, 
+    arrow
 Language: en-US
 Imports: 
     data.table,

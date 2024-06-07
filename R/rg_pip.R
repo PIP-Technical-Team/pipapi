@@ -3,7 +3,6 @@
 #' Compute the main PIP poverty and inequality statistics for survey years.
 #'
 #' @inheritParams pip
-#' @param valid_regions character: Vector of accpeted code for regions
 #' @return data.frame
 #' @keywords internal
 rg_pip <- function(country,

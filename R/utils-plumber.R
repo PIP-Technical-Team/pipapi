@@ -105,7 +105,14 @@ validate_query_parameters <-
     "parameter",
     "endpoint",
     "long_format",
-    "additional_ind"
+    "additional_ind",
+    "cum_welfare",
+    "cum_population",
+    "requested_mean",
+    "mean",
+    "times_mean",
+    "lorenz",
+    "n_bins"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]
@@ -417,8 +424,8 @@ citation_from_version <- function(version) {
 
 create_etag_header <- function(req, lkups){
   lkup_hash   <- lkups$versions_paths[[req$argsQuery$version]]
-  pipapi_hash <- packageDescription("pipapi")$GithubSHA1
-  wbpip_hash  <- packageDescription("wbpip")$GithubSHA1
+  pipapi_hash <- utils::packageDescription("pipapi")$GithubSHA1
+  wbpip_hash  <- utils::packageDescription("wbpip")$GithubSHA1
 
   etag_hash <- rlang::hash(c(lkup_hash, pipapi_hash, wbpip_hash))
 
@@ -481,4 +488,62 @@ is_forked <- function(country,
   is_intensive <- is_country_intensive & is_year_intensive
 
   return(is_intensive)
+}
+
+
+#' Validate grouped-stats endpoint input values
+#' @param welfare character: query values
+#' @param population character: valid values
+#' @param max_length integer: Max length of welfare vector
+#' @return list of two vectors welfare and population
+#' @noRd
+validate_input_grouped_stats <- function(welfare, population, max_length = 100) {
+  welfare    <- parse_parameter(welfare,"welfare")
+  population <- parse_parameter(population,"population")
+  lw         <- length(welfare)
+  # Only allow vector of length 100 and ensure the length of two vectors is same
+  correct <- lw > 0 && lw <= max_length && lw == length(population)
+  if (correct) {
+    return(list(welfare = welfare, population = population))
+  } else {
+    return(NULL)
+  }
+}
+
+#' Return output format for regression-params endpoint
+#' @param vals list: Regression result values
+#' @return dataframe
+#' @noRd
+return_output_regression_params <- function(vals) {
+  # Convert standard error values into a matrix with 3 columns, named for ease
+  # of understanding
+  se_val <- matrix(vals$reg_results$se,
+                   ncol = 3,
+                   dimnames = list(NULL, c("se_A", "se_B", "se_C")))
+  # Transpose coefficient values to make each coefficient a row instead of a
+  # column
+  coef_val <- t(vals$reg_results$coef)
+  # Remove coefficient and standard error elements from the results to avoid
+  # redundancy
+  vals$reg_results$coef <- vals$reg_results$se <- NULL
+  # Combine coefficient values, other regression results, standard errors into
+  # a single dataframe and add columns for validity and normality checks from
+  # the 'validity' sublist
+  cbind(coef_val,
+        do.call(cbind.data.frame, vals$reg_results),
+        se_val,
+        validity = vals$validity$is_valid,
+        normality = vals$validity$is_normal)
+}
+
+
+#' Change the list-output to dataframe
+#'
+#' @param out output from wbpip::gd_compute_pip_stats
+#'
+#' @return dataframe
+change_grouped_stats_to_csv <- function(out) {
+  out[paste0("decile", seq_along(out$deciles))] <- out$deciles
+  out$deciles <- NULL
+  data.frame(out)
 }

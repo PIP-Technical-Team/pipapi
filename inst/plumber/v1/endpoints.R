@@ -10,7 +10,6 @@ library(pipapi)
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
-# browser()
   ### STEP 1:
   # If no arguments are passed, use the latest version
   if (is.null(req$argsQuery$release_version) &
@@ -129,6 +128,23 @@ function(req, res) {
                          valid = pipapi::get_valid_aux_long_format_tables()))
           return(out)
         }
+      }
+    }
+
+    if (endpoint %in% c("grouped-stats", "regression-params", "lorenz-curve")) {
+      result <- validate_input_grouped_stats(req$argsQuery$cum_welfare, req$argsQuery$cum_population)
+      if(is.null(result)) {
+        res$status <- 404
+        out <- list(
+          error = "Invalid query arguments have been submitted.",
+          details = list(msg = "You have either passed more than 100 values or the length of two vectors is not the same")
+        )
+        return(out)
+      } else {
+        req$argsQuery$welfare <- result$welfare
+        req$argsQuery$population <- result$population
+        req$argsQuery$cum_welfare <- NULL
+        req$argsQuery$cum_population <- NULL
       }
     }
 
@@ -407,6 +423,70 @@ function(req) {
 #* @serializer unboxedJSON
 function(req) {
   lkups$versions_paths[[req$argsQuery$version]]$cache_data_id
+}
+
+#* Retrieve grouped data stats
+#* @get /api/v1/grouped-stats
+#* @param cum_welfare:[dbl] numeric vector for welfare
+#* @param cum_population:[dbl] numeric vector for population
+#* @param requested_mean:[dbl] mean value
+#* @param povline:[dbl] poverty line value
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
+function(req, res) {
+  params <- req$argsQuery
+  res$serializer <- pipapi::assign_serializer(format = params$format)
+  params$format <- NULL
+  params$version <- NULL
+  relevant_params <- lapply(params, as.numeric)
+
+  out <- do.call(wbpip:::gd_compute_pip_stats, relevant_params)
+  if(!is.null(params$format) && params$format == "csv") {
+    out <- change_grouped_stats_to_csv(out)
+  }
+  out
+}
+
+#* Retrieve regression parameters
+#* @get /api/v1/regression-params
+#* @param cum_welfare:[dbl] numeric vector for welfare
+#* @param cum_population:[dbl] numeric vector for population
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
+function(req, res) {
+  params <- req$argsQuery
+  res$serializer <- pipapi::assign_serializer(format = params$format)
+  params$format <- NULL
+  params$version <- NULL
+  params$weight <- params$population
+  params$population <- NULL
+  out <- do.call(pipapi:::pipgd_select_lorenz, relevant_params)
+  new <- purrr::map_df(out$gd_params, return_output_regression_params, .id = "lorenz")
+  new <- cbind(new, selected_for_dist = out$selected_lorenz$for_dist,
+        selected_for_pov = out$selected_lorenz$for_pov, povline = 1)
+  return(new)
+}
+
+#* Lorenz curve data points
+#* @get /api/v1/lorenz-curve
+#* @param cum_welfare:[dbl] numeric vector for population
+#* @param cum_population:[dbl] numeric vector weight
+#* @param mean:[dbl] mean value
+#* @param times_mean:[dbl] times mean
+#* @param popshare:[dbl] share of population
+#* @param lorenz:[chr] Lorenz fit
+#* @param n_bins:[dbl] Number of bins (default 100)
+#* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
+function(req, res) {
+  params <- req$argsQuery
+  res$serializer <- pipapi::assign_serializer(format = params$format)
+  params$weight <- params$population
+  params$format <- NULL
+  params$version <- NULL
+  params$population <- NULL
+  relevant_params <- lapply(params, as.numeric)
+  out <- do.call(pipgd_lorenz_curve, relevant_params)
+  out <- data.frame(welfare = out$lorenz_curve$output,
+                    weight = out$lorenz_curve$points)
+  return(out)
 }
 
 #* Get information on directory contents

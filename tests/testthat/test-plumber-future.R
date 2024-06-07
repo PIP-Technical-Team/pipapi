@@ -1,14 +1,6 @@
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "" ||
           Sys.getenv("PIPAPI_TEST_PLUMBER") != "TRUE")
-
-#library(callr)
-library(httr)
-library(future)
-library(future.apply)
-library(future.callr)
-
-
 # Set plan
 future::plan("multisession", workers = 2) # n workers for unit tests script
 
@@ -47,7 +39,7 @@ test_that("Parallel processing is avaliable", {
 test_that("Async parallel processing works for /pip", {
   # Send API request
   paths <- c("api/v1/pip?country=all&year=all", "api/v1/pip?country=ALB&year=2008")
-  r <- future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
+  r <- future.apply::future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
 
   # Check response
   expect_equal(r[[1]]$status_code, 200)
@@ -60,7 +52,7 @@ test_that("Async parallel processing works for /pip", {
 test_that("Async parallel processing works for /pip-grp", {
   # Send API request
   paths <- c("api/v1/pip-grp?country=all&year=all", "api/v1/pip-grp?country=ALB&year=2008")
-  r <- future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
+  r <- future.apply::future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
 
   # Check response
   expect_equal(r[[1]]$status_code, 200)
@@ -74,7 +66,7 @@ test_that("Async parallel processing works for /pip-grp", {
 test_that("Async parallel processing works for /hp-stacked", {
   # Send API request
   paths <- c("api/v1/hp-stacked", "api/v1/health-check")
-  r <- future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
+  r <- future.apply::future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
 
   # Check response
   expect_equal(r[[1]]$status_code, 200)
@@ -87,7 +79,7 @@ test_that("Async parallel processing works for /hp-stacked", {
 test_that("Async parallel processing works for /pc-regional", {
   # Send API request
   paths <- c("api/v1/pc-regional-aggregates", "api/v1/health-check")
-  r <- future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
+  r <- future.apply::future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
 
   # Check response
   expect_equal(r[[1]]$status_code, 200)
@@ -100,7 +92,7 @@ test_that("Async parallel processing works for /pc-regional", {
 test_that("Async parallel processing works for /pc-charts", {
   # Send API request
   paths <- c("api/v1/pc-charts?country=all&year=all", "api/v1/pc-charts?country=ALB&year=all")
-  r <- future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
+  r <- future.apply::future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
 
   # Check response
   expect_equal(r[[1]]$status_code, 200)
@@ -113,7 +105,7 @@ test_that("Async parallel processing works for /pc-charts", {
 test_that("Async parallel processing works for /cp-charts", {
   # Send API request
   paths <- c("api/v1/cp-charts?country=all", "api/v1/cp-charts?country=ALB")
-  r <- future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
+  r <- future.apply::future_lapply(paths, function(x) httr::GET(root_path, port = 8000, path = x))
 
   # Check response
   expect_equal(r[[1]]$status_code, 200)

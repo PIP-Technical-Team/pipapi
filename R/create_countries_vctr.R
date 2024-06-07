@@ -162,7 +162,8 @@ select_off_alt_agg <- function(user_gt, off_gt) {
 #' Helper function to select correct Official Regions
 #'
 #' @param country character: User selected countries
-#' @param off_reg character: Official region codes
+#' @param all_agg character: all country aggregates
+#' @param off_reg_ext character: Official region codes
 #' @param aggs data.frame: Regions lookup table
 #'
 #' @return character
@@ -206,7 +207,7 @@ get_user_alt_gt <- function(user_gt, off_gt) {
 
 #' Helper function to define user_{var}_code
 #'
-#' @param user_gt character: Grouping type needed by user
+#' @param x character: Grouping type needed by user
 #'
 #' @return character
 #' @export
@@ -332,7 +333,7 @@ get_grp_to_compute <- function(user_off_reg,
 #' @param year character: Years
 #' @param off_alt_agg character: Instruction about how to handle official and
 #' alternate aggregates
-#' @param user_off_reg: character: Official regions requested by user
+#' @param user_off_reg character: Official regions requested by user
 #' @return list
 #' @export
 #'

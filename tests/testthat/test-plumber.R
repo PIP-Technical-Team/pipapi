@@ -16,9 +16,11 @@ Sys.sleep(5)
 api1$call(function() {
   # Use double assignment operator so the lkups object is available in the global
   # environment of the background R session, so it is available for the API
+  devtools::load_all()
   lkups <<- pipapi::create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
   pipapi::start_api(port = 8000)
 })
+
 Sys.sleep(30)
 
 test_that("API is alive", {
@@ -42,7 +44,7 @@ test_that("/pip-info returns correctly formatted response", {
   # Check response
   tmp_resp <- httr::content(r, encoding = "UTF-8")
   expect_equal(names(tmp_resp),
-               c("available_data_versions", "package_versions", "r_version",
+               c("available_data_versions", "pip_packages", "other_packages", "r_version",
                  "server_os", "server_time"))
 })
 
@@ -188,6 +190,41 @@ test_that("Indicator names are correct", {
   ind_resp <- httr::content(r, encoding = "UTF-8")
   ind_code <- y <- vapply(ind_resp, `[[`, "indicator_code", FUN.VALUE = character(1))
   expect_equal(sum(names(pip_resp[[1]]) %in% ind_code), 21)
+})
+
+test_that("grouped-stats endpoint works correctly", {
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/grouped-stats?welfare=0.0002%2C0.0006%2C0.0011%2C0.0021%2C0.0031%2C0.0048%2C0.0066%2C0.0095%2C0.0128%2C0.0177%2C0.0229%2C0.0355%2C0.0513%2C0.0689%2C0.0882&population=0.001%2C0.003%2C0.005%2C0.009%2C0.013%2C0.019%2C0.025%2C0.034%2C0.044%2C0.0581%2C0.0721%2C0.1041%2C0.1411%2C0.1792%2C0.2182&requested_mean=2.911786&povline=1.9&format=csv")
+  pip_resp <- httr::content(r, encoding = "UTF-8")
+
+  expect_equal(r$status_code, 200)
+  expect_equal(dim(pip_resp), c(1, 20))
+  expect_equal(names(pip_resp), c("poverty_line","mean","median","headcount","poverty_gap","poverty_severity","watts","gini","mld","polarization","decile1","decile2","decile3","decile4","decile5","decile6","decile7","decile8","decile9","decile10"))
+})
+
+test_that("regression-params endpoint works correctly", {
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/regression-params?welfare=0.0002%2C0.0006%2C0.0011%2C0.0021%2C0.0031%2C0.0048%2C0.0066%2C0.0095%2C0.0128%2C0.0177%2C0.0229%2C0.0355%2C0.0513%2C0.0689%2C0.0882&population=0.001%2C0.003%2C0.005%2C0.009%2C0.013%2C0.019%2C0.025%2C0.034%2C0.044%2C0.0581%2C0.0721%2C0.1041%2C0.1411%2C0.1792%2C0.2182&format=csv")
+  pip_resp <- httr::content(r, encoding = "UTF-8")
+
+  expect_equal(r$status_code, 200)
+  expect_equal(dim(pip_resp), c(2, 17))
+  expect_equal(names(pip_resp), c("lorenz","A","B","C","ymean","sst","sse","r2","mse","se_A","se_B","se_C","validity","normality","selected_for_dist","selected_for_pov","povline"))
+})
+
+test_that("lorenz-curve endpoint works correctly", {
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/lorenz-curve?welfare=0.0002%2C0.0006%2C0.0011%2C0.0021%2C0.0031%2C0.0048%2C0.0066%2C0.0095%2C0.0128%2C0.0177%2C0.0229%2C0.0355%2C0.0513%2C0.0689%2C0.0882&population=0.001%2C0.003%2C0.005%2C0.009%2C0.013%2C0.019%2C0.025%2C0.034%2C0.044%2C0.0581%2C0.0721%2C0.1041%2C0.1411%2C0.1792%2C0.2182&mean=1.9&format=csv")
+  pip_resp <- httr::content(r, encoding = "UTF-8")
+
+  expect_equal(r$status_code, 200)
+  expect_equal(dim(pip_resp), c(100, 2))
+  expect_equal(names(pip_resp), c("welfare","weight"))
+
+  r <- httr::GET(root_path, port = 8000, path = "api/v1/lorenz-curve?welfare=0.0002%2&population=0.001%2C0.003&mean=1.9&format=json")
+  pip_resp <- httr::content(r, encoding = "UTF-8")
+
+  expect_equal(r$status_code, 404)
+  expect_equal(names(pip_resp), c("error", "details"))
+  expect_equal(pip_resp$error[[1]], "Invalid query arguments have been submitted.")
+  expect_equal(pip_resp$details$msg[[1]], "You have either passed more than 100 values or the length of two vectors is not the same")
 })
 
 # Kill process
