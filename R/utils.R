@@ -258,24 +258,26 @@ censor_rows <- function(df, censored, type = c("countries", "regions")) {
 #' @noRd
 censor_stats <- function(df, censored_table) {
 
-  df$to_remove <- FALSE
-  if (any(df$tmp_id %in% censored_table$id)) {
-    for (i in seq_len(nrow(df))) {
-      for (y in seq_len(nrow(censored_table))) {
-        if (df$tmp_id[i] == censored_table$id[y]) {
-          # Remove entire row if all statistics should be removed
-          if (censored_table$statistic[y] == "all") {
-            df$to_remove[i] <- TRUE
-          } else {
-            # Otherwise set specific stats to NA
-            df[[censored_table$statistic[y]]][i] <- NA_real_
-          }
-        }
-      }
-    }
+  # Create a binary column to mark rows for removal based on 'all' statistic
+  df[, to_remove := FALSE]
+  censor_all <- censored_table[statistic == "all", .(id)]
+  if (nrow(censor_all) > 0) {
+    df[censor_all, on = .(tmp_id = id), to_remove := TRUE]
   }
-  df <- df[!df$to_remove]
-  df$to_remove <- NULL
+
+  # Remove marked rows
+  df <- df[to_remove == FALSE]
+
+  # Update specific statistics to NA where not 'all'
+  censor_stats <- censored_table[statistic != "all"]
+  if (nrow(censor_stats) > 0) {
+    # Perform a non-equi join to mark relevant statistics
+    df[censor_stats, on = .(tmp_id = id), mult = "first",
+       (censor_stats$statistic) := NA_real_]
+  }
+
+  # Clean up the temporary column
+  df[, to_remove := NULL]
 
   return(df)
 }
