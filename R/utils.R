@@ -763,6 +763,7 @@ get_valid_aux_long_format_tables <- function() {
 #' @inheritParams get_aux_table
 #'
 #' @return data.table
+#' @keywords internal
 get_spr_table <- function(data_dir,
                           table = c("spr_svy", "spr_lnp")) {
 
@@ -790,6 +791,40 @@ get_spr_table <- function(data_dir,
   return(spr)
 }
 
+
+
+#' Load prosperity gap table from aux data
+#'
+#' If there is no data available, return an empty data.frame
+#'
+#' @inheritParams get_aux_table
+#'
+#' @return data.table
+#' @keywords internal
+get_pg_table <- function(data_dir,
+                          table = c("pg_svy", "pg_lnp")) {
+
+  table <- match.arg(table)
+
+  pg <-
+    tryCatch(
+      expr = {
+        # Your code...
+        get_aux_table(data_dir = data_dir,
+                      table    = table)
+      }, # end of expr section
+      error = function(e) {
+        data.table::data.table(
+            country_code    = character(0),
+            reporting_level = character(0),
+            pg              = numeric(0),
+            welfare_type    = character(0),
+            reporting_year  = integer(0)
+          )
+      }
+    ) # End of trycatch
+  return(pg)
+}
 
 
 
