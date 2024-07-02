@@ -124,6 +124,10 @@ fg_pip <- function(country,
                  fill_gaps = TRUE,
                  data_dir  = lkup$data_root)
 
+  out <- add_pg(df        = out,
+                fill_gaps = TRUE,
+                data_dir  = lkup$data_root)
+
   return(out)
 }
 

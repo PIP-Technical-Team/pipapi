@@ -830,6 +830,40 @@ get_pg_table <- function(data_dir,
 
 
 
+#' Add Prosperity Gap
+#'
+#' @param df data frame  inside [fg_pip] or [rg_pip]
+#' @param data_dir character: Directory path of auxiliary data. Usually
+#'   `lkup$data_root`
+#' @inheritParams pip
+#'
+#' @return data.table
+#' @keywords internal
+add_pg <- function(df, fill_gaps, data_dir) {
+
+  if (fill_gaps)  {
+    table <- "pg_lnp"
+  } else {
+    table <- "pg_svy"
+  }
+
+  pg <- get_pg_table(data_dir = data_dir,
+                     table    = table)
+
+    merge.data.table(
+      x = df,
+      y = pg,
+      by = c(
+        "country_code",
+        "reporting_year",
+        "welfare_type",
+        "reporting_level"),
+      all.x = TRUE)
+
+}
+
+
+
 #' Add SPL indicators to either fg* or rg PIP output
 #'
 #' @param df data frame inside [fg_pip] or [rg_pip]
@@ -838,6 +872,7 @@ get_pg_table <- function(data_dir,
 #' @inheritParams pip
 #'
 #' @return data.table
+#' @keywords internal
 add_spl <- function(df, fill_gaps, data_dir) {
 
   if (fill_gaps) {
@@ -881,8 +916,6 @@ add_spl <- function(df, fill_gaps, data_dir) {
 
   return(out)
 }
-
-
 
 
 
