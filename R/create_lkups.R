@@ -266,7 +266,8 @@ create_lkups <- function(data_dir, versions) {
         'distribution_type',
         'estimation_type',
         'spl',
-        'spr'
+        'spr',
+        'pg'
       ),
 
       # This is not used anywhere anymore.
@@ -275,7 +276,8 @@ create_lkups <- function(data_dir, versions) {
         "reporting_year",
         "welfare_type",
         "reporting_level",
-        "spl"#,
+        "spl",
+        'pg'
         #"spr"
       )
     ),
@@ -292,7 +294,8 @@ create_lkups <- function(data_dir, versions) {
         "watts",
         "mean",
         "pop_in_poverty",
-        "spr"
+        "spr",
+        'pg'
       ),
       weighted_average_cols = c(
         "headcount",
@@ -300,7 +303,8 @@ create_lkups <- function(data_dir, versions) {
         "poverty_severity",
         "watts",
         "mean",
-        "spr"
+        "spr",
+        'pg'
       )
     ),
     ui_pc_charts = list(
@@ -340,7 +344,8 @@ create_lkups <- function(data_dir, versions) {
         'poverty_severity',
         'watts',
         'pop_in_poverty',
-        'spr'
+        'spr',
+        'pg'
       ),
       inequality_indicators = c(
         'median',
@@ -367,7 +372,8 @@ create_lkups <- function(data_dir, versions) {
         "poverty_gap",
         "poverty_severity",
         "watts",
-        "spr"
+        "spr",
+        'pg'
       ),
       zero_vars = c(
         "mean",

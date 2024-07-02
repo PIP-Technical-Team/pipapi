@@ -77,5 +77,12 @@ rg_pip <- function(country,
                  fill_gaps = FALSE,
                  data_dir  = lkup$data_root)
 
+  # Add prosperity Gap -----------
+
+  out <- add_pg(df        = out,
+                fill_gaps = FALSE,
+                data_dir  = lkup$data_root)
+
+
   return(out)
 }
