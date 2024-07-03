@@ -282,6 +282,36 @@ censor_stats <- function(df, censored_table) {
   return(df)
 }
 
+#' projection variables
+#'
+#' It also censors specific stats
+#'
+#' @param df data.table: Table to censor.
+#' @param censored_table data.table: Censor table
+#' @keywords internal
+projection_var <- function(df, censored_table) {
+
+  df[, tmp_id := paste(region_code, reporting_year, sep = "_")]
+  # Create a binary column to mark what is projections based on
+  # cesored table for all statistics
+  df[, projection := FALSE]
+  censor_all <- censored_table[statistic == "all", .(id)]
+  if (nrow(censor_all) > 0) {
+    df[censor_all, on = .(tmp_id = id), projection := TRUE]
+  }
+
+  # Update specific statistics to NA where not 'all'
+  censor_stats <- censored_table[statistic != "all"]
+  if (nrow(censor_stats) > 0) {
+    # Perform a non-equi join to mark relevant statistics
+    df[censor_stats, on = .(tmp_id = id), mult = "first",
+       (censor_stats$statistic) := NA_real_]
+  }
+  df[, tmp_id  = NULL]
+}
+
+
+
 #' Create query controls
 #' @param syv_lkup data.table: Survey lkup table
 #' @param ref_lkup data.table: Reference lkup table

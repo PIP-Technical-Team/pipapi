@@ -237,9 +237,10 @@ pip_grp_logic <- function(country         = "ALL",
 
   # Censor regional values -----------
 
-  if (censor) {
-    ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
-  }
+  # if (censor) {
+  #   ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
+  # }
+  ret <- projection_var(ret,lkup$censored$regions)
 
   # Select columns
   if (additional_ind) {

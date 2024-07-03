@@ -86,9 +86,10 @@ pip_grp <- function(country         = "ALL",
     )
 
     # Censor regional values
-    if (censor) {
-      out <- censor_rows(out, lkup[["censored"]], type = "regions")
-    }
+    # if (censor) {
+    #   out <- censor_rows(out, lkup[["censored"]], type = "regions")
+    # }
+    out <- projection_var(out,lkup$censored$regions)
 
   } else {
     # Handle simple aggregation
