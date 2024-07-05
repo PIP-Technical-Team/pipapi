@@ -255,8 +255,12 @@ censor_rows <- function(df, censored, type = c("countries", "regions")) {
 #' Censor stats
 #' @param df data.table: Table to censor.
 #' @param censored_table data.table: Censor table
-#' @noRd
+#' @keywords internal
 censor_stats <- function(df, censored_table) {
+  # make sure everything is data.table
+  setDT(df)
+  setDT(censored_table)
+
 
   # Create a binary column to mark rows for removal based on 'all' statistic
   df[, to_remove := FALSE]
@@ -273,7 +277,7 @@ censor_stats <- function(df, censored_table) {
   if (nrow(censor_stats) > 0) {
     # Perform a non-equi join to mark relevant statistics
     df[censor_stats, on = .(tmp_id = id), mult = "first",
-       (censor_stats$statistic) := NA_real_]
+       unique(censor_stats$statistic) := NA_real_]
   }
 
   # Clean up the temporary column
@@ -289,17 +293,35 @@ censor_stats <- function(df, censored_table) {
 #' @param df data.table: Table to censor.
 #' @param censored_table data.table: Censor table
 #' @keywords internal
-projection_var <- function(df, censored_table) {
+estimate_type_var <- function(df, lkup) {
+
+  censored_table <- lkup$censored$regions
+  data_dir       <- lkup$data_root
+
+  mr <-  get_metaregion_table(data_dir = data_dir)
+
 
   df[, tmp_id := paste(region_code, reporting_year, sep = "_")]
   # Create a binary column to mark what is projections based on
+
+  # be default all estaimtes are actual
+  df[, estimate_type := "actual"]
+
   # cesored table for all statistics
-  df[, projection := FALSE]
   censor_all <- censored_table[statistic == "all", .(id)]
   if (nrow(censor_all) > 0) {
-    df[censor_all, on = .(tmp_id = id), projection := TRUE]
+    # If censored in all stats, which is equivalent to no coverage,
+    # when label as "projection"
+    df[censor_all, on = .(tmp_id = id), estimate_type := "projection"]
   }
 
+  # Merge metaregion and label as nowcast those with reporting year
+  # higher than lineup year.
+  df <- mr[df, on = "region_code"]
+  df[reporting_year > lineup_year,
+     estimate_type := "nowcast"]
+
+  # This should be done in a different function...
   # Update specific statistics to NA where not 'all'
   censor_stats <- censored_table[statistic != "all"]
   if (nrow(censor_stats) > 0) {
@@ -307,7 +329,7 @@ projection_var <- function(df, censored_table) {
     df[censor_stats, on = .(tmp_id = id), mult = "first",
        (censor_stats$statistic) := NA_real_]
   }
-  df[, tmp_id  = NULL]
+  df[, c("tmp_id", "lineup_year")  := NULL]
 }
 
 
@@ -817,6 +839,33 @@ get_spr_table <- function(data_dir,
           spl             = numeric(0),
           spr             = numeric(0),
           median          = numeric(0)
+        )
+      }
+    ) # End of trycatch
+  return(spr)
+}
+
+#' load metaregion from aux data
+#'
+#' If there is no data available, return an empty data.frame
+#'
+#' @inheritParams get_aux_table
+#'
+#' @return data.table
+#' @keywords internal
+get_metaregion_table <- function(data_dir) {
+
+  spr <-
+    tryCatch(
+      expr = {
+        # Your code...
+        get_aux_table(data_dir = data_dir,
+                      table    = "metaregion")
+      }, # end of expr section
+      error = function(e) {
+        data.table::data.table(
+          region_code     = character(0),
+          lineup_year     = numeric(0)
         )
       }
     ) # End of trycatch

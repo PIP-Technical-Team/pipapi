@@ -295,7 +295,8 @@ create_lkups <- function(data_dir, versions) {
         "mean",
         "pop_in_poverty",
         "spr",
-        'pg'
+        'pg',
+        'estimate_type'
       ),
       weighted_average_cols = c(
         "headcount",

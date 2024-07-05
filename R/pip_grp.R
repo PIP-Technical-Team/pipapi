@@ -18,7 +18,7 @@
 pip_grp <- function(country         = "ALL",
                     year            = "ALL",
                     povline         = 1.9,
-                    group_by        = c("none", "wb"),
+                    group_by        = c("wb", "none"),
                     welfare_type    = c("all", "consumption", "income"),
                     reporting_level = c("all", "national"),
                     lkup,
@@ -85,16 +85,18 @@ pip_grp <- function(country         = "ALL",
       return_cols = lkup$return_cols$pip_grp
     )
 
+    out <- estimate_type_var(out,lkup)
+
     # Censor regional values
     # if (censor) {
     #   out <- censor_rows(out, lkup[["censored"]], type = "regions")
     # }
-    out <- projection_var(out,lkup$censored$regions)
 
   } else {
     # Handle simple aggregation
     out <- pip_aggregate(out,
                          return_cols = lkup$return_cols$pip_grp)
+    out <- estimate_type_var(out,lkup)
   }
 
   keep <- lkup$return_cols$pip_grp$cols
@@ -144,8 +146,9 @@ pip_aggregate <- function(df, by = NULL, return_cols) {
     }
 
     to_keep <- all_cols[!all_cols %in% c("pop_in_poverty",
-                                               "region_code",
-                                               "region_name")]
+                                         "region_code",
+                                         "region_name",
+                                         "estimate_type")]
     to_keep <- c(by_name, by_code, to_keep)
 
     by <- c(by_name, by_code)
@@ -216,7 +219,8 @@ pip_aggregate_by <- function(df,
   # Keep only rows necessary for regional aggregates
   df <- filter_for_aggregate_by(df)
 
-  to_keep <- all_cols[all_cols != "pop_in_poverty"]
+  to_keep <- all_cols[!all_cols %in% c("pop_in_poverty",
+                                       "estimate_type")]
 
   df <- df[, .SD, .SDcols = to_keep]
 

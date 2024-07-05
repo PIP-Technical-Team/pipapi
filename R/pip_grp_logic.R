@@ -10,7 +10,7 @@
 pip_grp_logic <- function(country         = "ALL",
                           year            = "ALL",
                           povline         = 1.9,
-                          group_by        = c("none", "wb"),
+                          group_by        = c("wb", "none"),
                           welfare_type    = c("all", "consumption", "income"),
                           reporting_level = c("all", "national"),
                           lkup,
@@ -240,7 +240,7 @@ pip_grp_logic <- function(country         = "ALL",
   # if (censor) {
   #   ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
   # }
-  ret <- projection_var(ret,lkup$censored$regions)
+  ret <- estimate_type_var(ret,lkup)
 
   # Select columns
   if (additional_ind) {
@@ -301,15 +301,19 @@ pip_grp_helper <- function(lcv_country,
       return_cols = lkup$return_cols$pip_grp
     )
 
-    # Censor regional values
-    if (censor) {
-      out <- censor_rows(out, lkup[["censored"]], type = "regions")
-    }
+    # # Censor regional values
+    # if (censor) {
+    #   out <- censor_rows(out, lkup[["censored"]], type = "regions")
+    # }
+
+    out <- estimate_type_var(out,lkup)
+
 
   } else {
     # Handle simple aggregation
     out <- pip_aggregate(df = out,
                          return_cols = lkup$return_cols$pip_grp)
+    out <- estimate_type_var(out,lkup)
   }
 
   keep <- lkup$return_cols$pip_grp$cols
