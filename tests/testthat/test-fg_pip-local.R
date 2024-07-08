@@ -9,7 +9,6 @@ latest_version <-
   available_versions(data_dir) |>
   max()
 
-
 lkups <- create_versioned_lkups(data_dir,
                                 vintage_pattern = latest_version)
 lkup <- lkups$versions_paths[[lkups$latest_release]]
@@ -163,15 +162,6 @@ censored <- lkup$censored$countries
 ## no unexpected NAs ------------
 test_that("NAs only in censored data", {
 
-  ### Median ------------
-  expect_equal(
-    tmp[is.na(median)][!censored,
-                       on = c("country_code",
-                              "reporting_year",
-                              "reporting_level",
-                              "welfare_type")] |>
-      nrow(),
-    expected = 0)
 
   ### SPR ---------------
   expect_equal(

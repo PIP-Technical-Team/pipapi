@@ -1,9 +1,15 @@
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
+data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL")
 
-# files <- sub("[.]fst", "", list.files("../testdata/app_data/20210401/survey_data/"))
-lkups_ver <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
-lkups <- lkups_ver$versions_paths[[lkups_ver$latest_release]]
+skip_if(data_dir == "")
+
+latest_version <-
+  available_versions(data_dir) |>
+  max()
+
+lkups <- create_versioned_lkups(data_dir,
+                                vintage_pattern = latest_version)
+lkups <- lkups$versions_paths[[lkups$latest_release]]
 
 censored <-
   test_path("testdata", "/censored.rds") |>
