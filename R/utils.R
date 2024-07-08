@@ -315,8 +315,8 @@ estimate_type_var <- function(df, lkup) {
     df[censor_all, on = .(tmp_id = id), estimate_type := "projection"]
   }
 
-  # Merge metaregion and label as nowcast those with reporting year
-  # higher than lineup year.
+  # Merge metaregion and label those obs with reporting year
+  # higher than lineup year as "nowcast"
   df <- mr[df, on = "region_code"]
   df[reporting_year > lineup_year,
      estimate_type := "nowcast"]

@@ -707,3 +707,22 @@ create_return_cols <- function(...) {
   out <- list(...)
   return(out)
 }
+
+
+
+
+#' Sorted available PIP versions in data directory
+#'
+#' @param data_dir character: data directory
+#'
+#' @return character vector of sorted available PIP versions in data directory
+available_versions <- function(data_dir) {
+  vintage_pattern <- create_vintage_pattern_call()
+    fs::dir_ls(data_dir,
+               type   = "directory") |>
+    fs::path_file() |>
+    sort_versions(prod_regex = vintage_pattern$prod_regex,
+                  int_regex  = vintage_pattern$int_regex,
+                  test_regex = vintage_pattern$test_regex)
+
+}
