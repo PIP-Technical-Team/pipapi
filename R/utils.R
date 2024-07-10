@@ -61,7 +61,7 @@ select_country <- function(lkup, keep, country, valid_regions) {
 #' @inheritParams subset_lkup
 #' @param keep logical vector
 #' @return logical vector
-select_years <- function(lkup, keep, year, country, valid_regions = NULL) {
+select_years <- function(lkup, keep, year, country) {
   # columns i is an ID that identifies if a country has more than one
   # observation for reporting year. That is the case of IND with URB/RUR and ZWE
   # with interporaltion and microdata info
@@ -74,40 +74,26 @@ select_years <- function(lkup, keep, year, country, valid_regions = NULL) {
   year       <- toupper(year)
   country    <- toupper(country)
   keep_years <- rep(TRUE, nrow(dtmp))
-
-  has_region  <- FALSE
-  has_country <- TRUE
-  if (!is.null(valid_regions)) {
-    if (any(country %in% valid_regions[!valid_regions %in% "ALL"])) {
-      has_region <- TRUE
-    }
-    if (all(country %in% valid_regions[!valid_regions %in% "ALL"])) {
-      has_country <- FALSE
-    }
-  }
-
   # STEP 1 - If Most Recent Value requested
   if ("MRV" %in% year) {
-
-    # for MRV, countries and regions not allowed
-    if (has_country && has_region) {
-      rlang::abort("country codes and region codes not allowed with MRV in year")
-    }
     # STEP 1.1 - If all countries selected. Select MRV for each country
     dtmp <-
-      if (has_region) {
-        if ("WLD" %in% country) {
+      if (any(c("ALL", "WLD") %in% country)) {
+        # the i == 1 conditions ensures that it takes into account only one
+        # observation  per country per reporting year. This has to bee like
+        # that in order to keep the same length as the `keep_years` vector.
+        # dtmp[,
+        #      max_year := reporting_year == max(reporting_year) & i == 1,
+        #      by = country_code]
 
-          dtmp[,
-               max_year := reporting_year == max(reporting_year),
-               by = country_code]
-
-        }
+        dtmp[,
+             max_year := reporting_year == max(reporting_year),
+             by = country_code]
 
       } else {
         # STEP 1.2 - If only some countries selected. Select MRV for each selected
         # country
-        dtmp[country_code %in% country | region_code %in% country,
+        dtmp[dtmp[["country_code"]] %in% country,
              max_year := reporting_year == max(reporting_year),
              by = country_code]
       }
@@ -128,6 +114,7 @@ select_years <- function(lkup, keep, year, country, valid_regions = NULL) {
   keep <- keep & keep_years
   return(keep)
 }
+
 
 
 
