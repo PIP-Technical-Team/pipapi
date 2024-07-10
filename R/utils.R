@@ -78,10 +78,10 @@ select_years <- function(lkup, keep, year, country, valid_regions = NULL) {
   has_region  <- FALSE
   has_country <- TRUE
   if (!is.null(valid_regions)) {
-    if (any(country %in% valid_regions)) {
+    if (any(country %in% valid_regions[!valid_regions %in% "ALL"])) {
       has_region <- TRUE
     }
-    if (all(country %in% valid_regions)) {
+    if (all(country %in% valid_regions[!valid_regions %in% "ALL"])) {
       has_country <- FALSE
     }
   }
@@ -96,7 +96,7 @@ select_years <- function(lkup, keep, year, country, valid_regions = NULL) {
     # STEP 1.1 - If all countries selected. Select MRV for each country
     dtmp <-
       if (has_region) {
-        if (any(c("ALL", "WLD") %in% country)) {
+        if ("WLD" %in% country) {
 
           dtmp[,
                max_year := reporting_year == max(reporting_year),
