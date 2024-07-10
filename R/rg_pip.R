@@ -17,7 +17,7 @@ rg_pip <- function(country,
   # get values from lkup
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
-  data_dir            <- lkup$data_root
+  data_dir      <- lkup$data_root
 
 
   metadata <- subset_lkup(

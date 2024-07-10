@@ -63,7 +63,8 @@ fg_pip <- function(country,
     ctry_years <- subset_ctry_years(country       = country,
                                     year          = year,
                                     lkup          = iteration$ctry_years,
-                                    valid_regions = valid_regions)
+                                    valid_regions = valid_regions,
+                                    data_dir      = data_dir)
 
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 

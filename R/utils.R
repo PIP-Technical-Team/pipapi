@@ -18,7 +18,12 @@ subset_lkup <- function(country,
   # STEP 2 - Select countries
   keep <- select_country(lkup, keep, country, valid_regions)
   # STEP 3 - Select years
-  keep <- select_years(lkup, keep, year, country, valid_regions, data_dir)
+  keep <- select_years(lkup = lkup,
+                       keep = keep,
+                       year = year,
+                       country = country,
+                       data_dir =  data_dir,
+                       valid_regions = valid_regions)
 
   # # step 4. Select MRV
   # keep <- select_MRV(lkup, keep, year, country, valid_regions, data_dir)
@@ -80,6 +85,13 @@ select_years <- function(lkup,
   #                   .i := seq_len(.N),
   #                   by = .(country_code, reporting_year)]
 
+  caller_names <- get_caller_names()
+  is_agg       <-
+    grepl("pip_grp", caller_names) |>
+    any()
+
+
+
   dtmp <- lkup
 
   year       <- toupper(year)
@@ -107,31 +119,31 @@ select_years <- function(lkup,
       rlang::abort("country codes and region codes not allowed with MRV in year")
     }
     # STEP 1.1 - If all countries selected. Select MRV for each country
-    dtmp <-
-      if (has_region) {
-        mr <- get_metaregion_table(data_dir)
-        dtmp[mr,
-             on = "region_code",
-             max_year := reporting_year == i.lineup_year]
 
-        if (!has_all) {
-          dtmp[!region_code %in% country,
-               max_year := FALSE]
-        }
+    if (has_region || is_agg) {
+      mr <- get_metaregion_table(data_dir)
+      dtmp[mr,
+           on = "region_code",
+           max_year := reporting_year == i.lineup_year]
 
+      if (isFALSE(has_all)) {
+        dtmp[!region_code %in% country,
+             max_year := FALSE]
+      }
+
+    } else {
+      # STEP 1.2 - If only some countries selected. Select MRV for each selected
+      # country
+      if (has_all) {
+        dtmp[,
+           max_year := reporting_year == max(reporting_year),
+           by = country_code]
       } else {
-        # STEP 1.2 - If only some countries selected. Select MRV for each selected
-        # country
-        if (has_all) {
-          dtmp[,
+        dtmp[country_code %in% country | region_code %in% country,
              max_year := reporting_year == max(reporting_year),
              by = country_code]
-        } else {
-          dtmp[country_code %in% country | region_code %in% country,
-               max_year := reporting_year == max(reporting_year),
-               by = country_code]
-        }
       }
+    }
 
     # dtmp <- unique(dtmp[, .(country_code, reporting_year, max_year)])
     dtmp[is.na(max_year), max_year := FALSE]
@@ -639,12 +651,18 @@ convert_empty <- function(string) {
 #' This is a table created at start time to facilitate imputations
 #' It part of the interpolated_list object
 #' @param valid_regions character: List of valid region codes that can be used
+#' @inheritParams subset_lkup
 #' @return data.frame
 #' @keywords internal
 subset_ctry_years <- function(country,
                               year,
                               lkup,
-                              valid_regions) {
+                              valid_regions,
+                              data_dir) {
+
+  is_agg <- get_caller_names() |>
+    grepl(pattern = "pip_grp", x = _) |>
+    any()
 
   keep <- TRUE
   # Select data files based on requested country, year, etc.
@@ -657,7 +675,7 @@ subset_ctry_years <- function(country,
       keep_regions      <- lkup$region_code %in% selected_regions
       country_or_region <- "region_code"
     } else {
-      keep_regions <- rep(FALSE, length(lkup$country_code))
+      keep_regions <- rep(FALSE, length(lkup$region_code))
     }
     keep_countries <- lkup$country_code %chin% country
     keep <- keep & (keep_countries | keep_regions)
@@ -668,14 +686,29 @@ subset_ctry_years <- function(country,
   # }
 
   # Select years
-  if (year[1] == "MRV") {
-    if (country[1] != "ALL") {
-      max_year <- max(lkup[get(country_or_region) == country, reporting_year])
+  if (year[1] == "MRV")  {
+    if (is_agg) {
+      mr <- get_metaregion_table(data_dir)
+      lkup[mr,
+           on = "region_code",
+           lineup_year := i.lineup_year]
     } else {
-      max_year <- max(lkup$reporting_year)
+      lkup[, lineup_year := reporting_year]
+    }
+
+    if (country[1] != "ALL") {
+      max_year <-
+        lkup[get(country_or_region) == country & reporting_year == lineup_year,
+             reporting_year] |>
+        max()
+    } else {
+      max_year <-
+        lkup[reporting_year == lineup_year, reporting_year] |>
+        max()
     }
     keep <- keep & lkup$reporting_year %in% max_year
   }
+
   if (!year[1] %in% c("ALL", "MRV")) {
     keep <- keep & lkup$reporting_year %in% as.numeric(year)
   }
@@ -1080,4 +1113,24 @@ add_agg_medians <- function(df, fill_gaps, data_dir) {
 
 
   return(out)
+}
+
+
+
+
+#' Get functions names in call stack
+#'
+#' @return character vector of calls
+#' @export
+get_caller_names <- function() {
+  # Get the list of calls on the call stack
+  calls <- sys.calls()
+
+  # Use lapply to process each call and extract the function name
+  caller_names <- lapply(calls, \(call) {
+    as.character(call[[1]])
+  }) |>
+    unlist()
+
+  invisible(caller_names)
 }
