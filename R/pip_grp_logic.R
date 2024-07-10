@@ -216,6 +216,7 @@ pip_grp_logic <- function(country         = "ALL",
     ld[[i]] <- pip_aggregate(df = x,
                              by = y,
                              return_cols = lkup$return_cols$pip_grp)
+
   }
   de <- data.table::rbindlist(ld, use.names = TRUE)
   rm(ld)
@@ -233,7 +234,6 @@ pip_grp_logic <- function(country         = "ALL",
   } else {
     ret <- de
   }
-  data.table::setcolorder(ret, names_grp)
 
 
   # Censor regional values -----------
@@ -242,6 +242,7 @@ pip_grp_logic <- function(country         = "ALL",
   #   ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
   # }
   ret <- estimate_type_var(ret,lkup)
+  data.table::setcolorder(ret, names_grp)
 
   # Select columns
   if (additional_ind) {

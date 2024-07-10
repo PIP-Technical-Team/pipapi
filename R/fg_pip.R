@@ -16,16 +16,19 @@ fg_pip <- function(country,
 
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
+  data_dir            <- lkup$data_root
+  ref_lkup            <- lkup$ref_lkup
+
 
   # Handle interpolation
-  ref_lkup <- lkup[["ref_lkup"]]
   metadata <- subset_lkup(
     country         = country,
     year            = year,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
     lkup            = ref_lkup,
-    valid_regions   = valid_regions
+    valid_regions   = valid_regions,
+    data_dir        = data_dir
   )
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions

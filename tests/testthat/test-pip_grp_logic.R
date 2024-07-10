@@ -1,20 +1,17 @@
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
-
-# Following this solution: https://stackoverflow.com/a/71334780/11472481
-
 options(joyn.verbose = FALSE)
-
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL")
 
-# lkup_path <- test_path("testdata", "lkup.rds")
-# lkup      <- readRDS(lkup_path)
+skip_if(data_dir == "")
 
+latest_version <-
+  available_versions(data_dir) |>
+  max()
 
-data_dir <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+lkups <- create_versioned_lkups(data_dir,
+                                vintage_pattern = latest_version)
+lkup <- lkups$versions_paths[[lkups$latest_release]]
 
-lkups <- create_versioned_lkups(data_dir = data_dir)
-
-lkup <-  lkups$versions_paths[[lkups$latest_release]]
 
 # default parameters
 

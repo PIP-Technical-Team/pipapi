@@ -17,6 +17,7 @@ rg_pip <- function(country,
   # get values from lkup
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
+  data_dir            <- lkup$data_root
 
 
   metadata <- subset_lkup(
@@ -25,7 +26,8 @@ rg_pip <- function(country,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
     lkup            = svy_lkup,
-    valid_regions   = valid_regions
+    valid_regions   = valid_regions,
+    data_dir        = data_dir
   )
 
   # Remove aggregate distribution if popshare is specified
