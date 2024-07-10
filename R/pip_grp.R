@@ -65,8 +65,8 @@ pip_grp <- function(country         = "ALL",
     return(pipapi::empty_response_grp)
   }
 
-  # Handles aggregated distributions
-  if (reporting_level %in% c("national", "all")) {
+  # Handles aggregated distributions (like CHN and IND)
+  if (tolower(reporting_level) %in% c("national", "all")) {
     out <- add_agg_stats(out,
                          return_cols = lkup$return_cols$ag_average_poverty_stats)
   }
@@ -129,7 +129,7 @@ pip_aggregate <- function(df, by = NULL, return_cols) {
     by_code <- "CUSTOM"
     by_name <- "CUSTOM"
 
-    to_keep <- all_cols[all_cols != "pop_in_poverty"]
+    to_keep <- all_cols[!all_cols %in%  c("pop_in_poverty", "estimate_type")]
 
   } else {
 

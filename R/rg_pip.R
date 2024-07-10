@@ -35,7 +35,7 @@ rg_pip <- function(country,
 
   # return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    return(pipapi::empty_response)
+    return(empty_response)
   }
 
   out <- vector(mode = "list", length = nrow(metadata))

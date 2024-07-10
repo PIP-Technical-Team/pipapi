@@ -27,6 +27,7 @@ pip_grp_logic <- function(country         = "ALL",
 
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
+  country <- toupper(country)
   if (group_by != "none") {
     reporting_level <- "all"
     if (!all(country %in% c("ALL", lkup$query_controls$region$values))) {
@@ -173,7 +174,7 @@ pip_grp_logic <- function(country         = "ALL",
   ## Fill gaps estimates with countries with Survey  -----
   fg <- fg_pip_master[fg_pip_master$country_code %chin% lcv$est_ctrs, ]
 
-  if (!"ALL" %in% year) {
+  if (!any(c("ALL", "MRV") %in% year)) {
     fg <- fg[fg[["reporting_year"]] %in% as.numeric(year), ]
   }
 
@@ -272,7 +273,7 @@ pip_grp_helper <- function(lcv_country,
     fg_pip[["wb_region_code"]] %chin% lcv_country
   out <- fg_pip[keep_countries, ]
   # Filter years
-  if (!"ALL" %in% year) {
+  if (!any(c("ALL", "MRV") %in% year)) {
     out <- out[out[["reporting_year"]] %in% as.numeric(year), ]
   }
 
