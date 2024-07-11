@@ -1,31 +1,8 @@
-utils::globalVariables(
-  c(
-    ".", "cache_id", "country_code", "cpi", "decile1",
-    "decile10", "decile2", "decile3", "decile4",
-    "decile5", "decile6", "decile7", "decile8",
-    "decile9", "distribution_type", "gini",
-    "headcount", "interpolation_id",
-    "is_interpolated", "median", "mld",
-    "polarization", "pop", "reporting_level",
-    "pop_in_poverty", "poverty_gap",
-    "poverty_line", "poverty_severity",
-    "ppp", "region_code", "reporting_pop",
-    "reporting_year", "survey_comparability",
-    "survey_coverage", "survey_mean_lcu",
-    "survey_mean_ppp", "survey_year", "watts",
-    "wb_region_code", "weighted.mean",
-    "welfare_type", "pcn_region_code",
-    "comparable_spell","..cols", "N", "check",
-    "data_interpolation_id", "display_cp", "region_name",
-    "sessionInfo", "bottom40", "max_year", "headcount_national"
-  )
-)
-
-
 #' Subset look-up data
 #' @inheritParams pip
 #' @param valid_regions character: List of valid region codes that can be used
 #' for region selection
+#' @param data_dir character: directory path from lkup$data_root
 #' @return data.frame
 #' @keywords internal
 subset_lkup <- function(country,
@@ -33,14 +10,24 @@ subset_lkup <- function(country,
                         welfare_type,
                         reporting_level,
                         lkup,
-                        valid_regions) {
+                        valid_regions,
+                        data_dir = NULL) {
 
   # STEP 1 - Keep every row by default
   keep <- rep(TRUE, nrow(lkup))
   # STEP 2 - Select countries
   keep <- select_country(lkup, keep, country, valid_regions)
   # STEP 3 - Select years
-  keep <- select_years(lkup, keep, year, country)
+  keep <- select_years(lkup = lkup,
+                       keep = keep,
+                       year = year,
+                       country = country,
+                       data_dir =  data_dir,
+                       valid_regions = valid_regions)
+
+  # # step 4. Select MRV
+  # keep <- select_MRV(lkup, keep, year, country, valid_regions, data_dir)
+
   # STEP 4 - Select welfare_type
   if (welfare_type[1] != "all") {
     keep <- keep & lkup$welfare_type == welfare_type
@@ -54,6 +41,127 @@ subset_lkup <- function(country,
 
   return(lkup)
 }
+
+#' select_country
+#' Helper function for subset_lkup()
+#' @inheritParams subset_lkup
+#' @param keep logical vector
+#' @return logical vector
+select_country <- function(lkup, keep, country, valid_regions) {
+  # Select data files based on requested country, year, etc.
+  # Select countries
+  if (!any(c("ALL", "WLD") %in% toupper(country))) {
+    # Select regions
+    if (any(country %in% valid_regions)) {
+      selected_regions <- country[country %in% valid_regions]
+      keep_regions <- lkup$region_code %in% selected_regions
+    } else {
+      keep_regions <- rep(FALSE, length(lkup$country_code))
+    }
+    keep_countries <- lkup$country_code %in% country
+    keep <- keep & (keep_countries | keep_regions)
+  }
+  return(keep)
+}
+
+
+
+
+#' select_years
+#' Helper function for subset_lkup()
+#' @inheritParams subset_lkup
+#' @param keep logical vector
+#' @return logical vector
+select_years <- function(lkup,
+                         keep,
+                         year,
+                         country,
+                         data_dir,
+                         valid_regions = NULL) {
+  # columns i is an ID that identifies if a country has more than one
+  # observation for reporting year. That is the case of IND with URB/RUR and ZWE
+  # with interporaltion and microdata info
+  # dtmp    <- ref_lkup[,
+  #                   .i := seq_len(.N),
+  #                   by = .(country_code, reporting_year)]
+
+  caller_names <- get_caller_names()
+  is_agg       <-
+    grepl("pip_grp", caller_names) |>
+    any()
+
+
+
+  dtmp <- lkup
+
+  year       <- toupper(year)
+  country    <- toupper(country)
+  keep_years <- rep(TRUE, nrow(dtmp))
+
+  has_region  <- FALSE
+  has_country <- TRUE
+  has_all     <- "ALL" %in% country
+
+  if (!is.null(valid_regions)) {
+    if (any(country %in% valid_regions[!valid_regions %in% "ALL"])) {
+      has_region <- TRUE
+    }
+    if (all(country %in% valid_regions[!valid_regions %in% "ALL"])) {
+      has_country <- FALSE
+    }
+  }
+
+  # STEP 1 - If Most Recent Value requested
+  if ("MRV" %in% year) {
+
+    # for MRV, countries and regions not allowed
+    if (has_country && has_region) {
+      rlang::abort("country codes and region codes not allowed with MRV in year")
+    }
+    # STEP 1.1 - If all countries selected. Select MRV for each country
+
+    if (has_region || is_agg) {
+      mr <- get_metaregion_table(data_dir)
+      dtmp[mr,
+           on = "region_code",
+           max_year := reporting_year == i.lineup_year]
+
+      if (isFALSE(has_all)) {
+        dtmp[!region_code %in% country,
+             max_year := FALSE]
+      }
+
+    } else {
+      # STEP 1.2 - If only some countries selected. Select MRV for each selected
+      # country
+      if (has_all) {
+        dtmp[,
+           max_year := reporting_year == max(reporting_year),
+           by = country_code]
+      } else {
+        dtmp[country_code %in% country | region_code %in% country,
+             max_year := reporting_year == max(reporting_year),
+             by = country_code]
+      }
+    }
+
+    # dtmp <- unique(dtmp[, .(country_code, reporting_year, max_year)])
+    dtmp[is.na(max_year), max_year := FALSE]
+
+
+    keep_years <- keep_years & as.logical(dtmp[["max_year"]])
+
+  }
+  # STEP 2 - If specific years are specified. Filter for these years
+  if (!any(c("ALL", "MRV") %in% year)) {
+    keep_years <- keep_years & dtmp$reporting_year %in% as.numeric(year)
+  }
+
+  # STEP 3 - Otherwise return all years
+  keep <- keep & keep_years
+  return(keep)
+}
+
 
 #' Helper to filter metadata
 #' aggregate distribution need to be filtered out when popshare is not null
@@ -255,30 +363,84 @@ censor_rows <- function(df, censored, type = c("countries", "regions")) {
 #' Censor stats
 #' @param df data.table: Table to censor.
 #' @param censored_table data.table: Censor table
-#' @noRd
+#' @keywords internal
 censor_stats <- function(df, censored_table) {
+  # make sure everything is data.table
+  setDT(df)
+  setDT(censored_table)
 
-  df$to_remove <- FALSE
-  if (any(df$tmp_id %in% censored_table$id)) {
-    for (i in seq_len(nrow(df))) {
-      for (y in seq_len(nrow(censored_table))) {
-        if (df$tmp_id[i] == censored_table$id[y]) {
-          # Remove entire row if all statistics should be removed
-          if (censored_table$statistic[y] == "all") {
-            df$to_remove[i] <- TRUE
-          } else {
-            # Otherwise set specific stats to NA
-            df[[censored_table$statistic[y]]][i] <- NA_real_
-          }
-        }
-      }
-    }
+
+  # Create a binary column to mark rows for removal based on 'all' statistic
+  df[, to_remove := FALSE]
+  censor_all <- censored_table[statistic == "all", .(id)]
+  if (nrow(censor_all) > 0) {
+    df[censor_all, on = .(tmp_id = id), to_remove := TRUE]
   }
-  df <- df[!df$to_remove]
-  df$to_remove <- NULL
+
+  # Remove marked rows
+  df <- df[to_remove == FALSE]
+
+  # Update specific statistics to NA where not 'all'
+  censor_stats <- censored_table[statistic != "all"]
+  if (nrow(censor_stats) > 0) {
+    # Perform a non-equi join to mark relevant statistics
+    df[censor_stats, on = .(tmp_id = id), mult = "first",
+       unique(censor_stats$statistic) := NA_real_]
+  }
+
+  # Clean up the temporary column
+  df[, to_remove := NULL]
 
   return(df)
 }
+
+#' projection variables
+#'
+#' It also censors specific stats
+#'
+#' @param df data.table: Table to censor.
+#' @param censored_table data.table: Censor table
+#' @keywords internal
+estimate_type_var <- function(df, lkup) {
+
+  censored_table <- lkup$censored$regions
+  data_dir       <- lkup$data_root
+
+  mr <-  get_metaregion_table(data_dir = data_dir)
+
+
+  df[, tmp_id := paste(region_code, reporting_year, sep = "_")]
+  # Create a binary column to mark what is projections based on
+
+  # be default all estaimtes are actual
+  df[, estimate_type := "actual"]
+
+  # cesored table for all statistics
+  censor_all <- censored_table[statistic == "all", .(id)]
+  if (nrow(censor_all) > 0) {
+    # If censored in all stats, which is equivalent to no coverage,
+    # when label as "projection"
+    df[censor_all, on = .(tmp_id = id), estimate_type := "projection"]
+  }
+
+  # Merge metaregion and label those obs with reporting year
+  # higher than lineup year as "nowcast"
+  df <- mr[df, on = "region_code"]
+  df[reporting_year > lineup_year,
+     estimate_type := "nowcast"]
+
+  # This should be done in a different function...
+  # Update specific statistics to NA where not 'all'
+  censor_stats <- censored_table[statistic != "all"]
+  if (nrow(censor_stats) > 0) {
+    # Perform a non-equi join to mark relevant statistics
+    df[censor_stats, on = .(tmp_id = id), mult = "first",
+       (censor_stats$statistic) := NA_real_]
+  }
+  df[, c("tmp_id", "lineup_year")  := NULL]
+}
+
+
 
 #' Create query controls
 #' @param syv_lkup data.table: Survey lkup table
@@ -489,23 +651,31 @@ convert_empty <- function(string) {
 #' This is a table created at start time to facilitate imputations
 #' It part of the interpolated_list object
 #' @param valid_regions character: List of valid region codes that can be used
+#' @inheritParams subset_lkup
 #' @return data.frame
 #' @keywords internal
 subset_ctry_years <- function(country,
                               year,
                               lkup,
-                              valid_regions) {
+                              valid_regions,
+                              data_dir) {
+
+  is_agg <- get_caller_names()
+  is_agg <- grepl(pattern = "pip_grp", x = is_agg) |>
+    any()
 
   keep <- TRUE
   # Select data files based on requested country, year, etc.
   # Select countries
+  country_or_region <- "country_code"
   if (!any(c("ALL", "WLD") %in% country)) {
     # Select regions
     if (any(country %in% valid_regions)) {
-      selected_regions <- country[country %in% valid_regions]
-      keep_regions <- lkup$region_code %in% selected_regions
+      selected_regions  <- country[country %in% valid_regions]
+      keep_regions      <- lkup$region_code %in% selected_regions
+      country_or_region <- "region_code"
     } else {
-      keep_regions <- rep(FALSE, length(lkup$country_code))
+      keep_regions <- rep(FALSE, length(lkup$region_code))
     }
     keep_countries <- lkup$country_code %chin% country
     keep <- keep & (keep_countries | keep_regions)
@@ -516,14 +686,29 @@ subset_ctry_years <- function(country,
   # }
 
   # Select years
-  if (year[1] == "MRV") {
-    if (country[1] != "ALL") {
-      max_year <- max(lkup[country_code == country]$reporting_year)
+  if (year[1] == "MRV")  {
+    if (is_agg) {
+      mr <- get_metaregion_table(data_dir)
+      lkup[mr,
+           on = "region_code",
+           lineup_year := i.lineup_year]
     } else {
-      max_year <- max(lkup$reporting_year)
+      lkup[, lineup_year := reporting_year]
+    }
+
+    if (country[1] != "ALL") {
+      max_year <-
+        lkup[get(country_or_region) == country & reporting_year == lineup_year,
+             reporting_year] |>
+        max()
+    } else {
+      max_year <-
+        lkup[reporting_year == lineup_year, reporting_year] |>
+        max()
     }
     keep <- keep & lkup$reporting_year %in% max_year
   }
+
   if (!year[1] %in% c("ALL", "MRV")) {
     keep <- keep & lkup$reporting_year %in% as.numeric(year)
   }
@@ -558,88 +743,6 @@ clear_cache <- function(cd) {
     return(out)
   })
 }
-
-#' select_country
-#' Helper function for subset_lkup()
-#' @inheritParams subset_lkup
-#' @param keep logical vector
-#' @return logical vector
-select_country <- function(lkup, keep, country, valid_regions) {
-  # Select data files based on requested country, year, etc.
-  # Select countries
-  if (!any(c("ALL", "WLD") %in% toupper(country))) {
-    # Select regions
-    if (any(country %in% valid_regions)) {
-      selected_regions <- country[country %in% valid_regions]
-      keep_regions <- lkup$region_code %in% selected_regions
-    } else {
-      keep_regions <- rep(FALSE, length(lkup$country_code))
-    }
-    keep_countries <- lkup$country_code %in% country
-    keep <- keep & (keep_countries | keep_regions)
-  }
-  return(keep)
-}
-
-#' select_years
-#' Helper function for subset_lkup()
-#' @inheritParams subset_lkup
-#' @param keep logical vector
-#' @return logical vector
-select_years <- function(lkup, keep, year, country) {
-  # columns i is an ID that identifies if a country has more than one
-  # observation for reporting year. That is the case of IND with URB/RUR and ZWE
-  # with interporaltion and microdata info
-  # dtmp    <- ref_lkup[,
-  #                   .i := seq_len(.N),
-  #                   by = .(country_code, reporting_year)]
-
-  dtmp <- lkup
-
-  year       <- toupper(year)
-  country    <- toupper(country)
-  keep_years <- rep(TRUE, nrow(dtmp))
-  # STEP 1 - If Most Recent Value requested
-  if ("MRV" %in% year) {
-    # STEP 1.1 - If all countries selected. Select MRV for each country
-    dtmp <-
-    if (any(c("ALL", "WLD") %in% country)) {
-       # the i == 1 conditions ensures that it takes into account only one
-       # observation  per country per reporting year. This has to bee like
-       # that in order to keep the same length as the `keep_years` vector.
-      # dtmp[,
-      #      max_year := reporting_year == max(reporting_year) & i == 1,
-      #      by = country_code]
-
-      dtmp[,
-           max_year := reporting_year == max(reporting_year),
-           by = country_code]
-
-    } else {
-      # STEP 1.2 - If only some countries selected. Select MRV for each selected
-      # country
-      dtmp[dtmp[["country_code"]] %in% country,
-           max_year := reporting_year == max(reporting_year),
-           by = country_code]
-    }
-
-    # dtmp <- unique(dtmp[, .(country_code, reporting_year, max_year)])
-
-
-    keep_years <- keep_years & as.logical(dtmp[["max_year"]])
-
-  }
-  # STEP 2 - If specific years are specified. Filter for these years
-  if (!any(c("ALL", "MRV") %in% year)) {
-    keep_years <- keep_years & dtmp$reporting_year %in% as.numeric(year)
-
-  }
-
-  # STEP 3 - Otherwise return all years
-  keep <- keep & keep_years
-  return(keep)
-}
-
 
 
 #' Test whether a vector is length zero and IS not NULL
@@ -763,6 +866,7 @@ get_valid_aux_long_format_tables <- function() {
 #' @inheritParams get_aux_table
 #'
 #' @return data.table
+#' @keywords internal
 get_spr_table <- function(data_dir,
                           table = c("spr_svy", "spr_lnp")) {
 
@@ -790,8 +894,103 @@ get_spr_table <- function(data_dir,
   return(spr)
 }
 
+#' load metaregion from aux data
+#'
+#' If there is no data available, return an empty data.frame
+#'
+#' @inheritParams get_aux_table
+#'
+#' @return data.table
+#' @keywords internal
+get_metaregion_table <- function(data_dir) {
+
+  spr <-
+    tryCatch(
+      expr = {
+        # Your code...
+        get_aux_table(data_dir = data_dir,
+                      table    = "metaregion")
+      }, # end of expr section
+      error = function(e) {
+        data.table::data.table(
+          region_code     = character(0),
+          lineup_year     = numeric(0)
+        )
+      }
+    ) # End of trycatch
+  return(spr)
+}
 
 
+
+#' Load prosperity gap table from aux data
+#'
+#' If there is no data available, return an empty data.frame
+#'
+#' @inheritParams get_aux_table
+#'
+#' @return data.table
+#' @keywords internal
+get_pg_table <- function(data_dir,
+                          table = c("pg_svy", "pg_lnp")) {
+
+  table <- match.arg(table)
+
+  pg <-
+    tryCatch(
+      expr = {
+        # Your code...
+        get_aux_table(data_dir = data_dir,
+                      table    = table)
+      }, # end of expr section
+      error = function(e) {
+        data.table::data.table(
+            country_code    = character(0),
+            reporting_level = character(0),
+            pg              = numeric(0),
+            welfare_type    = character(0),
+            reporting_year  = integer(0)
+          )
+      }
+    ) # End of trycatch
+  return(pg)
+}
+
+
+
+
+
+#' Add Prosperity Gap
+#'
+#' @param df data frame  inside [fg_pip] or [rg_pip]
+#' @param data_dir character: Directory path of auxiliary data. Usually
+#'   `lkup$data_root`
+#' @inheritParams pip
+#'
+#' @return data.table
+#' @keywords internal
+add_pg <- function(df, fill_gaps, data_dir) {
+
+  if (fill_gaps)  {
+    table <- "pg_lnp"
+  } else {
+    table <- "pg_svy"
+  }
+
+  pg <- get_pg_table(data_dir = data_dir,
+                     table    = table)
+
+    merge.data.table(
+      x = df,
+      y = pg,
+      by = c(
+        "country_code",
+        "reporting_year",
+        "welfare_type",
+        "reporting_level"),
+      all.x = TRUE)
+
+}
 
 
 
@@ -803,6 +1002,7 @@ get_spr_table <- function(data_dir,
 #' @inheritParams pip
 #'
 #' @return data.table
+#' @keywords internal
 add_spl <- function(df, fill_gaps, data_dir) {
 
   if (fill_gaps) {
@@ -846,8 +1046,6 @@ add_spl <- function(df, fill_gaps, data_dir) {
 
   return(out)
 }
-
-
 
 
 
@@ -915,4 +1113,35 @@ add_agg_medians <- function(df, fill_gaps, data_dir) {
 
 
   return(out)
+}
+
+
+
+
+#' Get functions names in call stack
+#'
+#' @return character vector of calls
+#' @export
+get_caller_names <- function() {
+  # Get the list of calls on the call stack
+  calls <- sys.calls()
+
+  lcalls <- length(calls)
+  caller_names <- vector("character" , length = lcalls)
+  i <- 1
+  while (i <= lcalls) {
+    call <- calls[[i]]
+
+    if (call[[1]] == as.name("do.call")) {
+      caller_names[i] <- "do.call"
+      i <- i + 1 # jump one call
+      caller_names[i] <- as.character(call[[2]])
+    } else {
+      # Regular call: Directly take the function name
+      caller_names[i] <- as.character(call[[1]])
+    }
+    i <- i + 1
+  }
+
+  invisible(caller_names)
 }
