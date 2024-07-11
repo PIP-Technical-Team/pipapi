@@ -200,6 +200,9 @@ pip <- function(country         = "ALL",
 
   # format ----------------
   ## Inequality indicators to NA for lineup years ----
+
+
+
   if (fill_gaps) {
 
     dist_vars  <- names2keep[!(names2keep %in% crr_names)]
@@ -218,6 +221,10 @@ pip <- function(country         = "ALL",
   }
 
   # Select columns
+  # Add temporal estimate_type var
+  out[, estimate_type := NA_character_]
+
+
   if (additional_ind) {
     get_additional_indicators(out)
     added_names <- attr(out, "new_indicators_names")

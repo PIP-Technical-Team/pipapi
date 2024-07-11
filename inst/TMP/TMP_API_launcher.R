@@ -1,4 +1,7 @@
-
+# install()
+# Make sure the last version of the package is installed to
+# work properly
+library(pipapi)
 
 if (Sys.info()[["user"]] == "wb384996") {
   force <- FALSE
@@ -8,8 +11,15 @@ if (Sys.info()[["user"]] == "wb384996") {
     fs::dir_ls(data_dir, recurse = FALSE)
   }
 
-  lkups <- create_versioned_lkups(data_dir = data_dir,
-                                  vintage_pattern = "^20230328")
+
+  latest_version <-
+    pipapi:::available_versions(data_dir) |>
+    max()
+
+  lkups <- create_versioned_lkups(data_dir,
+                                  vintage_pattern = latest_version)
+  # lkup <- lkups$versions_paths[[lkups$latest_release]]
+
   start_api(port = 8080)
 
 } else {
@@ -19,3 +29,6 @@ if (Sys.info()[["user"]] == "wb384996") {
             host = "0.0.0.0")
 
 }
+
+
+

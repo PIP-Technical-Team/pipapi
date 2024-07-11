@@ -1128,20 +1128,60 @@ get_caller_names <- function() {
 
   lcalls <- length(calls)
   caller_names <- vector("character" , length = lcalls)
-  i <- 1
-  while (i <= lcalls) {
-    call <- calls[[i]]
 
-    if (call[[1]] == as.name("do.call")) {
-      caller_names[i] <- "do.call"
-      i <- i + 1 # jump one call
-      caller_names[i] <- as.character(call[[2]])
-    } else {
-      # Regular call: Directly take the function name
-      caller_names[i] <- as.character(call[[1]])
+  tryCatch(
+    expr = {
+      i <- 1
+      while (i <= lcalls) {
+        call <- calls[[i]]
+        call_class  <- class(call[[1]])
+        call_type   <- typeof(call[[1]])
+        call_length <- length(call[[1]])
+
+        call[[1]] <-
+          deparse(call[[1]]) |>
+          as.character()
+
+        if (length(call[[1]]) > 1) {
+          call[[1]] <-
+            paste0(call[[1]], collapse = "-") |>
+            substr(1, 10)
+        }
+
+        call_text <- call[[1]]
+
+        if (call[[1]] == as.name("do.call")) {
+          caller_names[i] <- "do.call"
+          i <- i + 1 # jump one call
+          caller_names[i] <- deparse(call[[2]])
+        } else {
+          # Regular call: Directly take the function name
+          caller_names[i] <- deparse(call[[1]])
+        }
+        i <- i + 1
+      }
+    }, # end of expr section
+
+    error = function(err) {
+      msg <- c(paste("Error in call",i),
+               paste("class:", call_class),
+               paste("type:", call_type),
+               paste("length:", call_length),
+               paste("text:", call_text))
+      rlang::abort(msg, parent = err)
+    }, # end of error section
+
+    warning = function(w) {
+      msg <- c(paste("Warning in call",i),
+               paste("class:", call_class),
+               paste("type:", call_type),
+               paste("length:", call_length),
+               paste("text:", call_text))
+      rlang::warn(msg, parent = w)
     }
-    i <- i + 1
-  }
+  ) # End of trycatch
 
   invisible(caller_names)
 }
+
+
