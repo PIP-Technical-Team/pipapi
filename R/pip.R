@@ -181,6 +181,8 @@ pip <- function(country         = "ALL",
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
+  # Add temporal estimate_type var
+  out$estimate_type <- NA_character_
 
   # pre-computed distributional stats ---------------
   crr_names  <- names(out)    # current variables
@@ -200,6 +202,9 @@ pip <- function(country         = "ALL",
 
   # format ----------------
   ## Inequality indicators to NA for lineup years ----
+
+
+
   if (fill_gaps) {
 
     dist_vars  <- names2keep[!(names2keep %in% crr_names)]
