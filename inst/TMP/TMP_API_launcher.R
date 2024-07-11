@@ -1,4 +1,7 @@
-devtools::load_all(".")
+# install()
+# Make sure the last version of the package is installed to
+# work properly
+library(pipapi)
 
 if (Sys.info()[["user"]] == "wb384996") {
   force <- FALSE
@@ -10,7 +13,7 @@ if (Sys.info()[["user"]] == "wb384996") {
 
 
   latest_version <-
-    available_versions(data_dir) |>
+    pipapi:::available_versions(data_dir) |>
     max()
 
   lkups <- create_versioned_lkups(data_dir,

@@ -181,8 +181,6 @@ pip <- function(country         = "ALL",
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
-  # Add temporal estimate_type var
-  out$estimate_type <- NA_character_
 
   # pre-computed distributional stats ---------------
   crr_names  <- names(out)    # current variables
@@ -223,6 +221,10 @@ pip <- function(country         = "ALL",
   }
 
   # Select columns
+  # Add temporal estimate_type var
+  out[, estimate_type := NA_character_]
+
+
   if (additional_ind) {
     get_additional_indicators(out)
     added_names <- attr(out, "new_indicators_names")
