@@ -267,7 +267,8 @@ create_lkups <- function(data_dir, versions) {
         'estimation_type',
         'spl',
         'spr',
-        'pg'
+        'pg',
+        'estimate_type'
       ),
 
       # This is not used anywhere anymore.
@@ -346,7 +347,8 @@ create_lkups <- function(data_dir, versions) {
         'watts',
         'pop_in_poverty',
         'spr',
-        'pg'
+        'pg',
+        'estimate_type'
       ),
       inequality_indicators = c(
         'median',
