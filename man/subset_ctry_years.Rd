@@ -6,10 +6,18 @@
 This is a table created at start time to facilitate imputations
 It part of the interpolated_list object}
 \usage{
-subset_ctry_years(country, year, lkup, valid_regions)
+subset_ctry_years(country, year, lkup, valid_regions, data_dir)
 }
 \arguments{
+\item{country}{character: Country ISO 3 codes}
+
+\item{year}{integer: Reporting year}
+
+\item{lkup}{list: A list of lkup tables}
+
 \item{valid_regions}{character: List of valid region codes that can be used}
+
+\item{data_dir}{character: directory path from lkup$data_root}
 }
 \value{
 data.frame
