@@ -13,6 +13,10 @@ lkups <- create_versioned_lkups(data_dir,
                                 vintage_pattern = latest_version)
 lkup <- lkups$versions_paths[[lkups$latest_release]]
 
+local_mocked_bindings(
+  get_caller_names = function() c("else")
+)
+
 # aggregated distribution ----
 ## Extrapolation ----
 test_that("Imputation is working for extrapolated aggregated distribution", {

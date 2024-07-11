@@ -660,8 +660,8 @@ subset_ctry_years <- function(country,
                               valid_regions,
                               data_dir) {
 
-  is_agg <- get_caller_names() |>
-    grepl(pattern = "pip_grp", x = _) |>
+  is_agg <- get_caller_names()
+  is_agg <- grepl(pattern = "pip_grp", x = is_agg) |>
     any()
 
   keep <- TRUE
@@ -1126,11 +1126,22 @@ get_caller_names <- function() {
   # Get the list of calls on the call stack
   calls <- sys.calls()
 
-  # Use lapply to process each call and extract the function name
-  caller_names <- lapply(calls, \(call) {
-    as.character(call[[1]])
-  }) |>
-    unlist()
+  lcalls <- length(calls)
+  caller_names <- vector("character" , length = lcalls)
+  i <- 1
+  while (i <= lcalls) {
+    call <- calls[[i]]
+
+    if (call[[1]] == as.name("do.call")) {
+      caller_names[i] <- "do.call"
+      i <- i + 1 # jump one call
+      caller_names[i] <- as.character(call[[2]])
+    } else {
+      # Regular call: Directly take the function name
+      caller_names[i] <- as.character(call[[1]])
+    }
+    i <- i + 1
+  }
 
   invisible(caller_names)
 }

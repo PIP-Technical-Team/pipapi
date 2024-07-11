@@ -23,6 +23,11 @@ lkups2$ref_lkup <- lkups2$ref_lkup[country_code %in% c('AGO', 'ZWE')]
 dt_lac <- readRDS(test_path("testdata", "pip_lac_resp.rds"))
 dt_sas <- readRDS(test_path("testdata", "pip_sas_resp.rds"))
 
+
+local_mocked_bindings(
+  get_caller_names = function() c("else")
+)
+
 test_that("ui_cp_poverty_charts() works as expected", {
   dl <- ui_cp_poverty_charts(
     country = "AGO",
@@ -332,8 +337,8 @@ test_that("cp_correct_reporting_level() is working as expected for countries wit
 
 test_that("ui_cp_charts() optimized version returns same results as previous version", {
   # COL
-  dl1 <- ui_cp_charts(country = c("COL"), povline = 1.9, lkup = lkups)
-  dl2 <- ui_cp_charts(country = c("COL"), povline = 1.9, lkup = lkups)
+  dl1 <- ui_cp_charts(country = c("PRY"), povline = 1.9, lkup = lkups)
+  dl2 <- ui_cp_charts(country = c("PRY"), povline = 1.9, lkup = lkups)
   expect_equal(dl1, dl2)
 
   # ARG
@@ -350,8 +355,8 @@ test_that("ui_cp_charts() optimized version returns same results as previous ver
 
 test_that("ui_cp_key_indicators() optimized version returns same results as previous version", {
   # COL
-  dl1 <- ui_cp_key_indicators(country = c("COL"), povline = 1.9, lkup = lkups)
-  dl2 <- ui_cp_key_indicators(country = c("COL"), povline = 1.9, lkup = lkups)
+  dl1 <- ui_cp_key_indicators(country = c("PRY"), povline = 1.9, lkup = lkups)
+  dl2 <- ui_cp_key_indicators(country = c("PRY"), povline = 1.9, lkup = lkups)
   expect_equal(dl1, dl2)
 
   # ARG

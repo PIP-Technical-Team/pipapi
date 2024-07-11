@@ -15,6 +15,11 @@ censored <-
   test_path("testdata", "/censored.rds") |>
   readRDS()
 
+local_mocked_bindings(
+  get_caller_names = function() c("else")
+)
+
+
 test_that("Reporting level filtering is working", {
   reporting_levels <- c("national", "urban", "rural", "all")
   tmp <- lapply(reporting_levels,
@@ -769,11 +774,11 @@ test_that("median does not have duplicates", {
 
   ### by reporting level----------------
   anyDuplicated(tmp[!is.na(median)][,
-                    c("country_code",
-                      "reporting_year",
-                      "welfare_type",
-                      # "reporting_level",
-                      "median")]) |>
+                                    c("country_code",
+                                      "reporting_year",
+                                      "welfare_type",
+                                      # "reporting_level",
+                                      "median")]) |>
     expect_equal(0)
 
   ### by welfare type -------------
