@@ -211,6 +211,8 @@ pip <- function(country         = "ALL",
     ## estimate_var -----
     out <- estimate_type_ctr_lnp(out, lkup)
 
+  } else {
+    out[, estimate_type := NA_character_]
   }
   ## Handle survey coverage ------------
   if (reporting_level != "all") {
