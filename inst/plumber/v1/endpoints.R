@@ -517,6 +517,19 @@ function(req) {
        wbpip = packageDescription("wbpip")$GithubSHA1)
 }
 
+#* Check packages version deployed according to DESCRIPTION file.
+#* @get /api/v1/pkgs-version
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer unboxedJSON
+function(req) {
+  list(pipapi = packageDescription("pipapi")$Version,
+       wbpip = packageDescription("wbpip")$Version)
+}
+
+
+
 #* Return number of workers
 #* @get /api/v1/n-workers
 #* @serializer unboxedJSON
