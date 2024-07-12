@@ -243,12 +243,17 @@ get_svy_data <- function(svy_id,
   # tictoc::tic("read_single")
   out <- lapply(path, function(x) {
 
-    if (reporting_level %in% c("urban", "rural")) { # Not robust. Should not be hard coded here.
-      tmp <- fst::read_fst(x)
-      tmp <- tmp[tmp$area == reporting_level, ]
-      tmp <- tmp[, c("welfare", "weight")]
+    # Not robust. Should not be hard coded here.
+    if (reporting_level %in% c("urban", "rural")) {
+      tmp <- fst::read_fst(x,
+                         columns = c("area", "welfare", "weight"),
+                         as.data.table = TRUE)
+      tmp <- tmp[area == reporting_level, ]
+      tmp[, area := NULL]
     } else {
-      tmp <- fst::read_fst(x, columns = c("welfare", "weight"))
+      tmp <- fst::read_fst(x,
+                           columns = c("welfare", "weight"),
+                           as.data.table = TRUE)
     }
 
     return(tmp)
@@ -439,6 +444,37 @@ estimate_type_var <- function(df, lkup) {
   }
   df[, c("tmp_id", "lineup_year")  := NULL]
 }
+
+
+#' Add estimate_type var to lineup at the country level
+#'
+#' @param out current data base
+#' @param lkup lkup list
+#'
+#' @return out database with `estimate_type` variable
+#' @keywords internal
+estimate_type_ctr_lnp <- function(out, lkup) {
+
+  out[, estimate_type := fifelse(estimation_type == "survey", "actual", "projection")]
+  mr     <- get_metaregion_table(lkup$data_root)
+  wld    <- mr[region_code == "WLD", lineup_year]
+  regs   <- out[, unique(region_code)]
+  mr     <- mr[region_code %in% regs]
+  mr[, lineup_year := max(lineup_year, wld),
+     by = region_code]
+
+  # Merge metaregion and label those obs with reporting year
+  # higher than lineup year as "nowcast"
+  out <- mr[out, on = "region_code"]
+  out[reporting_year > lineup_year,
+      estimate_type := "nowcast"]
+
+  out[, lineup_year := NULL]
+
+
+}
+
+
 
 
 
