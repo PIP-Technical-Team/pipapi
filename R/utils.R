@@ -243,14 +243,18 @@ get_svy_data <- function(svy_id,
   # tictoc::tic("read_single")
   out <- lapply(path, function(x) {
 
-    tmp <- fst::read_fst(x,
-                         columns = c("area", "welfare", "weight"),
-                         as.data.table = TRUE)
     # Not robust. Should not be hard coded here.
     if (reporting_level %in% c("urban", "rural")) {
+      tmp <- fst::read_fst(x,
+                         columns = c("area", "welfare", "weight"),
+                         as.data.table = TRUE)
       tmp <- tmp[area == reporting_level, ]
+      tmp[, area := NULL]
+    } else {
+      tmp <- fst::read_fst(x,
+                           columns = c("welfare", "weight"),
+                           as.data.table = TRUE)
     }
-    tmp[, area := NULL]
 
     return(tmp)
   })
