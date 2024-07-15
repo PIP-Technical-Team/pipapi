@@ -37,11 +37,7 @@ Suggests:
     future.apply,
     lintr,
     withr,
-    joyn, 
-    cli, 
-    readr, 
-    devtools, 
-    arrow
+    devtools
 Language: en-US
 Imports: 
     data.table,
@@ -56,8 +52,12 @@ Imports:
     rappdirs,
     methods,
     qs,
-    collapse, 
-    future
+    collapse,
+    future,
+    readr,
+    arrow,
+    cli,
+    joyn
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 
