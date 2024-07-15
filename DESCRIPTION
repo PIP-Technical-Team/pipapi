@@ -57,7 +57,8 @@ Imports:
     readr,
     arrow,
     cli,
-    joyn
+    joyn,
+    yaml
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 
