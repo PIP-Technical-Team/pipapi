@@ -497,7 +497,6 @@ is_forked <- function(country,
 #' @param max_length integer: Max length of welfare vector
 #' @return list of two vectors welfare and population
 #' @export
-#' @noRd
 validate_input_grouped_stats <- function(welfare, population, max_length = 100) {
   welfare    <- parse_parameter(welfare,"welfare")
   population <- parse_parameter(population,"population")
