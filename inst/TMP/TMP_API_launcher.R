@@ -1,8 +1,8 @@
 # install()
 # Make sure the last version of the package is installed to
 # work properly
-library(pipapi)
-
+# library(pipapi)
+devtools::load_all(".")
 if (Sys.info()[["user"]] == "wb384996") {
   force <- FALSE
   if (!"lkups" %in% ls() || isTRUE(force)) {
@@ -21,6 +21,7 @@ if (Sys.info()[["user"]] == "wb384996") {
   # lkup <- lkups$versions_paths[[lkups$latest_release]]
 
   start_api(port = 8080)
+  # start_api(port = 3711)
 
 } else {
   lkups <- pipapi::create_versioned_lkups(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))

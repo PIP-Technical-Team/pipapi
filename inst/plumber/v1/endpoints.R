@@ -461,9 +461,9 @@ function(req, res) {
   params$weight <- params$population
   params$population <- NULL
     out <- do.call(pipapi:::pipgd_select_lorenz, params)
-  new <- purrr::map_df(out$gd_params, return_output_regression_params, .id = "lorenz")
+  new <- purrr::map_df(out$gd_params, pipapi:::return_output_regression_params, .id = "lorenz")
   new <- cbind(new, selected_for_dist = out$selected_lorenz$for_dist,
-        selected_for_pov = out$selected_lorenz$for_pov, povline = 1)
+        selected_for_pov = out$selected_lorenz$for_pov)
   return(new)
 }
 
