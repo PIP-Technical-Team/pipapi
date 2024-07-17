@@ -289,13 +289,10 @@ pipgd_validate_lorenz <-
 
   # Validity or LQ
   validity_lq <- wbpip::check_curve_validity_lq(
-    params$gd_params$lq$reg_results$coef[["A"]],
-    params$gd_params$lq$reg_results$coef[["B"]],
-    params$gd_params$lq$reg_results$coef[["C"]],
-    params$gd_params$lq$key_values$e,
-    params$gd_params$lq$key_values$m,
-    params$gd_params$lq$key_values$n,
-    params$gd_params$lq$key_values$r^2)
+    A = params$gd_params$lq$reg_results$coef[["A"]],
+    B = params$gd_params$lq$reg_results$coef[["B"]],
+    C = params$gd_params$lq$reg_results$coef[["C"]],
+    key_values = params$gd_params$lq$key_values)
 
   headcount_lq <- gd_compute_headcount_lq(mean,
                                           povline_lq,
@@ -429,12 +426,13 @@ pipgd_select_lorenz <-
                               params$gd_params$lb$reg_results$coef[["B"]],
                               params$gd_params$lb$reg_results$coef[["C"]])
 
-  fit_lq <- wbpip::gd_compute_fit_lq(params$data$welfare,
-                              params$data$weight,
-                              params$gd_params$lq$validity$headcount,
-                              params$gd_params$lb$reg_results$coef[["A"]],
-                              params$gd_params$lb$reg_results$coef[["B"]],
-                              params$gd_params$lb$reg_results$coef[["C"]])
+  fit_lq <- wbpip::gd_compute_fit_lq(welfare = params$data$welfare,
+                              population = params$data$weight,
+                              headcount = params$gd_params$lq$validity$headcount,
+                              A = params$gd_params$lb$reg_results$coef[["A"]],
+                              B = params$gd_params$lb$reg_results$coef[["B"]],
+                              C = params$gd_params$lb$reg_results$coef[["C"]],
+                              key_values = params$gd_params$lq$key_values)
 
   lq <- append(lq,
                fit_lq["ssez"])
