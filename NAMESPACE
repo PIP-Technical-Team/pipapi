@@ -2,6 +2,7 @@
 
 export(add_dist_stats)
 export(assign_serializer)
+export(change_grouped_stats_to_csv)
 export(citation_from_version)
 export(create_etag_header)
 export(create_return_cols)

@@ -435,14 +435,16 @@ function(req) {
 function(req, res) {
   params <- req$argsQuery
   res$serializer <- pipapi::assign_serializer(format = params$format)
+  tmp_format <- params$format
   params$format <- NULL
   params$version <- NULL
   relevant_params <- lapply(params, as.numeric)
 
   out <- do.call(wbpip:::gd_compute_pip_stats, relevant_params)
-  if(!is.null(params$format) && params$format == "csv") {
+  if(!is.null(tmp_format) && tmp_format == "csv") {
     out <- change_grouped_stats_to_csv(out)
   }
+
   out
 }
 

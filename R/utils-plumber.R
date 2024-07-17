@@ -542,6 +542,7 @@ return_output_regression_params <- function(vals) {
 #' @param out output from wbpip::gd_compute_pip_stats
 #'
 #' @return dataframe
+#' @export
 change_grouped_stats_to_csv <- function(out) {
   out[paste0("decile", seq_along(out$deciles))] <- out$deciles
   out$deciles <- NULL
