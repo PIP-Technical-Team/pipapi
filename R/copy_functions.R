@@ -497,12 +497,6 @@ gd_compute_headcount_lq <- function(
 #' @param params list of parameters
 #' @param welfare numeric vector of cumulative share of welfare (income/consumption)
 #' @param weight numeric vector of cumulative share of the population
-#' @param mean numeric scalar of distribution mean. Default is 1
-#' @param times_mean factor that multiplies the mean to create a relative poverty line. Default is 1
-#' @param popshare range (0,1). Share of population. Provide share of population instead of poverty line
-#' @param povline value of poverty line. Default is the `mean` value
-#' @param complete If TRUE, returns a list a cumulative returns from
-#'   previously used `get_gd` functions. Default is `FALSE`
 #' @param lorenz either "lb" or "lq"
 #' @param n_bins atomic double vector of length 1: number of points on the
 #' lorenz curve
@@ -538,16 +532,8 @@ gd_compute_headcount_lq <- function(
 #'}
 #'
 pipgd_lorenz_curve <- function(
-    params     = NULL,
     welfare    = NULL,
     weight     = NULL,
-    mean       = 1,
-    times_mean = 1,
-    popshare   = NULL,
-    povline    = ifelse(is.null(popshare),
-                        mean*times_mean,
-                        NA_real_),
-    complete   = getOption("pipster.return_complete"),
     lorenz     = NULL,
     n_bins     = 100
 ){
@@ -561,23 +547,11 @@ pipgd_lorenz_curve <- function(
   #____________________________________________________________________
   #   Params
   #____________________________________________________________________
-  if (!is.null(welfare)) {
-    params <- pipgd_select_lorenz(
-      welfare  = welfare,
-      weight   = weight,
-      complete = TRUE,
-      mean     = mean,
-      povline  = povline
-    )
-  } else {
-    params <- pipgd_select_lorenz(
-      welfare  =  params$data$welfare,
-      weight   =  params$data$weight,
-      complete = TRUE,
-      mean     = mean,
-      povline  = povline
-    )
-  }
+  params <- pipgd_select_lorenz(
+    welfare  = welfare,
+    weight   = weight,
+    complete = TRUE,
+    mean     = 1)
 
   #   _________________________________________________________________
   #   Select Lorenz
@@ -626,9 +600,7 @@ pipgd_lorenz_curve <- function(
   #   _________________________________________________________________
   #   Return
   #   _________________________________________________________________
-  if (isFALSE(complete)) {
-    params <- vector("list")
-  }
+
 
   params$lorenz_curve$output <- lc
   params$lorenz_curve$points <- x_vec
