@@ -67,7 +67,8 @@ ag_average_poverty_stats <- function(df, return_cols) {
   ## Identify vars to average ------
   num_names <- names(df)[unlist(lapply(df, is.numeric))]
   nonum_names <- names(df)[ !names(df) %in% num_names]
-  avg_names <- grep("^reporting", num_names, value = TRUE, invert = TRUE)
+  # avg_names <- grep("^reporting", num_names, value = TRUE, invert = TRUE)
+  avg_names <- num_names[num_names != "reporting_pop"]
 
   ## Identify vars to aggregate ------
   rep_names <- grep("^reporting", num_names, value = TRUE)
@@ -75,24 +76,12 @@ ag_average_poverty_stats <- function(df, return_cols) {
   # STEP 2: Handle negative and zero values -----------
   ## Handle negatives ------
   df[, (noneg_vars) :=
-       lapply(.SD, \(x) {
-         if (any(x < 0, na.rm = TRUE) || anyNA(x)) {
-           NA_real_
-         } else {
-           x
-         }
-       }),
+       lapply(.SD, negative_to_na),
      .SDcols = noneg_vars]
 
   ## Handle zeros -------------
   df[, (zero_vars) :=
-       lapply(.SD, \(x) {
-         if (any(x == 0, na.rm = TRUE)) {
-           NA_real_
-         } else {
-           x
-         }
-         }),
+       lapply(.SD, zeros_to_na),
      .SDcols = zero_vars]
 
   # STEP 3: Calculations ----------
@@ -103,18 +92,18 @@ ag_average_poverty_stats <- function(df, return_cols) {
     collapse::get_vars(c("reporting_pop", avg_names)) |>
     collapse::fmean(reporting_pop,
                     keep.group_vars = FALSE,
-                    keep.w = FALSE)
+                    keep.w = TRUE,
+                    stub   = FALSE)
 
 
   ## Sum: National total of reporting vars ------
-  sum_df <-
-    df[,
-       lapply(.SD, sum),
-       .SDcols = rep_names]
+  # sum_df <-
+  #   df[,
+  #      .(reporting_pop = sum(reporting_pop))]
 
   # STEP 4: Format results ----
   ## Bind resulting tables ----
-  out <- cbind(df[1, .SD, .SDcols = nonum_names], wgt_df, sum_df)
+  out <- cbind(df[1, .SD, .SDcols = nonum_names], wgt_df)
 
   ## convert years back to numeric ----
   out[, (years_vars) :=
@@ -136,4 +125,21 @@ ag_average_poverty_stats <- function(df, return_cols) {
   # Return ------
   return(out)
 
+}
+
+
+negative_to_na <- function(x) {
+  if (any(x < 0, na.rm = TRUE) || anyNA(x)) {
+    NA_real_
+  } else {
+    x
+  }
+}
+
+zeros_to_na <- function(x) {
+  if (any(x == 0, na.rm = TRUE)) {
+    NA_real_
+  } else {
+    x
+  }
 }
