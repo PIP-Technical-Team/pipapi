@@ -1,8 +1,8 @@
 # install()
 # Make sure the last version of the package is installed to
 # work properly
-# library(pipapi)
-devtools::load_all(".")
+library(pipapi)
+# devtools::load_all(".")
 if (Sys.info()[["user"]] == "wb384996") {
   force <- FALSE
   if (!"lkups" %in% ls() || isTRUE(force)) {

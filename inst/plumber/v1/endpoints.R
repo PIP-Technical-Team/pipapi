@@ -821,6 +821,19 @@ function(req) {
   out
 }
 
+#* Return lineup year for the World
+#* @get /api/v1/wld-lineup-year
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer json list(na="null")
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[params$version]]
+  out <- pipapi::wld_lineup_year(data_dir = params$lkup$data_root)
+  out
+}
+
 
 #* Return citation
 #* @get /api/v1/citation
