@@ -47,7 +47,6 @@ test_that("Reporting level filtering is working", {
 # Use only test data
 # lkup$svy_lkup <- lkup$svy_lkup[(cache_id %in% files | country_code == "AGO")]
 # lkup$ref_lkup <- lkup$ref_lkup[(cache_id %in% files | country_code == "AGO")]
-
 # Check output type ----
 test_that("output type is correct", {
   tmp <- pip(
@@ -611,4 +610,3 @@ test_that("pip works for multiple povline values", {
 
   expect_identical(rbind(out2, out1), out3)
 })
-

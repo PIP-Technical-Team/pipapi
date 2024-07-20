@@ -1,5 +1,12 @@
 # pipapi (development version)
 
+* Add Prosperity Gap to both svy and lnp years. 
+* Implement nowcast up to 2024
+* Add `estimate_type` variable to `pip()` and `pip_grp*()` calls
+* Add new aux file, `metaregion`
+* Change algorithms for MRV calls to return up to lineup year. 
+* Modify unit tests to account for the changes above.
+
 # pipapi 1.3.7
 
 # pipapi 1.3.6

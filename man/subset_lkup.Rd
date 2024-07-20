@@ -4,7 +4,15 @@
 \alias{subset_lkup}
 \title{Subset look-up data}
 \usage{
-subset_lkup(country, year, welfare_type, reporting_level, lkup, valid_regions)
+subset_lkup(
+  country,
+  year,
+  welfare_type,
+  reporting_level,
+  lkup,
+  valid_regions,
+  data_dir = NULL
+)
 }
 \arguments{
 \item{country}{character: Country ISO 3 codes}
@@ -19,6 +27,8 @@ subset_lkup(country, year, welfare_type, reporting_level, lkup, valid_regions)
 
 \item{valid_regions}{character: List of valid region codes that can be used
 for region selection}
+
+\item{data_dir}{character: directory path from lkup$data_root}
 }
 \value{
 data.frame

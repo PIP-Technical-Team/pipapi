@@ -496,7 +496,7 @@ is_forked <- function(country,
 #' @param population character: valid values
 #' @param max_length integer: Max length of welfare vector
 #' @return list of two vectors welfare and population
-#' @noRd
+#' @export
 validate_input_grouped_stats <- function(welfare, population, max_length = 100) {
   welfare    <- parse_parameter(welfare,"welfare")
   population <- parse_parameter(population,"population")
@@ -542,6 +542,7 @@ return_output_regression_params <- function(vals) {
 #' @param out output from wbpip::gd_compute_pip_stats
 #'
 #' @return dataframe
+#' @export
 change_grouped_stats_to_csv <- function(out) {
   out[paste0("decile", seq_along(out$deciles))] <- out$deciles
   out$deciles <- NULL

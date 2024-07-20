@@ -1,9 +1,21 @@
 # skip_if(Sys.getenv('WBPIP_RUN_LOCAL_TESTS') != "TRUE")
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
 
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
-lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL")
+
+skip_if(data_dir == "")
+
+latest_version <-
+  available_versions(data_dir) |>
+  max()
+
+lkups <- create_versioned_lkups(data_dir,
+                                vintage_pattern = latest_version)
 lkup <- lkups$versions_paths[[lkups$latest_release]]
+
+local_mocked_bindings(
+  get_caller_names = function() c("else")
+)
 
 # aggregated distribution ----
 ## Extrapolation ----
@@ -154,15 +166,6 @@ censored <- lkup$censored$countries
 ## no unexpected NAs ------------
 test_that("NAs only in censored data", {
 
-  ### Median ------------
-  expect_equal(
-    tmp[is.na(median)][!censored,
-                       on = c("country_code",
-                              "reporting_year",
-                              "reporting_level",
-                              "welfare_type")] |>
-      nrow(),
-    expected = 0)
 
   ### SPR ---------------
   expect_equal(

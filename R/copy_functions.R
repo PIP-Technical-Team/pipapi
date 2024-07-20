@@ -289,13 +289,10 @@ pipgd_validate_lorenz <-
 
   # Validity or LQ
   validity_lq <- wbpip::check_curve_validity_lq(
-    params$gd_params$lq$reg_results$coef[["A"]],
-    params$gd_params$lq$reg_results$coef[["B"]],
-    params$gd_params$lq$reg_results$coef[["C"]],
-    params$gd_params$lq$key_values$e,
-    params$gd_params$lq$key_values$m,
-    params$gd_params$lq$key_values$n,
-    params$gd_params$lq$key_values$r^2)
+    A = params$gd_params$lq$reg_results$coef[["A"]],
+    B = params$gd_params$lq$reg_results$coef[["B"]],
+    C = params$gd_params$lq$reg_results$coef[["C"]],
+    key_values = params$gd_params$lq$key_values)
 
   headcount_lq <- gd_compute_headcount_lq(mean,
                                           povline_lq,
@@ -429,12 +426,13 @@ pipgd_select_lorenz <-
                               params$gd_params$lb$reg_results$coef[["B"]],
                               params$gd_params$lb$reg_results$coef[["C"]])
 
-  fit_lq <- wbpip::gd_compute_fit_lq(params$data$welfare,
-                              params$data$weight,
-                              params$gd_params$lq$validity$headcount,
-                              params$gd_params$lb$reg_results$coef[["A"]],
-                              params$gd_params$lb$reg_results$coef[["B"]],
-                              params$gd_params$lb$reg_results$coef[["C"]])
+  fit_lq <- wbpip::gd_compute_fit_lq(welfare = params$data$welfare,
+                              population = params$data$weight,
+                              headcount = params$gd_params$lq$validity$headcount,
+                              A = params$gd_params$lb$reg_results$coef[["A"]],
+                              B = params$gd_params$lb$reg_results$coef[["B"]],
+                              C = params$gd_params$lb$reg_results$coef[["C"]],
+                              key_values = params$gd_params$lq$key_values)
 
   lq <- append(lq,
                fit_lq["ssez"])
@@ -499,12 +497,6 @@ gd_compute_headcount_lq <- function(
 #' @param params list of parameters
 #' @param welfare numeric vector of cumulative share of welfare (income/consumption)
 #' @param weight numeric vector of cumulative share of the population
-#' @param mean numeric scalar of distribution mean. Default is 1
-#' @param times_mean factor that multiplies the mean to create a relative poverty line. Default is 1
-#' @param popshare range (0,1). Share of population. Provide share of population instead of poverty line
-#' @param povline value of poverty line. Default is the `mean` value
-#' @param complete If TRUE, returns a list a cumulative returns from
-#'   previously used `get_gd` functions. Default is `FALSE`
 #' @param lorenz either "lb" or "lq"
 #' @param n_bins atomic double vector of length 1: number of points on the
 #' lorenz curve
@@ -540,16 +532,8 @@ gd_compute_headcount_lq <- function(
 #'}
 #'
 pipgd_lorenz_curve <- function(
-    params     = NULL,
     welfare    = NULL,
     weight     = NULL,
-    mean       = 1,
-    times_mean = 1,
-    popshare   = NULL,
-    povline    = ifelse(is.null(popshare),
-                        mean*times_mean,
-                        NA_real_),
-    complete   = getOption("pipster.return_complete"),
     lorenz     = NULL,
     n_bins     = 100
 ){
@@ -563,23 +547,11 @@ pipgd_lorenz_curve <- function(
   #____________________________________________________________________
   #   Params
   #____________________________________________________________________
-  if (!is.null(welfare)) {
-    params <- pipgd_select_lorenz(
-      welfare  = welfare,
-      weight   = weight,
-      complete = TRUE,
-      mean     = mean,
-      povline  = povline
-    )
-  } else {
-    params <- pipgd_select_lorenz(
-      welfare  =  params$data$welfare,
-      weight   =  params$data$weight,
-      complete = TRUE,
-      mean     = mean,
-      povline  = povline
-    )
-  }
+  params <- pipgd_select_lorenz(
+    welfare  = welfare,
+    weight   = weight,
+    complete = TRUE,
+    mean     = 1)
 
   #   _________________________________________________________________
   #   Select Lorenz
@@ -628,9 +600,7 @@ pipgd_lorenz_curve <- function(
   #   _________________________________________________________________
   #   Return
   #   _________________________________________________________________
-  if (isFALSE(complete)) {
-    params <- vector("list")
-  }
+
 
   params$lorenz_curve$output <- lc
   params$lorenz_curve$points <- x_vec

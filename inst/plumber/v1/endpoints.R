@@ -435,14 +435,16 @@ function(req) {
 function(req, res) {
   params <- req$argsQuery
   res$serializer <- pipapi::assign_serializer(format = params$format)
+  tmp_format <- params$format
   params$format <- NULL
   params$version <- NULL
   relevant_params <- lapply(params, as.numeric)
 
   out <- do.call(wbpip:::gd_compute_pip_stats, relevant_params)
-  if(!is.null(params$format) && params$format == "csv") {
+  if(!is.null(tmp_format) && tmp_format == "csv") {
     out <- change_grouped_stats_to_csv(out)
   }
+
   out
 }
 
@@ -458,10 +460,10 @@ function(req, res) {
   params$version <- NULL
   params$weight <- params$population
   params$population <- NULL
-  out <- do.call(pipapi:::pipgd_select_lorenz, relevant_params)
-  new <- purrr::map_df(out$gd_params, return_output_regression_params, .id = "lorenz")
+    out <- do.call(pipapi:::pipgd_select_lorenz, params)
+  new <- purrr::map_df(out$gd_params, pipapi:::return_output_regression_params, .id = "lorenz")
   new <- cbind(new, selected_for_dist = out$selected_lorenz$for_dist,
-        selected_for_pov = out$selected_lorenz$for_pov, povline = 1)
+        selected_for_pov = out$selected_lorenz$for_pov)
   return(new)
 }
 
@@ -469,19 +471,19 @@ function(req, res) {
 #* @get /api/v1/lorenz-curve
 #* @param cum_welfare:[dbl] numeric vector for population
 #* @param cum_population:[dbl] numeric vector weight
-#* @param mean:[dbl] mean value
-#* @param times_mean:[dbl] times mean
-#* @param popshare:[dbl] share of population
 #* @param lorenz:[chr] Lorenz fit
 #* @param n_bins:[dbl] Number of bins (default 100)
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 function(req, res) {
   params <- req$argsQuery
   res$serializer <- pipapi::assign_serializer(format = params$format)
+
   params$weight <- params$population
-  params$format <- NULL
-  params$version <- NULL
-  params$population <- NULL
+
+  params$format         <- NULL
+  params$version        <- NULL
+  params$population     <- NULL
+
   relevant_params <- lapply(params, as.numeric)
   out <- do.call(pipgd_lorenz_curve, relevant_params)
   out <- data.frame(welfare = out$lorenz_curve$output,
@@ -516,6 +518,19 @@ function(req) {
   list(pipapi = packageDescription("pipapi")$GithubSHA1,
        wbpip = packageDescription("wbpip")$GithubSHA1)
 }
+
+#* Check packages version deployed according to DESCRIPTION file.
+#* @get /api/v1/pkgs-version
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer unboxedJSON
+function(req) {
+  list(pipapi = packageDescription("pipapi")$Version,
+       wbpip = packageDescription("wbpip")$Version)
+}
+
+
 
 #* Return number of workers
 #* @get /api/v1/n-workers
@@ -803,6 +818,19 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[params$version]]
   out <- pipapi::valid_years(data_dir = params$lkup$data_root)
+  out
+}
+
+#* Return lineup year for the World
+#* @get /api/v1/wld-lineup-year
+#* @param release_version:[chr] date when the data was published in YYYYMMDD format
+#* @param ppp_version:[chr] ppp year to be used
+#* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
+#* @serializer json list(na="null")
+function(req) {
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[params$version]]
+  out <- pipapi::wld_lineup_year(data_dir = params$lkup$data_root)
   out
 }
 

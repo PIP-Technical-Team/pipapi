@@ -16,6 +16,7 @@ rg_pip <- function(country,
   # get values from lkup
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
+  data_dir      <- lkup$data_root
 
 
   metadata <- subset_lkup(
@@ -24,7 +25,8 @@ rg_pip <- function(country,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
     lkup            = svy_lkup,
-    valid_regions   = valid_regions
+    valid_regions   = valid_regions,
+    data_dir        = data_dir
   )
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
@@ -33,7 +35,7 @@ rg_pip <- function(country,
 
   # return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    return(pipapi::empty_response)
+    return(empty_response)
   }
 
   out <- vector(mode = "list", length = nrow(metadata))
@@ -74,6 +76,13 @@ rg_pip <- function(country,
   out <- add_spl(df        = out,
                  fill_gaps = FALSE,
                  data_dir  = lkup$data_root)
+
+  # Add prosperity Gap -----------
+
+  out <- add_pg(df        = out,
+                fill_gaps = FALSE,
+                data_dir  = lkup$data_root)
+
 
   return(out)
 }

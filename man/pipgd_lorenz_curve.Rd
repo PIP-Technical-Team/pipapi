@@ -4,41 +4,19 @@
 \alias{pipgd_lorenz_curve}
 \title{Lorenz curve}
 \usage{
-pipgd_lorenz_curve(
-  params = NULL,
-  welfare = NULL,
-  weight = NULL,
-  mean = 1,
-  times_mean = 1,
-  popshare = NULL,
-  povline = ifelse(is.null(popshare), mean * times_mean, NA_real_),
-  complete = getOption("pipster.return_complete"),
-  lorenz = NULL,
-  n_bins = 100
-)
+pipgd_lorenz_curve(welfare = NULL, weight = NULL, lorenz = NULL, n_bins = 100)
 }
 \arguments{
-\item{params}{list of parameters}
-
 \item{welfare}{numeric vector of cumulative share of welfare (income/consumption)}
 
 \item{weight}{numeric vector of cumulative share of the population}
-
-\item{mean}{numeric scalar of distribution mean. Default is 1}
-
-\item{times_mean}{factor that multiplies the mean to create a relative poverty line. Default is 1}
-
-\item{popshare}{range (0,1). Share of population. Provide share of population instead of poverty line}
-
-\item{povline}{value of poverty line. Default is the \code{mean} value}
-
-\item{complete}{If TRUE, returns a list a cumulative returns from
-previously used \code{get_gd} functions. Default is \code{FALSE}}
 
 \item{lorenz}{either "lb" or "lq"}
 
 \item{n_bins}{atomic double vector of length 1: number of points on the
 lorenz curve}
+
+\item{params}{list of parameters}
 }
 \value{
 Returns a list which contains:
