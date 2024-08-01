@@ -123,15 +123,23 @@ fg_pip <- function(country,
   out[,
       poverty_line := round(poverty_line, digits = 3) ]
 
-  # Add SPL and SPR  ---------------
+  # Add extra variables --------------
+
+  ## Add SPL and SPR  ---------------
   out <- add_spl(df        = out,
                  fill_gaps = TRUE,
                  data_dir  = lkup$data_root)
 
-  # Add Prosperity Gap  ---------------
+  ## Add Prosperity Gap  ---------------
   out <- add_pg(df        = out,
                 fill_gaps = TRUE,
                 data_dir  = lkup$data_root)
+
+  ## add distribution type -------------
+  # based on info in framework data, rather than welfare data
+  add_distribution_type(df = out,
+                        lkup = lkup,
+                        fill_gaps = TRUE)
 
   return(out)
 }

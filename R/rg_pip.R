@@ -74,17 +74,23 @@ rg_pip <- function(country,
   }
   out <- data.table::rbindlist(out)
 
-  # Add SPL and SPR  ---------------
+  # Add extra variables --------------
+
+  ## Add SPL and SPR  ---------------
   out <- add_spl(df        = out,
                  fill_gaps = FALSE,
                  data_dir  = lkup$data_root)
 
-  # Add prosperity Gap -----------
+  ## Add prosperity Gap -----------
 
   out <- add_pg(df        = out,
                 fill_gaps = FALSE,
                 data_dir  = lkup$data_root)
 
-
+  ## add distribution type -------------
+  # based on info in framework data, rather than welfare data
+  add_distribution_type(df = out,
+                        lkup = lkup,
+                        fill_gaps = FALSE)
   return(out)
 }
