@@ -1238,6 +1238,8 @@ add_agg_medians <- function(df, fill_gaps, data_dir) {
         "welfare_type",
         "reporting_level"
       ),
+     # prefer median in df over the one in med as long as the one in
+     # in df is not NA. If that is the case, select the one in med.
       median := fcoalesce(median, i.median)]
 
   return(out)
