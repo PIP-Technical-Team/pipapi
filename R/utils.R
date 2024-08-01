@@ -1082,7 +1082,6 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
 
     by_vars <- c("country_code",
                  "reporting_year",
-                 "reporting_level",
                  "welfare_type"
                  )
 
@@ -1102,18 +1101,18 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
     ]
 
     dt <- dt[,
-             # collapase by reporing_year and keep relvetan variables
+             # collapse by reporting_year and keep relevant variables
              .(distribution_type = unique(distribution_type)),
              by = by_vars
     ]
 
-    df[dt,
-        on = by_vars,
-        distribution_type := i.distribution_type
-       ][,
-         # Calculate unique counts of reporting level and add new rows
-         unique_replevel := uniqueN(reporting_level),
-         by = c("country_code","reporting_year")]
+    # df[dt,
+    #     on = by_vars,
+    #     distribution_type := i.distribution_type
+    #    ][,
+    #      # Calculate unique counts of reporting level and add new rows
+    #      unique_replevel := uniqueN(reporting_level),
+    #      by = c("country_code","reporting_year")]
 
 
   } else {
@@ -1121,7 +1120,6 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
     by_vars <- c(
       "country_code",
       "surveyid_year",
-      "reporting_level",
       "welfare_type",
       "survey_acronym"
     )
@@ -1137,29 +1135,24 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
              .(distribution_type = unique(distribution_type)),
              by = by_vars]
 
-    df[,
-        surveyid_year := as.numeric(surveyid_year)
-      ][dt,
-        on = by_vars,
-        distribution_type := i.distribution_type
-        ][,
-           # Calculate unique counts of reporting level and add new rows
-           unique_replevel := uniqueN(reporting_level),
-           by = c("country_code","surveyid_year")]
   }
 
+  df[,
+      surveyid_year := as.numeric(surveyid_year)
+    ][dt,
+      on = by_vars,
+      distribution_type := i.distribution_type
+      ][,
+         # Calculate unique counts of reporting level and add new rows
+         unique_replevel := uniqueN(reporting_level),
+         by = by_vars]
 
   # distribution type for national cases when aggregate data
 
 
-  new_rows <- df[unique_replevel > 2,
-                 .(reporting_level = "national",
-                   distribution_type = unique(distribution_type)),
-                 by = by_vars]
-
-  df <- rbind(df, new_rows, fill = TRUE)
-
-  df[is.na(unique_replevel) & distribution_type == "group",
+  df[unique_replevel == 3 &
+       reporting_level == "national" &
+       distribution_type == "group",
      distribution_type := "synthetic"
      ][,
        unique_replevel := NULL]
@@ -1221,58 +1214,31 @@ add_spl <- function(df, fill_gaps, data_dir) {
 #' @return data.table
 add_agg_medians <- function(df, fill_gaps, data_dir) {
 
-  # Remove Get only obs with median == NA --------
-  dtn <- df[is.na(median)]  # NAs
-  dtn[, median := NULL]
-
-  dtm <- df[!is.na(median)] # no NAs
 
 
-  ## early returns -----------
-  if (nrow(dtn) == 0) {
-    return(df)
-  }
-
-
-  # Get medians from SPL data -----------
   if (fill_gaps) {
-    med <-
-      get_spr_table(data_dir = data_dir,
-                    table    = "spr_lnp")
-
+    table    = "spr_lnp"
+    # set all lines up medians to NA.
+    df[, median := NA]
   } else {
-    med <-
-      get_spr_table(data_dir = data_dir,
-                    table    = "spr_svy")
+    # if survey data, we keep the ones already calculated and add those
+    # that are missing
+    table    = "spr_svy"
   }
-
-  med <- med |>
-    collapse::get_vars(c(
-      "country_code",
-      "reporting_year",
-      "welfare_type",
-      "reporting_level",
-      "median"
-    ))
+  med <-
+    get_spr_table(data_dir = data_dir,
+                  table    = table)
 
   # join medians to missing data ---------
-  dtnm <- merge.data.table( # joined medians
-    x = dtn,
-    y = med,
-    by = c(
-      "country_code",
-      "reporting_year",
-      "welfare_type",
-      "reporting_level"
-    ),
-    all.x = TRUE
-  )
 
-  # append ------
-  out <- data.table::rbindlist(list(dtnm, dtm),
-                               use.names = TRUE,
-                               fill      = TRUE)
-
+  df[med,
+      on = c(
+        "country_code",
+        "reporting_year",
+        "welfare_type",
+        "reporting_level"
+      ),
+      median := fcoalesce(median, i.median)]
 
   return(out)
 }
