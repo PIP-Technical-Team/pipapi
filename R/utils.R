@@ -1242,7 +1242,7 @@ add_agg_medians <- function(df, fill_gaps, data_dir) {
      # in df is not NA. If that is the case, select the one in med.
       median := fcoalesce(median, i.median)]
 
-  return(out)
+  return(invisible(df))
 }
 
 
