@@ -149,22 +149,26 @@ pip <- function(country         = "ALL",
 
   # Add extra variables --------------
 
-  ## Add SPL and SPR  ---------------
-  out <- add_spl(df        = out,
-                 fill_gaps = fill_gaps,
-                 data_dir  = lkup$data_root)
+  # ## Add SPL and SPR  ---------------
+  # out <- add_spl(df        = out,
+  #                fill_gaps = fill_gaps,
+  #                data_dir  = lkup$data_root)
+  #
+  # ## Add prosperity Gap -----------
+  #
+  # out <- add_pg(df        = out,
+  #               fill_gaps = fill_gaps,
+  #               data_dir  = lkup$data_root)
+  #
+  # ## add distribution type -------------
+  # # based on info in framework data, rather than welfare data
+  # add_distribution_type(df = out,
+  #                       lkup = lkup,
+  #                       fill_gaps = fill_gaps)
 
-  ## Add prosperity Gap -----------
+  add_vars_out_of_pipeline(out, fill_gaps = fill_gaps, lkup = lkup)
 
-  out <- add_pg(df        = out,
-                fill_gaps = fill_gaps,
-                data_dir  = lkup$data_root)
 
-  ## add distribution type -------------
-  # based on info in framework data, rather than welfare data
-  add_distribution_type(df = out,
-                        lkup = lkup,
-                        fill_gaps = fill_gaps)
 
 
   # **** TO BE REMOVED **** REMOVAL STARTS HERE

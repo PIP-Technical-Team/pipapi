@@ -1318,3 +1318,34 @@ get_caller_names <- function() {
 
 
 
+#' Add all the variables that are estimated outside the pipelines
+#'
+#' This includes variables such as the SPL, SPR, PG, and distribution
+#' type. Any other variables will be included here
+#'
+#' @inheritParams add_distribution_type
+#'
+#' @keywords internal
+#' @return data.table from pip or pip_grp functions.
+add_vars_out_of_pipeline <- function(out, fill_gaps, lkup) {
+  ## Add SPL and SPR  ---------------
+  out <- add_spl(df        = out,
+                 fill_gaps = fill_gaps,
+                 data_dir  = lkup$data_root)
+
+  ## Add prosperity Gap -----------
+
+  out <- add_pg(df        = out,
+                fill_gaps = fill_gaps,
+                data_dir  = lkup$data_root)
+
+  ## add distribution type -------------
+  # based on info in framework data, rather than welfare data
+  out <- add_distribution_type(df = out,
+                        lkup = lkup,
+                        fill_gaps = fill_gaps)
+
+  invisible(out)
+}
+
+
