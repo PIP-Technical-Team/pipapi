@@ -1016,16 +1016,14 @@ add_pg <- function(df, fill_gaps, data_dir) {
   pg <- get_pg_table(data_dir = data_dir,
                      table    = table)
 
-    merge.data.table(
-      x = df,
-      y = pg,
-      by = c(
-        "country_code",
-        "reporting_year",
-        "welfare_type",
-        "reporting_level"),
-      all.x = TRUE)
-
+  df[pg,
+     on = c(
+       "country_code",
+       "reporting_year",
+       "welfare_type",
+       "reporting_level"),
+      pg := i.pg
+       ]
 }
 
 
@@ -1157,45 +1155,29 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
 add_spl <- function(df, fill_gaps, data_dir) {
 
   if (fill_gaps) {
-    spl <-
-      get_spr_table(data_dir = data_dir,
-                    table = "spr_lnp")
-
-    out <- merge.data.table(
-      x = df,
-      y = spl,
-      by = c(
-        "country_code",
-        "reporting_year",
-        "welfare_type",
-        "reporting_level"
-      ),
-      all.x = TRUE
-    )
-
+    table <- "spr_lnp"
   } else {
-    # Add SPL ------------
-    spl <-
-      get_spr_table(data_dir = data_dir,
-                    table = "spr_svy")
-
-    # Remove median from survey file and use the one from wbpip:::prod_compute_pip_stats
-    spl[, median := NULL]
-
-    out <- merge.data.table(
-      x = df,
-      y = spl,
-      by = c(
-        "country_code",
-        "reporting_year",
-        "welfare_type",
-        "reporting_level"
-      ),
-      all.x = TRUE
-    )
+    table <-  "spr_svy"
   }
 
-  return(out)
+  spl <-
+    get_spr_table(data_dir = data_dir,
+                  table = table)
+
+
+  out <- df[spl,
+            on = c(
+              "country_code",
+              "reporting_year",
+              "welfare_type",
+              "reporting_level"
+            ),
+            `:=`(
+              spl = i.spl,
+              spr = i.spr
+            )]
+
+  return(invisible(out))
 }
 
 
