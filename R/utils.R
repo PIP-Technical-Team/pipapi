@@ -1030,6 +1030,120 @@ add_pg <- function(df, fill_gaps, data_dir) {
 
 
 
+#' Add Distribution type
+#'
+#' @param df data frame from [fg_pip] or [rg_pip]
+#' @param lkup list: lookup table
+#' @inheritParams pip
+#'
+#' @return data.table
+#' @keywords internal
+add_distribution_type <- function(df, lkup, fill_gaps) {
+
+  # merge reference table with framework table and get distribution type
+  # from framework
+  rf <- copy(lkup$ref_lkup) |>
+    _[, .(
+      country_code,
+      reporting_level,
+      welfare_type,
+      survey_acronym,
+      reporting_year,
+      surveyid_year
+    )][,
+       surveyid_year := as.numeric(surveyid_year)]
+
+
+  fw <- get_aux_table(data_dir = lkup$data_root,
+                      "framework") |>
+    copy() |>
+    _[, .(
+      country_code,
+      survey_acronym,
+      surveyid_year,
+      use_imputed,
+      use_microdata,
+      use_bin,
+      use_groupdata
+    )]
+
+
+  dt <- collapse::join(
+    x        = rf,
+    y        = fw,
+    on       = c("country_code", "surveyid_year", "survey_acronym"),
+    how      = "left",
+    validate = "m:1"
+  )
+
+
+
+  if (fill_gaps) {
+    # line up years ----------
+
+    ln_vars <- c("country_code",
+                 "reporting_level",
+                 "welfare_type",
+                 "reporting_year")
+
+    dt[,
+       # distribution type by year
+       distribution_type := fcase(use_groupdata == 1, "group",
+                                  use_imputed == 1,   "imputed",
+                                  default = "micro")
+    ][,
+      # find interpolation with different distribution type and
+      # replace by "mixed"
+      uniq_dist := uniqueN(distribution_type),
+      by = ln_vars
+    ][
+      uniq_dist != 1,
+      distribution_type := "mixed"
+    ]
+
+    dt <- dt[,
+             # collapase by reporing_year and keep relvetan variables
+             .(distribution_type = unique(distribution_type)),
+             by = ln_vars
+    ]
+
+    df[dt,
+        on = ln_vars,
+        distribution_type := i.distribution_type]
+
+
+  } else {
+  # survey years --------------
+    sy_vars <- c(
+      "country_code",
+      "reporting_level",
+      "welfare_type",
+      "survey_acronym",
+      "surveyid_year"
+    )
+
+    dt[,
+       # distribution type by year
+       distribution_type := fcase(use_groupdata == 1, "group",
+                                  use_imputed == 1,   "imputed",
+                                  default = "micro")
+    ]
+
+    dt <- dt[, # collapase by reporing_year and keep relvetan variables
+             .(distribution_type = unique(distribution_type)),
+             by = sy_vars]
+
+    df[,
+        surveyid_year := as.numeric(surveyid_year)
+      ][dt,
+        on = sy_vars,
+        distribution_type := i.distribution_type]
+  }
+
+  return(invisible(df))
+}
+
+
 #' Add SPL indicators to either fg* or rg PIP output
 #'
 #' @param df data frame inside [fg_pip] or [rg_pip]
@@ -1082,6 +1196,9 @@ add_spl <- function(df, fill_gaps, data_dir) {
 
   return(out)
 }
+
+
+
 
 
 
@@ -1219,5 +1336,8 @@ get_caller_names <- function() {
 
   invisible(caller_names)
 }
+
+
+
 
 
