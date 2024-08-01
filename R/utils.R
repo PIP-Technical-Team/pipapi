@@ -1080,10 +1080,11 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
   if (fill_gaps) {
     # line up years ----------
 
-    ln_vars <- c("country_code",
+    by_vars <- c("country_code",
+                 "reporting_year",
                  "reporting_level",
-                 "welfare_type",
-                 "reporting_year")
+                 "welfare_type"
+                 )
 
     dt[,
        # distribution type by year
@@ -1094,7 +1095,7 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
       # find interpolation with different distribution type and
       # replace by "mixed"
       uniq_dist := uniqueN(distribution_type),
-      by = ln_vars
+      by = by_vars
     ][
       uniq_dist != 1,
       distribution_type := "mixed"
@@ -1103,22 +1104,26 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
     dt <- dt[,
              # collapase by reporing_year and keep relvetan variables
              .(distribution_type = unique(distribution_type)),
-             by = ln_vars
+             by = by_vars
     ]
 
     df[dt,
-        on = ln_vars,
-        distribution_type := i.distribution_type]
+        on = by_vars,
+        distribution_type := i.distribution_type
+       ][,
+         # Calculate unique counts of reporting level and add new rows
+         unique_replevel := uniqueN(reporting_level),
+         by = c("country_code","reporting_year")]
 
 
   } else {
   # survey years --------------
-    sy_vars <- c(
+    by_vars <- c(
       "country_code",
+      "surveyid_year",
       "reporting_level",
       "welfare_type",
-      "survey_acronym",
-      "surveyid_year"
+      "survey_acronym"
     )
 
     dt[,
@@ -1128,17 +1133,38 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
                                   default = "micro")
     ]
 
-    dt <- dt[, # collapase by reporing_year and keep relvetan variables
+    dt <- dt[, # collapse by reporting_year and keep relevant variables
              .(distribution_type = unique(distribution_type)),
-             by = sy_vars]
+             by = by_vars]
 
     df[,
         surveyid_year := as.numeric(surveyid_year)
       ][dt,
-        on = sy_vars,
-        distribution_type := i.distribution_type]
+        on = by_vars,
+        distribution_type := i.distribution_type
+        ][,
+           # Calculate unique counts of reporting level and add new rows
+           unique_replevel := uniqueN(reporting_level),
+           by = c("country_code","surveyid_year")]
   }
 
+
+  # distribution type for national cases when aggregate data
+
+
+  new_rows <- df[unique_replevel > 2,
+                 .(reporting_level = "national",
+                   distribution_type = unique(distribution_type)),
+                 by = by_vars]
+
+  df <- rbind(df, new_rows, fill = TRUE)
+
+  df[is.na(unique_replevel) & distribution_type == "group",
+     distribution_type := "synthetic"
+     ][,
+       unique_replevel := NULL]
+
+  setorderv(df, by_vars)
   return(invisible(df))
 }
 
