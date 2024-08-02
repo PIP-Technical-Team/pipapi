@@ -74,17 +74,5 @@ rg_pip <- function(country,
   }
   out <- data.table::rbindlist(out)
 
-  # Add SPL and SPR  ---------------
-  out <- add_spl(df        = out,
-                 fill_gaps = FALSE,
-                 data_dir  = lkup$data_root)
-
-  # Add prosperity Gap -----------
-
-  out <- add_pg(df        = out,
-                fill_gaps = FALSE,
-                data_dir  = lkup$data_root)
-
-
   return(out)
 }
