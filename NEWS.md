@@ -7,6 +7,11 @@
 * Change algorithms for MRV calls to return up to lineup year. 
 * Modify unit tests to account for the changes above.
 
+* Fix distribution_type variables for both svy and lnp years. 
+* improve algorithm of add_*() functions
+* Fix aggregation of medians
+* Update empty responses. 
+
 # pipapi 1.3.7
 
 # pipapi 1.3.6
