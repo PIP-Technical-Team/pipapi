@@ -1219,7 +1219,7 @@ add_agg_medians <- function(df, fill_gaps, data_dir) {
   if (fill_gaps) {
     table    = "spr_lnp"
     # set all lines up medians to NA.
-    df[, median := NA]
+    df[, median := NA_real_]
   } else {
     # if survey data, we keep the ones already calculated and add those
     # that are missing
