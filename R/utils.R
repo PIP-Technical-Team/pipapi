@@ -1016,18 +1016,150 @@ add_pg <- function(df, fill_gaps, data_dir) {
   pg <- get_pg_table(data_dir = data_dir,
                      table    = table)
 
-    merge.data.table(
-      x = df,
-      y = pg,
-      by = c(
-        "country_code",
-        "reporting_year",
-        "welfare_type",
-        "reporting_level"),
-      all.x = TRUE)
-
+  df[pg,
+     on = c(
+       "country_code",
+       "reporting_year",
+       "welfare_type",
+       "reporting_level"),
+      pg := i.pg
+       ]
 }
 
+
+
+#' Add Distribution type
+#'
+#' @param df data frame from [fg_pip] or [rg_pip]
+#' @param lkup list: lookup table
+#' @inheritParams pip
+#'
+#' @return data.table
+#' @keywords internal
+add_distribution_type <- function(df, lkup, fill_gaps) {
+
+  # merge reference table with framework table and get distribution type
+  # from framework
+  rf <- copy(lkup$ref_lkup) |>
+    _[, .(
+      country_code,
+      reporting_level,
+      welfare_type,
+      survey_acronym,
+      reporting_year,
+      surveyid_year
+    )][,
+       surveyid_year := as.numeric(surveyid_year)]
+
+
+  fw <- get_aux_table(data_dir = lkup$data_root,
+                      "framework") |>
+    copy() |>
+    _[, .(
+      country_code,
+      survey_acronym,
+      surveyid_year,
+      use_imputed,
+      use_microdata,
+      use_bin,
+      use_groupdata
+    )]
+
+
+  dt <- collapse::join(
+    x        = rf,
+    y        = fw,
+    on       = c("country_code", "surveyid_year", "survey_acronym"),
+    how      = "left",
+    validate = "m:1",
+    verbose  = 0
+  )
+
+
+
+  if (fill_gaps) {
+    # line up years ----------
+
+    by_vars <- c("country_code",
+                 "reporting_year",
+                 "welfare_type"
+                 )
+
+    dt[,
+       # distribution type by year
+       distribution_type := fcase(use_groupdata == 1, "group",
+                                  use_imputed == 1,   "imputed",
+                                  default = "micro")
+    ][,
+      # find interpolation with different distribution type and
+      # replace by "mixed"
+      uniq_dist := uniqueN(distribution_type),
+      by = by_vars
+    ][
+      uniq_dist != 1,
+      distribution_type := "mixed"
+    ]
+
+    dt <- dt[,
+             # collapse by reporting_year and keep relevant variables
+             .(distribution_type = unique(distribution_type)),
+             by = by_vars
+    ]
+
+    # df[dt,
+    #     on = by_vars,
+    #     distribution_type := i.distribution_type
+    #    ][,
+    #      # Calculate unique counts of reporting level and add new rows
+    #      unique_replevel := uniqueN(reporting_level),
+    #      by = c("country_code","reporting_year")]
+
+
+  } else {
+  # survey years --------------
+    by_vars <- c(
+      "country_code",
+      "surveyid_year",
+      "welfare_type",
+      "survey_acronym"
+    )
+
+    dt[,
+       # distribution type by year
+       distribution_type := fcase(use_groupdata == 1, "group",
+                                  use_imputed == 1,   "imputed",
+                                  default = "micro")
+    ]
+
+    dt <- dt[, # collapse by reporting_year and keep relevant variables
+             .(distribution_type = unique(distribution_type)),
+             by = by_vars]
+
+  }
+
+  df[,
+      surveyid_year := as.numeric(surveyid_year)
+    ][dt,
+      on = by_vars,
+      distribution_type := i.distribution_type
+      ][,
+         # Calculate unique counts of reporting level and add new rows
+         unique_replevel := uniqueN(reporting_level),
+         by = by_vars]
+
+  # distribution type for national cases when aggregate data
+
+
+  df[unique_replevel == 3 &
+       reporting_level == "national" &
+       distribution_type == "group",
+     distribution_type := "synthetic"
+     ][,
+       unique_replevel := NULL]
+
+  setorderv(df, by_vars)
+  return(invisible(df))
+}
 
 
 #' Add SPL indicators to either fg* or rg PIP output
@@ -1042,46 +1174,33 @@ add_pg <- function(df, fill_gaps, data_dir) {
 add_spl <- function(df, fill_gaps, data_dir) {
 
   if (fill_gaps) {
-    spl <-
-      get_spr_table(data_dir = data_dir,
-                    table = "spr_lnp")
-
-    out <- merge.data.table(
-      x = df,
-      y = spl,
-      by = c(
-        "country_code",
-        "reporting_year",
-        "welfare_type",
-        "reporting_level"
-      ),
-      all.x = TRUE
-    )
-
+    table <- "spr_lnp"
   } else {
-    # Add SPL ------------
-    spl <-
-      get_spr_table(data_dir = data_dir,
-                    table = "spr_svy")
-
-    # Remove median from survey file and use the one from wbpip:::prod_compute_pip_stats
-    spl[, median := NULL]
-
-    out <- merge.data.table(
-      x = df,
-      y = spl,
-      by = c(
-        "country_code",
-        "reporting_year",
-        "welfare_type",
-        "reporting_level"
-      ),
-      all.x = TRUE
-    )
+    table <-  "spr_svy"
   }
 
-  return(out)
+  spl <-
+    get_spr_table(data_dir = data_dir,
+                  table = table)
+
+
+  out <- df[spl,
+            on = c(
+              "country_code",
+              "reporting_year",
+              "welfare_type",
+              "reporting_level"
+            ),
+            `:=`(
+              spl = i.spl,
+              spr = i.spr
+            )]
+
+  return(invisible(out))
 }
+
+
+
 
 
 
@@ -1095,60 +1214,35 @@ add_spl <- function(df, fill_gaps, data_dir) {
 #' @return data.table
 add_agg_medians <- function(df, fill_gaps, data_dir) {
 
-  # Remove Get only obs with median == NA --------
-  dtn <- df[is.na(median)]  # NAs
-  dtn[, median := NULL]
-
-  dtm <- df[!is.na(median)] # no NAs
 
 
-  ## early returns -----------
-  if (nrow(dtn) == 0) {
-    return(df)
-  }
-
-
-  # Get medians from SPL data -----------
   if (fill_gaps) {
-    med <-
-      get_spr_table(data_dir = data_dir,
-                    table    = "spr_lnp")
-
+    table    = "spr_lnp"
+    # set all lines up medians to NA.
+    df[, median := NA_real_]
   } else {
-    med <-
-      get_spr_table(data_dir = data_dir,
-                    table    = "spr_svy")
+    # if survey data, we keep the ones already calculated and add those
+    # that are missing
+    table    = "spr_svy"
   }
-
-  med <- med |>
-    collapse::get_vars(c(
-      "country_code",
-      "reporting_year",
-      "welfare_type",
-      "reporting_level",
-      "median"
-    ))
+  med <-
+    get_spr_table(data_dir = data_dir,
+                  table    = table)
 
   # join medians to missing data ---------
-  dtnm <- merge.data.table( # joined medians
-    x = dtn,
-    y = med,
-    by = c(
-      "country_code",
-      "reporting_year",
-      "welfare_type",
-      "reporting_level"
-    ),
-    all.x = TRUE
-  )
 
-  # append ------
-  out <- data.table::rbindlist(list(dtnm, dtm),
-                               use.names = TRUE,
-                               fill      = TRUE)
+  df[med,
+      on = c(
+        "country_code",
+        "reporting_year",
+        "welfare_type",
+        "reporting_level"
+      ),
+     # prefer median in df over the one in med as long as the one in
+     # in df is not NA. If that is the case, select the one in med.
+      median := fcoalesce(median, i.median)]
 
-
-  return(out)
+  return(invisible(df))
 }
 
 
@@ -1218,6 +1312,40 @@ get_caller_names <- function() {
   ) # End of trycatch
 
   invisible(caller_names)
+}
+
+
+
+
+
+#' Add all the variables that are estimated outside the pipelines
+#'
+#' This includes variables such as the SPL, SPR, PG, and distribution
+#' type. Any other variables will be included here
+#'
+#' @inheritParams add_distribution_type
+#'
+#' @keywords internal
+#' @return data.table from pip or pip_grp functions.
+add_vars_out_of_pipeline <- function(out, fill_gaps, lkup) {
+  ## Add SPL and SPR  ---------------
+  out <- add_spl(df        = out,
+                 fill_gaps = fill_gaps,
+                 data_dir  = lkup$data_root)
+
+  ## Add prosperity Gap -----------
+
+  out <- add_pg(df        = out,
+                fill_gaps = fill_gaps,
+                data_dir  = lkup$data_root)
+
+  ## add distribution type -------------
+  # based on info in framework data, rather than welfare data
+  out <- add_distribution_type(df = out,
+                        lkup = lkup,
+                        fill_gaps = fill_gaps)
+
+  invisible(out)
 }
 
 

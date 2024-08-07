@@ -112,7 +112,7 @@ fg_pip <- function(country,
   out <- data.table::rbindlist(out)
 
   # Remove median
-  out[, median := NULL]
+  # out[, median := NULL]
 
   # Ensure that out does not have duplicates
   out <- fg_remove_duplicates(out)
@@ -121,15 +121,6 @@ fg_pip <- function(country,
   out[,
       poverty_line := round(poverty_line, digits = 3) ]
 
-  # Add SPL and SPR  ---------------
-  out <- add_spl(df        = out,
-                 fill_gaps = TRUE,
-                 data_dir  = lkup$data_root)
-
-  # Add Prosperity Gap  ---------------
-  out <- add_pg(df        = out,
-                fill_gaps = TRUE,
-                data_dir  = lkup$data_root)
 
   return(out)
 }

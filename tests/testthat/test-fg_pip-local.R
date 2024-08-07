@@ -161,6 +161,7 @@ tmp <- fg_pip(
 
 
 censored <- lkup$censored$countries
+add_vars_out_of_pipeline(tmp, fill_gaps = TRUE, lkup = lkup)
 
 
 ## no unexpected NAs ------------

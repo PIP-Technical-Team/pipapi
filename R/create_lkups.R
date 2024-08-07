@@ -374,9 +374,7 @@ create_lkups <- function(data_dir, versions) {
         "headcount",
         "poverty_gap",
         "poverty_severity",
-        "watts",
-        "spr",
-        'pg'
+        "watts"
       ),
       zero_vars = c(
         "mean",

@@ -71,6 +71,8 @@ pip_grp <- function(country         = "ALL",
                          return_cols = lkup$return_cols$ag_average_poverty_stats)
   }
 
+  add_vars_out_of_pipeline(out, fill_gaps = TRUE, lkup = lkup)
+
   # Handle potential (insignificant) difference in poverty_line values that
   # may mess-up the grouping
   out$poverty_line <- povline

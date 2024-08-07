@@ -84,6 +84,8 @@ pip_grp_logic <- function(country         = "ALL",
       lkup            = lkup
       )
 
+    add_vars_out_of_pipeline(fg_pip_master, fill_gaps = TRUE, lkup = lkup)
+
     if (lcv$off_alt_agg == "both") {
       ### STEP 3.2.1 Estimates for official aggregates ----
       off_ret <-
@@ -292,6 +294,8 @@ pip_grp_helper <- function(lcv_country,
   # Handle potential (insignificant) difference in poverty_line values that
   # may mess-up the grouping
   out$poverty_line <- povline
+
+  add_vars_out_of_pipeline(out, fill_gaps = TRUE, lkup = lkup)
 
   # Handle aggregations with sub-groups
   if (group_by != "none") {
