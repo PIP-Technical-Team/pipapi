@@ -46,7 +46,7 @@ ag_average_poverty_stats <- function(df, return_cols) {
   national_cols <- return_cols$national_cols
 
   # This should be removed eventually
-  assertthat::assert_that(assertthat::are_equal(length(df$reporting_level), 2))
+  #assertthat::assert_that(assertthat::are_equal(length(df$reporting_level), 2))
 
   # STEP 1: Identify groups of variables that will be handled differently ------
   ## original names
