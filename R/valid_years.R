@@ -32,7 +32,11 @@ wld_lineup_year <- function(data_dir) {
   ref <- pipapi::get_aux_table(data_dir, 'metaregion') |>
     setDT()
   if (nrow(ref) == 0) {
-    return(as.integer(format(Sys.Date(), "%Y")))
+    nowcast_year <- as.integer(format(Sys.Date(), "%Y"))
+  } else {
+    nowcast_year <- ref[region_code == "WLD", lineup_year]
   }
-  ref[region_code == "WLD", lineup_year]
+  data.table(nowcast_year = nowcast_year,
+             tooltip_text = "This is placeholder for the tooltip text.")
+
 }
