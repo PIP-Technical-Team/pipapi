@@ -84,16 +84,19 @@ ag_average_poverty_stats <- function(df, return_cols) {
        lapply(.SD, zeros_to_na),
      .SDcols = zero_vars]
 
+
   # STEP 3: Calculations ----------
   ## weighted average  ------
   wgt_df <- df |>
     # this grouping is not necessary, but ensures data.frame as output
-    collapse::fgroup_by(c("country_code", "reporting_year", "welfare_type")) |>
-    collapse::get_vars(c("reporting_pop", avg_names)) |>
+    collapse::fgroup_by(c("country_code", "reporting_year", "welfare_type", "poverty_line")) |>
+    collapse::get_vars(c("reporting_pop", "poverty_line", avg_names)) |>
     collapse::fmean(reporting_pop,
-                    keep.group_vars = FALSE,
+                    keep.group_vars = TRUE,
                     keep.w = TRUE,
-                    stub   = FALSE)
+                    stub   = FALSE)|>
+    collapse::fselect(-country_code, -reporting_year, -welfare_type)
+
 
 
   ## Sum: National total of reporting vars ------
@@ -103,7 +106,13 @@ ag_average_poverty_stats <- function(df, return_cols) {
 
   # STEP 4: Format results ----
   ## Bind resulting tables ----
-  out <- cbind(df[1, .SD, .SDcols = nonum_names], wgt_df)
+
+  first_rows <- df[, .SD[1], by = poverty_line,
+                   .SDcols = c(nonum_names)]
+
+  out <- merge(first_rows, wgt_df, by = "poverty_line", all = TRUE)
+
+
 
   ## convert years back to numeric ----
   out[, (years_vars) :=
