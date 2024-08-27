@@ -37,6 +37,6 @@ wld_lineup_year <- function(data_dir) {
     nowcast_year <- ref[region_code == "WLD", lineup_year]
   }
   data.table(nowcast_year = nowcast_year,
-             tooltip_text = "This is placeholder for the tooltip text.")
+             tooltip_text = paste("Estimates after",nowcast_year,"are nowcasted."))
 
 }
