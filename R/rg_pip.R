@@ -48,7 +48,6 @@ rg_pip <- function(country,
       reporting_level = tmp_metadata$reporting_level,
       path = tmp_metadata$path
     )
-    #browser()
     tmp_stats <- wbpip:::prod_compute_pip_stats(
       welfare           = svy_data$df0$welfare,
       povline           = povline,

@@ -10,6 +10,7 @@ add_agg_stats <- function(df,
                           return_cols) {
   # Keep only Urban / Rural observations that will be aggregated at the
   # national level
+  #browser()
   aggregated <- df[df$is_used_for_aggregation, ]
 
   if (nrow(aggregated) > 0) {
@@ -23,6 +24,7 @@ add_agg_stats <- function(df,
     aggregated <- lapply(aggregated_list,
                          ag_average_poverty_stats,
                          return_cols)
+
     aggregated <- data.table::rbindlist(aggregated)
 
     df <- rbind(df, aggregated)
@@ -77,12 +79,12 @@ ag_average_poverty_stats <- function(df, return_cols) {
   ## Handle negatives ------
   df[, (noneg_vars) :=
        lapply(.SD, negative_to_na),
-     .SDcols = noneg_vars]
+     .SDcols = noneg_vars, by = poverty_line]
 
   ## Handle zeros -------------
   df[, (zero_vars) :=
        lapply(.SD, zeros_to_na),
-     .SDcols = zero_vars]
+     .SDcols = zero_vars, by = poverty_line]
 
 
   # STEP 3: Calculations ----------
@@ -107,12 +109,12 @@ ag_average_poverty_stats <- function(df, return_cols) {
   # STEP 4: Format results ----
   ## Bind resulting tables ----
 
-  first_rows <- df[, .SD[1], by = poverty_line,
-                   .SDcols = c(nonum_names)]
-
-  out <- merge(first_rows, wgt_df, by = "poverty_line", all = TRUE)
-
-
+  # first_rows <- df[, .SD[1], by = poverty_line,
+  #                  .SDcols = c(nonum_names)]
+  #
+  # out <- merge(first_rows, wgt_df, by = "poverty_line", all = TRUE)
+  out <- cbind(df[1, .SD, .SDcols = nonum_names], wgt_df)
+  out$path <- fs::path(out$path)
 
   ## convert years back to numeric ----
   out[, (years_vars) :=

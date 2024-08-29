@@ -130,8 +130,7 @@ pip <- function(country         = "ALL",
       lkup            = lkup
     )
   }
-
-  # Eary return for empty table---------------
+  # Early return for empty table---------------
   if (nrow(out) == 0) {
     return(out)
   }
