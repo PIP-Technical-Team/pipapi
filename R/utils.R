@@ -374,7 +374,6 @@ censor_stats <- function(df, censored_table) {
   setDT(df)
   setDT(censored_table)
 
-
   # Create a binary column to mark rows for removal based on 'all' statistic
   df[, to_remove := FALSE]
   censor_all <- censored_table[statistic == "all", .(id)]
@@ -389,7 +388,8 @@ censor_stats <- function(df, censored_table) {
   censor_stats <- censored_table[statistic != "all"]
   if (nrow(censor_stats) > 0) {
     # Perform a non-equi join to mark relevant statistics
-    df[censor_stats, on = .(tmp_id = id), mult = "first",
+    # Commenting mult = "first" since with multiple povline values there are more than one rows
+    df[censor_stats, on = .(tmp_id = id), #mult = "first",
        unique(censor_stats$statistic) := NA_real_]
   }
 
