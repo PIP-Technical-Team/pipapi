@@ -11,6 +11,7 @@
 * improve algorithm of add_*() functions
 * Fix aggregation of medians
 * Update empty responses. 
+* add end point `wld-lineup-year` to return nowcast year and tooltip text
 
 # pipapi 1.3.7
 

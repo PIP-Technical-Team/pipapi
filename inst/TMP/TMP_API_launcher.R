@@ -16,6 +16,7 @@ if (Sys.info()[["user"]] == "wb384996") {
     pipapi:::available_versions(data_dir) |>
     max()
 
+  latest_version <- NULL
   lkups <- create_versioned_lkups(data_dir,
                                   vintage_pattern = latest_version)
   # lkup <- lkups$versions_paths[[lkups$latest_release]]
