@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.3.8
 
 * Add Prosperity Gap to both svy and lnp years. 
 * Implement nowcast up to 2024
