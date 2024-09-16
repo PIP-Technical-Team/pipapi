@@ -10,7 +10,7 @@
 pip_grp_logic <- function(country         = "ALL",
                           year            = "ALL",
                           povline         = 1.9,
-                          group_by        = c("none", "wb"),
+                          group_by        = c("wb", "none"),
                           welfare_type    = c("all", "consumption", "income"),
                           reporting_level = c("all", "national"),
                           lkup,
@@ -27,6 +27,7 @@ pip_grp_logic <- function(country         = "ALL",
 
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
+  country <- toupper(country)
   if (group_by != "none") {
     reporting_level <- "all"
     if (!all(country %in% c("ALL", lkup$query_controls$region$values))) {
@@ -82,6 +83,8 @@ pip_grp_logic <- function(country         = "ALL",
       ppp             = NULL,
       lkup            = lkup
       )
+
+    add_vars_out_of_pipeline(fg_pip_master, fill_gaps = TRUE, lkup = lkup)
 
     if (lcv$off_alt_agg == "both") {
       ### STEP 3.2.1 Estimates for official aggregates ----
@@ -173,7 +176,7 @@ pip_grp_logic <- function(country         = "ALL",
   ## Fill gaps estimates with countries with Survey  -----
   fg <- fg_pip_master[fg_pip_master$country_code %chin% lcv$est_ctrs, ]
 
-  if (!"ALL" %in% year) {
+  if (!any(c("ALL", "MRV") %in% year)) {
     fg <- fg[fg[["reporting_year"]] %in% as.numeric(year), ]
   }
 
@@ -215,6 +218,7 @@ pip_grp_logic <- function(country         = "ALL",
     ld[[i]] <- pip_aggregate(df = x,
                              by = y,
                              return_cols = lkup$return_cols$pip_grp)
+
   }
   de <- data.table::rbindlist(ld, use.names = TRUE)
   rm(ld)
@@ -232,14 +236,15 @@ pip_grp_logic <- function(country         = "ALL",
   } else {
     ret <- de
   }
-  data.table::setcolorder(ret, names_grp)
 
 
   # Censor regional values -----------
 
-  if (censor) {
-    ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
-  }
+  # if (censor) {
+  #   ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
+  # }
+  ret <- estimate_type_var(ret,lkup)
+  data.table::setcolorder(ret, names_grp)
 
   # Select columns
   if (additional_ind) {
@@ -271,7 +276,7 @@ pip_grp_helper <- function(lcv_country,
     fg_pip[["wb_region_code"]] %chin% lcv_country
   out <- fg_pip[keep_countries, ]
   # Filter years
-  if (!"ALL" %in% year) {
+  if (!any(c("ALL", "MRV") %in% year)) {
     out <- out[out[["reporting_year"]] %in% as.numeric(year), ]
   }
 
@@ -290,6 +295,8 @@ pip_grp_helper <- function(lcv_country,
   # may mess-up the grouping
   out$poverty_line <- povline
 
+  add_vars_out_of_pipeline(out, fill_gaps = TRUE, lkup = lkup)
+
   # Handle aggregations with sub-groups
   if (group_by != "none") {
 
@@ -300,15 +307,19 @@ pip_grp_helper <- function(lcv_country,
       return_cols = lkup$return_cols$pip_grp
     )
 
-    # Censor regional values
-    if (censor) {
-      out <- censor_rows(out, lkup[["censored"]], type = "regions")
-    }
+    # # Censor regional values
+    # if (censor) {
+    #   out <- censor_rows(out, lkup[["censored"]], type = "regions")
+    # }
+
+    out <- estimate_type_var(out,lkup)
+
 
   } else {
     # Handle simple aggregation
     out <- pip_aggregate(df = out,
                          return_cols = lkup$return_cols$pip_grp)
+    out <- estimate_type_var(out,lkup)
   }
 
   keep <- lkup$return_cols$pip_grp$cols

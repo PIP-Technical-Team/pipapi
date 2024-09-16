@@ -1,22 +1,30 @@
+
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
-library(data.table)
+data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL")
 
-lkups          <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
-latest_release <- lkups$latest_release
-lkups          <- lkups$versions_paths[[lkups$latest_release]]
+skip_if(data_dir == "")
 
-int_means_path <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"),
-                           latest_release,
-                           "/estimations/interpolated_means.fst")
+latest_version <-
+  available_versions(data_dir) |>
+  max()
+
+lkups <- create_versioned_lkups(data_dir,
+                                vintage_pattern = latest_version)
+lkups <- lkups$versions_paths[[lkups$latest_release]]
 
 
-ref_lkup <- fst::read_fst(int_means_path, as.data.table = TRUE)
+valid_regions       <- lkup$query_controls$region$values
+interpolation_list  <- lkup$interpolation_list
+data_dir            <- lkup$data_root
+ref_lkup            <- lkup$ref_lkup
+
 ref_lkup$region_code <- ref_lkup$wb_region_code
-valid_regions <- sort(unique(ref_lkup$region_code))
+
+
 # ref_lkup <- fst::read_fst("./tests/testdata/app_data/20210401/estimations/interpolated_means.fst")
 
 test_that("select_reporting_level is working as expected", {
+  withr::local_package("jsonlite")
   keep <- rep(TRUE, nrow(ref_lkup))
   tmp <- select_reporting_level(lkup = ref_lkup,
                                 keep = keep,
@@ -57,7 +65,8 @@ test_that("subset_lkup correctly selects all countries", {
                      welfare_type    = "all",
                      reporting_level = "all",
                      lkup            = ref_lkup,
-                     valid_regions = valid_regions)
+                     valid_regions = valid_regions,
+                     data_dir      = data_dir)
 
   expect_equal(nrow(tmp), nrow(ref_lkup))
 })
@@ -69,7 +78,8 @@ test_that("subset_lkup correctly selects countries", {
                      welfare_type    = "all",
                      reporting_level = "all",
                      lkup            = ref_lkup,
-                     valid_regions = valid_regions)
+                     valid_regions = valid_regions,
+                     data_dir      = data_dir)
 
   expect_equal(sort(unique(tmp$country_code)), sort(selection))
 })
@@ -81,7 +91,8 @@ test_that("subset_lkup correctly selects single regions", {
                      welfare_type    = "all",
                      reporting_level = "all",
                      lkup            = ref_lkup,
-                     valid_regions = valid_regions)
+                     valid_regions = valid_regions,
+                     data_dir      = data_dir)
 
   expect_equal(sort(unique(tmp$region_code)), sort(selection))
 })
@@ -93,7 +104,8 @@ test_that("subset_lkup correctly selects multiple regions", {
                      welfare_type    = "all",
                      reporting_level = "all",
                      lkup            = ref_lkup,
-                     valid_regions = valid_regions)
+                     valid_regions = valid_regions,
+                     data_dir      = data_dir)
 
   expect_equal(sort(unique(tmp$region_code)), sort(selection))
 })
@@ -109,7 +121,8 @@ test_that("subset_lkup correctly selects countries and regions", {
                      welfare_type    = "all",
                      reporting_level = "all",
                      lkup            = ref_lkup,
-                     valid_regions = valid_regions)
+                     valid_regions = valid_regions,
+                     data_dir      = data_dir)
 
   # Regions are selected
   expect_true(all(region_selection %in% (unique(tmp$region_code))))
@@ -145,7 +158,7 @@ test_that("select_country works for region selection", {
   keep <- select_country(ref_lkup, keep, region, valid_regions = valid_regions)
   expect_equal(length(keep), nrow(ref_lkup))
   expect_equal(sum(keep), expected_countries)
-  expect_equal(unique(ref_lkup$pcn_region_code[keep]), region)
+  expect_equal(unique(ref_lkup$region_code[keep]), region)
 })
 
 test_that("select_country works for country selection", {

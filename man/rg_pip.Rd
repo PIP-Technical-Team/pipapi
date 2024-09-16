@@ -32,8 +32,6 @@ poverty line}
 \item{ppp}{numeric: Custom Purchase Power Parity value}
 
 \item{lkup}{list: A list of lkup tables}
-
-\item{valid_regions}{character: Vector of accpeted code for regions}
 }
 \value{
 data.frame

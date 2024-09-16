@@ -1,5 +1,21 @@
+# pipapi 1.3.8
+
+* Add Prosperity Gap to both svy and lnp years. 
+* Implement nowcast up to 2024
+* Add `estimate_type` variable to `pip()` and `pip_grp*()` calls
+* Add new aux file, `metaregion`
+* Change algorithms for MRV calls to return up to lineup year. 
+* Modify unit tests to account for the changes above.
+
+* Fix distribution_type variables for both svy and lnp years. 
+* improve algorithm of add_*() functions
+* Fix aggregation of medians
+* Update empty responses. 
+* add end point `wld-lineup-year` to return nowcast year and tooltip text
+
 # pipapi 1.3.7
 remove censoring of official regions to account for cases like GNQ in which they are not counted as part of the total population of AFE and AFW
+
 
 # pipapi 1.3.6
 
@@ -8,6 +24,7 @@ remove censoring of official regions to account for cases like GNQ in which they
 # pipapi 1.3.4
 ## New features
 - Add new SPR and SPL indicators
+- Add new endpoint `grouped-stats` to return grouped data
 
 ## Enhancements
 - Address some linting issues

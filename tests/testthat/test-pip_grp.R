@@ -1,13 +1,23 @@
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
+data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL")
 
-# Constants
-lkups <- create_versioned_lkups(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
-lkups <- lkups$versions_paths[[lkups$latest_release]]
+skip_if(data_dir == "")
+
+latest_version <-
+  available_versions(data_dir) |>
+  max()
+
+lkups <- create_versioned_lkups(data_dir,
+                                vintage_pattern = latest_version)
+lkup <- lkups$versions_paths[[lkups$latest_release]]
+
 censored <-
   test_path("testdata", "/censored.rds") |>
   readRDS()
 
+local_mocked_bindings(
+  get_caller_names = function() c("pip_grp")
+)
 
 # Check pip_grp against current implementation
 # TO BE REMOVED ONCE pip() group_by OPTION is FULLY DEPRECATED
@@ -18,7 +28,7 @@ test_that("output from pip_grp is the same as output from pip", {
     year = 2010,
     group_by = "wb",
     povline = 1.9,
-    lkup = lkups
+    lkup = lkup
   )
 
   out_pip_grp <- pip_grp(
@@ -26,7 +36,7 @@ test_that("output from pip_grp is the same as output from pip", {
     year = 2010,
     group_by = "wb",
     povline = 1.9,
-    lkup = lkups
+    lkup = lkup
   )
 
   expect_equal(class(out_pip), class(out_pip_grp))
@@ -36,6 +46,7 @@ test_that("output from pip_grp is the same as output from pip", {
 })
 
 
+
 # Check output type
 test_that("output type is correct", {
   tmp <- pip_grp(
@@ -43,25 +54,25 @@ test_that("output type is correct", {
     year = 2000,
     group_by = "wb",
     povline = 1.9,
-    lkup = lkups
+    lkup = lkup
   )
   expect_equal(class(tmp), c("data.table", "data.frame"))
 })
 
 # Check empty response
 test_that("empty response is returned if no metadata is found", {
-  tmp <- pip_grp("all", year = 2050, lkup = lkups, group_by = "none")
+  tmp <- pip_grp("all", year = 2050, lkup = lkup, group_by = "none")
   expect_equal(nrow(tmp), 0)
-  tmp <- pip_grp("all", year = 2050, lkup = lkups, group_by = "wb")
+  tmp <- pip_grp("all", year = 2050, lkup = lkup, group_by = "wb")
   expect_equal(nrow(tmp), 0)
 })
 
 # Check response columns
 test_that("returned columns are the same for all queries", {
-  tmp1 <- pip_grp('all', 2000, lkup = lkups, group_by = "none")
-  tmp2 <- pip_grp('all', 2000, lkup = lkups, group_by = "wb")
-  tmp3 <- pip_grp('all', 2050, lkup = lkups, group_by = "wb")
-  tmp4 <- pip_grp('all', 2050, lkup = lkups, group_by = "none")
+  tmp1 <- pip_grp('all', 2000, lkup = lkup, group_by = "none")
+  tmp2 <- pip_grp('all', 2000, lkup = lkup, group_by = "wb")
+  tmp3 <- pip_grp('all', 2050, lkup = lkup, group_by = "wb")
+  tmp4 <- pip_grp('all', 2050, lkup = lkup, group_by = "none")
   expect_identical(names(tmp1), names(tmp2))
   expect_identical(names(tmp1), names(tmp3))
   expect_identical(names(tmp1), names(tmp4))
@@ -74,15 +85,15 @@ test_that("returned column names are correct", {
   skip("TEMPORARY SKIP")
   cols <- c('region_name', 'region_code', 'reporting_year', 'reporting_pop', 'poverty_line',
             'headcount', 'poverty_gap', 'poverty_severity', 'watts', 'mean', 'pop_in_poverty')
-  tmp1 <- pip_grp('all', 2000, lkup = lkups, group_by = "none")
-  tmp2 <- pip_grp('all', 2000, lkup = lkups, group_by = "wb")
+  tmp1 <- pip_grp('all', 2000, lkup = lkup, group_by = "none")
+  tmp2 <- pip_grp('all', 2000, lkup = lkup, group_by = "wb")
   expect_identical(names(tmp1), cols)
   expect_identical(names(tmp2), cols)
 })
 
 # Check custom region name
 test_that("returned region_name and region_code is correct for custom aggregations", {
-  tmp1 <- pip_grp('all', 2000, lkup = lkups, group_by = "none")
+  tmp1 <- pip_grp('all', 2000, lkup = lkup, group_by = "none")
   expect_identical(tmp1$region_name, 'CUSTOM')
   expect_identical(tmp1$region_code, 'CUSTOM')
 })
@@ -92,36 +103,37 @@ test_that("year selection is working", {
 
   # All years for a single country
   tmp <- pip_grp(
-    country = "AGO",
+    country = "LAC",
     year = "all",
     povline = 1.9,
-    lkup = lkups
+    lkup = lkup
   )
-  check <- length(unique(lkups$ref_lkup$reporting_year))
+  check <- length(unique(lkup$ref_lkup$reporting_year))
   expect_equal(nrow(tmp), check)
 
   # Most recent year for a single country
   tmp <- pip_grp(
-    country = "AGO",
+    country = "MNA",
     year = "MRV",
     povline = 1.9,
-    lkup = lkups
+    lkup = lkup
   )
-  check <- max(lkups$ref_lkup$reporting_year)
+  check <- get_metaregion_table(lkup$data_root) |>
+    _[region_code == "MNA", lineup_year]
   expect_equal(tmp$reporting_year, check)
 
   # Most recent year for all countries
   # Should return the most recent for each country
   # Therefore we expect having more than one year in the response
   # Not a great unit test... To be improved
-  tmp <- pip_grp(
-    country = "all",
-    year = "MRV",
-    povline = 1.9,
-    lkup = lkups
-  )
-
-  expect_true(length(unique(tmp$reporting_year)) > 1)
+  # tmp <- pip_grp(
+  #   country = "all",
+  #   year = "MRV",
+  #   povline = 1.9,
+  #   lkup = lkup
+  # )
+  #
+  # expect_true(length(unique(tmp$reporting_year)) > 1)
 
 })
 
@@ -133,7 +145,7 @@ test_that("Regional aggregations are working", {
     year = 2000,
     group_by = "wb",
     povline = 3.5,
-    lkup = lkups,
+    lkup = lkup,
     censor = FALSE
   )
   expect_equal(nrow(tmp), 8)
@@ -144,7 +156,7 @@ test_that("Regional aggregations are working", {
     year = 2000,
     group_by = "none",
     povline = 3.5,
-    lkup = lkups
+    lkup = lkup
   )
   expect_equal(nrow(tmp), 1)
   expect_equal(tmp$region_code, 'CUSTOM')
@@ -152,7 +164,8 @@ test_that("Regional aggregations are working", {
 
 # Censoring
 test_that("Censoring for regional aggregations is working", {
-  lkups2 <- lkups
+  skip("we are not censoring anymore")
+  lkup2 <- lkup
   censored <- list(
     regions = data.frame(
       region_code = "SSA",
@@ -160,13 +173,13 @@ test_that("Censoring for regional aggregations is working", {
       statistic = "all",
       id = "SSA_2019"
     ))
-  lkups2$censored <- censored
+  lkup2$censored <- censored
   tmp <- pip_grp(
     country = "all",
     year = 2019,
     group_by = "wb",
     povline = 1.9,
-    lkup = lkups2
+    lkup = lkup2
   )
   # expect_equal(nrow(tmp), 7)
   id <- paste0(tmp$region_code, "_", tmp$reporting_year)
@@ -182,7 +195,7 @@ test_that("region selection is working for single region", {
     year = 2018,
     group_by = "wb",
     povline = 1.9,
-    lkup = lkups
+    lkup = lkup
   )
 
   expect_equal(nrow(out), length(region))
@@ -197,7 +210,7 @@ test_that("region selection is working for multiple regions", {
     year = 2018,
     group_by = "wb",
     povline = 1.9,
-    lkup = lkups
+    lkup = lkup
   )
 
   expect_equal(nrow(out), length(region))
@@ -207,17 +220,17 @@ test_that("region selection is working for multiple regions", {
 test_that("region selection is working for all countries", {
   region <- "all"
   alt_region_values <-
-    lkups$aux_files$regions$region_code[!lkups$aux_files$regions$grouping_type %in% c("region", "world")]
+    lkup$aux_files$regions$region_code[!lkup$aux_files$regions$grouping_type %in% c("region", "world")]
 
   expected_region_values <-
-    lkups$query_controls$region$values[!lkups$query_controls$region$values %in% c(alt_region_values, toupper(region))]
+    lkup$query_controls$region$values[!lkup$query_controls$region$values %in% c(alt_region_values, toupper(region))]
 
   out <- pip_grp(
     country = region,
     year = 2010,
     group_by = "wb",
     povline = 1.9,
-    lkup = lkups
+    lkup = lkup
   )
 
   expect_equal(nrow(out), length(expected_region_values))
@@ -229,19 +242,19 @@ test_that("region selection is working for multiple regions and country from oth
   # but for the time being, all countries are being selected
   # So this selection will effectively return country = "all"
   region <- c("SSA", "MNA", "COL")
-  # expected_region_values <- lkups$query_controls$region$values
+  # expected_region_values <- lkup$query_controls$region$values
   # expected_region_values <- expected_region_values[expected_region_values != "all"]
   alt_region_values <-
-    lkups$aux_files$regions$region_code[!lkups$aux_files$regions$grouping_type %in% c("region", "world")]
+    lkup$aux_files$regions$region_code[!lkup$aux_files$regions$grouping_type %in% c("region", "world")]
   expected_region_values <-
-    lkups$query_controls$region$values[!lkups$query_controls$region$values %in% c(alt_region_values, "ALL")]
+    lkup$query_controls$region$values[!lkup$query_controls$region$values %in% c(alt_region_values, "ALL")]
 
   out <- pip_grp(
     country = region,
     year = 2010,
     group_by = "wb",
     povline = 1.9,
-    lkup = lkups
+    lkup = lkup
   )
 
   expect_equal(nrow(out), length(expected_region_values))

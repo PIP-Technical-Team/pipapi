@@ -1,5 +1,8 @@
-
-
+# install()
+# Make sure the last version of the package is installed to
+# work properly
+library(pipapi)
+# devtools::load_all(".")
 if (Sys.info()[["user"]] == "wb384996") {
   force <- FALSE
   if (!"lkups" %in% ls() || isTRUE(force)) {
@@ -8,9 +11,18 @@ if (Sys.info()[["user"]] == "wb384996") {
     fs::dir_ls(data_dir, recurse = FALSE)
   }
 
-  lkups <- create_versioned_lkups(data_dir = data_dir,
-                                  vintage_pattern = "^20230328")
+
+  latest_version <-
+    pipapi:::available_versions(data_dir) |>
+    max()
+
+  latest_version <- NULL
+  lkups <- create_versioned_lkups(data_dir,
+                                  vintage_pattern = latest_version)
+  # lkup <- lkups$versions_paths[[lkups$latest_release]]
+
   start_api(port = 8080)
+  # start_api(port = 3711)
 
 } else {
   lkups <- pipapi::create_versioned_lkups(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
@@ -19,3 +31,6 @@ if (Sys.info()[["user"]] == "wb384996") {
             host = "0.0.0.0")
 
 }
+
+
+

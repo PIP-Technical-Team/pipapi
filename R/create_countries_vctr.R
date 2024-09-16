@@ -46,6 +46,10 @@ create_countries_vctr <- function(country,
   ## Adjust year ----
   if (any(c("ALL", "MRV") %in% toupper(year))) {
     year <- valid_years$valid_survey_years
+    # year <- valid_years$valid_interpolated_years
+    md_year <- valid_years$valid_interpolated_years
+  } else {
+    md_year <- year
   }
   # STEP 2: Identify regions ----
   ## All available aggregates ----
@@ -108,7 +112,7 @@ create_countries_vctr <- function(country,
   ## Countries with  missing data ----
   md_vars <- get_md_vars(md           = aux_files$missing_data,
                          ctr_alt_agg  = ctr_alt_agg,
-                         year         = year,
+                         year         = md_year,
                          off_alt_agg  = off_alt_agg,
                          user_off_reg = user_off_reg)
   list2env(md_vars, envir = environment())
@@ -162,7 +166,8 @@ select_off_alt_agg <- function(user_gt, off_gt) {
 #' Helper function to select correct Official Regions
 #'
 #' @param country character: User selected countries
-#' @param off_reg character: Official region codes
+#' @param all_agg character: all country aggregates
+#' @param off_reg_ext character: Official region codes
 #' @param aggs data.frame: Regions lookup table
 #'
 #' @return character
@@ -206,7 +211,7 @@ get_user_alt_gt <- function(user_gt, off_gt) {
 
 #' Helper function to define user_{var}_code
 #'
-#' @param user_gt character: Grouping type needed by user
+#' @param x character: Grouping type needed by user
 #'
 #' @return character
 #' @export
@@ -332,7 +337,7 @@ get_grp_to_compute <- function(user_off_reg,
 #' @param year character: Years
 #' @param off_alt_agg character: Instruction about how to handle official and
 #' alternate aggregates
-#' @param user_off_reg: character: Official regions requested by user
+#' @param user_off_reg character: Official regions requested by user
 #' @return list
 #' @export
 #'
