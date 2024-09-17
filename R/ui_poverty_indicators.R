@@ -86,5 +86,7 @@ ui_pc_regional <- function(country   = "ALL",
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
   out$reporting_pop <- out$reporting_pop / pop_units
 
+  out <- out[estimate_type != "nowcast"]
+
   return(out)
 }
