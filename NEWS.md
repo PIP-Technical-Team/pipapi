@@ -1,3 +1,7 @@
+# pipapi 1.3.9
+* remove censoring and apply filter at the UI level.
+
+
 # pipapi 1.3.8
 
 * Add Prosperity Gap to both svy and lnp years. 
