@@ -243,6 +243,7 @@ pip_grp_logic <- function(country         = "ALL",
   # if (censor) {
   #   ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
   # }
+  browser()
   ret <- estimate_type_var(ret,lkup)
   data.table::setcolorder(ret, names_grp)
 

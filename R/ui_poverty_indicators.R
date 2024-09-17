@@ -48,6 +48,8 @@ ui_pc_charts <- function(country = c("AGO"),
     out <- out[, .SD, .SDcols = return_cols]
     # Set non-interpolated variables to NA if line-up years are requested
     out[, inequality_indicators] <- NA
+    # remove nowcast from UI
+    out <- out[estimate_type != "nowcast"]
   }
   return(out)
 }
