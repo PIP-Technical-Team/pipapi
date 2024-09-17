@@ -49,7 +49,7 @@ ui_pc_charts <- function(country = c("AGO"),
     # Set non-interpolated variables to NA if line-up years are requested
     out[, inequality_indicators] <- NA
     # remove nowcast from UI
-    out <- out[estimate_type != "nowcast"]
+    out <- out[estimate_type == "actual"]
   }
   return(out)
 }
@@ -86,7 +86,7 @@ ui_pc_regional <- function(country   = "ALL",
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
   out$reporting_pop <- out$reporting_pop / pop_units
 
-  out <- out[estimate_type != "nowcast"]
+  out <- out[estimate_type == "actual"]
 
   return(out)
 }
