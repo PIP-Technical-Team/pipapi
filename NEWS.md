@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.3.10
 
 # pipapi 1.3.9
 * remove censoring and apply filter at the UI level.
