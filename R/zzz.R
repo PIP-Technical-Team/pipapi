@@ -7,8 +7,7 @@
                              write_fn = qs::qsave,
                              extension = ".qs",
                              evict = "lru",
-                             logfile = NULL,
-                             max_size = as.numeric(Sys.getenv("PIPAPI_CACHE_MAX_SIZE")),
+                             logfile = fs::path(d, "log", ext = "txt"),
                              prune_rate = 50)
 
     # internal functions (lower level)
