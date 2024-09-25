@@ -254,14 +254,7 @@ function(req, res) {
   params$version <- NULL
 
   # Parallel processing for slow requests
-  if (is_forked(country = params$country, year = params$year)) {
-    out <- promises::future_promise({
-      tmp <- do.call(pipapi::pip, params)
-      tmp
-    }, seed = TRUE)
-  } else {
-    out <- do.call(pipapi::pip, params)
-  }
+  out <- do.call(pipapi::pip, params)
   out
 }
 
