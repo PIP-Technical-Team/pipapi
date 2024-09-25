@@ -653,13 +653,8 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  if (is_forked(country = params$country, year = params$year)) {
-    out <- promises::future_promise({
-      do.call(pipapi::ui_pc_charts, params)
-    }, seed = TRUE)
-  } else {
-    out <- do.call(pipapi::ui_pc_charts, params)
-  }
+  out <- do.call(pipapi::ui_pc_charts, params)
+
   return(out)
 }
 
