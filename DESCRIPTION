@@ -58,7 +58,8 @@ Imports:
     arrow,
     cli,
     joyn,
-    yaml
+    yaml,
+    promises
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 
