@@ -253,15 +253,7 @@ function(req, res) {
   params$format  <- NULL
   params$version <- NULL
 
-  # Parallel processing for slow requests
-  if (is_forked(country = params$country, year = params$year)) {
-    out <- promises::future_promise({
-      tmp <- do.call(pipapi::pip, params)
-      tmp
-    }, seed = TRUE)
-  } else {
-    out <- do.call(pipapi::pip, params)
-  }
+  out <- do.call(pipapi::pip, params)
   out
 }
 
@@ -287,15 +279,7 @@ function(req, res) {
   params$format  <- NULL
   params$version <- NULL
 
-  # Parallel processing for slow requests
-  if (is_forked(country = params$country, year = params$year)) {
-    out <- promises::future_promise({
-      tmp <- do.call(pipapi::pip_grp_logic, params)
-      tmp
-    }, seed = TRUE)
-  } else {
-    out <- do.call(pipapi::pip_grp_logic, params)
-  }
+  out <- do.call(pipapi::pip_grp_logic, params)
   out
 }
 
@@ -532,16 +516,16 @@ function(req) {
 
 
 
-#* Return number of workers
-#* @get /api/v1/n-workers
-#* @serializer unboxedJSON
-function() {
-  list(
-    n_cores = unname(future::availableCores()),
-    n_workers = future::nbrOfWorkers(),
-    n_free_workers = future::nbrOfFreeWorkers()
-  )
-}
+# #* Return number of workers
+# #* @get /api/v1/n-workers
+# #* @serializer unboxedJSON
+# function() {
+#   list(
+#     n_cores = unname(future::availableCores()),
+#     n_workers = future::nbrOfWorkers(),
+#     n_free_workers = future::nbrOfFreeWorkers()
+#   )
+# }
 
 # #* Return system info
 # #* @get /api/v1/system-info
@@ -614,9 +598,9 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  promises::future_promise({
-    do.call(pipapi::ui_hp_stacked, params)
-  }, seed = TRUE)
+
+  do.call(pipapi::ui_hp_stacked, params)
+
 }
 
 #* Return data for home page country charts
@@ -653,13 +637,8 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  if (is_forked(country = params$country, year = params$year)) {
-    out <- promises::future_promise({
-      do.call(pipapi::ui_pc_charts, params)
-    }, seed = TRUE)
-  } else {
-    out <- do.call(pipapi::ui_pc_charts, params)
-  }
+
+  out <- do.call(pipapi::ui_pc_charts, params)
   return(out)
 }
 
@@ -681,13 +660,9 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$pop_units <- 1
   params$version <- NULL
-  if (is_forked(country = params$country, year = params$year)) {
-    promises::future_promise({
-      do.call(pipapi::ui_pc_charts, params)
-    }, seed = TRUE)
-  } else {
-    do.call(pipapi::ui_pc_charts, params)
-  }
+
+  do.call(pipapi::ui_pc_charts, params)
+
 }
 
 #* Return regional aggregations for all years
@@ -703,9 +678,9 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  promises::future_promise({
-    do.call(pipapi::ui_pc_regional, params)
-  }, seed = TRUE)
+
+  do.call(pipapi::ui_pc_regional, params)
+
 }
 
 ## UI Endpoints: Country Profiles ----------------------------------------
@@ -756,14 +731,7 @@ function(req, res) {
   params$version <- NULL
   params$format  <- NULL
 
-  if (is_forked(country = params$country, include_year = FALSE)) {
-    out <- promises::future_promise({
-      tmp <- do.call(pipapi::ui_cp_download, params)
-      tmp
-    }, seed = TRUE)
-  } else {
-    out <- do.call(pipapi::ui_cp_download, params)
-  }
+  out <- do.call(pipapi::ui_cp_download, params)
   out
 }
 

@@ -24,17 +24,17 @@ test_that("API is running", {
   expect_equal(httr::content(r, encoding = "UTF-8"), list("PIP API is running"))
 })
 
-test_that("Parallel processing is avaliable", {
-  # Send API request
-  r <- httr::GET(root_path, port = 8000, path = "api/v1/n-workers")
-
-  # Check response
-  expect_equal(r$status_code, 200)
-  tmp_resp <- httr::content(r, encoding = "UTF-8")
-  expect_equal(tmp_resp$n_workers, 2) # api1$workers
-  expect_equal(tmp_resp$n_free_workers, 2) # api1$workers
-  expect_equal(tmp_resp$cores, future::availableCores())
-})
+# test_that("Parallel processing is avaliable", {
+#   # Send API request
+#   r <- httr::GET(root_path, port = 8000, path = "api/v1/n-workers")
+#
+#   # Check response
+#   expect_equal(r$status_code, 200)
+#   tmp_resp <- httr::content(r, encoding = "UTF-8")
+#   expect_equal(tmp_resp$n_workers, 2) # api1$workers
+#   expect_equal(tmp_resp$n_free_workers, 2) # api1$workers
+#   expect_equal(tmp_resp$cores, future::availableCores())
+# })
 
 test_that("Async parallel processing works for /pip", {
   # Send API request
