@@ -28,6 +28,7 @@ pip_grp_logic <- function(country         = "ALL",
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
   country <- toupper(country)
+  year    <- toupper(year)
   if (group_by != "none") {
     reporting_level <- "all"
     if (!all(country %in% c("ALL", lkup$query_controls$region$values))) {

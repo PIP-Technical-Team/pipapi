@@ -1,3 +1,4 @@
+# Setup ---------------
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
 library(collapse)
 library(data.table)
@@ -14,8 +15,7 @@ lkups <- create_versioned_lkups(data_dir,
 lkup <- lkups$versions_paths[[lkups$latest_release]]
 
 
-# Multiple poverty lines ------------
-
+# Country level ------------
 test_that("Regular microdata one country", {
 
   ct   <- "AGO"
@@ -264,6 +264,35 @@ test_that("all countries, all years", {
 
   out1 <- pip(country = ct ,year = year, povline = pl1, lkup = lkup)
   out2 <- pip(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(country_code, poverty_line, reporting_year, reporting_level)
+
+
+  appended <- pip(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  ) |>
+    roworder(country_code, poverty_line, reporting_year, reporting_level)
+
+  expect_equal(singles , appended)
+
+})
+
+# PIP aggregate ---------------
+
+
+test_that("all countries, all years", {
+
+  ct   <- "all"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- "all"
+
+  out1 <- pip_grp_logic(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip_grp_logic(country = ct ,year = year, povline = pl2, lkup = lkup)
   singles <-
     rowbind(out2, out1) |>
     roworder(country_code, poverty_line, reporting_year, reporting_level)
