@@ -31,7 +31,7 @@ test_that("Regular microdata one country", {
 
 
   appended <- pip(
-    country = ct ,
+    country = ct,
     year = year,
     povline = c(pl1, pl2),
     lkup = lkup

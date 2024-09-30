@@ -44,7 +44,7 @@ Imports:
     fst (>= 0.9.8),
     plumber,
     urltools,
-    wbpip,
+    wbpip  (>= 0.1.5),
     rlang (>= 1.1.2),
     fs,
     memoise,
