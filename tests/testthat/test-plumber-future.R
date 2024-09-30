@@ -1,6 +1,8 @@
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
 skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "" ||
           Sys.getenv("PIPAPI_TEST_PLUMBER") != "TRUE")
+
+skip("Skipping since we have now removed future and promises from the API")
 # Set plan
 future::plan("multisession", workers = 2) # n workers for unit tests script
 

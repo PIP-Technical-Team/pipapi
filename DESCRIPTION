@@ -33,8 +33,6 @@ Suggests:
     callr,
     httr,
     jsonlite,
-    future.callr,
-    future.apply,
     lintr,
     withr,
     devtools
@@ -53,7 +51,6 @@ Imports:
     methods,
     qs,
     collapse,
-    future,
     readr,
     arrow,
     cli,
