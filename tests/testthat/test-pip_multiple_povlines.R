@@ -284,27 +284,111 @@ test_that("all countries, all years", {
 # PIP aggregate ---------------
 
 
-test_that("all countries, all years", {
+test_that("one region, two years", {
 
-  ct   <- "all"
+  ct   <- "EAP"
   pl1  <- 2.15
   pl2  <- 3.65
-  year <- "all"
+  year <- c(2010:2018)
 
   out1 <- pip_grp_logic(country = ct ,year = year, povline = pl1, lkup = lkup)
   out2 <- pip_grp_logic(country = ct ,year = year, povline = pl2, lkup = lkup)
   singles <-
     rowbind(out2, out1) |>
-    roworder(country_code, poverty_line, reporting_year, reporting_level)
+    roworder(region_code, poverty_line, reporting_year)
 
 
-  appended <- pip(
+  appended <- pip_grp_logic(
     country = ct ,
     year = year,
     povline = c(pl1, pl2),
     lkup = lkup
-  ) |>
-    roworder(country_code, poverty_line, reporting_year, reporting_level)
+  )
+
+  appended <- roworder(appended, region_code, poverty_line, reporting_year)
+
+  expect_equal(singles , appended)
+
+})
+
+test_that("two regions, two years", {
+
+  ct   <- c("SSA", "EAP")
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- c(2010:2018)
+
+  out1 <- pip_grp_logic(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip_grp_logic(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(region_code, poverty_line, reporting_year)
+
+
+  appended <- pip_grp_logic(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  )
+
+  appended <- roworder(appended, region_code, poverty_line, reporting_year)
+
+  expect_equal(singles , appended)
+
+})
+
+
+test_that("all regions, 1 year", {
+
+  ct   <- "ALL"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- 2020
+
+  out1 <- pip_grp_logic(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip_grp_logic(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(region_code, poverty_line, reporting_year)
+
+
+  appended <- pip_grp_logic(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  )
+
+  appended <- roworder(appended, region_code, poverty_line, reporting_year)
+
+  expect_equal(singles , appended)
+
+})
+
+
+test_that("all regions, all year", {
+
+  ct   <- "ALL"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- "ALL"
+
+  out1 <- pip_grp_logic(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip_grp_logic(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(region_code, poverty_line, reporting_year)
+
+
+  appended <- pip_grp_logic(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  )
+
+  appended <- roworder(appended, region_code, poverty_line, reporting_year)
 
   expect_equal(singles , appended)
 
