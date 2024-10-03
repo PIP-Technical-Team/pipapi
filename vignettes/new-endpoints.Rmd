@@ -1,7 +1,7 @@
 ---
 title: "How to include new endpoints in pipapi"
 author: "Ronak Shah"
-date: "`r Sys.Date()`"
+date: "2024-02-06"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{How to include new endpoints in pipapi}
