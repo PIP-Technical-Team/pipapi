@@ -189,10 +189,6 @@ function(req, res) {
 
   plumber::forward()
 
-  # Logging
-  # end_filters <- tictoc::toc(quiet = TRUE)
-  # logger::log_info('filters: {round(end_filters$toc - end_filters$tic, digits = getOption("digits", 6))}')
-
 }
 
 # Endpoints definition ----------------------------------------------------
@@ -515,17 +511,6 @@ function(req) {
 }
 
 
-
-# #* Return number of workers
-# #* @get /api/v1/n-workers
-# #* @serializer unboxedJSON
-# function() {
-#   list(
-#     n_cores = unname(future::availableCores()),
-#     n_workers = future::nbrOfWorkers(),
-#     n_free_workers = future::nbrOfFreeWorkers()
-#   )
-# }
 
 # #* Return system info
 # #* @get /api/v1/system-info

@@ -35,7 +35,8 @@ Suggests:
     jsonlite,
     lintr,
     withr,
-    devtools
+    devtools, 
+    stringr
 Language: en-US
 Imports: 
     data.table,
@@ -55,7 +56,8 @@ Imports:
     arrow,
     cli,
     joyn,
-    yaml
+    yaml,
+    purrr
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 
