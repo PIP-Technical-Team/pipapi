@@ -46,6 +46,10 @@ create_countries_vctr <- function(country,
   ## Adjust year ----
   if (any(c("ALL", "MRV") %in% toupper(year))) {
     year <- valid_years$valid_survey_years
+    # year <- valid_years$valid_interpolated_years
+    md_year <- valid_years$valid_interpolated_years
+  } else {
+    md_year <- year
   }
   # STEP 2: Identify regions ----
   ## All available aggregates ----
@@ -108,7 +112,7 @@ create_countries_vctr <- function(country,
   ## Countries with  missing data ----
   md_vars <- get_md_vars(md           = aux_files$missing_data,
                          ctr_alt_agg  = ctr_alt_agg,
-                         year         = year,
+                         year         = md_year,
                          off_alt_agg  = off_alt_agg,
                          user_off_reg = user_off_reg)
   list2env(md_vars, envir = environment())

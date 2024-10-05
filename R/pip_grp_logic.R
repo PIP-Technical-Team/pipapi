@@ -238,12 +238,18 @@ pip_grp_logic <- function(country         = "ALL",
   }
 
 
-  # Censor regional values -----------
+  # add new estimate type
 
+  ret <- estimate_type_var(ret,lkup)
+
+
+  # Censor regional values ----------- We are not censoring at this stage
+  # anymore because we need to show al the years in the homre page, including
+  # nowcast. we are now filtering at the UI and wrappers levels
   # if (censor) {
   #   ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
   # }
-  ret <- estimate_type_var(ret,lkup)
+
   data.table::setcolorder(ret, names_grp)
 
   # Select columns

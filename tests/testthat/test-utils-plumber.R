@@ -490,3 +490,11 @@ test_that("validate_input_grouped_stats returns NULL", {
   expect_null(out1)
 })
 
+test_that("ensure all the package used in endpoints.R are imported", {
+  out <- paste0(readLines('../../inst/plumber/v1/endpoints.R'), collapse = "\n")
+  file_packages <- stringr::str_extract_all(out, '(\\w+)::')[[1]] |> sub('::', '', x = _) |> unique()
+  file_packages <- setdiff(file_packages, "pipapi")
+  mat <- read.dcf('../../DESCRIPTION')
+  desc_package <- strsplit(mat[1, "Imports"], ",\n") |> unlist(use.names = FALSE) |> sub('\\s+\\(.*\\)', '', x = _)
+  expect_true(all(file_packages %in% desc_package))
+})
