@@ -24,7 +24,6 @@ pip_grp_logic <- function(country         = "ALL",
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
 
-
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
   country <- toupper(country)
@@ -239,12 +238,18 @@ pip_grp_logic <- function(country         = "ALL",
   }
 
 
-  # Censor regional values -----------
+  # add new estimate type
 
+  ret <- estimate_type_var(ret,lkup)
+
+
+  # Censor regional values ----------- We are not censoring at this stage
+  # anymore because we need to show al the years in the homre page, including
+  # nowcast. we are now filtering at the UI and wrappers levels
   # if (censor) {
   #   ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
   # }
-  ret <- estimate_type_var(ret,lkup)
+
   data.table::setcolorder(ret, names_grp)
 
   # Select columns
@@ -294,7 +299,9 @@ pip_grp_helper <- function(lcv_country,
 
   # Handle potential (insignificant) difference in poverty_line values that
   # may mess-up the grouping
-  out$poverty_line <- povline
+  # I don't think we need this out$poverty_line already has the correct values additionally,
+  # since povline is vectorized the below line does not work as expected
+  # out$poverty_line <- povline
 
   add_vars_out_of_pipeline(out, fill_gaps = TRUE, lkup = lkup)
 
