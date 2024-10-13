@@ -1348,4 +1348,35 @@ add_vars_out_of_pipeline <- function(out, fill_gaps, lkup) {
   invisible(out)
 }
 
+#' An efficient tidyr::unnest_longer
+#'
+#' @param tbl a dataframe/tibble/data.table
+#' @param cols one (or more) column names in `tbl`
+#'
+#' @return A longer data.table
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' df <- data.frame(
+#'  a = LETTERS[1:5],
+#'  b = LETTERS[6:10],
+#'  list_column1 = list(c(LETTERS[1:5]), "F", "G", "H", "I"),
+#'  list_column2 = list(c(LETTERS[1:5]), "F", "G", "H", "K")
+#' )
+#'  unnest_dt_longer(df, grep("^list_column", names(df), value = TRUE))
+#' }
+unnest_dt_longer <- function(tbl, cols) {
+
+  tbl <- data.table::as.data.table(tbl)
+  clnms <- rlang::syms(setdiff(colnames(tbl), cols))
+
+  tbl <- eval(
+    rlang::expr(tbl[, lapply(.SD, unlist), by = list(!!!clnms), .SDcols = cols])
+  )
+
+  colnames(tbl) <- c(as.character(clnms), cols)
+
+  tbl
+}
 

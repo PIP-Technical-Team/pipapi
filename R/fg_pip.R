@@ -102,7 +102,8 @@ fg_pip <- function(country,
       }
 
       # To allow multiple povline values, we store them in a list and unnest
-      tmp_metadata <- tmp_metadata %>% tidyr::unnest_longer(col = dplyr::everything())
+      browser()
+      tmp_metadata <- tmp_metadata %>% unnest_dt_longer()
       results_subset[[ctry_year_id]] <- tmp_metadata
     }
 
