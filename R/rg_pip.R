@@ -66,7 +66,9 @@ rg_pip <- function(country,
       tmp_metadata[[names(tmp_stats)[j]]] <- list(tmp_stats[[j]])
     }
     # To allow multiple povline values, we store them in a list and unnest
-    tmp_metadata <- tmp_metadata %>% tidyr::unnest_longer(col = dplyr::everything())
+    tmp_metadata <-
+      tmp_metadata %>%
+      unnest_dt_longer(names(tmp_metadata)[sapply(tmp_metadata, is.list)])
     out[[i]] <- tmp_metadata
   }
   out <- data.table::rbindlist(out)

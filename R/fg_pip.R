@@ -100,10 +100,9 @@ fg_pip <- function(country,
       for (stat in seq_along(tmp_stats)) {
         tmp_metadata[[names(tmp_stats)[stat]]] <- list(tmp_stats[[stat]])
       }
-
       # To allow multiple povline values, we store them in a list and unnest
-      browser()
-      tmp_metadata <- tmp_metadata %>% unnest_dt_longer()
+      tmp_metadata <- tmp_metadata %>%
+        unnest_dt_longer(names(tmp_metadata)[sapply(tmp_metadata, is.list)])
       results_subset[[ctry_year_id]] <- tmp_metadata
     }
 
