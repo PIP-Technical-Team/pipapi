@@ -24,10 +24,10 @@ pip_grp_logic <- function(country         = "ALL",
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
 
-
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
   country <- toupper(country)
+  year    <- toupper(year)
   if (group_by != "none") {
     reporting_level <- "all"
     if (!all(country %in% c("ALL", lkup$query_controls$region$values))) {
@@ -299,7 +299,9 @@ pip_grp_helper <- function(lcv_country,
 
   # Handle potential (insignificant) difference in poverty_line values that
   # may mess-up the grouping
-  out$poverty_line <- povline
+  # I don't think we need this out$poverty_line already has the correct values additionally,
+  # since povline is vectorized the below line does not work as expected
+  # out$poverty_line <- povline
 
   add_vars_out_of_pipeline(out, fill_gaps = TRUE, lkup = lkup)
 

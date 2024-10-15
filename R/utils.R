@@ -374,7 +374,6 @@ censor_stats <- function(df, censored_table) {
   setDT(df)
   setDT(censored_table)
 
-
   # Create a binary column to mark rows for removal based on 'all' statistic
   df[, to_remove := FALSE]
   censor_all <- censored_table[statistic == "all", .(id)]
@@ -389,7 +388,8 @@ censor_stats <- function(df, censored_table) {
   censor_stats <- censored_table[statistic != "all"]
   if (nrow(censor_stats) > 0) {
     # Perform a non-equi join to mark relevant statistics
-    df[censor_stats, on = .(tmp_id = id), mult = "first",
+    # Commenting mult = "first" since with multiple povline values there are more than one rows
+    df[censor_stats, on = .(tmp_id = id), #mult = "first",
        unique(censor_stats$statistic) := NA_real_]
   }
 
@@ -786,7 +786,6 @@ clear_cache <- function(cd) {
 #' @param x Value to be passed
 #'
 #' @return logical. TRUE if x is empty but it is not NULL
-#' @import future
 #' @export
 #'
 #' @examples
@@ -1348,4 +1347,35 @@ add_vars_out_of_pipeline <- function(out, fill_gaps, lkup) {
   invisible(out)
 }
 
+#' An efficient tidyr::unnest_longer
+#'
+#' @param tbl a dataframe/tibble/data.table
+#' @param cols one (or more) column names in `tbl`
+#'
+#' @return A longer data.table
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' df <- data.frame(
+#'  a = LETTERS[1:5],
+#'  b = LETTERS[6:10],
+#'  list_column1 = list(c(LETTERS[1:5]), "F", "G", "H", "I"),
+#'  list_column2 = list(c(LETTERS[1:5]), "F", "G", "H", "K")
+#' )
+#'  unnest_dt_longer(df, grep("^list_column", names(df), value = TRUE))
+#' }
+unnest_dt_longer <- function(tbl, cols) {
+
+  tbl <- data.table::as.data.table(tbl)
+  clnms <- rlang::syms(setdiff(colnames(tbl), cols))
+
+  tbl <- eval(
+    rlang::expr(tbl[, lapply(.SD, unlist), by = list(!!!clnms), .SDcols = cols])
+  )
+
+  colnames(tbl) <- c(as.character(clnms), cols)
+
+  tbl
+}
 

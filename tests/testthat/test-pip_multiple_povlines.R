@@ -1,0 +1,397 @@
+# Setup ---------------
+# Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+library(collapse)
+library(data.table)
+data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL")
+
+skip_if(data_dir == "")
+
+latest_version <-
+  available_versions(data_dir) |>
+  max()
+
+lkups <- create_versioned_lkups(data_dir,
+                                vintage_pattern = latest_version)
+lkup <- lkups$versions_paths[[lkups$latest_release]]
+
+
+# Country level ------------
+test_that("Regular microdata one country", {
+
+  ct   <- "AGO"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- 2000
+
+  out1 <- pip(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(poverty_line)
+
+
+  appended <- pip(
+    country = ct,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  ) |>
+    roworder(poverty_line)
+
+  expect_equal(singles , appended)
+
+})
+
+test_that("Microdata one country, mult years", {
+
+  ct   <- "AGO"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- c(2000, 2008, 2018)
+
+  out1 <- pip(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(poverty_line, reporting_year)
+
+
+  appended <- pip(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  ) |>
+    roworder(poverty_line, reporting_year)
+
+  expect_equal(singles , appended)
+
+})
+
+
+
+test_that("Group data - one country", {
+
+  ct   <- "ARE"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- 2013
+
+  out1 <- pip(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(poverty_line)
+
+
+  appended <- pip(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  ) |>
+    roworder(poverty_line)
+
+  expect_equal(singles , appended)
+
+})
+
+test_that("Group one country national, mult years", {
+
+  ct   <- "ARE"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- c(2000, 2018)
+
+  out1 <- pip(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(poverty_line, reporting_year)
+
+
+  appended <- pip(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  ) |>
+    roworder(poverty_line, reporting_year)
+
+  expect_equal(singles , appended)
+
+})
+
+test_that("Group one country urb/rur, one year", {
+
+  ct   <- "CHN"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- c(1981)
+
+  out1 <- pip(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(poverty_line, reporting_year, reporting_level)
+
+
+  appended <- pip(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  ) |>
+    roworder(poverty_line, reporting_year, reporting_level)
+
+  expect_equal(singles , appended)
+
+})
+
+test_that("Group one country urb/rur, one year", {
+
+  ct   <- "CHN"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- c(2010)
+
+  out1 <- pip(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(poverty_line, reporting_year, reporting_level)
+
+
+  appended <- pip(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  ) |>
+    roworder(poverty_line, reporting_year, reporting_level)
+
+  expect_equal(singles , appended)
+
+})
+
+
+test_that("Group one country urb/rur, multi year", {
+
+  ct   <- "CHN"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- c(1984, 1987, 1990, 1993, 1996)
+
+  out1 <- pip(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(poverty_line, reporting_year, reporting_level)
+
+
+  appended <- pip(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  ) |>
+    roworder(poverty_line, reporting_year, reporting_level)
+
+  expect_equal(singles , appended)
+
+})
+
+test_that("Group one country urb/rur, All year", {
+
+  ct   <- "CHN"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- "all"
+
+  out1 <- pip(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(poverty_line, reporting_year, reporting_level)
+
+
+  appended <- pip(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  ) |>
+    roworder(poverty_line, reporting_year, reporting_level)
+
+  expect_equal(singles , appended)
+
+})
+
+
+test_that("mult countries, multi year", {
+
+  ct   <- c("CHN", "PRY")
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- "all"
+
+  out1 <- pip(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(country_code, poverty_line, reporting_year, reporting_level)
+
+
+  appended <- pip(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  ) |>
+    roworder(country_code, poverty_line, reporting_year, reporting_level)
+
+  expect_equal(singles , appended)
+
+})
+
+
+test_that("all countries, all years", {
+
+  ct   <- "all"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- "all"
+
+  out1 <- pip(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(country_code, poverty_line, reporting_year, reporting_level)
+
+
+  appended <- pip(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  ) |>
+    roworder(country_code, poverty_line, reporting_year, reporting_level)
+
+  expect_equal(singles , appended)
+
+})
+
+# PIP aggregate ---------------
+
+
+test_that("one region, two years", {
+
+  ct   <- "EAP"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- c(2010:2018)
+
+  out1 <- pip_grp_logic(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip_grp_logic(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(region_code, poverty_line, reporting_year)
+
+
+  appended <- pip_grp_logic(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  )
+
+  appended <- roworder(appended, region_code, poverty_line, reporting_year)
+
+  expect_equal(singles , appended)
+
+})
+
+test_that("two regions, two years", {
+
+  ct   <- c("SSA", "EAP")
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- c(2010:2018)
+
+  out1 <- pip_grp_logic(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip_grp_logic(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(region_code, poverty_line, reporting_year)
+
+
+  appended <- pip_grp_logic(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  )
+
+  appended <- roworder(appended, region_code, poverty_line, reporting_year)
+
+  expect_equal(singles , appended)
+
+})
+
+
+test_that("all regions, 1 year", {
+
+  ct   <- "ALL"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- 2020
+
+  out1 <- pip_grp_logic(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip_grp_logic(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(region_code, poverty_line, reporting_year)
+
+
+  appended <- pip_grp_logic(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  )
+
+  appended <- roworder(appended, region_code, poverty_line, reporting_year)
+
+  expect_equal(singles , appended)
+
+})
+
+
+test_that("all regions, all year", {
+
+  ct   <- "ALL"
+  pl1  <- 2.15
+  pl2  <- 3.65
+  year <- "ALL"
+
+  out1 <- pip_grp_logic(country = ct ,year = year, povline = pl1, lkup = lkup)
+  out2 <- pip_grp_logic(country = ct ,year = year, povline = pl2, lkup = lkup)
+  singles <-
+    rowbind(out2, out1) |>
+    roworder(region_code, poverty_line, reporting_year)
+
+
+  appended <- pip_grp_logic(
+    country = ct ,
+    year = year,
+    povline = c(pl1, pl2),
+    lkup = lkup
+  )
+
+  appended <- roworder(appended, region_code, poverty_line, reporting_year)
+
+  expect_equal(singles , appended)
+
+})
+
+

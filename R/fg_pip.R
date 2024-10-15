@@ -13,7 +13,6 @@ fg_pip <- function(country,
                    reporting_level,
                    ppp,
                    lkup) {
-
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
   data_dir            <- lkup$data_root
@@ -99,21 +98,20 @@ fg_pip <- function(country,
 
       # Add stats columns to data frame
       for (stat in seq_along(tmp_stats)) {
-        tmp_metadata[[names(tmp_stats)[stat]]] <- tmp_stats[[stat]]
+        tmp_metadata[[names(tmp_stats)[stat]]] <- list(tmp_stats[[stat]])
       }
-
-
+      # To allow multiple povline values, we store them in a list and unnest
+      tmp_metadata <- tmp_metadata %>%
+        unnest_dt_longer(names(tmp_metadata)[sapply(tmp_metadata, is.list)])
       results_subset[[ctry_year_id]] <- tmp_metadata
     }
 
     out[[svy_id]] <- results_subset
   }
-
   out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
 
-
-  # # Remove median
+  # Remove median
   # out[, median := NULL]
 
   # Ensure that out does not have duplicates
