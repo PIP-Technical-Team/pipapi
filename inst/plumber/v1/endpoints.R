@@ -463,9 +463,9 @@ function(req, res) {
   params$format         <- NULL
   params$version        <- NULL
   params$population     <- NULL
-
-  relevant_params <- lapply(params, as.numeric)
-  out <- do.call(pipgd_lorenz_curve, relevant_params)
+  params$welfare = as.numeric(params$welfare)
+  params$weight = as.numeric(params$weight)
+  out <- do.call(pipgd_lorenz_curve, params)
   out <- data.frame(welfare = out$lorenz_curve$output,
                     weight = out$lorenz_curve$points)
   return(out)
