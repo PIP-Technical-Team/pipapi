@@ -786,7 +786,6 @@ clear_cache <- function(cd) {
 #' @param x Value to be passed
 #'
 #' @return logical. TRUE if x is empty but it is not NULL
-#' @import future
 #' @export
 #'
 #' @examples
