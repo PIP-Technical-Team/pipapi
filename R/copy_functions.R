@@ -579,7 +579,9 @@ pipgd_lorenz_curve <- function(
     )
 
   } else if (lorenz == "lq") {
-
+    kv <- gd_lq_key_values(params$gd_params$lq$reg_results$coef[["A"]],
+                           params$gd_params$lq$reg_results$coef[["B"]],
+                           params$gd_params$lq$reg_results$coef[["C"]])
     lc <- sapply(
       X   = x_vec,
       FUN = function(x1){
@@ -587,7 +589,8 @@ pipgd_lorenz_curve <- function(
           x = x1,
           A = params$gd_params$lq$reg_results$coef[["A"]],
           B = params$gd_params$lq$reg_results$coef[["B"]],
-          C = params$gd_params$lq$reg_results$coef[["C"]]
+          C = params$gd_params$lq$reg_results$coef[["C"]],
+          kv
         )
 
       }
