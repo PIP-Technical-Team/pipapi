@@ -1,4 +1,11 @@
+# pipapi 1.3.11
+
+* fix bug for not including `key_values` into Lorenz quadratic function.
+
+
 # pipapi 1.3.10
+
+* update esimate_type filter for fillgaps at cl
 
 # pipapi 1.3.9
 * remove censoring and apply filter at the UI level.
