@@ -11,8 +11,12 @@ data_dir <-
 
 fs::dir_tree(data_dir, recurse = 0)
 
+latest_version <-
+  available_versions(data_dir) |>
+  max()
+
 lkups <- create_versioned_lkups(data_dir,
-                                vintage_pattern = "PROD$")
+                                vintage_pattern = latest_version)
 lkup <- lkups$versions_paths[[lkups$latest_release]]
 
 ctr  <- "AGO"
@@ -27,7 +31,9 @@ tmp1 <- tmp[[ctr]]$pov_charts[[1]]$pov_trend[-c(1:3)]
 tmp2 <- tmp[[ctr]]$pov_charts[[1]]$pov_mrv[-c(1:11)]
 empty_response_cp_poverty <- list(pov_trend = tmp1, pov_mrv = tmp2)
 
-empty_response_grp <- pip_grp(ctr, year, lkup = lkup)[-1]
+empty_response_grp <- pip_grp("all", year, lkup = lkup, group_by = "wb")
+empty_response_grp <- empty_response_grp[-c(1:nrow(empty_response_grp))]
+
 
 usethis::use_data(
   empty_response,

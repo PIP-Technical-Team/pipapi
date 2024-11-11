@@ -38,17 +38,20 @@ ui_pc_charts <- function(country = c("AGO"),
   out$reporting_pop <- out$reporting_pop / pop_units
 
   # handle different responses when fill_gaps = TRUE / FALSE
+  # Return all columns when survey years are requested
   if (fill_gaps == FALSE) {
-    # Return all columns when survey years are requested
+    # NOTE: this should be modified in the lkups or somewhere else...
+    return_cols <- return_cols[return_cols != "estimate_type"]
     out <- out[, .SD, .SDcols = return_cols]
-    return(out)
 
   } else {
-    # Set non-interpolated variables to NA if line-up years are requested
     out <- out[, .SD, .SDcols = return_cols]
+    # Set non-interpolated variables to NA if line-up years are requested
     out[, inequality_indicators] <- NA
-    return(out)
+    # remove nowcast from UI
+    out <- out[estimate_type != "nowcast"]
   }
+  return(out)
 }
 
 #' Poverty Calculator regional aggregates
@@ -82,6 +85,8 @@ ui_pc_regional <- function(country   = "ALL",
   # Add pop_in_poverty and scale according to pop_units
   out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
   out$reporting_pop <- out$reporting_pop / pop_units
+
+  out <- out[estimate_type == "actual"]
 
   return(out)
 }

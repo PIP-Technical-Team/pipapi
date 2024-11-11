@@ -266,7 +266,9 @@ create_lkups <- function(data_dir, versions) {
         'distribution_type',
         'estimation_type',
         'spl',
-        'spr'
+        'spr',
+        'pg',
+        'estimate_type'
       ),
 
       # This is not used anywhere anymore.
@@ -275,7 +277,8 @@ create_lkups <- function(data_dir, versions) {
         "reporting_year",
         "welfare_type",
         "reporting_level",
-        "spl"#,
+        "spl",
+        'pg'
         #"spr"
       )
     ),
@@ -292,7 +295,9 @@ create_lkups <- function(data_dir, versions) {
         "watts",
         "mean",
         "pop_in_poverty",
-        "spr"
+        "spr",
+        'pg',
+        'estimate_type'
       ),
       weighted_average_cols = c(
         "headcount",
@@ -300,7 +305,8 @@ create_lkups <- function(data_dir, versions) {
         "poverty_severity",
         "watts",
         "mean",
-        "spr"
+        "spr",
+        'pg'
       )
     ),
     ui_pc_charts = list(
@@ -340,7 +346,9 @@ create_lkups <- function(data_dir, versions) {
         'poverty_severity',
         'watts',
         'pop_in_poverty',
-        'spr'
+        'spr',
+        'pg',
+        'estimate_type'
       ),
       inequality_indicators = c(
         'median',
@@ -366,8 +374,7 @@ create_lkups <- function(data_dir, versions) {
         "headcount",
         "poverty_gap",
         "poverty_severity",
-        "watts",
-        "spr"
+        "watts"
       ),
       zero_vars = c(
         "mean",
@@ -699,4 +706,23 @@ coerce_chr_to_fct <- function(df) {
 create_return_cols <- function(...) {
   out <- list(...)
   return(out)
+}
+
+
+
+
+#' Sorted available PIP versions in data directory
+#'
+#' @param data_dir character: data directory
+#'
+#' @return character vector of sorted available PIP versions in data directory
+available_versions <- function(data_dir) {
+  vintage_pattern <- create_vintage_pattern_call()
+    fs::dir_ls(data_dir,
+               type   = "directory") |>
+    fs::path_file() |>
+    sort_versions(prod_regex = vintage_pattern$prod_regex,
+                  int_regex  = vintage_pattern$int_regex,
+                  test_regex = vintage_pattern$test_regex)
+
 }

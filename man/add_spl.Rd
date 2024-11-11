@@ -21,3 +21,4 @@ data.table
 \description{
 Add SPL indicators to either fg* or rg PIP output
 }
+\keyword{internal}

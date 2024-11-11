@@ -9,9 +9,11 @@ select_user_aggs(country, all_agg, off_reg_ext, aggs)
 \arguments{
 \item{country}{character: User selected countries}
 
-\item{aggs}{data.frame: Regions lookup table}
+\item{all_agg}{character: all country aggregates}
 
-\item{off_reg}{character: Official region codes}
+\item{off_reg_ext}{character: Official region codes}
+
+\item{aggs}{data.frame: Regions lookup table}
 }
 \value{
 character

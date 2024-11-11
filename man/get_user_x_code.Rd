@@ -7,7 +7,7 @@
 get_user_x_code(x)
 }
 \arguments{
-\item{user_gt}{character: Grouping type needed by user}
+\item{x}{character: Grouping type needed by user}
 }
 \value{
 character

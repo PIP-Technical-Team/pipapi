@@ -5,7 +5,7 @@
 \title{select_years
 Helper function for subset_lkup()}
 \usage{
-select_years(lkup, keep, year, country)
+select_years(lkup, keep, year, country, data_dir, valid_regions = NULL)
 }
 \arguments{
 \item{lkup}{list: A list of lkup tables}
@@ -15,6 +15,11 @@ select_years(lkup, keep, year, country)
 \item{year}{integer: Reporting year}
 
 \item{country}{character: Country ISO 3 codes}
+
+\item{data_dir}{character: directory path from lkup$data_root}
+
+\item{valid_regions}{character: List of valid region codes that can be used
+for region selection}
 }
 \value{
 logical vector

@@ -8,7 +8,7 @@ pip_grp_logic(
   country = "ALL",
   year = "ALL",
   povline = 1.9,
-  group_by = c("none", "wb"),
+  group_by = c("wb", "none"),
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national"),
   lkup,

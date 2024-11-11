@@ -11,7 +11,7 @@ get_pip_version <- function(pip_packages = c("pipapi",
   # PIP package versions
   core_packages <- lapply(pip_packages, function(x){
     pkg_version <- retrieve_pkg_version(x)
-    pkg_hash    <- packageDescription(x)$GithubSHA1
+    pkg_hash    <- utils::packageDescription(x)$GithubSHA1
 
     return(
       list(

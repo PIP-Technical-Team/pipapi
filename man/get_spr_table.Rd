@@ -17,3 +17,4 @@ data.table
 \description{
 If there is no data available, return an empty data.frame
 }
+\keyword{internal}

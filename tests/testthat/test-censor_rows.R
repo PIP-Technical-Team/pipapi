@@ -75,10 +75,11 @@ test_that("censor_rows() sets specific stats to NA_real_", {
 })
 
 test_that("censor_rows() returns early when there no censoring observations", {
-  tmp <- list(region = data.frame(
+  tmp <- list(regions = data.frame(
     region_code = character(0),
     reporting_year = numeric(0),
-    statistic = character(0)
+    statistic = character(0),
+    id       = character(0)
   ))
   res <- censor_rows(reg_agg, tmp, type = "regions")
   expect_equal(res, reg_agg)

@@ -1,6 +1,4 @@
 library(plumber)
-library(logger)
-library(glue)
 
 endpoints_path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
 api_spec_path <-  system.file("plumber/v1/openapi.yaml", package = "pipapi")

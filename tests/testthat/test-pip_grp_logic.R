@@ -1,20 +1,17 @@
-skip_if(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") == "")
-
-# Following this solution: https://stackoverflow.com/a/71334780/11472481
-
 options(joyn.verbose = FALSE)
-
 # Tests depend on PIPAPI_DATA_ROOT_FOLDER_LOCAL. Skip if not found.
+data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL")
 
-# lkup_path <- test_path("testdata", "lkup.rds")
-# lkup      <- readRDS(lkup_path)
+skip_if(data_dir == "")
 
+latest_version <-
+  available_versions(data_dir) |>
+  max()
 
-data_dir <- fs::path(Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL"))
+lkups <- create_versioned_lkups(data_dir,
+                                vintage_pattern = latest_version)
+lkup <- lkups$versions_paths[[lkups$latest_release]]
 
-lkups <- create_versioned_lkups(data_dir = data_dir)
-
-lkup <-  lkups$versions_paths[[lkups$latest_release]]
 
 # default parameters
 
@@ -27,7 +24,9 @@ lp <- list(
   censor           =  TRUE,
   lkup             =  lkup
 )
-
+local_mocked_bindings(
+  get_caller_names = function() c("pip_grp")
+)
 
 test_that("pip_grp and pip_grp_logic give the same results for official and alternative region selection", {
 
@@ -37,8 +36,30 @@ test_that("pip_grp and pip_grp_logic give the same results for official and alte
   lp$country <- country
   lp$year    <- year
 
-  de1 <- do.call(pip_grp_logic, lp)
-  dc <- do.call(pip_grp, lp)
+
+  # de1 <- do.call(pip_grp_logic, lp)
+  de1 <- pip_grp_logic(
+    year             = c(2000, 2019), # out of range
+    povline          =  2.25,
+    group_by         =  c("wb"),
+    welfare_type     =  c("all"),
+    reporting_level  =  c("all"),
+    censor           =  TRUE,
+    lkup             =  lkup,
+    country          = c("SSA", "LAC")
+  )
+
+  # dc <- do.call(pip_grp, lp)
+  dc <- pip_grp(
+    year             = c(2000, 2019), # out of range
+    povline          =  2.25,
+    group_by         =  c("wb"),
+    welfare_type     =  c("all"),
+    reporting_level  =  c("all"),
+    censor           =  TRUE,
+    lkup             =  lkup,
+    country          = c("SSA", "LAC")
+  )
   expect_equal(de1, dc, label = "same results for official aggregates
                between grp and grp_logic")
 
@@ -46,7 +67,16 @@ test_that("pip_grp and pip_grp_logic give the same results for official and alte
   country <- c("AFE", "SSA", "LAC")
   lp$country <- country
 
-  de2 <- do.call(pip_grp_logic, lp)
+  # de2 <- do.call(pip_grp_logic, lp)
+  de2 <- pip_grp_logic(year             = c(2000, 2019), # out of range
+                       povline          =  2.25,
+                       group_by         =  c("wb"),
+                       welfare_type     =  c("all"),
+                       reporting_level  =  c("all"),
+                       censor           =  TRUE,
+                       lkup             =  lkup,
+                       country          = c("AFE", "SSA", "LAC"))
+
   de3 <- de2[region_code %in% c("SSA", "LAC")]
   data.table::setcolorder(de3, names(dc))
   data.table::setorder(de3, region_code, reporting_year)
@@ -61,7 +91,16 @@ test_that("pip_grp and pip_grp_logic give the same results for official and alte
   country <- c("AFE", "SSA", "LAC", "AFW", "LIC")
   lp$country <- country
 
-  de4 <- do.call(pip_grp_logic, lp)
+  # de4 <- do.call(pip_grp_logic, lp)
+  de4 <- pip_grp_logic(year             = c(2000, 2019), # out of range
+                       povline          =  2.25,
+                       group_by         =  c("wb"),
+                       welfare_type     =  c("all"),
+                       reporting_level  =  c("all"),
+                       censor           =  TRUE,
+                       lkup             =  lkup,
+                       country          = c("AFE", "SSA", "LAC", "AFW", "LIC")
+  )
   de5 <- de4[region_code %in% c("SSA", "LAC")]
   data.table::setcolorder(de5, names(dc))
   data.table::setorder(de5, region_code, reporting_year)
