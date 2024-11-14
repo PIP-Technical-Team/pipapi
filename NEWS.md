@@ -1,3 +1,7 @@
+# pipapi (development version)
+
+* Hot fix with `future` dependency.
+
 # pipapi 1.3.11
 
 * fix bug for not including `key_values` into Lorenz quadratic function.
