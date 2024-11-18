@@ -53,7 +53,7 @@ fg_pip <- function(country,
     # Extract country-years for which stats will be computed from the same files
     # tmp_metadata <- interpolation_list[[unique_survey_files[svy_id]]]$tmp_metadata
     iteration           <- interpolation_list[[unique_survey_files[svy_id]]]
-
+    print("Svy Data")
     svy_data <- get_svy_data(svy_id          = iteration$cache_ids,
                              reporting_level = iteration$reporting_level,
                              path            = iteration$paths)
