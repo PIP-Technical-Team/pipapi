@@ -11,3 +11,4 @@ tests/testdata/app_data/
 docs
 logs/
 /sessionInfoLog
+demo.duckdb
