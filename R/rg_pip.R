@@ -53,7 +53,7 @@ rg_pip <- function(country,
 
     tmp_stats <- wbpip:::prod_compute_pip_stats(
       welfare           = svy_data$df0$welfare,
-      povline           = povline,
+      povline           = povline[i],
       popshare          = popshare,
       population        = svy_data$df0$weight,
       requested_mean    = tmp_metadata$survey_mean_ppp,
@@ -64,7 +64,6 @@ rg_pip <- function(country,
       ppp               = ppp,
       distribution_type = tmp_metadata$distribution_type
     )
-
     # Add stats columns to data frame
     for (j in seq_along(tmp_stats)) {
       tmp_metadata[[names(tmp_stats)[j]]] <- tmp_stats[[j]]
