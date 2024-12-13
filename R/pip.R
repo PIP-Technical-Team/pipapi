@@ -109,7 +109,7 @@ pip <- function(country         = "ALL",
   # 2) country = "AGO" year = 2019 pl = 1.9 should return pip call
   # 3) country = c("CHN", "IND"), year = 2019, 2017 should return half from master file and half from pip call
   con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = "demo.duckdb")
-  result_from_cache <- pipfun::return_if_exists(country, year, povline, con)
+  result_from_cache <- return_if_exists(country, year, povline, con)
   # This initialization is necessary for rowbind at the end if all the data is present in cache
   out <- NULL
   # only run pip code if there is data that is not present in cache
@@ -283,6 +283,7 @@ pip <- function(country         = "ALL",
 
     # Order rows by country code and reporting year
     data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
+    update_master_file(out, con)
   }
   final_result <- collapse::rowbind(
     result_from_cache$present_data, out
