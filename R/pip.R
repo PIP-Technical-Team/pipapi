@@ -108,7 +108,24 @@ pip <- function(country         = "ALL",
   # 1) country = "AGO" year = 2000 pl = 1.9 should return from master file
   # 2) country = "AGO" year = 2019 pl = 1.9 should return pip call
   # 3) country = c("CHN", "IND"), year = 2019, 2017 should return half from master file and half from pip call
+  #
+  # 4) country = "all" year = 2019
+  # 5) country = "AGO" year = "all"
+  # 6) country = "all" year = "all"
+  #browser()
   con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = "demo.duckdb")
+
+  if((country == "all" || year == "all") && fill_gaps) {
+
+  } else if((country == "all" || year == "all") && !fill_gaps) {
+      if(country == "all") {
+        country = unique(lcv$est_ctrs)
+      }
+      if(year == "all") {
+        year = unique(lkup$svy_lkup$reporting_year)
+      }
+  }
+
   result_from_cache <- return_if_exists(country, year, povline, con)
   # This initialization is necessary for rowbind at the end if all the data is present in cache
   out <- NULL
