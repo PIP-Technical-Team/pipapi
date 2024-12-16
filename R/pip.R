@@ -112,16 +112,16 @@ pip <- function(country         = "ALL",
   # 4) country = "all" year = 2019
   # 5) country = "AGO" year = "all"
   # 6) country = "all" year = "all"
-  #browser()
+  # browser()
   con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = "demo.duckdb")
 
-  if((country == "all" || year == "all") && fill_gaps) {
+  if((country == "ALL" || year == "ALL") && fill_gaps) {
 
-  } else if((country == "all" || year == "all") && !fill_gaps) {
-      if(country == "all") {
+  } else if((country == "ALL" || year == "ALL") && !fill_gaps) {
+      if(country == "ALL") {
         country = unique(lcv$est_ctrs)
       }
-      if(year == "all") {
+      if(year == "ALL") {
         year = unique(lkup$svy_lkup$reporting_year)
       }
   }
