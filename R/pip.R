@@ -69,7 +69,6 @@ pip <- function(country         = "ALL",
 
 
   # set up -------------
-
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
@@ -116,12 +115,18 @@ pip <- function(country         = "ALL",
   con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = "demo.duckdb")
 
   if(("ALL" %in% country || "ALL" %in% year) && fill_gaps) {
+    if("ALL" %in% country) {
+      country = lkup$aux_files$countries$country_code
+    }
+    if("ALL" %in% year) {
+      year = lkup$valid_years$valid_interpolated_years
+    }
 
   } else if(("ALL" %in% country || "ALL" %in% year) && !fill_gaps) {
-      if(country == "ALL") {
+      if("ALL" %in% country) {
         country = unique(lcv$est_ctrs)
       }
-      if(year == "ALL") {
+      if("ALL" %in% year) {
         year = unique(lkup$svy_lkup$reporting_year)
       }
   }
@@ -139,7 +144,7 @@ pip <- function(country         = "ALL",
       out <- fg_pip(
         country            = result_from_cache$absent_args$country_code,
         year               = result_from_cache$absent_args$reporting_year,
-        povline            = result_from_cache$absent_args$povline,
+        povline            = result_from_cache$absent_args$poverty_line,
         popshare           = popshare,
         welfare_type       = welfare_type,
         reporting_level    = reporting_level,

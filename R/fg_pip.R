@@ -19,7 +19,6 @@ fg_pip <- function(country,
   data_dir            <- lkup$data_root
   ref_lkup            <- lkup$ref_lkup
 
-
   # Handle interpolation
   metadata <- subset_lkup(
     country         = country,
@@ -54,7 +53,7 @@ fg_pip <- function(country,
     # Extract country-years for which stats will be computed from the same files
     # tmp_metadata <- interpolation_list[[unique_survey_files[svy_id]]]$tmp_metadata
     iteration           <- interpolation_list[[unique_survey_files[svy_id]]]
-
+    if(svy_id == 1428) browser()
     svy_data <- get_svy_data(svy_id          = iteration$cache_ids,
                              reporting_level = iteration$reporting_level,
                              path            = iteration$paths)
@@ -69,7 +68,7 @@ fg_pip <- function(country,
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 
     for (ctry_year_id in seq_along(ctry_years$interpolation_id)) {
-
+      print(ctry_year_id)
       # Extract records to be used for a single country-year estimation
       interp_id    <- ctry_years[["interpolation_id"]][ctry_year_id]
       tmp_metadata <- metadata[metadata$interpolation_id == interp_id, ]
@@ -86,7 +85,7 @@ fg_pip <- function(country,
         default_ppp            = tmp_metadata[["ppp"]],
         ppp                    = ppp,
         distribution_type      = tmp_metadata[["distribution_type"]],
-        poverty_line           = povline,
+        poverty_line           = povline[svy_id],
         popshare               = popshare
       )
 
@@ -96,7 +95,6 @@ fg_pip <- function(country,
       }
       #
       # tmp_metadata <- unique(tmp_metadata)
-
       # Add stats columns to data frame
       for (stat in seq_along(tmp_stats)) {
         tmp_metadata[[names(tmp_stats)[stat]]] <- tmp_stats[[stat]]
@@ -108,7 +106,6 @@ fg_pip <- function(country,
 
     out[[svy_id]] <- results_subset
   }
-
   out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
 

@@ -713,7 +713,7 @@ subset_ctry_years <- function(country,
     } else {
       keep_regions <- rep(FALSE, length(lkup$region_code))
     }
-    keep_countries <- lkup$country_code %chin% country
+    keep_countries <- lkup$country_code %chin% as.character(country)
     keep <- keep & (keep_countries | keep_regions)
   }
 
