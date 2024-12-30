@@ -127,7 +127,7 @@ pip <- function(country         = "ALL",
         country = unique(lcv$est_ctrs)
       }
       if("ALL" %in% year) {
-        year = unique(lkup$svy_lkup$reporting_year)
+        year = unique(lkup$svy_lkup$reporting_year[lkup$svy_lkup$country_code %in% country])
       }
   }
 

@@ -28,6 +28,9 @@ return_if_exists <- function(country_code, year, poverty_line, con) {
     by = c("country_code", "reporting_year", "poverty_line")
   )
 
+  if(nrow(args_present_in_master)) {
+    message("Returning data from cache.")
+  }
   return(list(present_data = args_present_in_master, absent_args = args_not_present_in_master))
 }
 

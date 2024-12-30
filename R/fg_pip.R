@@ -53,7 +53,6 @@ fg_pip <- function(country,
     # Extract country-years for which stats will be computed from the same files
     # tmp_metadata <- interpolation_list[[unique_survey_files[svy_id]]]$tmp_metadata
     iteration           <- interpolation_list[[unique_survey_files[svy_id]]]
-    if(svy_id == 1428) browser()
     svy_data <- get_svy_data(svy_id          = iteration$cache_ids,
                              reporting_level = iteration$reporting_level,
                              path            = iteration$paths)
@@ -68,7 +67,6 @@ fg_pip <- function(country,
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 
     for (ctry_year_id in seq_along(ctry_years$interpolation_id)) {
-      print(ctry_year_id)
       # Extract records to be used for a single country-year estimation
       interp_id    <- ctry_years[["interpolation_id"]][ctry_year_id]
       tmp_metadata <- metadata[metadata$interpolation_id == interp_id, ]
