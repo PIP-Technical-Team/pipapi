@@ -13,13 +13,12 @@ rg_pip <- function(country,
                    reporting_level,
                    ppp,
                    lkup) {
-
   # get values from lkup
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
   data_dir      <- lkup$data_root
 
-
+  #browser()
   metadata <- subset_lkup(
     country         = country,
     year            = year,
@@ -29,6 +28,8 @@ rg_pip <- function(country,
     valid_regions   = valid_regions,
     data_dir        = data_dir
   )
+  data_present_in_master <- metadata$data_present_in_master
+  metadata <- metadata$lkup
 
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
@@ -37,7 +38,7 @@ rg_pip <- function(country,
 
   # return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    return(empty_response)
+    return(list(main_data = empty_response, data_in_cache = data_present_in_master))
   }
 
   out <- vector(mode = "list", length = nrow(metadata))
@@ -71,7 +72,8 @@ rg_pip <- function(country,
 
     out[[i]] <- tmp_metadata
   }
+  #browser()
   out <- data.table::rbindlist(out)
 
-  return(out)
+  return(list(main_data = out, data_in_cache = data_present_in_master))
 }

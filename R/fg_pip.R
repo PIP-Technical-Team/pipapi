@@ -29,6 +29,8 @@ fg_pip <- function(country,
     valid_regions   = valid_regions,
     data_dir        = data_dir
   )
+  data_present_in_master <- metadata$data_present_in_master
+  metadata <- metadata$lkup
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
   metadata <- filter_lkup(metadata = metadata,
@@ -37,7 +39,7 @@ fg_pip <- function(country,
 
   # Return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    return(pipapi::empty_response)
+    return(list(main_data = empty_response, data_in_cache = data_present_in_master))
   }
 
   unique_survey_files <- unique(metadata$data_interpolation_id)
@@ -119,7 +121,7 @@ fg_pip <- function(country,
       poverty_line := round(poverty_line, digits = 3) ]
 
 
-  return(out)
+  return(list(main_data = out, data_in_cache = data_present_in_master))
 }
 
 #' Remove duplicated rows created during the interpolation process

@@ -11,7 +11,8 @@ subset_lkup <- function(country,
                         reporting_level,
                         lkup,
                         valid_regions,
-                        data_dir = NULL) {
+                        data_dir = NULL
+                        ) {
 
   # STEP 1 - Keep every row by default
   keep <- rep(TRUE, nrow(lkup))
@@ -37,9 +38,13 @@ subset_lkup <- function(country,
                                  keep = keep,
                                  reporting_level = reporting_level[1])
 
-  lkup <- lkup[keep, ]
 
-  return(lkup)
+  lkup <- lkup[keep, ]
+  #browser()
+  con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = "demo.duckdb")
+  cached_data <- return_if_exists(lkup,con)
+
+  return(list(lkup = cached_data$lkup, data_present_in_master = cached_data$data_present_in_master))
 }
 
 #' select_country
@@ -89,8 +94,6 @@ select_years <- function(lkup,
   is_agg       <-
     grepl("pip_grp", caller_names) |>
     any()
-
-
 
   dtmp <- lkup
 

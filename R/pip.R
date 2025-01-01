@@ -112,39 +112,20 @@ pip <- function(country         = "ALL",
   # 5) country = "AGO" year = "all"
   # 6) country = "all" year = "all"
   # browser()
-  con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = "demo.duckdb")
 
-  if(("ALL" %in% country || "ALL" %in% year) && fill_gaps) {
-    if("ALL" %in% country) {
-      country = lkup$aux_files$countries$country_code
-    }
-    if("ALL" %in% year) {
-      year = lkup$valid_years$valid_interpolated_years
-    }
-
-  } else if(("ALL" %in% country || "ALL" %in% year) && !fill_gaps) {
-      if("ALL" %in% country) {
-        country = unique(lcv$est_ctrs)
-      }
-      if("ALL" %in% year) {
-        year = unique(lkup$svy_lkup$reporting_year[lkup$svy_lkup$country_code %in% country])
-      }
-  }
-
-  result_from_cache <- return_if_exists(country, year, povline, con)
   # This initialization is necessary for rowbind at the end if all the data is present in cache
-  out <- NULL
+  #out <- NULL
   # only run pip code if there is data that is not present in cache
-  if(nrow(result_from_cache$absent_args) > 0) {
+  #if(nrow(result_from_cache$absent_args) > 0) {
   # use result_from_cache$absent_args$country_code reporting_year and poverty_line and pass it further.
 
     # mains estimates ---------------
     if (fill_gaps) {
       ## lineup years-----------------
       out <- fg_pip(
-        country            = result_from_cache$absent_args$country_code,
-        year               = result_from_cache$absent_args$reporting_year,
-        povline            = result_from_cache$absent_args$poverty_line,
+        country            = lcv$est_ctrs,
+        year               = year,
+        povline            = povline,
         popshare           = popshare,
         welfare_type       = welfare_type,
         reporting_level    = reporting_level,
@@ -154,9 +135,9 @@ pip <- function(country         = "ALL",
     } else {
       ## survey years ------------------
       out <- rg_pip(
-        country         = result_from_cache$absent_args$country_code,
-        year            = result_from_cache$absent_args$reporting_year,
-        povline         = result_from_cache$absent_args$poverty_line,
+        country         = lcv$est_ctrs,
+        year            = year,
+        povline         = povline,
         popshare        = popshare,
         welfare_type    = welfare_type,
         reporting_level = reporting_level,
@@ -165,6 +146,8 @@ pip <- function(country         = "ALL",
       )
     }
 
+    cached_data <- out$data_in_cache
+    out <- out$main_data
     # Early return for empty table---------------
     if (nrow(out) > 0) {
       # aggregate distributions ------------------
@@ -304,10 +287,10 @@ pip <- function(country         = "ALL",
       data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
       update_master_file(out, con)
     }
-  }
-  final_result <- collapse::rowbind(
-    result_from_cache$present_data, out
+  #}
+  out <- collapse::rowbind(
+    cached_data, out
   )
   # return -------------
-  return(final_result)
+  return(out)
 }

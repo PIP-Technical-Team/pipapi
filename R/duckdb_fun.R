@@ -8,9 +8,9 @@
 #' @return Dataframe
 #' @export
 #'
-return_if_exists <- function(country_code, year, poverty_line, con) {
-  all_args_data <- all_args(country_code, year, poverty_line) |>
-    duckplyr::as_duckplyr_tibble()
+return_if_exists <- function(lkup, con) {
+  # all_args_data <- all_args(country_code, year, poverty_line) |>
+  #   duckplyr::as_duckplyr_tibble()
   # This file will be read from shared drive which will be an argument of this function.
   # Additionally there were will more arguments to join instead of only 3
   # In fact, it will be joined by all the arguments in `pip` call
@@ -19,19 +19,27 @@ return_if_exists <- function(country_code, year, poverty_line, con) {
   master_file <- DBI::dbGetQuery(con, "select * from master_file") |>
     duckplyr::as_duckplyr_tibble()
 
-  args_not_present_in_master <- duckplyr::anti_join(
-    all_args_data, master_file,
-    by = c("country_code", "reporting_year", "poverty_line")
-  )
-  args_present_in_master <- duckplyr::inner_join(
-    master_file, all_args_data,
-    by = c("country_code", "reporting_year", "poverty_line")
+  # args_not_present_in_master <- duckplyr::anti_join(
+  #   lkup, master_file,
+  #   by = c("country_code", "reporting_year")
+  # )
+  #browser()
+  data_present_in_master <- duckplyr::inner_join(
+    master_file, lkup |> collapse::fselect(country_code, reporting_year),
+    by = c("country_code", "reporting_year")
   )
 
-  if(nrow(args_present_in_master)) {
+  keep <- TRUE
+  if(nrow(data_present_in_master) > 0) {
+    keep <- !paste(lkup$country_code, lkup$reporting_year) %in%
+      paste(data_present_in_master$country_code, data_present_in_master$reporting_year)
+
+    lkup <- lkup[keep, ]
+
     message("Returning data from cache.")
   }
-  return(list(present_data = args_present_in_master, absent_args = args_not_present_in_master))
+  # nrow(data_present_in_master) should be equal to sum(keep)
+  return(list(data_present_in_master = data_present_in_master, lkup = lkup))
 }
 
 #' Create a dataframe with all possible combinations of `country_code`, `reporting_year` and `poverty_line`
