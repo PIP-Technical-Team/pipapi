@@ -29,6 +29,7 @@ fg_pip <- function(country,
     valid_regions   = valid_regions,
     data_dir        = data_dir
   )
+
   data_present_in_master <- metadata$data_present_in_master
   metadata <- metadata$lkup
   # Remove aggregate distribution if popshare is specified
@@ -66,6 +67,9 @@ fg_pip <- function(country,
                                     valid_regions = valid_regions,
                                     data_dir      = data_dir)
 
+    ctry_years <- collapse::join(ctry_years, metadata |> collapse::fselect(names(ctry_years)),
+                    verbose = 0,how = "inner")
+
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 
     for (ctry_year_id in seq_along(ctry_years$interpolation_id)) {
@@ -99,11 +103,8 @@ fg_pip <- function(country,
       for (stat in seq_along(tmp_stats)) {
         tmp_metadata[[names(tmp_stats)[stat]]] <- tmp_stats[[stat]]
       }
-
-
       results_subset[[ctry_year_id]] <- tmp_metadata
     }
-
     out[[svy_id]] <- results_subset
   }
   out <- unlist(out, recursive = FALSE)
