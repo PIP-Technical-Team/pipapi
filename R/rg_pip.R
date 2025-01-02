@@ -18,7 +18,6 @@ rg_pip <- function(country,
   svy_lkup      <- lkup$svy_lkup
   data_dir      <- lkup$data_root
 
-  #browser()
   metadata <- subset_lkup(
     country         = country,
     year            = year,
@@ -54,7 +53,7 @@ rg_pip <- function(country,
 
     tmp_stats <- wbpip:::prod_compute_pip_stats(
       welfare           = svy_data$df0$welfare,
-      povline           = povline[i],
+      povline           = povline,
       popshare          = popshare,
       population        = svy_data$df0$weight,
       requested_mean    = tmp_metadata$survey_mean_ppp,

@@ -291,6 +291,8 @@ pip <- function(country         = "ALL",
   out <- collapse::rowbind(
     cached_data, out
   )
+  # Make sure no duplicate remains
+  out <- out |> collapse::funique()
   # return -------------
   return(out)
 }

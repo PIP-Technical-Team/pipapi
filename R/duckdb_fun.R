@@ -23,7 +23,6 @@ return_if_exists <- function(lkup, con) {
   #   lkup, master_file,
   #   by = c("country_code", "reporting_year")
   # )
-  #browser()
   data_present_in_master <- duckplyr::inner_join(
     master_file, lkup |> collapse::fselect(country_code, reporting_year),
     by = c("country_code", "reporting_year")

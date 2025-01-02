@@ -85,7 +85,7 @@ fg_pip <- function(country,
         default_ppp            = tmp_metadata[["ppp"]],
         ppp                    = ppp,
         distribution_type      = tmp_metadata[["distribution_type"]],
-        poverty_line           = povline[svy_id],
+        poverty_line           = povline,
         popshare               = popshare
       )
 
