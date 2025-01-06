@@ -27,7 +27,9 @@ fg_pip <- function(country,
     reporting_level = reporting_level,
     lkup            = ref_lkup,
     valid_regions   = valid_regions,
-    data_dir        = data_dir
+    data_dir        = data_dir,
+    is_interpolated = TRUE,
+    povline = povline
   )
 
   data_present_in_master <- metadata$data_present_in_master
@@ -67,6 +69,7 @@ fg_pip <- function(country,
                                     valid_regions = valid_regions,
                                     data_dir      = data_dir)
 
+    # Join because some data might be coming from cache so it might be absent in metadata
     ctry_years <- collapse::join(ctry_years, metadata |> collapse::fselect(names(ctry_years)),
                     verbose = 0,how = "inner")
 

@@ -1,14 +1,13 @@
 #' Return the rows of the table if they exist in master file
 #'
 #' @param country_code Country Code
-#' @param year Year
-#' @param poverty_line Poverty Lines
+#' @inheritParams subset_lkup
 #' @param con Connection object
 #'
 #' @return Dataframe
 #' @export
 #'
-return_if_exists <- function(lkup, con) {
+return_if_exists <- function(lkup, is_interpolated, povline, con) {
   # all_args_data <- all_args(country_code, year, poverty_line) |>
   #   duckplyr::as_duckplyr_tibble()
   # This file will be read from shared drive which will be an argument of this function.
@@ -24,14 +23,14 @@ return_if_exists <- function(lkup, con) {
   #   by = c("country_code", "reporting_year")
   # )
   data_present_in_master <- duckplyr::inner_join(
-    master_file, lkup |> collapse::fselect(country_code, reporting_year),
-    by = c("country_code", "reporting_year")
-  )
+    master_file, lkup |> collapse::fselect(country_code, reporting_year, is_interpolated),
+    by = c("country_code", "reporting_year", "is_interpolated")
+  ) |> duckplyr::filter(poverty_line == povline)
 
   keep <- TRUE
   if(nrow(data_present_in_master) > 0) {
-    keep <- !paste(lkup$country_code, lkup$reporting_year) %in%
-      paste(data_present_in_master$country_code, data_present_in_master$reporting_year)
+    keep <- !with(lkup, paste(country_code, reporting_year, is_interpolated)) %in%
+      with(data_present_in_master, paste(country_code, reporting_year, is_interpolated))
 
     lkup <- lkup[keep, ]
 
@@ -39,18 +38,6 @@ return_if_exists <- function(lkup, con) {
   }
   # nrow(data_present_in_master) should be equal to sum(keep)
   return(list(data_present_in_master = data_present_in_master, lkup = lkup))
-}
-
-#' Create a dataframe with all possible combinations of `country_code`, `reporting_year` and `poverty_line`
-#'
-#' @param country_code Code of countries to be expanded
-#' @param reporting_year Reported year(s)
-#' @param poverty_line Poverty Line(s)
-#'
-#' @return A dataframe
-#'
-all_args <- function(country_code, reporting_year, poverty_line) {
-  expand.grid(country_code = country_code, reporting_year = reporting_year, poverty_line = poverty_line)
 }
 
 #' Update master file with the contents of the dataframe

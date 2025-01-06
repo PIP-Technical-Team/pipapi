@@ -25,7 +25,9 @@ rg_pip <- function(country,
     reporting_level = reporting_level,
     lkup            = svy_lkup,
     valid_regions   = valid_regions,
-    data_dir        = data_dir
+    data_dir        = data_dir,
+    is_interpolated = FALSE,
+    povline = povline
   )
   data_present_in_master <- metadata$data_present_in_master
   metadata <- metadata$lkup
