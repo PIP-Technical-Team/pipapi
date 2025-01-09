@@ -134,5 +134,20 @@ for(i in seq_along(country_list)) {
 t2 <- Sys.time()
 
 cat('\nTime elapsed : ', t2-t1)
+
+## For Duckdb
 #Time elapsed :  6.338488
+
+## For DEV version
+#Time elapsed :  8.575941
+```
+
+```{r}
+microbenchmark::microbenchmark(
+  duckdb_caching = pip(country = "all", year = "all", lkup = lkup)
+)
+
+#Unit: milliseconds
+#           expr      min       lq     mean   median       uq      max neval
+# duckdb_caching 110.0725 115.0695 129.6408 118.4356 122.2621 494.3855   100
 ```
