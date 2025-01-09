@@ -96,3 +96,13 @@ Based on `fill_gaps` parameter we call either the function `fg_pip` or `rg_pip`.
 A named list is returned from `return_if_exists` function where it returns the final output (if it exists) from the master file and subsetted `lkup` (Scenario 3 where we have a part of data in master file). The partial (or full) final output is again returned as a named list from `subset_lkup` function which is used at the end to combine the two outputs. If `lkup` is non-empty then after all the calculation is done we use the function `update_master_file` to append the master file with new data. 
 
 ## Speed comparison
+
+```{r}
+microbenchmark::microbenchmark(
+  duckdb_caching = pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
+)
+
+#Unit: milliseconds
+#                   expr     min       lq     mean   median       uq      max neval
+#         duckdb_caching 102.745 107.2221 112.5106 109.2035 114.8544 146.8841   100
+```
