@@ -7,7 +7,7 @@
 #' @return Dataframe
 #' @export
 #'
-return_if_exists <- function(lkup, is_interpolated, povline, con) {
+return_if_exists <- function(lkup, povline, con) {
   # all_args_data <- all_args(country_code, year, poverty_line) |>
   #   duckplyr::as_duckplyr_tibble()
   # This file will be read from shared drive which will be an argument of this function.

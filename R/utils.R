@@ -3,7 +3,6 @@
 #' @param valid_regions character: List of valid region codes that can be used
 #' for region selection
 #' @param data_dir character: directory path from lkup$data_root
-#' @param is_interpolated logical : If `TRUE`, the call is from `fg_pip()`, for `FALSE` `rg_pip()`
 #' @return data.frame
 #' @keywords internal
 subset_lkup <- function(country,
@@ -13,7 +12,6 @@ subset_lkup <- function(country,
                         lkup,
                         valid_regions,
                         data_dir = NULL,
-                        is_interpolated,
                         povline
                         ) {
 
@@ -44,8 +42,8 @@ subset_lkup <- function(country,
 
   lkup <- lkup[keep, ]
   #browser()
-  con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = "demo.duckdb")
-  cached_data <- return_if_exists(lkup,is_interpolated, povline, con)
+  con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = Sys.getenv("PIP_CACHE_FILE"))
+  cached_data <- return_if_exists(lkup, povline, con)
 
   return(list(lkup = cached_data$lkup, data_present_in_master = cached_data$data_present_in_master))
 }

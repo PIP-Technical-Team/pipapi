@@ -284,7 +284,7 @@ pip <- function(country         = "ALL",
 
       # Order rows by country code and reporting year
       data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
-      con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = "demo.duckdb")
+      con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = Sys.getenv("PIP_CACHE_FILE"))
       update_master_file(out, con)
     }
   #}

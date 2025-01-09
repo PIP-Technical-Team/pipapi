@@ -28,7 +28,6 @@ fg_pip <- function(country,
     lkup            = ref_lkup,
     valid_regions   = valid_regions,
     data_dir        = data_dir,
-    is_interpolated = TRUE,
     povline = povline
   )
 

@@ -2,28 +2,97 @@
 title: "duckdb-caching"
 output: html_document
 date: "2024-12-26"
+author: "Ronak Shah"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = FALSE, echo = TRUE)
 ```
 
-## R Markdown
+## Introduction
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Current caching mechanism for pip uses traditional caching where basically a hash is created based on the value of the arguments passed in the function and if someone calls the same function with the same arguments again the cached result is returned instead of doing the same calculation again. For `pip` we used the packages `cachem` and `memoise` to implement this system of caching. This traditional caching strategy works well in general however, `pip` is a special case and it would benefit much more if it had a custom strategy for caching. 
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## How caching currently works?
 
-```{r cars}
-summary(cars)
+Consider these pip functions
+
+```{r, eval=FALSE}
+# 1.
+pip(country = "all", year = 2000, lkup = lkup)
+
+# 2.
+pip(country = "AGO", year = 2000, lkup = lkup)
 ```
 
-## Including Plots
+Now since these are separate set of arguments 2 files of caching are created and saved on the disk. Now if a call to `pip` is made again `pip(country = "AGO", year = 2000, lkup = lkup)` which is same as 2) then it would return the result from the cached file stored on the disk without doing any calculation. Needless to say, this result is much faster. 
 
-You can also embed plots, for example:
+However, notice that the 2nd call is subset of the 1st one. What I mean by that is the result of 2) is already present in result of 1). We have done the calculations for all the countries for the year 2000 in 1) we just need output of "AGO" from it to get the result for 2). 
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+## Custom caching for pipapi. 
+
+What if we could take subset of an existing cache like how we need it as above. However, this is not how traditional caching systems work. We would need to implement something custom if we want to make this work. 
+
+We came up with an idea to implement this custom caching using `duckdb` in a table. Basically, all the queries that are called till now are saved in this table and whenever a new call is made it checks if the query is already called, if yes then it returns the result immediately or else it will do the calculation and then save the result to the table for next use and return the result. There are various scenarios that we need to consider and let's take help of an example to understand each one of them. 
+
+Consider that we are just starting out and there is nothing saved in the table. 
+
+#### Scenario 1 - 
+
+```{r}
+pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Now since nothing is saved in the table this will go through the whole round of calculation and save the result in the table for future use and return the output.
+
+#### Scenario 2 - 
+
+```{r}
+pip(country = "USA", year = 2000, lkup = lkup)
+```
+
+Now this is something which we have already calculated in our previous call. In traditional caching this would be treated as a separate call and the calculation would have been performed again. However, in our custom caching it goes through the existing table and checks if we already have the result for this call. Since we do have it saved in our table we will just return the result in this case as it is from the table without doing any calculation. 
+
+#### Scenario 3 - 
+
+```{r}
+pip(country = c("ARG", "USA"), year = 2000, lkup = lkup)
+```
+
+Notice this time it is combination of scenario 1 and 2 where one part of the calculation we already have ("USA") and another part we don't ("ARG"). In this case, we return the result for the country that we have in the table and send rest of the arguments for the calculation. We save the result from calculation in the table and return the output by combining both the result.
+
+#### Scenario 4 - 
+
+```{r}
+pip(country = "all", year = 2000, lkup = lkup)
+```
+
+In this scenario before we check in the table we need to decode this "all" argument to list of actual country names because in the table we save the data with actual country names. Once we have the list of country names we check which of those values are already available in the table. If we consider the 3 scenarios above then we already have result for `c("ARG", "AGO", "USA")` and we need to find result for the remaining countries. After saving the data for the remaining countries in the table, we return the result by combining the two. 
+
+#### Scenario 5 - 
+
+```{r}
+pip(country = "AGO", year = "all", lkup = lkup)
+```
+
+This is similar to scenario 4 but instead of having `country = "all"` we have here `year = "all"` so in this case we need to decode the `year` parameter. However, the sequence of operation remains the same as above. 
+
+#### Scenario 6 - 
+
+```{r}
+pip(country = "all", year = "all", lkup = lkup)
+```
+
+This is combination of scenario 4 and 5 where we need to decode both `country` and `year` parameter, check the values that are present in the table, query the data that does not exist, save it into the table, combine the result and return the output. 
+
+These are 6 different scenarios that can occur. Note that I have not used all the arguments here in the `pip` call. We are using the default `povline` i.e 1.9 here but it can be something else. In which case, it will become scenario 1 where nothing is found in the table and the output is calculated and result is saved in the table. Similarly, we can also have situations where `fill_gaps` is set to `TRUE` which would also follow the same process. 
+
+## Code overview
+
+We are creating a duckdb file to save our table. The location of this file is saved in an environment variable `PIP_CACHE_FILE` (Example `Sys.setenv(PIP_CACHE_FILE = "demo.duckdb")`). A table called `master_file` is created inside it where we save our cache. 
+
+Based on `fill_gaps` parameter we call either the function `fg_pip` or `rg_pip`. Both the functions call the `subset_lkup` function to filter the data that from `lkup` that is relevant to our call. In `subset_lkup` function we call the function `return_if_exists` which as the name suggests returns the data from cache if it exists. A new file called `duckdb_fun.R` has been added to manage all the functions related to duckdb. 
+
+A named list is returned from `return_if_exists` function where it returns the final output (if it exists) from the master file and subsetted `lkup` (Scenario 3 where we have a part of data in master file). The partial (or full) final output is again returned as a named list from `subset_lkup` function which is used at the end to combine the two outputs. If `lkup` is non-empty then after all the calculation is done we use the function `update_master_file` to append the master file with new data. 
+
+## Speed comparison
