@@ -97,6 +97,25 @@ A named list is returned from `return_if_exists` function where it returns the f
 
 ## Speed comparison
 
+
+```{r}
+microbenchmark::microbenchmark(
+  duckdb_caching = pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
+)
+
+#Unit: milliseconds
+#          expr     min       lq     mean   median       uq      max neval
+#duckdb_caching 102.745 107.2221 112.5106 109.2035 114.8544 146.8841   100
+
+microbenchmark::microbenchmark(
+     pip_DEV = pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
+)
+
+#Unit: milliseconds
+#    expr      min       lq     mean   median       uq      max neval
+#pip_DEV 51.01007 53.67546 62.35531 56.08937 60.12046 354.7717   100
+```
+
 ```{r}
 country_list <- c("AGO", "ARG", "AUT", "BEL", "BGD", "BLR", "BOL", "CAN", "CHE", 
   "CHL", "COL", "CRI", "DEU", "DNK", "DOM", "ECU", "ESP", "EST", 
@@ -109,10 +128,11 @@ country_list <- c("AGO", "ARG", "AUT", "BEL", "BGD", "BLR", "BOL", "CAN", "CHE",
 t1 <- Sys.time()
 
 for(i in seq_along(country_list)) {
-  out <- pip(country = country_list[seq_len(i)], year = 2000, lkup)
+  out <- pip(country = country_list[seq_len(i)], year = 2000, lkup = lkup)
 }
 
 t2 <- Sys.time()
 
 cat('\nTime elapsed : ', t2-t1)
+#Time elapsed :  6.338488
 ```
