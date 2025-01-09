@@ -117,6 +117,24 @@ microbenchmark::microbenchmark(
 ```
 
 ```{r}
+microbenchmark::microbenchmark(
+  duckdb_caching = pip(country = "all", year = "all", lkup = lkup)
+)
+
+#Unit: milliseconds
+#           expr      min       lq     mean   median       uq      max neval
+# duckdb_caching 110.0725 115.0695 129.6408 118.4356 122.2621 494.3855   100
+
+microbenchmark::microbenchmark(
+  pip_DEV = pip(country = "all", year = "all", lkup = lkup)
+)
+
+#Unit: seconds
+#    expr      min       lq     mean   median       uq      max neval
+ #pip_DEV 14.42378 14.78717 14.98249 14.96088 15.11043 17.44418   100
+```
+
+```{r}
 country_list <- c("AGO", "ARG", "AUT", "BEL", "BGD", "BLR", "BOL", "CAN", "CHE", 
   "CHL", "COL", "CRI", "DEU", "DNK", "DOM", "ECU", "ESP", "EST", 
   "FIN", "FRA", "FSM", "GBR", "GEO", "GRC", "GTM", "HRV", "HUN", 
@@ -140,14 +158,4 @@ cat('\nTime elapsed : ', t2-t1)
 
 ## For DEV version
 #Time elapsed :  8.575941
-```
-
-```{r}
-microbenchmark::microbenchmark(
-  duckdb_caching = pip(country = "all", year = "all", lkup = lkup)
-)
-
-#Unit: milliseconds
-#           expr      min       lq     mean   median       uq      max neval
-# duckdb_caching 110.0725 115.0695 129.6408 118.4356 122.2621 494.3855   100
 ```
