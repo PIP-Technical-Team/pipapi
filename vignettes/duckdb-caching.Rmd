@@ -155,7 +155,7 @@ tictoc::toc()
 #16.69 sec elapsed
 
 ## For DEV version
-#Time elapsed :  8.575941
+#9.26 sec elapsed
 ```
 
 ```{r}
