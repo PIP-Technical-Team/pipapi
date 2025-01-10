@@ -143,19 +143,32 @@ country_list <- c("AGO", "ARG", "AUT", "BEL", "BGD", "BLR", "BOL", "CAN", "CHE",
   "POL", "ROU", "RUS", "RWA", "SLV", "STP", "SWE", "SWZ", "THA", 
   "TON", "TUN", "TWN", "TZA", "URY", "USA", "UZB", "ZAF")
 
-t1 <- Sys.time()
+tictoc::tic()
 
 for(i in seq_along(country_list)) {
   out <- pip(country = country_list[seq_len(i)], year = 2000, lkup = lkup)
 }
 
-t2 <- Sys.time()
-
-cat('\nTime elapsed : ', t2-t1)
+tictoc::toc()
 
 ## For Duckdb
-#Time elapsed :  6.338488
+#16.69 sec elapsed
 
 ## For DEV version
 #Time elapsed :  8.575941
+```
+
+```{r}
+tictoc::tic()
+
+for(i in seq_along(country_list)) {
+  out <- pip(country = country_list[seq_len(i)], year = "all", lkup = lkup)
+}
+
+tictoc::toc()
+## DEV
+#178.97 sec elapsed
+
+## Duckdb caching
+#6.96 sec elapsed
 ```
