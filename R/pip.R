@@ -118,7 +118,7 @@ pip <- function(country         = "ALL",
   # only run pip code if there is data that is not present in cache
   #if(nrow(result_from_cache$absent_args) > 0) {
   # use result_from_cache$absent_args$country_code reporting_year and poverty_line and pass it further.
-
+  con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = Sys.getenv("PIP_CACHE_FILE"))
     # mains estimates ---------------
     if (fill_gaps) {
       ## lineup years-----------------
@@ -130,7 +130,8 @@ pip <- function(country         = "ALL",
         welfare_type       = welfare_type,
         reporting_level    = reporting_level,
         ppp                = ppp,
-        lkup               = lkup
+        lkup               = lkup,
+        con                = con,
         )
     } else {
       ## survey years ------------------
@@ -142,7 +143,8 @@ pip <- function(country         = "ALL",
         welfare_type    = welfare_type,
         reporting_level = reporting_level,
         ppp             = ppp,
-        lkup            = lkup
+        lkup            = lkup,
+        con             = con
       )
     }
     cached_data <- out$data_in_cache
@@ -284,7 +286,6 @@ pip <- function(country         = "ALL",
 
       # Order rows by country code and reporting year
       data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
-      con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = Sys.getenv("PIP_CACHE_FILE"))
       update_master_file(out, con)
     }
   #}

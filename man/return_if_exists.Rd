@@ -4,12 +4,12 @@
 \alias{return_if_exists}
 \title{Return the rows of the table if they exist in master file}
 \usage{
-return_if_exists(lkup, is_interpolated, con)
+return_if_exists(lkup, povline, con)
 }
 \arguments{
 \item{lkup}{list: A list of lkup tables}
 
-\item{is_interpolated}{logical : If \code{TRUE}, the call is from \code{fg_pip()}, for \code{FALSE} \code{rg_pip()}}
+\item{povline}{numeric: Poverty line}
 
 \item{con}{Connection object}
 

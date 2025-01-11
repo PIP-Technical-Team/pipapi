@@ -3,6 +3,7 @@
 #' Compute the main PIP poverty and inequality statistics for survey years.
 #'
 #' @inheritParams pip
+#' @param con duckdb connection object
 #' @return data.frame
 #' @keywords internal
 rg_pip <- function(country,
@@ -12,7 +13,8 @@ rg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   lkup) {
+                   lkup,
+                   con) {
   # get values from lkup
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
@@ -26,7 +28,8 @@ rg_pip <- function(country,
     lkup            = svy_lkup,
     valid_regions   = valid_regions,
     data_dir        = data_dir,
-    povline = povline
+    povline = povline,
+    con = con
   )
   data_present_in_master <- metadata$data_present_in_master
   metadata <- metadata$lkup

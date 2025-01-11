@@ -12,7 +12,8 @@ subset_lkup(
   lkup,
   valid_regions,
   data_dir = NULL,
-  is_interpolated
+  povline,
+  con
 )
 }
 \arguments{
@@ -31,7 +32,9 @@ for region selection}
 
 \item{data_dir}{character: directory path from lkup$data_root}
 
-\item{is_interpolated}{logical : If \code{TRUE}, the call is from \code{fg_pip()}, for \code{FALSE} \code{rg_pip()}}
+\item{povline}{numeric: Poverty line}
+
+\item{con}{duckdb connection object}
 }
 \value{
 data.frame

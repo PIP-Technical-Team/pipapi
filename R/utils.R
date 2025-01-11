@@ -1,5 +1,6 @@
 #' Subset look-up data
 #' @inheritParams pip
+#' @inheritParams rg_pip
 #' @param valid_regions character: List of valid region codes that can be used
 #' for region selection
 #' @param data_dir character: directory path from lkup$data_root
@@ -12,7 +13,8 @@ subset_lkup <- function(country,
                         lkup,
                         valid_regions,
                         data_dir = NULL,
-                        povline
+                        povline,
+                        con
                         ) {
 
   # STEP 1 - Keep every row by default
@@ -41,8 +43,7 @@ subset_lkup <- function(country,
 
 
   lkup <- lkup[keep, ]
-  #browser()
-  con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = Sys.getenv("PIP_CACHE_FILE"))
+
   cached_data <- return_if_exists(lkup, povline, con)
 
   return(list(lkup = cached_data$lkup, data_present_in_master = cached_data$data_present_in_master))
