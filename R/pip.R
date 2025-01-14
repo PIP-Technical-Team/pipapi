@@ -131,7 +131,7 @@ pip <- function(country         = "ALL",
         reporting_level    = reporting_level,
         ppp                = ppp,
         lkup               = lkup,
-        con                = con,
+        con                = con
         )
     } else {
       ## survey years ------------------
