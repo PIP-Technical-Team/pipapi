@@ -5,10 +5,8 @@ TEMP/
 TEMP.R
 renv/
 .Rprofile
-inst/doc
 tests/testdata/app_data/
 .Renviron
-docs
 logs/
 /sessionInfoLog
 demo.duckdb
