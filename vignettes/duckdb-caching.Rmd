@@ -101,22 +101,21 @@ For analysis purposes, we are comparing speed in different scenarios on `DEV` br
 
 ```{r}
 microbenchmark::microbenchmark(
+  pip_DEV = pip(country = "all", year = "all", lkup = lkup)
+)
+
+#Unit: microseconds
+#    expr     min       lq    mean   median      uq      max neval
+# pip_DEV 593.396 628.3455 1355.73 647.4085 664.028 61786.03   100
+
+microbenchmark::microbenchmark(
   duckdb_caching = pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
 )
 
 #Unit: milliseconds
-#          expr     min       lq     mean   median       uq      max neval
-#duckdb_caching 102.745 107.2221 112.5106 109.2035 114.8544 146.8841   100
-
-microbenchmark::microbenchmark(
-     pip_DEV = pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
-)
-
-#Unit: milliseconds
-#    expr      min       lq     mean   median       uq      max neval
-#pip_DEV 51.01007 53.67546 62.35531 56.08937 60.12046 354.7717   100
+#           expr      min       lq    mean   median      uq      max neval
+# duckdb_caching 97.96608 100.8852 115.458 103.0205 107.466 1135.287   100
 ```
-
 
 ```{r}
 country_list <- c("AGO", "ARG", "AUT", "BEL", "BGD", "BLR", "BOL", "CAN", "CHE", 
@@ -135,11 +134,11 @@ for(i in seq_along(country_list)) {
 
 tictoc::toc()
 
-## For Duckdb
-# 16.69 sec elapsed
-
 ## For DEV version
-# 9.26 sec elapsed
+# 9.71 sec elapsed
+
+## For Duckdb
+# 9.75 sec elapsed
 ```
 
 ```{r}
@@ -151,8 +150,8 @@ for(i in seq_along(country_list)) {
 
 tictoc::toc()
 ## DEV
-# 178.97 sec elapsed
+# 185.28 sec elapsed
 
 ## Duckdb caching
-# 6.96 sec elapsed
+# 15.62 sec elapsed
 ```
