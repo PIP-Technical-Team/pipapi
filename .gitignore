@@ -9,4 +9,4 @@ tests/testdata/app_data/
 .Renviron
 logs/
 /sessionInfoLog
-demo.duckdb
+demo.duckdb*

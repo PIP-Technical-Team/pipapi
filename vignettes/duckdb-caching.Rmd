@@ -101,7 +101,7 @@ For analysis purposes, we are comparing speed in different scenarios on `DEV` br
 
 ```{r}
 microbenchmark::microbenchmark(
-  pip_DEV = pip(country = "all", year = "all", lkup = lkup)
+  pip_DEV = pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
 )
 
 #Unit: microseconds

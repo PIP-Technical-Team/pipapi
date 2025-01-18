@@ -149,6 +149,10 @@ pip <- function(country         = "ALL",
     }
     cached_data <- out$data_in_cache
     out <- out$main_data
+
+    out <- collapse::rowbind(
+      cached_data, out
+    )
     # Early return for empty table---------------
     if (nrow(out) > 0) {
       # aggregate distributions ------------------
@@ -289,9 +293,7 @@ pip <- function(country         = "ALL",
       update_master_file(out, con)
     }
   #}
-  out <- collapse::rowbind(
-    cached_data, out
-  )
+
   # Make sure no duplicate remains
   out <- out |> collapse::funique()
   # return -------------
