@@ -58,7 +58,8 @@ Imports:
     joyn,
     yaml,
     purrr,
-    future
+    future, 
+    glue
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 

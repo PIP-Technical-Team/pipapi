@@ -147,12 +147,20 @@ pip <- function(country         = "ALL",
         con             = con
       )
     }
+    #browser()
     cached_data <- out$data_in_cache
-    out <- out$main_data
+    main_data <- out$main_data
 
-    out <- collapse::rowbind(
-      cached_data, out
-    )
+    if (nrow(main_data) > 0) {
+      out <- main_data |>
+        collapse::fmutate(path = as.character(path)) |>
+        collapse::rowbind(cached_data)
+
+      update_master_file(main_data, con, fill_gaps)
+    } else {
+      out <- cached_data
+    }
+
     # Early return for empty table---------------
     if (nrow(out) > 0) {
       # aggregate distributions ------------------
@@ -166,29 +174,11 @@ pip <- function(country         = "ALL",
         }
       }
 
-      # Add extra variables --------------
-
-      # ## Add SPL and SPR  ---------------
-      # out <- add_spl(df        = out,
-      #                fill_gaps = fill_gaps,
-      #                data_dir  = lkup$data_root)
-      #
-      # ## Add prosperity Gap -----------
-      #
-      # out <- add_pg(df        = out,
-      #               fill_gaps = fill_gaps,
-      #               data_dir  = lkup$data_root)
-      #
-      # ## add distribution type -------------
-      # # based on info in framework data, rather than welfare data
-      # add_distribution_type(df = out,
-      #                       lkup = lkup,
-      #                       fill_gaps = fill_gaps)
+      if (!data.table::is.data.table(out)) {
+        setDT(out)
+      }
 
       add_vars_out_of_pipeline(out, fill_gaps = fill_gaps, lkup = lkup)
-
-
-
 
       # **** TO BE REMOVED **** REMOVAL STARTS HERE
       # Once `pip-grp` has been integrated in ingestion pipeline
@@ -290,7 +280,7 @@ pip <- function(country         = "ALL",
 
       # Order rows by country code and reporting year
       data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
-      update_master_file(out, con)
+
     }
   #}
 

@@ -31,7 +31,8 @@ fg_pip <- function(country,
     valid_regions   = valid_regions,
     data_dir        = data_dir,
     povline = povline,
-    con = con
+    con = con,
+    fill_gaps = TRUE
   )
 
   data_present_in_master <- metadata$data_present_in_master

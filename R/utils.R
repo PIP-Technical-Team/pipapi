@@ -14,7 +14,8 @@ subset_lkup <- function(country,
                         valid_regions,
                         data_dir = NULL,
                         povline,
-                        con
+                        con,
+                        fill_gaps
                         ) {
 
   # STEP 1 - Keep every row by default
@@ -44,7 +45,7 @@ subset_lkup <- function(country,
 
   lkup <- lkup[keep, ]
 
-  cached_data <- return_if_exists(lkup, povline, con)
+  cached_data <- return_if_exists(lkup, povline, con, fill_gaps)
 
   return(list(lkup = cached_data$lkup, data_present_in_master = cached_data$data_present_in_master))
 }
