@@ -160,7 +160,9 @@ pip <- function(country         = "ALL",
     } else {
       out <- cached_data
     }
-
+    if (!data.table::is.data.table(out)) {
+      setDT(out)
+    }
     # Early return for empty table---------------
     if (nrow(out) > 0) {
       # aggregate distributions ------------------
@@ -174,9 +176,7 @@ pip <- function(country         = "ALL",
         }
       }
 
-      if (!data.table::is.data.table(out)) {
-        setDT(out)
-      }
+
 
       add_vars_out_of_pipeline(out, fill_gaps = fill_gaps, lkup = lkup)
 
