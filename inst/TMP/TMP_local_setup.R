@@ -1,6 +1,6 @@
 # Set-up to test locally within a given branch
 
-# 1. Install the package in given branch if you need you, then hashtag and run as source.
+# 1. Install the package in given branch if you need to, then hashtag and run as source.
 #library(devtools)
 #devtools::install_github("PIP-Technical-Team/pipapi@no-store")
 
@@ -25,7 +25,20 @@ lkups <- pipapi:::create_versioned_lkups(data_dir,
                                          vintage_pattern = latest_version)
 lkup <- lkups$versions_paths[[lkups$latest_release]]
 
-# 4. Start the api
-pipapi:::start_api(api_version = "v1", port = 8080)
+# 4. Start the api using start_api()
+
+api_version <- "v1"
+version_path <- sprintf(
+  "plumber/%s/plumber.R",
+  api_version
+)
+api_path <- system.file(version_path, package = "pipapi")
+api <- source(api_path)
+
+host <- "0.0.0.0"
+port <- 8080
+plumber::pr_run(api$value, host = host, port = port)
+
+#pipapi:::start_api(api_version = "v1", port = 8080)
 
 
