@@ -11,12 +11,10 @@ return_if_exists(lkup, povline, con, fill_gaps)
 
 \item{povline}{numeric: Poverty line}
 
-\item{con}{Connection object}
+\item{con}{Connection object to duckdb table}
 
 \item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
 values for missing years}
-
-\item{country_code}{Country Code}
 }
 \value{
 Dataframe

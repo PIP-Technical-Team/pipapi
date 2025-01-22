@@ -410,7 +410,7 @@ censor_stats <- function(df, censored_table) {
 #' It also censors specific stats
 #'
 #' @param df data.table: Table to censor.
-#' @param censored_table data.table: Censor table
+#' @param lkup lkup value
 #' @keywords internal
 estimate_type_var <- function(df, lkup) {
 

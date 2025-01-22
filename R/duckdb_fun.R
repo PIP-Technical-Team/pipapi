@@ -1,8 +1,7 @@
 #' Return the rows of the table if they exist in master file
 #'
-#' @param country_code Country Code
 #' @inheritParams subset_lkup
-#' @param con Connection object
+#' @param con Connection object to duckdb table
 #'
 #' @return Dataframe
 #' @export

@@ -59,7 +59,10 @@ Imports:
     yaml,
     purrr,
     future, 
-    glue
+    glue, 
+    DBI, 
+    duckdb, 
+    duckplyr
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 
