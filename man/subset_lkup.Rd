@@ -13,7 +13,8 @@ subset_lkup(
   valid_regions,
   data_dir = NULL,
   povline,
-  con
+  con,
+  fill_gaps
 )
 }
 \arguments{
@@ -35,6 +36,9 @@ for region selection}
 \item{povline}{numeric: Poverty line}
 
 \item{con}{duckdb connection object}
+
+\item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
+values for missing years}
 }
 \value{
 data.frame

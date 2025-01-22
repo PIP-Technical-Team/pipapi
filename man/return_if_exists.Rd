@@ -4,7 +4,7 @@
 \alias{return_if_exists}
 \title{Return the rows of the table if they exist in master file}
 \usage{
-return_if_exists(lkup, povline, con)
+return_if_exists(lkup, povline, con, fill_gaps)
 }
 \arguments{
 \item{lkup}{list: A list of lkup tables}
@@ -12,6 +12,9 @@ return_if_exists(lkup, povline, con)
 \item{povline}{numeric: Poverty line}
 
 \item{con}{Connection object}
+
+\item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
+values for missing years}
 
 \item{country_code}{Country Code}
 }
