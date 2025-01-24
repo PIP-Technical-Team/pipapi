@@ -103,8 +103,8 @@ microbenchmark::microbenchmark(
 )
 
 #Unit: microseconds
-#    expr     min       lq    mean   median      uq      max neval
-# pip_DEV 593.396 628.3455 1355.73 647.4085 664.028 61786.03   100
+#       expr    min      lq    mean  median       uq    max neval
+# duckdb_DEV 628.59 669.893 2475.44 689.934 719.7505 177901   100
 
 microbenchmark::microbenchmark(
   duckdb_caching = pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
@@ -133,7 +133,7 @@ for(i in seq_along(country_list)) {
 tictoc::toc()
 
 ## For DEV version
-# 9.71 sec elapsed
+# 9.14 sec elapsed
 
 ## For Duckdb
 # 10.39 sec elapsed
@@ -148,7 +148,7 @@ for(i in seq_along(country_list)) {
 
 tictoc::toc()
 ## DEV
-# 185.28 sec elapsed
+# 177.28 sec elapsed
 
 ## Duckdb caching
 # 17.97 sec elapsed
