@@ -89,9 +89,7 @@ These are 6 different scenarios that can occur. Note that I have not used all th
 
 ## Code overview
 
-We are creating a duckdb file to save our table. The location of this file is saved in an environment variable `PIP_CACHE_FILE` (Example `Sys.setenv('PIP_CACHE_FILE' = fs::path('e:/PIP/pipapi_data/demo.duckdb'))`). A table called `master_file` is created inside it where we save our cache. 
-
-Based on `fill_gaps` parameter we call either the function `fg_pip` or `rg_pip`. Both the functions call the `subset_lkup` function to filter the data from `lkup` that is relevant to our call. In `subset_lkup` function we call the function `return_if_exists` which as the name suggests returns the data from cache if it exists. A new file called `duckdb_fun.R` has been added to manage all the functions related to duckdb. 
+We are creating a duckdb file to save our table. The location of this file is saved in an environment variable `PIP_CACHE_FILE` (Example `Sys.setenv('PIP_CACHE_FILE' = fs::path('e:/PIP/pipapi_data/demo.duckdb'))`). There are two tables created in the duckdb file called `rg_master_file` and `fg_master_file` based on the `fill_gaps` argument a table is selected to save and retrieve data. Based on `fill_gaps` parameter we call either the function `fg_pip` or `rg_pip`. Both the functions call the `subset_lkup` function to filter the data from `lkup` that is relevant to our call. In `subset_lkup` function we call the function `return_if_exists` which as the name suggests returns the data from cache if it exists. A new file called `duckdb_fun.R` has been added to manage all the functions related to duckdb. 
 
 A named list is returned from `return_if_exists` function where it returns the final output (if it exists) from the master file and subsetted `lkup`. The partial (or full) final output is again returned as a named list from `subset_lkup` function which is used at the end to combine the two outputs. If `lkup` is non-empty then after all the calculation is done we use the function `update_master_file` to append the master file with new data. 
 
