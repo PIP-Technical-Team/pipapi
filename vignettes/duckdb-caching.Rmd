@@ -111,8 +111,8 @@ microbenchmark::microbenchmark(
 )
 
 #Unit: milliseconds
-#           expr      min       lq    mean   median      uq      max neval
-# duckdb_caching 97.96608 100.8852 115.458 103.0205 107.466 1135.287   100
+#           expr      min       lq     mean   median       uq     max neval
+# duckdb_caching 138.3669 143.9853 148.3353 147.0136 152.0311 181.543   100
 ```
 
 ```{r}
@@ -136,7 +136,7 @@ tictoc::toc()
 # 9.71 sec elapsed
 
 ## For Duckdb
-# 9.75 sec elapsed
+# 10.39 sec elapsed
 ```
 
 ```{r}
@@ -151,5 +151,5 @@ tictoc::toc()
 # 185.28 sec elapsed
 
 ## Duckdb caching
-# 15.62 sec elapsed
+# 17.97 sec elapsed
 ```
