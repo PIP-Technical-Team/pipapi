@@ -36,7 +36,8 @@ Suggests:
     lintr,
     withr,
     devtools, 
-    stringr
+    stringr, 
+    knitr
 Language: en-US
 Imports: 
     data.table,
