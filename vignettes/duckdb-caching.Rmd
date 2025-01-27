@@ -1,8 +1,12 @@
 ---
-title: "duckdb-caching"
-output: html_document
+title: "DuckDB Caching"
 date: "2024-12-26"
 author: "Ronak Shah"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{DuckDB Caching}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
