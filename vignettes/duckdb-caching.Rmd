@@ -11,9 +11,43 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(eval = FALSE, echo = TRUE)
+
+# devtools::load_all(".")
+if (Sys.info()[["user"]] == "wb384996") {
+  force <- FALSE
+  if (!"lkups" %in% ls() || isTRUE(force)) {
+    data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
+      fs::path()
+    fs::dir_ls(data_dir, recurse = FALSE)
+  }
+
+
+  latest_version <-
+    pipapi:::available_versions(data_dir) |>
+    max()
+
+  latest_version <- NULL
+  lkups <- create_versioned_lkups(data_dir,
+                                  vintage_pattern = latest_version)
+
+} else {
+  lkups <- pipapi::create_versioned_lkups(Sys.getenv('PIPAPI_DATA_ROOT_FOLDER'))
+  
+}
+
+
+lkup <- lkups$versions_paths[[lkups$latest_release]]
+
 ```
 
 ## Introduction
+
+```{r load-pipapi}
+# library(pipapi)
+devtools::load_all()
+Sys.setenv('PIP_CACHE_FILE' = fs::path('e:/PIP/pipapi_data/demo.duckdb'))
+```
+
 
 Current caching mechanism for pip uses traditional caching where basically a hash is created based on the value of the arguments passed in the function and if someone calls the same function with the same arguments again the cached result is returned instead of doing the same calculation again. For `pip` we used the packages `cachem` and `memoise` to implement this system of caching. This traditional caching strategy works well in general however, `pip` is a special case and it would benefit much more if it had a custom strategy for caching. 
 
