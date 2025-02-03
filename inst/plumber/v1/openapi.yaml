@@ -348,21 +348,21 @@ paths:
             type: number
           minimum: 0
           maximum: 1
-          example: 0.234
+          example: 0.00019,0.00062,0.00108,0.00208,0.00314,0.00484,0.00664,0.00948,0.01283,0.01774,0.02290,0.03548,0.05133,0.06890,0.08824
         - in: query
           name: cum_population
           schema:
             type: number
           minimum: 0
           maximum: 1
-          example: 0.234
+          example: 0.00100,0.00300,0.00501,0.00901,0.01301,0.01902,0.02503,0.03403,0.04404,0.05806,0.07207,0.10410,0.14114,0.17918,0.21822
         - in: query
           name: requested_mean
           schema:
             type: number
           minimum: 0
           maximum: 1e10
-          example: 1.9
+          example: 2.911786
         - in: query
           name: povline
           schema:

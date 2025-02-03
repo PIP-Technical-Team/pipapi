@@ -1,0 +1,159 @@
+---
+title: "DuckDB Caching"
+date: "2024-12-26"
+author: "Ronak Shah"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{DuckDB Caching}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE, echo = TRUE)
+```
+
+## Introduction
+
+Current caching mechanism for pip uses traditional caching where basically a hash is created based on the value of the arguments passed in the function and if someone calls the same function with the same arguments again the cached result is returned instead of doing the same calculation again. For `pip` we used the packages `cachem` and `memoise` to implement this system of caching. This traditional caching strategy works well in general however, `pip` is a special case and it would benefit much more if it had a custom strategy for caching. 
+
+## How caching currently works?
+
+Consider these pip functions
+
+```{r, eval=FALSE}
+# 1.
+pip(country = "all", year = 2000, lkup = lkup)
+
+# 2.
+pip(country = "AGO", year = 2000, lkup = lkup)
+```
+
+Now since these are separate set of arguments 2 files of caching are created and saved on the disk. Now if a call to `pip` is made again `pip(country = "AGO", year = 2000, lkup = lkup)` which is same as 2) then it would return the result from the cached file stored on the disk without doing any calculation. Needless to say, this result is much faster. 
+
+However, notice that the 2nd call is subset of the 1st one. What I mean by that is the result of 2) is already present in result of 1). We have done the calculations for all the countries for the year 2000 in 1) we just need output of `"AGO"` from it to get the result for 2). 
+
+## Custom caching for pipapi. 
+
+What if we could take subset of an existing cache like how we need it as above. However, this is not how traditional caching systems work so there is no ready-made solution available. We would need to implement this logic from scratch if we want to make this work. 
+
+We came up with an idea to implement this custom caching using `duckdb` in a table. Basically, all the queries that are called till now are saved in the table and whenever a new call is made it checks if the result already exists in the table, if yes then it returns the result immediately or else it will do the calculation and then save the result to the table for next use and return the result. There are various scenarios that we need to consider to understand this approach. Let's take help of an example to understand each one of them. 
+
+Consider that we are just starting out and there is nothing saved in the table and it's empty. 
+
+#### Scenario 1 - 
+
+```{r}
+pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
+```
+
+Since the table is empty, this call will do the calculation and save the result in the table for future use and return the output.
+
+#### Scenario 2 - 
+
+```{r}
+pip(country = "USA", year = 2000, lkup = lkup)
+```
+
+Now this is something which we have already calculated in our previous call. In traditional caching this would be treated as a separate call and the calculation would have been performed again. However, in our custom caching it goes through the existing table and checks if we already have the result for this call. Since we do have it saved in our table we will just return the result in this case as it is from the table without doing any calculation. 
+
+#### Scenario 3 - 
+
+```{r}
+pip(country = c("ARG", "USA"), year = 2000, lkup = lkup)
+```
+
+Notice this time it is combination of scenario 1 and 2 where one part of the calculation we already have ("USA") and another part we don't ("ARG"). In this case, we return the result for the country that we have in the table and send rest of the arguments for the calculation. We save the result from calculation in the table and return the output by combining both the result.
+
+#### Scenario 4 - 
+
+```{r}
+pip(country = "all", year = 2000, lkup = lkup)
+```
+
+In this scenario before we check in the table we need to decode this "all" argument to list of actual country names because in the table we save the data with actual country names. Once we have the list of country names we check which of those values are already available in the table. If we consider the 3 scenarios above then we already have result for `c("ARG", "AGO", "USA")` and we need to find result for the remaining countries. After saving the data for the remaining countries in the table, we return the result by combining the two. 
+
+#### Scenario 5 - 
+
+```{r}
+pip(country = "AGO", year = "all", lkup = lkup)
+```
+
+This is similar to scenario 4 but instead of having `country = "all"` we have here `year = "all"` so in this case we need to decode the `year` parameter. However, the sequence of operation remains the same as above. 
+
+#### Scenario 6 - 
+
+```{r}
+pip(country = "all", year = "all", lkup = lkup)
+```
+
+This is combination of scenario 4 and 5 where we need to decode both `country` and `year` parameter, check the values that are present in the table, query the data that does not exist, save it into the table, combine the result and return the output. 
+
+These are 6 different scenarios that can occur. Note that I have not used all the arguments here in the `pip` call. We are using the default `povline` i.e 1.9 here but it can be something else. In which case, it will become scenario 1 where nothing is found in the table and the output is calculated and result is saved in the table. Similarly, we can also have situations where `fill_gaps` is set to `TRUE` which would also follow the same process. 
+
+## Code overview
+
+We are creating a duckdb file to save our table. The location of this file is saved in an environment variable `PIP_CACHE_FILE` (Example `Sys.setenv('PIP_CACHE_FILE' = fs::path('e:/PIP/pipapi_data/demo.duckdb'))`). There are two tables created in the duckdb file called `rg_master_file` and `fg_master_file` based on the `fill_gaps` argument a table is selected to save and retrieve data. Based on `fill_gaps` parameter we call either the function `fg_pip` or `rg_pip`. Both the functions call the `subset_lkup` function to filter the data from `lkup` that is relevant to our call. In `subset_lkup` function we call the function `return_if_exists` which as the name suggests returns the data from cache if it exists. A new file called `duckdb_fun.R` has been added to manage all the functions related to duckdb. 
+
+A named list is returned from `return_if_exists` function where it returns the final output (if it exists) from the master file and subsetted `lkup`. The partial (or full) final output is again returned as a named list from `subset_lkup` function which is used at the end to combine the two outputs. If `lkup` is non-empty then after all the calculation is done we use the function `update_master_file` to append the master file with new data. 
+
+## Speed comparison
+
+For analysis purposes, we are comparing speed in different scenarios on `DEV` branch vs that in `implement-duckdb` branch. 
+
+```{r}
+microbenchmark::microbenchmark(
+  pip_DEV = pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
+)
+
+#Unit: microseconds
+#       expr    min      lq    mean  median       uq    max neval
+# duckdb_DEV 628.59 669.893 2475.44 689.934 719.7505 177901   100
+
+microbenchmark::microbenchmark(
+  duckdb_caching = pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
+)
+
+#Unit: milliseconds
+#           expr      min       lq     mean   median       uq     max neval
+# duckdb_caching 138.3669 143.9853 148.3353 147.0136 152.0311 181.543   100
+```
+
+```{r}
+country_list <- c("AGO", "ARG", "AUT", "BEL", "BGD", "BLR", "BOL", "CAN", "CHE", 
+  "CHL", "COL", "CRI", "DEU", "DNK", "DOM", "ECU", "ESP", "EST", 
+  "FIN", "FRA", "FSM", "GBR", "GEO", "GRC", "GTM", "HRV", "HUN", 
+  "IDN", "IDN", "IDN", "IRL", "ITA", "KGZ", "LTU", "LUX", "MAR", 
+  "MDA", "MEX", "MKD", "MRT", "NOR", "PAN", "PER", "PHL", "PHL", 
+  "POL", "ROU", "RUS", "RWA", "SLV", "STP", "SWE", "SWZ", "THA", 
+  "TON", "TUN", "TWN", "TZA", "URY", "USA", "UZB", "ZAF")
+
+tictoc::tic()
+
+for(i in seq_along(country_list)) {
+  out <- pip(country = country_list[seq_len(i)], year = 2000, lkup = lkup)
+}
+
+tictoc::toc()
+
+## For DEV version
+# 9.14 sec elapsed
+
+## For Duckdb
+# 10.39 sec elapsed
+```
+
+```{r}
+tictoc::tic()
+
+for(i in seq_along(country_list)) {
+  out <- pip(country = country_list[seq_len(i)], year = "all", lkup = lkup)
+}
+
+tictoc::toc()
+## DEV
+# 177.28 sec elapsed
+
+## Duckdb caching
+# 17.97 sec elapsed
+```
