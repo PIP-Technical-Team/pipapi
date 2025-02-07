@@ -118,7 +118,8 @@ pip <- function(country         = "ALL",
   # only run pip code if there is data that is not present in cache
   #if(nrow(result_from_cache$absent_args) > 0) {
   # use result_from_cache$absent_args$country_code reporting_year and poverty_line and pass it further.
-  con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = Sys.getenv("PIP_CACHE_FILE"))
+  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  read_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
     # mains estimates ---------------
     if (fill_gaps) {
       ## lineup years-----------------
@@ -131,7 +132,7 @@ pip <- function(country         = "ALL",
         reporting_level    = reporting_level,
         ppp                = ppp,
         lkup               = lkup,
-        con                = con
+        con                = read_con
         )
     } else {
       ## survey years ------------------
@@ -144,10 +145,14 @@ pip <- function(country         = "ALL",
         reporting_level = reporting_level,
         ppp             = ppp,
         lkup            = lkup,
-        con             = con
+        con             = read_con
       )
     }
     #browser()
+    # It is important to close the read connection before you open a write connection because
+    # duckdb kind of inherits read_only flag from previous connection object if it is not closed
+    # More details here https://app.clickup.com/t/868cdpe3q
+    duckdb::dbDisconnect(read_con)
     cached_data <- out$data_in_cache
     main_data <- out$main_data
 
@@ -155,8 +160,9 @@ pip <- function(country         = "ALL",
       out <- main_data |>
         collapse::fmutate(path = as.character(path)) |>
         collapse::rowbind(cached_data)
-
-      update_master_file(main_data, con, fill_gaps)
+      write_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path)
+      update_master_file(main_data, write_con, fill_gaps)
+      dbDisconnect(write_con)
     } else {
       out <- cached_data
     }
