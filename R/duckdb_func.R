@@ -48,3 +48,19 @@ update_master_file <- function(dat, con, fill_gaps) {
 
   return(nrow(dat))
 }
+
+
+#' Reset the cache. Only to be used internally
+#'
+#' @noRd
+reset_cache <- function(con, type = c("both", "rg", "fg")) {
+
+  type <- match.arg(type)
+  if(type == "both") type = c("rg", "fg")
+  if("rg" %in% type) {
+    DBI::dbExecute(con, "DELETE from rg_master_file")
+  }
+  if("fg" %in% type) {
+    DBI::dbExecute(con, "DELETE from fg_master_file")
+  }
+}
