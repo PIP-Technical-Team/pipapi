@@ -34,16 +34,18 @@ return_if_exists <- function(lkup, povline, con, fill_gaps) {
 #' Update master file with the contents of the dataframe
 #' @inheritParams pip
 #' @param dat Dataframe to be appended
-#' @param con DuckDB connection object
+#' @param cache_file_path path where cache file is saved
 #'
 #' @return number of rows updated
 #' @export
 #'
-update_master_file <- function(dat, con, fill_gaps) {
+update_master_file <- function(dat, cache_file_path, fill_gaps) {
+  write_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path)
   target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
 
   duckdb::duckdb_register(con, "append_data", dat, overwrite = TRUE)
   DBI::dbExecute(con, glue::glue("INSERT INTO {target_file} SELECT * FROM append_data;"))
+  duckdb::dbDisconnect(write_con)
   message(glue::glue("{target_file} is updated."))
 
   return(nrow(dat))
@@ -53,14 +55,23 @@ update_master_file <- function(dat, con, fill_gaps) {
 #' Reset the cache. Only to be used internally
 #'
 #' @noRd
-reset_cache <- function(con, type = c("both", "rg", "fg")) {
+reset_cache <- function(pass = Sys.getenv('LOCAL_KEY'), type = c("both", "rg", "fg"), lkup) {
+  # lkup will be passed through API and will not be an argument to endpoint, same as pip call
+  # Checks if the keys match across local and server before reseting the cache
+  if (pass != Sys.getenv('SERVER_KEY')) {
+    rlang::abort("Either key not set or incorrect key!")
+  }
+
+  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  write_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path)
 
   type <- match.arg(type)
   if(type == "both") type = c("rg", "fg")
   if("rg" %in% type) {
-    DBI::dbExecute(con, "DELETE from rg_master_file")
+    DBI::dbExecute(write_con, "DELETE from rg_master_file")
   }
   if("fg" %in% type) {
-    DBI::dbExecute(con, "DELETE from fg_master_file")
+    DBI::dbExecute(write_con, "DELETE from fg_master_file")
   }
+  duckdb::dbDisconnect(write_con)
 }

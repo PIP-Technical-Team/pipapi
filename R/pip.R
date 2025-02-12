@@ -111,13 +111,7 @@ pip <- function(country         = "ALL",
   # 4) country = "all" year = 2019
   # 5) country = "AGO" year = "all"
   # 6) country = "all" year = "all"
-  # browser()
 
-  # This initialization is necessary for rowbind at the end if all the data is present in cache
-  #out <- NULL
-  # only run pip code if there is data that is not present in cache
-  #if(nrow(result_from_cache$absent_args) > 0) {
-  # use result_from_cache$absent_args$country_code reporting_year and poverty_line and pass it further.
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   read_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
     # mains estimates ---------------
@@ -160,9 +154,8 @@ pip <- function(country         = "ALL",
       out <- main_data |>
         collapse::fmutate(path = as.character(path)) |>
         collapse::rowbind(cached_data)
-      write_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path)
-      update_master_file(main_data, write_con, fill_gaps)
-      dbDisconnect(write_con)
+      # Update cache with data
+      update_master_file(main_data, cache_file_path, fill_gaps)
     } else {
       out <- cached_data
     }
