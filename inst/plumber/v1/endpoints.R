@@ -179,6 +179,10 @@ function(req, res) {
 
   res$setHeader("Access-Control-Allow-Origin",
                 "*")
+
+  # Set Cache-Control header to allow caching
+  res$setHeader("Cache-Control", "public, max-age=7200")
+
   # Set max-age to 48hours (specified in seconds)
   # res$setHeader("Cache-Control",
   #               "max-age=172800")
