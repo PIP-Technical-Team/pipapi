@@ -9,23 +9,28 @@
 return_if_exists <- function(lkup, povline, con, fill_gaps) {
   # It is not possible to append to parquet file https://stackoverflow.com/questions/39234391/how-to-append-data-to-an-existing-parquet-file
   # Writing entire data will be very costly as data keeps on growing, better is to save data in duckdb and append to it.
-  target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
-  master_file <- DBI::dbGetQuery(con, glue::glue("select * from {target_file}")) |>
-    duckplyr::as_duckplyr_tibble()
+  if(getOption("pipapi.query_live_data", FALSE)) {
+    data_present_in_master <- NULL
+  } else {
+    target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
+    master_file <- DBI::dbGetQuery(con, glue::glue("select * from {target_file}")) |>
+      duckplyr::as_duckplyr_tibble()
 
-  data_present_in_master <- duckplyr::inner_join(
-    master_file, lkup |> collapse::fselect(country_code, reporting_year, is_interpolated),
-    by = c("country_code", "reporting_year", "is_interpolated")
-  ) |> duckplyr::filter(poverty_line == povline)
+    data_present_in_master <- duckplyr::inner_join(
+      master_file, lkup |> collapse::fselect(country_code, reporting_year, is_interpolated),
+      by = c("country_code", "reporting_year", "is_interpolated")
+    ) |> duckplyr::filter(poverty_line == povline)
 
-  keep <- TRUE
-  if(nrow(data_present_in_master) > 0) {
-    keep <- !with(lkup, paste(country_code, reporting_year, is_interpolated)) %in%
-      with(data_present_in_master, paste(country_code, reporting_year, is_interpolated))
+    keep <- TRUE
+    if(nrow(data_present_in_master) > 0) {
+      # Remove the rows from lkup that are present in master
+      keep <- !with(lkup, paste(country_code, reporting_year, is_interpolated)) %in%
+        with(data_present_in_master, paste(country_code, reporting_year, is_interpolated))
 
-    lkup <- lkup[keep, ]
+      lkup <- lkup[keep, ]
 
-    message("Returning data from cache.")
+      message("Returning data from cache.")
+    }
   }
   # nrow(data_present_in_master) should be equal to sum(keep)
   return(list(data_present_in_master = data_present_in_master, lkup = lkup))
@@ -55,10 +60,10 @@ update_master_file <- function(dat, cache_file_path, fill_gaps) {
 #' Reset the cache. Only to be used internally
 #'
 #' @noRd
-reset_cache <- function(pass = Sys.getenv('LOCAL_KEY'), type = c("both", "rg", "fg"), lkup) {
+reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'), type = c("both", "rg", "fg"), lkup) {
   # lkup will be passed through API and will not be an argument to endpoint, same as pip call
   # Checks if the keys match across local and server before reseting the cache
-  if (pass != Sys.getenv('SERVER_KEY')) {
+  if (pass != Sys.getenv('PIP_CACHE_SERVER_KEY')) {
     rlang::abort("Either key not set or incorrect key!")
   }
 

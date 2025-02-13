@@ -142,7 +142,6 @@ pip <- function(country         = "ALL",
         con             = read_con
       )
     }
-    #browser()
     # It is important to close the read connection before you open a write connection because
     # duckdb kind of inherits read_only flag from previous connection object if it is not closed
     # More details here https://app.clickup.com/t/868cdpe3q
@@ -154,8 +153,12 @@ pip <- function(country         = "ALL",
       out <- main_data |>
         collapse::fmutate(path = as.character(path)) |>
         collapse::rowbind(cached_data)
-      # Update cache with data
-      update_master_file(main_data, cache_file_path, fill_gaps)
+      # cached_data is NULL when we are querying live data in which case we don't update cache
+      # This will be used only for development purpose and we don't have any intention to use it in production.
+      if(!is.null(cached_data)) {
+        # Update cache with data
+        update_master_file(main_data, cache_file_path, fill_gaps)
+      }
     } else {
       out <- cached_data
     }
