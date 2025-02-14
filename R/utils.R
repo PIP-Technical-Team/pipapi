@@ -592,13 +592,18 @@ create_query_controls <- function(svy_lkup,
                  type = "character")
   # Tables
   table <- list(values = aux_tables, type = "character")
+
+  # type
+  type <- list(values = c("both", "rg", "fg"), type = "character")
+
+  pass <- list(values = Sys.getenv('PIP_CACHE_SERVER_KEY'), type = "character")
   # parameters
   parameter <-
     list(values = c("country", "year", "povline",
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format", "table", "long_format"),
+                    "format", "table", "long_format", "type", "pass"),
          type = "character")
 
   # cum_welfare
@@ -674,7 +679,9 @@ create_query_controls <- function(svy_lkup,
     times_mean      = times_mean,
     lorenz          = lorenz,
     n_bins          = n_bins,
-    endpoint        = endpoint
+    endpoint        = endpoint,
+    type            = type,
+    pass            = pass
   )
 
   return(query_controls)
