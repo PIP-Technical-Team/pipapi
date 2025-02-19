@@ -4,12 +4,12 @@
 \alias{update_master_file}
 \title{Update master file with the contents of the dataframe}
 \usage{
-update_master_file(dat, con, fill_gaps)
+update_master_file(dat, cache_file_path, fill_gaps)
 }
 \arguments{
 \item{dat}{Dataframe to be appended}
 
-\item{con}{DuckDB connection object}
+\item{cache_file_path}{path where cache file is saved}
 
 \item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
 values for missing years}

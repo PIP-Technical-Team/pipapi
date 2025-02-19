@@ -48,8 +48,8 @@ update_master_file <- function(dat, cache_file_path, fill_gaps) {
   write_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path)
   target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
 
-  duckdb::duckdb_register(con, "append_data", dat, overwrite = TRUE)
-  DBI::dbExecute(con, glue::glue("INSERT INTO {target_file} SELECT * FROM append_data;"))
+  duckdb::duckdb_register(write_con, "append_data", dat, overwrite = TRUE)
+  DBI::dbExecute(write_con, glue::glue("INSERT INTO {target_file} SELECT * FROM append_data;"))
   duckdb::dbDisconnect(write_con)
   message(glue::glue("{target_file} is updated."))
 
