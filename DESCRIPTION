@@ -26,7 +26,6 @@ Suggests:
     covr,
     testthat,
     spelling,
-    knitr,
     rmarkdown,
     markdown,
     assertthat,
