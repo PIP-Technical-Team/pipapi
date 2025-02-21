@@ -9,20 +9,23 @@
 return_if_exists <- function(lkup, povline, con, fill_gaps) {
   # It is not possible to append to parquet file https://stackoverflow.com/questions/39234391/how-to-append-data-to-an-existing-parquet-file
   # Writing entire data will be very costly as data keeps on growing, better is to save data in duckdb and append to it.
-  if(getOption("pipapi.query_live_data", FALSE)) {
-    data_present_in_master <- NULL
-  } else {
+  if (getOption("pipapi.query_live_data")) {
     target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
-    master_file <- DBI::dbGetQuery(con, glue::glue("select * from {target_file}")) |>
+
+    master_file <- DBI::dbGetQuery(con,
+                                   glue::glue("select * from {target_file}")) |>
       duckplyr::as_duckplyr_tibble()
 
-    data_present_in_master <- duckplyr::inner_join(
-      master_file, lkup |> collapse::fselect(country_code, reporting_year, is_interpolated),
-      by = c("country_code", "reporting_year", "is_interpolated")
-    ) |> duckplyr::filter(poverty_line == povline)
+    data_present_in_master <-
+      duckplyr::inner_join(
+        x = master_file,
+        y = lkup |>
+          collapse::fselect(country_code, reporting_year, is_interpolated),
+        by = c("country_code", "reporting_year", "is_interpolated")) |>
+      duckplyr::filter(poverty_line == povline)
 
     keep <- TRUE
-    if(nrow(data_present_in_master) > 0) {
+    if (nrow(data_present_in_master) > 0) {
       # Remove the rows from lkup that are present in master
       keep <- !with(lkup, paste(country_code, reporting_year, is_interpolated)) %in%
         with(data_present_in_master, paste(country_code, reporting_year, is_interpolated))
@@ -31,6 +34,8 @@ return_if_exists <- function(lkup, povline, con, fill_gaps) {
 
       message("Returning data from cache.")
     }
+  } else {
+    data_present_in_master <- NULL
   }
   # nrow(data_present_in_master) should be equal to sum(keep)
   return(list(data_present_in_master = data_present_in_master, lkup = lkup))

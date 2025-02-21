@@ -1,3 +1,8 @@
+pipapi_default_options <- list(
+  pipapi.query_live_data = FALSE
+)
+
+
 .onLoad <- function(libname, pkgname) {
   if (Sys.getenv("PIPAPI_APPLY_CACHING") == "TRUE") {
     d <- rappdirs::user_cache_dir("pipapi")
@@ -21,5 +26,12 @@
     assign("cd", cd, envir = as.environment(pos))
     packageStartupMessage("Info: Disk based caching is enabled.")
   }
+
+  op <- options()
+  toset <- !(names(pipapi_default_options) %in% names(op))
+  if (any(toset)) options(pipapi_default_options[toset])
+
+  invisible()
+
 }
 
