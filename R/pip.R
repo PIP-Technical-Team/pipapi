@@ -113,6 +113,10 @@ pip <- function(country         = "ALL",
   # 6) country = "all" year = "all"
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  if (!file.exists(cache_file_path)) {
+    # Create an empty duckdb file
+    create_duckdb_file(cache_file_path)
+  }
   read_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
     # mains estimates ---------------
     if (fill_gaps) {
