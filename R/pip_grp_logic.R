@@ -84,6 +84,8 @@ pip_grp_logic <- function(country         = "ALL",
       lkup            = lkup
       )
 
+    # For now just rowbinding two dataframes, but we would need to use it more smartly in the future
+    fg_pip_master <- collapse::rowbind(fg_pip_master)
     add_vars_out_of_pipeline(fg_pip_master, fill_gaps = TRUE, lkup = lkup)
 
     if (lcv$off_alt_agg == "both") {
