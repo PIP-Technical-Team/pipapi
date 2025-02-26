@@ -73,7 +73,8 @@ fg_pip <- function(country,
                                     data_dir      = data_dir)
 
     # Join because some data might be coming from cache so it might be absent in metadata
-    ctry_years <- collapse::join(ctry_years, metadata |> collapse::fselect(names(ctry_years)),
+    ctry_years <- collapse::join(ctry_years, metadata |>
+                                collapse::fselect(intersect(names(ctry_years), names(metadata))),
                     verbose = 0,how = "inner")
 
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
