@@ -9,7 +9,7 @@
 return_if_exists <- function(lkup, povline, con, fill_gaps) {
   # It is not possible to append to parquet file https://stackoverflow.com/questions/39234391/how-to-append-data-to-an-existing-parquet-file
   # Writing entire data will be very costly as data keeps on growing, better is to save data in duckdb and append to it.
-  if (getOption("pipapi.query_live_data")) {
+  if (!getOption("pipapi.query_live_data")) {
     target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
 
     master_file <- DBI::dbGetQuery(con,
