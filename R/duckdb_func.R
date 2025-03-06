@@ -17,12 +17,12 @@ return_if_exists <- function(lkup, povline, con, fill_gaps) {
       duckplyr::as_duckplyr_tibble()
 
     data_present_in_master <-
-      duckplyr::inner_join(
+      dplyr::inner_join(
         x = master_file,
         y = lkup |>
           collapse::fselect(country_code, reporting_year, is_interpolated),
         by = c("country_code", "reporting_year", "is_interpolated")) |>
-      duckplyr::filter(poverty_line == povline)
+      dplyr::filter(poverty_line == povline)
 
     keep <- TRUE
     if (nrow(data_present_in_master) > 0) {
