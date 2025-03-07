@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.3.12
 
 * Hot fix with `future` dependency.
 * Fix examples for `/grouped-stats` endpoint. 
