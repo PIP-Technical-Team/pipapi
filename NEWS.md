@@ -2,6 +2,7 @@
 
 * Hot fix with `future` dependency.
 * Fix examples for `/grouped-stats` endpoint. 
+* cache-control header added for test
 
 # pipapi 1.3.11
 
