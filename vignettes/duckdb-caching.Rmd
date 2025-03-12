@@ -15,7 +15,7 @@ knitr::opts_chunk$set(eval = FALSE, echo = TRUE)
 
 ## Introduction
 
-Current caching mechanism for pip uses traditional caching where basically a hash is created based on the value of the arguments passed in the function and if someone calls the same function with the same arguments again the cached result is returned instead of doing the same calculation again. For `pip` we used the packages `cachem` and `memoise` to implement this system of caching. This traditional caching strategy works well in general however, `pip` is a special case and it would benefit much more if it had a custom strategy for caching. 
+Current caching mechanism for pip uses traditional caching where basically a hash is created based on the value of the arguments passed in the function and if someone calls the same function with the same arguments again the cached result is returned instead of doing the same calculation again. For `pip` we used the packages `cachem` and `memoise` to implement this system of caching. We will call this caching system as traditional caching strategy. This traditional caching strategy works well in general however, `pip` is a special case and it would benefit much more if it had a custom strategy for caching. 
 
 ## How caching currently works?
 
@@ -37,7 +37,7 @@ However, notice that the 2nd call is subset of the 1st one. What I mean by that 
 
 What if we could take subset of an existing cache like how we need it as above. However, this is not how traditional caching systems work so there is no ready-made solution available. We would need to implement this logic from scratch if we want to make this work. 
 
-We came up with an idea to implement this custom caching using `duckdb` in a table. Basically, all the queries that are called till now are saved in the table and whenever a new call is made it checks if the result already exists in the table, if yes then it returns the result immediately or else it will do the calculation and then save the result to the table for next use and return the result. There are various scenarios that we need to consider to understand this approach. Let's take help of an example to understand each one of them. 
+We came up with an idea to implement this custom caching using `duckdb` where we save the output in a table. Basically, all the queries that are called till now are saved in the table and whenever a new call is made it checks if the result already exists in the table, if yes then it returns the result immediately or else it will do the calculation and then save the result to the table for next use and return the result. There are various scenarios that we need to consider to understand this approach. Let's take help of an example to understand each one of them. 
 
 Consider that we are just starting out and there is nothing saved in the table and it's empty. 
 
@@ -47,7 +47,7 @@ Consider that we are just starting out and there is nothing saved in the table a
 pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
 ```
 
-Since the table is empty, this call will do the calculation and save the result in the table for future use and return the output.
+Since the table is empty, this call will do all the calculation and save the result in the table for future use and return the output.
 
 #### Scenario 2 - 
 
@@ -93,9 +93,9 @@ These are 6 different scenarios that can occur. Note that I have not used all th
 
 ## Code overview
 
-We are creating a duckdb file to save our table. The location of this file is saved in an environment variable `PIP_CACHE_FILE` (Example `Sys.setenv('PIP_CACHE_FILE' = fs::path('e:/PIP/pipapi_data/demo.duckdb'))`). There are two tables created in the duckdb file called `rg_master_file` and `fg_master_file` based on the `fill_gaps` argument a table is selected to save and retrieve data. Based on `fill_gaps` parameter we call either the function `fg_pip` or `rg_pip`. Both the functions call the `subset_lkup` function to filter the data from `lkup` that is relevant to our call. In `subset_lkup` function we call the function `return_if_exists` which as the name suggests returns the data from cache if it exists. A new file called `duckdb_fun.R` has been added to manage all the functions related to duckdb. 
+We are creating a duckdb file to save our table. This file is specific to one release and is saved in the root of the release folder with name `cache.duckdb`. There are two tables created in the duckdb file called `rg_master_file` and `fg_master_file` based on the `fill_gaps` argument a table is selected to save and retrieve data. Based on `fill_gaps` parameter we call either the function `fg_pip` or `rg_pip`. Both the functions call the `subset_lkup` function to filter the data from `lkup` that is relevant to our call. In `subset_lkup` function we call the function `return_if_exists` which as the name suggests returns the data from cache if it exists. A new file called `duckdb_fun.R` has been added to manage all the functions related to duckdb. 
 
-A named list is returned from `return_if_exists` function where it returns the final output (if it exists) from the master file and subsetted `lkup`. The partial (or full) final output is again returned as a named list from `subset_lkup` function which is used at the end to combine the two outputs. If `lkup` is non-empty then after all the calculation is done we use the function `update_master_file` to append the master file with new data. 
+A named list is returned from `return_if_exists` function where it returns the final output (if it exists) from the master file and subsetted `lkup`. The partial (or full) final output is again returned as a named list from `subset_lkup` function which is used at the end to combine the two outputs. If `lkup` is non-empty then after all the calculation is done we use the function `update_master_file` to append the master file with new data. If we are running the function for the first time in the release the code also has a provision to create an empty `cache.duckdb` file with two tables.
 
 ## Speed comparison
 
@@ -107,16 +107,16 @@ microbenchmark::microbenchmark(
 )
 
 #Unit: microseconds
-#       expr    min      lq    mean  median       uq    max neval
-# duckdb_DEV 628.59 669.893 2475.44 689.934 719.7505 177901   100
+#       expr     min      lq     mean  median       uq      max neval
+# duckdb_DEV 830.463 899.872 2241.876 918.446 954.1285 116429.3   100
 
 microbenchmark::microbenchmark(
   duckdb_caching = pip(country = c("AGO", "USA"), year = 2000, lkup = lkup)
 )
 
 #Unit: milliseconds
-#           expr      min       lq     mean   median       uq     max neval
-# duckdb_caching 138.3669 143.9853 148.3353 147.0136 152.0311 181.543   100
+#           expr      min       lq     mean   median       uq      max neval
+# duckdb_caching 161.6227 170.5818 185.5906 175.3116 184.9512 793.8183   100
 ```
 
 ```{r}
@@ -137,10 +137,10 @@ for(i in seq_along(country_list)) {
 tictoc::toc()
 
 ## For DEV version
-# 9.14 sec elapsed
+# 16.36 sec elapsed
 
 ## For Duckdb
-# 10.39 sec elapsed
+#18.17 sec elapsed
 ```
 
 ```{r}
@@ -152,8 +152,8 @@ for(i in seq_along(country_list)) {
 
 tictoc::toc()
 ## DEV
-# 177.28 sec elapsed
+# 403.38 sec elapsed
 
 ## Duckdb caching
-# 17.97 sec elapsed
+# 33.53 sec elapsed
 ```
