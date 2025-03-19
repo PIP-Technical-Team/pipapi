@@ -26,7 +26,6 @@ Suggests:
     covr,
     testthat,
     spelling,
-    knitr,
     rmarkdown,
     markdown,
     assertthat,
@@ -36,7 +35,9 @@ Suggests:
     lintr,
     withr,
     devtools, 
-    stringr
+    stringr, 
+    knitr, 
+    dplyr
 Language: en-US
 Imports: 
     data.table,
@@ -58,7 +59,11 @@ Imports:
     joyn,
     yaml,
     purrr,
-    future
+    future, 
+    glue, 
+    DBI, 
+    duckdb, 
+    duckplyr
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 

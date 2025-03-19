@@ -11,7 +11,10 @@ subset_lkup(
   reporting_level,
   lkup,
   valid_regions,
-  data_dir = NULL
+  data_dir = NULL,
+  povline,
+  con,
+  fill_gaps
 )
 }
 \arguments{
@@ -29,6 +32,13 @@ subset_lkup(
 for region selection}
 
 \item{data_dir}{character: directory path from lkup$data_root}
+
+\item{povline}{numeric: Poverty line}
+
+\item{con}{duckdb connection object}
+
+\item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
+values for missing years}
 }
 \value{
 data.frame

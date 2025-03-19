@@ -3,6 +3,7 @@
 #' Compute the main PIP poverty and inequality statistics for survey years.
 #'
 #' @inheritParams pip
+#' @param con duckdb connection object
 #' @return data.frame
 #' @keywords internal
 rg_pip <- function(country,
@@ -12,13 +13,12 @@ rg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   lkup) {
-
+                   lkup,
+                   con) {
   # get values from lkup
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
   data_dir      <- lkup$data_root
-
 
   metadata <- subset_lkup(
     country         = country,
@@ -27,8 +27,13 @@ rg_pip <- function(country,
     reporting_level = reporting_level,
     lkup            = svy_lkup,
     valid_regions   = valid_regions,
-    data_dir        = data_dir
+    data_dir        = data_dir,
+    povline = povline,
+    con = con,
+    fill_gaps = FALSE
   )
+  data_present_in_master <- metadata$data_present_in_master
+  metadata <- metadata$lkup
 
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
@@ -37,7 +42,7 @@ rg_pip <- function(country,
 
   # return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    return(empty_response)
+    return(list(main_data = empty_response, data_in_cache = data_present_in_master))
   }
 
   out <- vector(mode = "list", length = nrow(metadata))
@@ -64,7 +69,6 @@ rg_pip <- function(country,
       ppp               = ppp,
       distribution_type = tmp_metadata$distribution_type
     )
-
     # Add stats columns to data frame
     for (j in seq_along(tmp_stats)) {
       tmp_metadata[[names(tmp_stats)[j]]] <- tmp_stats[[j]]
@@ -72,7 +76,8 @@ rg_pip <- function(country,
 
     out[[i]] <- tmp_metadata
   }
+  #browser()
   out <- data.table::rbindlist(out)
 
-  return(out)
+  return(list(main_data = out, data_in_cache = data_present_in_master))
 }

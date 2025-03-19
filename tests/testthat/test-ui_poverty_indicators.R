@@ -20,7 +20,7 @@ test_that("ui_pc_charts() works as expected", {
                         povline = 1.9,
                         lkup = lkups)
     expect_equal(class(res), c("data.table", "data.frame"))
-    expect_equal(names(res), lkups$return_cols$ui_pc_charts$cols)
+    expect_equal(names(res), setdiff(lkups$return_cols$ui_pc_charts$cols, "estimate_type"))
     expect_equal(nrow(res), nrow(lkups$svy_lkup[country_code == "AGO"]))
   },
   get_caller_names = function() c("else")

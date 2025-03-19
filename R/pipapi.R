@@ -105,6 +105,7 @@ utils::globalVariables(
     "use_bin",
     "use_groupdata",
     "use_imputed",
-    "use_microdata"
+    "use_microdata",
+    "path"
   )
 )

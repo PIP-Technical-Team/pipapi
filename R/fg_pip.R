@@ -3,6 +3,7 @@
 #' Compute the main PIP poverty and inequality statistics for imputed years.
 #'
 #' @inheritParams pip
+#' @param con duckdb connection object
 #' @return data.frame
 #' @keywords internal
 fg_pip <- function(country,
@@ -12,13 +13,13 @@ fg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   lkup) {
+                   lkup,
+                   con) {
 
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
   data_dir            <- lkup$data_root
   ref_lkup            <- lkup$ref_lkup
-
 
   # Handle interpolation
   metadata <- subset_lkup(
@@ -28,8 +29,14 @@ fg_pip <- function(country,
     reporting_level = reporting_level,
     lkup            = ref_lkup,
     valid_regions   = valid_regions,
-    data_dir        = data_dir
+    data_dir        = data_dir,
+    povline = povline,
+    con = con,
+    fill_gaps = TRUE
   )
+
+  data_present_in_master <- metadata$data_present_in_master
+  metadata <- metadata$lkup
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
   metadata <- filter_lkup(metadata = metadata,
@@ -38,7 +45,7 @@ fg_pip <- function(country,
 
   # Return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    return(pipapi::empty_response)
+    return(list(main_data = empty_response, data_in_cache = data_present_in_master))
   }
 
   unique_survey_files <- unique(metadata$data_interpolation_id)
@@ -54,7 +61,6 @@ fg_pip <- function(country,
     # Extract country-years for which stats will be computed from the same files
     # tmp_metadata <- interpolation_list[[unique_survey_files[svy_id]]]$tmp_metadata
     iteration           <- interpolation_list[[unique_survey_files[svy_id]]]
-
     svy_data <- get_svy_data(svy_id          = iteration$cache_ids,
                              reporting_level = iteration$reporting_level,
                              path            = iteration$paths)
@@ -66,10 +72,14 @@ fg_pip <- function(country,
                                     valid_regions = valid_regions,
                                     data_dir      = data_dir)
 
+    # Join because some data might be coming from cache so it might be absent in metadata
+    ctry_years <- collapse::join(ctry_years, metadata |>
+                                collapse::fselect(intersect(names(ctry_years), names(metadata))),
+                    verbose = 0,how = "inner")
+
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 
     for (ctry_year_id in seq_along(ctry_years$interpolation_id)) {
-
       # Extract records to be used for a single country-year estimation
       interp_id    <- ctry_years[["interpolation_id"]][ctry_year_id]
       tmp_metadata <- metadata[metadata$interpolation_id == interp_id, ]
@@ -96,19 +106,14 @@ fg_pip <- function(country,
       }
       #
       # tmp_metadata <- unique(tmp_metadata)
-
       # Add stats columns to data frame
       for (stat in seq_along(tmp_stats)) {
         tmp_metadata[[names(tmp_stats)[stat]]] <- tmp_stats[[stat]]
       }
-
-
       results_subset[[ctry_year_id]] <- tmp_metadata
     }
-
     out[[svy_id]] <- results_subset
   }
-
   out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
 
@@ -124,7 +129,7 @@ fg_pip <- function(country,
       poverty_line := round(poverty_line, digits = 3) ]
 
 
-  return(out)
+  return(list(main_data = out, data_in_cache = data_present_in_master))
 }
 
 #' Remove duplicated rows created during the interpolation process

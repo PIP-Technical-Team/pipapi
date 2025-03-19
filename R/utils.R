@@ -1,5 +1,6 @@
 #' Subset look-up data
 #' @inheritParams pip
+#' @inheritParams rg_pip
 #' @param valid_regions character: List of valid region codes that can be used
 #' for region selection
 #' @param data_dir character: directory path from lkup$data_root
@@ -11,7 +12,11 @@ subset_lkup <- function(country,
                         reporting_level,
                         lkup,
                         valid_regions,
-                        data_dir = NULL) {
+                        data_dir = NULL,
+                        povline,
+                        con,
+                        fill_gaps
+                        ) {
 
   # STEP 1 - Keep every row by default
   keep <- rep(TRUE, nrow(lkup))
@@ -37,9 +42,12 @@ subset_lkup <- function(country,
                                  keep = keep,
                                  reporting_level = reporting_level[1])
 
+
   lkup <- lkup[keep, ]
 
-  return(lkup)
+  cached_data <- return_if_exists(lkup, povline, con, fill_gaps)
+
+  return(list(lkup = cached_data$lkup, data_present_in_master = cached_data$data_present_in_master))
 }
 
 #' select_country
@@ -89,8 +97,6 @@ select_years <- function(lkup,
   is_agg       <-
     grepl("pip_grp", caller_names) |>
     any()
-
-
 
   dtmp <- lkup
 
@@ -404,7 +410,7 @@ censor_stats <- function(df, censored_table) {
 #' It also censors specific stats
 #'
 #' @param df data.table: Table to censor.
-#' @param censored_table data.table: Censor table
+#' @param lkup lkup value
 #' @keywords internal
 estimate_type_var <- function(df, lkup) {
 
@@ -586,13 +592,18 @@ create_query_controls <- function(svy_lkup,
                  type = "character")
   # Tables
   table <- list(values = aux_tables, type = "character")
+
+  # type
+  type <- list(values = c("both", "rg", "fg"), type = "character")
+
+  pass <- list(values = Sys.getenv('PIP_CACHE_SERVER_KEY'), type = "character")
   # parameters
   parameter <-
     list(values = c("country", "year", "povline",
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format", "table", "long_format"),
+                    "format", "table", "long_format", "type", "pass"),
          type = "character")
 
   # cum_welfare
@@ -668,7 +679,9 @@ create_query_controls <- function(svy_lkup,
     times_mean      = times_mean,
     lorenz          = lorenz,
     n_bins          = n_bins,
-    endpoint        = endpoint
+    endpoint        = endpoint,
+    type            = type,
+    pass            = pass
   )
 
   return(query_controls)
@@ -713,7 +726,7 @@ subset_ctry_years <- function(country,
     } else {
       keep_regions <- rep(FALSE, length(lkup$region_code))
     }
-    keep_countries <- lkup$country_code %chin% country
+    keep_countries <- lkup$country_code %chin% as.character(country)
     keep <- keep & (keep_countries | keep_regions)
   }
 
