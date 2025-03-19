@@ -179,6 +179,10 @@ function(req, res) {
 
   res$setHeader("Access-Control-Allow-Origin",
                 "*")
+
+  # Set Cache-Control header to allow caching
+  res$setHeader("Cache-Control", "public, max-age=7200")
+
   # Set max-age to 48hours (specified in seconds)
   # res$setHeader("Cache-Control",
   #               "max-age=172800")
@@ -463,9 +467,11 @@ function(req, res) {
   params$format         <- NULL
   params$version        <- NULL
   params$population     <- NULL
+
   params$welfare = as.numeric(params$welfare)
   params$weight = as.numeric(params$weight)
   out <- do.call(pipgd_lorenz_curve, params)
+
   out <- data.frame(welfare = out$lorenz_curve$output,
                     weight = out$lorenz_curve$points)
   return(out)
