@@ -17,11 +17,14 @@ return_if_exists <- function(lkup, povline, con, fill_gaps) {
       duckplyr::as_duckplyr_tibble()
 
     data_present_in_master <-
+      # collapse join is faster than dplyr's
       collapse::join(x = master_file,
                      y = lkup[, .(country_code, reporting_year, is_interpolated)],
                      on = c("country_code", "reporting_year", "is_interpolated"),
                      how = "inner",
-                     multiple = TRUE) |>
+                     multiple = TRUE,
+                     verbose = 0,
+                     overid = 2) |>
       collapse::fsubset(poverty_line == povline)
 
     keep <- TRUE
@@ -36,7 +39,11 @@ return_if_exists <- function(lkup, povline, con, fill_gaps) {
 
       lkup <- lkup[keep, ]
 
-      message("Returning data from cache.")
+      if (interactive()) {
+        if (getOption("pipapi.verbose")) {
+          message("Returning data from cache.")
+        }
+      }
     }
   } else {
     data_present_in_master <- NULL
@@ -60,7 +67,13 @@ update_master_file <- function(dat, cache_file_path, fill_gaps) {
   duckdb::duckdb_register(write_con, "append_data", dat, overwrite = TRUE)
   DBI::dbExecute(write_con, glue::glue("INSERT INTO {target_file} SELECT * FROM append_data;"))
   duckdb::dbDisconnect(write_con)
-  message(glue::glue("{target_file} is updated."))
+
+  if (interactive()) {
+    if (getOption("pipapi.verbose")) {
+      message(glue::glue("{target_file} is updated."))
+    }
+  }
+
 
   return(nrow(dat))
 }
@@ -69,7 +82,8 @@ update_master_file <- function(dat, cache_file_path, fill_gaps) {
 #' Reset the cache. Only to be used internally
 #'
 #' @noRd
-reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'), type = c("both", "rg", "fg"), lkup) {
+reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'),
+                        type = c("both", "rg", "fg"), lkup) {
   # lkup will be passed through API and will not be an argument to endpoint, same as pip call
   # Checks if the keys match across local and server before reseting the cache
   if (pass != Sys.getenv('PIP_CACHE_SERVER_KEY')) {
@@ -80,14 +94,24 @@ reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'), type = c("both
   write_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path)
 
   type <- match.arg(type)
-  if(type == "both") type = c("rg", "fg")
-  if("rg" %in% type) {
-    DBI::dbExecute(write_con, "DELETE from rg_master_file")
+  if (type == "both") type = c("rg", "fg")
+
+  msgs <- vector("list", length(type))
+  i <- 1
+  if ("rg" %in% type) {
+    msgs[[i]] <- "DELETE from rg_master_file"
+    i <- i + 1
   }
-  if("fg" %in% type) {
-    DBI::dbExecute(write_con, "DELETE from fg_master_file")
+  if ("fg" %in% type) {
+    msgs[[i]] <- "DELETE from fg_master_file"
   }
+
+  for (i in seq_along(msgs)) {
+    DBI::dbExecute(write_con, msgs[[i]])
+  }
+
   duckdb::dbDisconnect(write_con)
+  return(invisible(msgs))
 }
 
 create_duckdb_file <- function(cache_file_path) {
