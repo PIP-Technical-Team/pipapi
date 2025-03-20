@@ -17,18 +17,22 @@ return_if_exists <- function(lkup, povline, con, fill_gaps) {
       duckplyr::as_duckplyr_tibble()
 
     data_present_in_master <-
-      dplyr::inner_join(
-        x = master_file,
-        y = lkup |>
-          collapse::fselect(country_code, reporting_year, is_interpolated),
-        by = c("country_code", "reporting_year", "is_interpolated")) |>
-      dplyr::filter(poverty_line == povline)
+      collapse::join(x = master_file,
+                     y = lkup[, .(country_code, reporting_year, is_interpolated)],
+                     on = c("country_code", "reporting_year", "is_interpolated"),
+                     how = "inner",
+                     multiple = TRUE) |>
+      collapse::fsubset(poverty_line == povline)
 
     keep <- TRUE
     if (nrow(data_present_in_master) > 0) {
       # Remove the rows from lkup that are present in master
-      keep <- !with(lkup, paste(country_code, reporting_year, is_interpolated)) %in%
-        with(data_present_in_master, paste(country_code, reporting_year, is_interpolated))
+      inlkup   <- with(lkup, paste(country_code, reporting_year, is_interpolated))
+      inmaster <- with(data_present_in_master,
+                       paste(country_code, reporting_year, is_interpolated))
+
+      # subsetting  with indexes is faster than with logical vectors
+      keep <- which(!inlkup %in% inmaster)
 
       lkup <- lkup[keep, ]
 

@@ -19,11 +19,13 @@ lkups <- create_versioned_lkups(data_dir,
 lkup <- lkups$versions_paths[[lkups$latest_release]]
 
 
-reset_cache(lkup = lkup)
+# reset_cache(lkup = lkup)
 
 
 
 # 1.
+debugonce(return_if_exists)
+debugonce(subset_lkup)
 pip(country = "all", year = 2000, lkup = lkup)
 
 # 2.
