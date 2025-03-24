@@ -85,7 +85,6 @@ function(req, res) {
     # treated asynchronously.
     # 2) The introduction of PPP versioning implies having a dynamic default
     # poverty line
-    browser()
     req <- pipapi:::assign_required_params(req,
                                            pl_lkup = lkups$pl_lkup)
 
