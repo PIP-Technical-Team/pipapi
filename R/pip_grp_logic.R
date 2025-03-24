@@ -56,6 +56,16 @@ pip_grp_logic <- function(country         = "ALL",
   # STEP 3: Start pip_grp_logic algorithm ----
   ## STEP 3.1: Official regions only selection ----
   ## This will trigger an early return as no additional imputations are needed
+
+  # inti connection
+  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  if (!file.exists(cache_file_path)) {
+    # Create an empty duckdb file
+    create_duckdb_file(cache_file_path)
+  }
+  read_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
+
+
   if (all(lcv$off_alt_agg == "off")) { # Users only request the official regions
     ### Early return -----------
     res <- pip_grp(country         =  country,
@@ -65,7 +75,8 @@ pip_grp_logic <- function(country         = "ALL",
                    welfare_type    =  welfare_type,
                    reporting_level =  reporting_level,
                    lkup            =  lkup,
-                   censor          =  censor)
+                   censor          =  censor,
+                   read_con        = read_con)
     return(res)
 
   } else {
@@ -73,7 +84,7 @@ pip_grp_logic <- function(country         = "ALL",
     ## STEP 3.2: Compute fg_pip for ALL required countries ----
     ## This will then be re-used in various part of the function
     ## This is to avoid re-computing and re-loading the same data over and over
-    fg_pip_master <- fg_pip(
+    out <- fg_pip(
       country         = c(lcv$md_off_reg, lcv$user_off_reg),
       year            = year,
       povline         = povline,
@@ -81,8 +92,32 @@ pip_grp_logic <- function(country         = "ALL",
       welfare_type    = welfare_type,
       reporting_level = reporting_level,
       ppp             = NULL,
-      lkup            = lkup
+      lkup            = lkup,
+      con             = read_con
       )
+
+    # It is important to close the read connection before you open a write connection because
+    # duckdb kind of inherits read_only flag from previous connection object if it is not closed
+    # More details here https://app.clickup.com/t/868cdpe3q
+    duckdb::dbDisconnect(read_con)
+    cached_data <- out$data_in_cache
+    main_data   <- out$main_data
+
+    if (nrow(main_data) > 0) {
+      fg_pip_master <- main_data |>
+        collapse::ftransform(path = as.character(path)) |>
+        collapse::rowbind(cached_data)
+      # cached_data is NULL when we are querying live data in which case we don't update cache
+      # This will be used only for development purpose and we don't have any intention to use it in production.
+      if (!is.null(cached_data)) {
+        # Update cache with data
+        update_master_file(main_data, cache_file_path, fill_gaps = TRUE)
+      }
+    } else {
+      fg_pip_master <- cached_data
+    }
+
+
 
     # For now just rowbinding two dataframes, but we would need to use it more smartly in the future
     fg_pip_master <- collapse::rowbind(fg_pip_master)

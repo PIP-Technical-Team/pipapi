@@ -23,7 +23,8 @@ pip_grp <- function(country         = "ALL",
                     reporting_level = c("all", "national"),
                     lkup,
                     censor          = TRUE,
-                    lkup_hash       = lkup$cache_data_id$hash_pip_grp) {
+                    lkup_hash       = lkup$cache_data_id$hash_pip_grp,
+                    read_con) {
 
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
@@ -58,7 +59,30 @@ pip_grp <- function(country         = "ALL",
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
     ppp             = NULL,
-    lkup           = lkup)
+    lkup            = lkup,
+    con             = read_con)
+
+
+  duckdb::dbDisconnect(read_con)
+  cached_data <- out$data_in_cache
+  main_data   <- out$main_data
+
+  if (nrow(main_data) > 0) {
+    out <- main_data |>
+      collapse::ftransform(path = as.character(path)) |>
+      collapse::rowbind(cached_data)
+    # cached_data is NULL when we are querying live data in which case we don't update cache
+    # This will be used only for development purpose and we don't have any intention to use it in production.
+    if (!is.null(cached_data)) {
+      # Update cache with data
+      update_master_file(main_data, cache_file_path, fill_gaps = TRUE)
+    }
+  } else {
+    out <- cached_data
+  }
+
+
+
   # For now just rowbinding two dataframes, but we would need to use it more smartly in the future
   out <- collapse::rowbind(out)
   # return empty dataframe if no metadata is found

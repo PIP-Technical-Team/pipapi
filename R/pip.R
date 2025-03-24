@@ -159,13 +159,14 @@ pip <- function(country         = "ALL",
         collapse::rowbind(cached_data)
       # cached_data is NULL when we are querying live data in which case we don't update cache
       # This will be used only for development purpose and we don't have any intention to use it in production.
-      if(!is.null(cached_data)) {
+      if (!is.null(cached_data)) {
         # Update cache with data
         update_master_file(main_data, cache_file_path, fill_gaps)
       }
     } else {
       out <- cached_data
     }
+
     if (!data.table::is.data.table(out)) {
       setDT(out)
     }
