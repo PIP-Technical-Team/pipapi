@@ -12,3 +12,4 @@ logs/
 demo.duckdb*
 /doc/
 /Meta/
+pipapi.Rproj
