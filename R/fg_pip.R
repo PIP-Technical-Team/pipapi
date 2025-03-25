@@ -134,7 +134,7 @@ fg_pip <- function(country,
   out[,
       poverty_line := round(poverty_line, digits = 3) ]
 
-
+  out$path <- as.character(out$path)
   return(list(main_data = out, data_in_cache = data_present_in_master))
 }
 
