@@ -112,7 +112,9 @@ validate_query_parameters <-
     "mean",
     "times_mean",
     "lorenz",
-    "n_bins"
+    "n_bins",
+    "pass",
+    "type"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]

@@ -85,7 +85,6 @@ function(req, res) {
     # treated asynchronously.
     # 2) The introduction of PPP versioning implies having a dynamic default
     # poverty line
-
     req <- pipapi:::assign_required_params(req,
                                            pl_lkup = lkups$pl_lkup)
 
@@ -369,6 +368,18 @@ function() {
     info$missing <- NULL
     c(n_items = cd$size(), info)
   }
+}
+
+#* Reset DuckDB cache file
+#* @get /api/v1/duckdb-reset
+#* @param pass:[chr] Local password, this password is checked against the server password
+#* @param type:[chr] Which table do you want to delete? Values accepted are "both", "rg" and "fg"
+#* @serializer unboxedJSON
+function(req, res) {
+  params         <- req$argsQuery
+  params$lkup    <- lkups$versions_paths[[params$version]]
+  params$version <- NULL
+  do.call(pipapi:::reset_cache, params)
 }
 
 # #* Return cache log

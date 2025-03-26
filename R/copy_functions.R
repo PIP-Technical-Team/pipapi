@@ -494,7 +494,6 @@ gd_compute_headcount_lq <- function(
 #' By default, the best fitting Lorenz parameterization (quadratic or beta) is
 #' selected.
 #'
-#' @param params list of parameters
 #' @param welfare numeric vector of cumulative share of welfare (income/consumption)
 #' @param weight numeric vector of cumulative share of the population
 #' @param lorenz either "lb" or "lq"
