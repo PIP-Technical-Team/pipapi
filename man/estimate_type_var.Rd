@@ -9,7 +9,7 @@ estimate_type_var(df, lkup)
 \arguments{
 \item{df}{data.table: Table to censor.}
 
-\item{censored_table}{data.table: Censor table}
+\item{lkup}{lkup value}
 }
 \description{
 It also censors specific stats

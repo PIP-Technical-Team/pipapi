@@ -68,7 +68,7 @@ test_that("subset_lkup correctly selects all countries", {
                      valid_regions = valid_regions,
                      data_dir      = data_dir)
 
-  expect_equal(nrow(tmp), nrow(ref_lkup))
+  expect_equal(nrow(tmp$lkup), nrow(ref_lkup))
 })
 
 test_that("subset_lkup correctly selects countries", {
@@ -81,7 +81,7 @@ test_that("subset_lkup correctly selects countries", {
                      valid_regions = valid_regions,
                      data_dir      = data_dir)
 
-  expect_equal(sort(unique(tmp$country_code)), sort(selection))
+  expect_equal(sort(unique(tmp$lkup$country_code)), sort(selection))
 })
 
 test_that("subset_lkup correctly selects single regions", {
@@ -94,7 +94,7 @@ test_that("subset_lkup correctly selects single regions", {
                      valid_regions = valid_regions,
                      data_dir      = data_dir)
 
-  expect_equal(sort(unique(tmp$region_code)), sort(selection))
+  expect_equal(sort(unique(tmp$lkup$region_code)), sort(selection))
 })
 
 test_that("subset_lkup correctly selects multiple regions", {
@@ -107,7 +107,7 @@ test_that("subset_lkup correctly selects multiple regions", {
                      valid_regions = valid_regions,
                      data_dir      = data_dir)
 
-  expect_equal(sort(unique(tmp$region_code)), sort(selection))
+  expect_equal(sort(unique(tmp$lkup$region_code)), sort(selection))
 })
 
 test_that("subset_lkup correctly selects countries and regions", {
@@ -125,9 +125,9 @@ test_that("subset_lkup correctly selects countries and regions", {
                      data_dir      = data_dir)
 
   # Regions are selected
-  expect_true(all(region_selection %in% (unique(tmp$region_code))))
+  expect_true(all(region_selection %in% (unique(tmp$lkup$region_code))))
   # Countries are selected
-  expect_true(all(country_selection %in% (unique(tmp$country_code))))
+  expect_true(all(country_selection %in% (unique(tmp$lkup$country_code))))
 })
 
 # select_country() test suite

@@ -1,6 +1,6 @@
 Package: pipapi
 Title: API for the Poverty and Inequality Platform
-Version: 1.3.12
+Version: 1.3.13
 Authors@R: 
     c(person(given = "Tony",
             family = "Fujs",
@@ -26,7 +26,6 @@ Suggests:
     covr,
     testthat,
     spelling,
-    knitr,
     rmarkdown,
     markdown,
     assertthat,
@@ -36,7 +35,9 @@ Suggests:
     lintr,
     withr,
     devtools, 
-    stringr
+    stringr, 
+    knitr, 
+    dplyr
 Language: en-US
 Imports: 
     data.table,
@@ -58,7 +59,11 @@ Imports:
     joyn,
     yaml,
     purrr,
-    future
+    future, 
+    glue, 
+    DBI, 
+    duckdb, 
+    duckplyr
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 

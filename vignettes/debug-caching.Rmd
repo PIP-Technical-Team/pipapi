@@ -1,9 +1,10 @@
 ---
 title: "Debug caching and API endpoints"
-output: html_document
 date: "2024-10-02"
 author: "Ronak Shah"
+output: rmarkdown::html_vignette
 vignette: >
+  %\VignetteIndexEntry{Debug caching and API endpoints}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
