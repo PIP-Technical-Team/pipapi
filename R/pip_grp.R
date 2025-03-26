@@ -233,15 +233,14 @@ pip_aggregate_by <- function(df,
                                "reporting_pop")]
 
   # Compute stats weighted average by groups
-  rgn <- df[, lapply(.SD, stats::weighted.mean,
-                     w = reporting_pop,
-                     na.rm = TRUE),
-            by = .(region_name,
-                   region_code,
-                   reporting_year,
-                   poverty_line),
-            .SDcols = weighted_cols
-            ]
+  to_keep <- c(weighted_cols, "reporting_pop")
+  rgn <- df |>
+    fgroup_by(region_name,
+              region_code,
+              reporting_year,
+              poverty_line) |>
+    fselect(to_keep) |>
+    fmean(reporting_pop, keep.w = FALSE)
 
   rgn <- group_lkup[rgn,
                     on = .(region_code, reporting_year),
