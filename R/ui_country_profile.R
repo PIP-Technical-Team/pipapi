@@ -267,7 +267,6 @@ cp_pov_mrv_select_countries <- function(dt, country) {
 #' @param v numeric: A vector with headcounts for all countries in the region
 #' @param h numeric: Headcount for the request country
 #' @noRd
-#' @importFrom utils head tail
 cp_pov_mrv_select_values <- function(v, h) {
 
   # Sort values

@@ -1,3 +1,7 @@
+#' @keywords internal
+#' @aliases pipapi-package
+"_PACKAGE"
+
 #' List of two datasets `pov_trend` and `pov_mrv`
 #'
 #' @docType data
@@ -24,6 +28,22 @@ NULL
 #' @name lkup
 #' @usage data(lkup)
 #' @format A list of lookup values
+NULL
+
+
+# data.table is generally careful to minimize the scope for namespace
+# conflicts (i.e., functions with the same name as in other packages);
+# a more conservative approach using @importFrom should be careful to
+# import any needed data.table special symbols as well, e.g., if you
+# run DT[ , .N, by='grp'] in your package, you'll need to add
+# @importFrom data.table .N to prevent the NOTE from R CMD check.
+# See ?data.table::`special-symbols` for the list of such symbols
+# data.table defines; see the 'Importing data.table' vignette for more
+# advice (vignette('datatable-importing', 'data.table')).
+#
+#' @rawNamespace import(collapse, except = fdroplevels)
+#' @rawNamespace import(data.table, except = fdroplevels)
+#' @importFrom utils head tail
 NULL
 
 
