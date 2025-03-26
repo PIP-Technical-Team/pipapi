@@ -59,8 +59,9 @@ pip_grp <- function(country         = "ALL",
     reporting_level = reporting_level,
     ppp             = NULL,
     lkup           = lkup)
+
   # For now just rowbinding two dataframes, but we would need to use it more smartly in the future
-  out <- collapse::rowbind(out)
+  out <- collapse::rowbind(out, fill = TRUE)
   # return empty dataframe if no metadata is found
   if (nrow(out) == 0) {
     return(pipapi::empty_response_grp)
