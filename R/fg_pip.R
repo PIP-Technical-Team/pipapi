@@ -14,13 +14,19 @@ fg_pip <- function(country,
                    reporting_level,
                    ppp,
                    lkup,
-                   con) {
+                   con = NULL) {
 
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
   data_dir            <- lkup$data_root
   ref_lkup            <- lkup$ref_lkup
 
+  # fg_pip is called from multiple places like pip, pip_grp_logic. We have connection object created
+  # when calling from `pip`. For other functions we create it here.
+  if (is.null(con)) {
+    cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+    con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
+  }
   # Handle interpolation
   metadata <- subset_lkup(
     country         = country,
@@ -45,7 +51,7 @@ fg_pip <- function(country,
 
   # Return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    return(list(main_data = empty_response, data_in_cache = data_present_in_master))
+    return(list(main_data = empty_response_fg, data_in_cache = data_present_in_master))
   }
 
   unique_survey_files <- unique(metadata$data_interpolation_id)
@@ -128,7 +134,7 @@ fg_pip <- function(country,
   out[,
       poverty_line := round(poverty_line, digits = 3) ]
 
-
+  out$path <- as.character(out$path)
   return(list(main_data = out, data_in_cache = data_present_in_master))
 }
 
