@@ -10,7 +10,6 @@ add_agg_stats <- function(df,
                           return_cols) {
   # Keep only Urban / Rural observations that will be aggregated at the
   # national level
-  #browser()
   aggregated <- df[df$is_used_for_aggregation, ]
 
   if (nrow(aggregated) > 0) {
@@ -26,7 +25,7 @@ add_agg_stats <- function(df,
                          return_cols)
 
     aggregated <- data.table::rbindlist(aggregated)
-
+    aggregated$path <- as.character(aggregated$path)
     df <- rbind(df, aggregated)
   }
 

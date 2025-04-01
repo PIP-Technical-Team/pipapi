@@ -296,7 +296,6 @@ pip_grp_helper <- function(lcv_country,
   if (nrow(out) == 0) {
     return(pipapi::empty_response_grp)
   }
-
   # Handles aggregated distributions
   if (reporting_level %in% c("national", "all")) {
     out <- add_agg_stats(out,

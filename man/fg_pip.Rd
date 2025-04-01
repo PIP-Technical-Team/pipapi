@@ -13,7 +13,7 @@ fg_pip(
   reporting_level,
   ppp,
   lkup,
-  con
+  con = NULL
 )
 }
 \arguments{
