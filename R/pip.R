@@ -149,7 +149,7 @@ pip <- function(country         = "ALL",
     # It is important to close the read connection before you open a write connection because
     # duckdb kind of inherits read_only flag from previous connection object if it is not closed
     # More details here https://app.clickup.com/t/868cdpe3q
-    duckdb::dbDisconnect(read_con)
+    duckdb::dbDisconnect(read_con, shutdown = TRUE)
     cached_data <- out$data_in_cache
     main_data <- out$main_data
 
