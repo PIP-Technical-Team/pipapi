@@ -4,17 +4,19 @@
 \alias{return_if_exists}
 \title{Return the rows of the table if they exist in master file}
 \usage{
-return_if_exists(lkup, povline, con, fill_gaps)
+return_if_exists(lkup, povline, cache_file_path, fill_gaps)
 }
 \arguments{
 \item{lkup}{list: A list of lkup tables}
 
 \item{povline}{numeric: Poverty line}
 
-\item{con}{Connection object to duckdb table}
+\item{cache_file_path}{path of the cache file}
 
 \item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
 values for missing years}
+
+\item{con}{Connection object to duckdb table}
 }
 \value{
 Dataframe

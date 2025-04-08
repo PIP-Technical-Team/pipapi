@@ -13,7 +13,7 @@ rg_pip(
   reporting_level,
   ppp,
   lkup,
-  con
+  cache_file_path
 )
 }
 \arguments{
@@ -34,7 +34,7 @@ poverty line}
 
 \item{lkup}{list: A list of lkup tables}
 
-\item{con}{duckdb connection object}
+\item{cache_file_path}{path of the cache file}
 }
 \value{
 data.frame

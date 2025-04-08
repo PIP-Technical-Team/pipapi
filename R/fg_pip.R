@@ -3,7 +3,7 @@
 #' Compute the main PIP poverty and inequality statistics for imputed years.
 #'
 #' @inheritParams pip
-#' @param con duckdb connection object
+#' @param cache_file_path path of the cache file
 #' @return data.frame
 #' @keywords internal
 fg_pip <- function(country,
@@ -14,7 +14,7 @@ fg_pip <- function(country,
                    reporting_level,
                    ppp,
                    lkup,
-                   con = NULL) {
+                   cache_file_path) {
 
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
@@ -23,10 +23,10 @@ fg_pip <- function(country,
 
   # fg_pip is called from multiple places like pip, pip_grp_logic. We have connection object created
   # when calling from `pip`. For other functions we create it here.
-  if (is.null(con)) {
-    cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
-    con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
-  }
+  # if (is.null(con)) {
+  #   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  #   con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
+  # }
   # Handle interpolation
   metadata <- subset_lkup(
     country         = country,
@@ -37,7 +37,7 @@ fg_pip <- function(country,
     valid_regions   = valid_regions,
     data_dir        = data_dir,
     povline = povline,
-    con = con,
+    cache_file_path = cache_file_path,
     fill_gaps = TRUE
   )
 

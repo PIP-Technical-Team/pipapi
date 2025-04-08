@@ -13,7 +13,7 @@ subset_lkup(
   valid_regions,
   data_dir = NULL,
   povline,
-  con,
+  cache_file_path,
   fill_gaps
 )
 }
@@ -35,7 +35,7 @@ for region selection}
 
 \item{povline}{numeric: Poverty line}
 
-\item{con}{duckdb connection object}
+\item{cache_file_path}{path of the cache file}
 
 \item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
 values for missing years}
