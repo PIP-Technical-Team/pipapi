@@ -4,6 +4,7 @@
 #' @param valid_regions character: List of valid region codes that can be used
 #' for region selection
 #' @param data_dir character: directory path from lkup$data_root
+#' @param cache_file_path file path for cache
 #' @return data.frame
 #' @keywords internal
 subset_lkup <- function(country,

@@ -128,8 +128,7 @@ pip <- function(country         = "ALL",
         welfare_type       = welfare_type,
         reporting_level    = reporting_level,
         ppp                = ppp,
-        lkup               = lkup,
-        cache_file_path    = cache_file_path
+        lkup               = lkup
         )
     } else {
       ## survey years ------------------
@@ -141,8 +140,7 @@ pip <- function(country         = "ALL",
         welfare_type    = welfare_type,
         reporting_level = reporting_level,
         ppp             = ppp,
-        lkup            = lkup,
-        cache_file_path = cache_file_path
+        lkup            = lkup
       )
     }
 

@@ -11,7 +11,7 @@ return_if_exists(lkup, povline, cache_file_path, fill_gaps)
 
 \item{povline}{numeric: Poverty line}
 
-\item{cache_file_path}{path of the cache file}
+\item{cache_file_path}{file path for cache}
 
 \item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
 values for missing years}

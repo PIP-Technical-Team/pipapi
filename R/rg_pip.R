@@ -3,7 +3,6 @@
 #' Compute the main PIP poverty and inequality statistics for survey years.
 #'
 #' @inheritParams pip
-#' @param cache_file_path path of the cache file
 #' @return data.frame
 #' @keywords internal
 rg_pip <- function(country,
@@ -13,12 +12,13 @@ rg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   lkup,
-                   cache_file_path) {
+                   lkup) {
   # get values from lkup
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
   data_dir      <- lkup$data_root
+
+  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
 
   metadata <- subset_lkup(
     country         = country,

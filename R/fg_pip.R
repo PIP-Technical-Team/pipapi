@@ -3,7 +3,6 @@
 #' Compute the main PIP poverty and inequality statistics for imputed years.
 #'
 #' @inheritParams pip
-#' @param cache_file_path path of the cache file
 #' @return data.frame
 #' @keywords internal
 fg_pip <- function(country,
@@ -13,14 +12,14 @@ fg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   lkup,
-                   cache_file_path) {
+                   lkup) {
 
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
   data_dir            <- lkup$data_root
   ref_lkup            <- lkup$ref_lkup
 
+  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   # fg_pip is called from multiple places like pip, pip_grp_logic. We have connection object created
   # when calling from `pip`. For other functions we create it here.
   # if (is.null(con)) {
