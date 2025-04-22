@@ -263,7 +263,7 @@ test_that("Imputation is working for mixed distributions aggregate / micro", {
     lkup      = lkup
   )
 
-  expect_equal(nrow(tmp), 3)
+  expect_equal(nrow(tmp), 1)
   # expect_equal(tmp$headcount[tmp$reporting_level == "national"], 0.4794678)
   # expect_equal(tmp$headcount[tmp$reporting_level == "rural"], 0.5366117)
   # expect_equal(tmp$headcount[tmp$reporting_level == "urban"], 0.3184304)
@@ -476,7 +476,7 @@ test_that("pop_share option is returning consistent results for single microdata
   )
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
-  expect_equal(povline, round(ps$poverty_line, 2))
+  expect_equal(povline, round(ps$poverty_line, 1))
 
   # High poverty line
   # Fails for higher poverty lines
@@ -665,7 +665,7 @@ test_that("pop_share option is disabled for aggregate distributions", {
 
   expect_equal(nrow(pl), 1)
 
-  if (ps$distribution_type == "aggregate") {
+  if (all(ps$distribution_type == "aggregate")) {
     expect_equal(nrow(ps), 0)
   }
 

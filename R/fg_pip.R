@@ -138,7 +138,8 @@ fg_pip <- function(country,
       poverty_line := round(poverty_line, digits = 3) ]
 
   out$path <- as.character(out$path)
-  out$max_year <- NULL
+  if("max_year" %in% names(out)) out$max_year <- NULL
+
   return(list(main_data = out, data_in_cache = data_present_in_master))
 }
 
