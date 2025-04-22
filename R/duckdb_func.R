@@ -20,15 +20,15 @@ return_if_exists <- function(lkup, povline, con, fill_gaps) {
       dplyr::inner_join(
         x = master_file,
         y = lkup |>
-          collapse::fselect(country_code, reporting_year, is_interpolated),
-        by = c("country_code", "reporting_year", "is_interpolated")) |>
+          collapse::fselect(country_code, reporting_year, is_interpolated, welfare_type),
+        by = c("country_code", "reporting_year", "is_interpolated", "welfare_type")) |>
       dplyr::filter(poverty_line == povline)
 
     keep <- TRUE
     if (nrow(data_present_in_master) > 0) {
       # Remove the rows from lkup that are present in master
-      keep <- !with(lkup, paste(country_code, reporting_year, is_interpolated)) %in%
-        with(data_present_in_master, paste(country_code, reporting_year, is_interpolated))
+      keep <- !with(lkup, paste(country_code, reporting_year, is_interpolated, welfare_type)) %in%
+        with(data_present_in_master, paste(country_code, reporting_year, is_interpolated, welfare_type))
 
       lkup <- lkup[keep, ]
 
