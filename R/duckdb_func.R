@@ -22,7 +22,7 @@ return_if_exists <- function(lkup, povline, con, fill_gaps) {
         y = lkup |>
           collapse::fselect(country_code, reporting_year, is_interpolated, welfare_type),
         by = c("country_code", "reporting_year", "is_interpolated", "welfare_type")) |>
-      dplyr::filter(poverty_line == povline)
+      dplyr::filter(poverty_line %in% povline)
 
     keep <- TRUE
     if (nrow(data_present_in_master) > 0) {
