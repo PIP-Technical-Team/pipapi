@@ -1,3 +1,8 @@
+# pipapi 1.3.14
+
+* Fix issues with intermediate caching when multiple R sessions are open
+* Optimize opening and closing of duckdb connection. 
+
 # pipapi 1.3.13
 
 * implement intermediate caching
