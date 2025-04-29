@@ -3,7 +3,6 @@
 #' Compute the main PIP poverty and inequality statistics for imputed years.
 #'
 #' @inheritParams pip
-#' @param con duckdb connection object
 #' @return data.frame
 #' @keywords internal
 fg_pip <- function(country,
@@ -13,20 +12,20 @@ fg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   lkup,
-                   con = NULL) {
+                   lkup) {
 
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
   data_dir            <- lkup$data_root
   ref_lkup            <- lkup$ref_lkup
 
+  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   # fg_pip is called from multiple places like pip, pip_grp_logic. We have connection object created
   # when calling from `pip`. For other functions we create it here.
-  if (is.null(con)) {
-    cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
-    con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
-  }
+  # if (is.null(con)) {
+  #   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  #   con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
+  # }
   # Handle interpolation
   metadata <- subset_lkup(
     country         = country,
@@ -37,7 +36,7 @@ fg_pip <- function(country,
     valid_regions   = valid_regions,
     data_dir        = data_dir,
     povline = povline,
-    con = con,
+    cache_file_path = cache_file_path,
     fill_gaps = TRUE
   )
 
@@ -51,7 +50,7 @@ fg_pip <- function(country,
 
   # Return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    return(list(main_data = empty_response_fg, data_in_cache = data_present_in_master))
+    return(list(main_data = pipapi::empty_response_fg, data_in_cache = data_present_in_master))
   }
 
   unique_survey_files <- unique(metadata$data_interpolation_id)

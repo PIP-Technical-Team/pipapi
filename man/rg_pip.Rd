@@ -12,8 +12,7 @@ rg_pip(
   welfare_type,
   reporting_level,
   ppp,
-  lkup,
-  con
+  lkup
 )
 }
 \arguments{
@@ -33,8 +32,6 @@ poverty line}
 \item{ppp}{numeric: Custom Purchase Power Parity value}
 
 \item{lkup}{list: A list of lkup tables}
-
-\item{con}{duckdb connection object}
 }
 \value{
 data.frame

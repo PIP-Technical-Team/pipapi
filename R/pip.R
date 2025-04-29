@@ -117,7 +117,6 @@ pip <- function(country         = "ALL",
     # Create an empty duckdb file
     create_duckdb_file(cache_file_path)
   }
-  read_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
     # mains estimates ---------------
     if (fill_gaps) {
       ## lineup years-----------------
@@ -129,8 +128,7 @@ pip <- function(country         = "ALL",
         welfare_type       = welfare_type,
         reporting_level    = reporting_level,
         ppp                = ppp,
-        lkup               = lkup,
-        con                = read_con
+        lkup               = lkup
         )
     } else {
       ## survey years ------------------
@@ -142,14 +140,10 @@ pip <- function(country         = "ALL",
         welfare_type    = welfare_type,
         reporting_level = reporting_level,
         ppp             = ppp,
-        lkup            = lkup,
-        con             = read_con
+        lkup            = lkup
       )
     }
-    # It is important to close the read connection before you open a write connection because
-    # duckdb kind of inherits read_only flag from previous connection object if it is not closed
-    # More details here https://app.clickup.com/t/868cdpe3q
-    duckdb::dbDisconnect(read_con)
+
     cached_data <- out$data_in_cache
     main_data <- out$main_data
 

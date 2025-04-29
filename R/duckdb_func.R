@@ -6,16 +6,21 @@
 #' @return Dataframe
 #' @export
 #'
-return_if_exists <- function(lkup, povline, con, fill_gaps) {
+return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
   # It is not possible to append to parquet file https://stackoverflow.com/questions/39234391/how-to-append-data-to-an-existing-parquet-file
   # Writing entire data will be very costly as data keeps on growing, better is to save data in duckdb and append to it.
   if (!getOption("pipapi.query_live_data")) {
     target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
+    con <- connect_with_retry(cache_file_path)
 
     master_file <- DBI::dbGetQuery(con,
                                    glue::glue("select * from {target_file}")) |>
       duckplyr::as_duckplyr_tibble()
 
+    # It is important to close the read connection before you open a write connection because
+    # duckdb kind of inherits read_only flag from previous connection object if it is not closed
+    # More details here https://app.clickup.com/t/868cdpe3q
+    duckdb::dbDisconnect(con)
     data_present_in_master <-
       dplyr::inner_join(
         x = master_file,
@@ -59,6 +64,22 @@ update_master_file <- function(dat, cache_file_path, fill_gaps) {
   message(glue::glue("{target_file} is updated."))
 
   return(nrow(dat))
+}
+
+connect_with_retry <- function(db_path, max_attempts = 5, delay_sec = 1) {
+  attempt <- 1
+  while (attempt <= max_attempts) {
+    tryCatch({
+      con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = TRUE)
+      message("Connected on attempt ", attempt)
+      return(con)
+    }, error = function(e) {
+      message("Attempt ", attempt, " failed: ", conditionMessage(e))
+      if (attempt == max_attempts) stop("Failed to connect after ", max_attempts, " attempts.")
+      Sys.sleep(delay_sec)
+      attempt <<- attempt + 1
+    })
+  }
 }
 
 
