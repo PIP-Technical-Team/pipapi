@@ -14,20 +14,21 @@ return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
     con <- connect_with_retry(cache_file_path)
 
     master_file <- DBI::dbGetQuery(con,
-                                   glue::glue("select * from {target_file}")) |>
-      duckplyr::as_duckplyr_tibble()
+                                   glue::glue("select * from {target_file}"))
 
     # It is important to close the read connection before you open a write connection because
     # duckdb kind of inherits read_only flag from previous connection object if it is not closed
     # More details here https://app.clickup.com/t/868cdpe3q
     duckdb::dbDisconnect(con)
+
     data_present_in_master <-
-      dplyr::inner_join(
+      collapse::join(
         x = master_file,
         y = lkup |>
           collapse::fselect(country_code, reporting_year, is_interpolated, welfare_type),
-        by = c("country_code", "reporting_year", "is_interpolated", "welfare_type")) |>
-      dplyr::filter(poverty_line %in% povline)
+        on = c("country_code", "reporting_year", "is_interpolated", "welfare_type"),
+        how = "inner", overid = 2) |>
+      collapse::fsubset(poverty_line %in% povline)
 
     keep <- TRUE
     if (nrow(data_present_in_master) > 0) {
