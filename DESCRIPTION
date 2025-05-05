@@ -62,8 +62,7 @@ Imports:
     future, 
     glue, 
     DBI, 
-    duckdb, 
-    duckplyr
+    duckdb
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 
