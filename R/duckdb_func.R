@@ -27,7 +27,9 @@ return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
         y = lkup |>
           collapse::fselect(country_code, reporting_year, is_interpolated, welfare_type),
         on = c("country_code", "reporting_year", "is_interpolated", "welfare_type"),
-        how = "inner", overid = 2) |>
+        how = "inner",
+        overid = 2,
+        verbose = 0) |>
       collapse::fsubset(poverty_line %in% povline)
 
     keep <- TRUE
