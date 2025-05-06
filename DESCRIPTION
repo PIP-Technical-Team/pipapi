@@ -63,6 +63,7 @@ Imports:
     DBI, 
     duckdb, 
     jsonlite,
+    digest,
     duckplyr
 Remotes:
     PIP-Technical-Team/wbpip@DEV
