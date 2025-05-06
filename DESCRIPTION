@@ -31,7 +31,6 @@ Suggests:
     assertthat,
     callr,
     httr,
-    jsonlite,
     lintr,
     withr,
     devtools, 
@@ -62,7 +61,9 @@ Imports:
     future, 
     glue, 
     DBI, 
-    duckdb
+    duckdb, 
+    jsonlite,
+    duckplyr
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 
