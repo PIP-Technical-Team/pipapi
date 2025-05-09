@@ -31,7 +31,8 @@ return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
       collapse::fsubset(poverty_line %in% povline)
 
     keep <- TRUE
-    if (nrow(data_present_in_master) > 0) {
+    if (nrow(data_present_in_master) > 0 &&
+          all(povline %in% data_present_in_master$poverty_line)) {
       # Remove the rows from lkup that are present in master
       keep <- !with(lkup, paste(country_code, reporting_year, is_interpolated, welfare_type)) %in%
         with(data_present_in_master, paste(country_code, reporting_year, is_interpolated, welfare_type))
@@ -60,7 +61,19 @@ update_master_file <- function(dat, cache_file_path, fill_gaps) {
   target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
 
   duckdb::duckdb_register(write_con, "append_data", dat, overwrite = TRUE)
-  DBI::dbExecute(write_con, glue::glue("INSERT INTO {target_file} SELECT * FROM append_data;"))
+  unique_keys <- c("country_code", "reporting_year", "is_interpolated", "welfare_type")
+  # Insert the rows that don't exist already in the master file
+  DBI::dbExecute(write_con, glue::glue("
+  INSERT INTO {target_file}
+  SELECT *
+  FROM append_data AS a
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM {target_file} AS t
+    WHERE {glue::glue_collapse(
+          glue::glue('t.{unique_keys} = a.{unique_keys}'), sep = ' AND ')}
+     );
+  "))
   duckdb::dbDisconnect(write_con)
   message(glue::glue("{target_file} is updated."))
 
