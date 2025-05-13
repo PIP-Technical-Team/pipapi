@@ -58,7 +58,6 @@ Imports:
     joyn,
     yaml,
     purrr,
-    future, 
     glue, 
     DBI, 
     duckdb, 
