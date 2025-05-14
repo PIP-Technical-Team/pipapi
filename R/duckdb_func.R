@@ -1,25 +1,15 @@
 #' Return the rows of the table if they exist in master file
 #'
 #' @inheritParams subset_lkup
-#' @param con Connection object to duckdb table
 #'
 #' @return Dataframe
 #' @export
-#'
 return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
   # It is not possible to append to parquet file https://stackoverflow.com/questions/39234391/how-to-append-data-to-an-existing-parquet-file
   # Writing entire data will be very costly as data keeps on growing, better is to save data in duckdb and append to it.
   if (!getOption("pipapi.query_live_data")) {
-    target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
-    con <- connect_with_retry(cache_file_path)
-
-    master_file <- DBI::dbGetQuery(con,
-                                   glue::glue("select * from {target_file}"))
-
-    # It is important to close the read connection before you open a write connection because
-    # duckdb kind of inherits read_only flag from previous connection object if it is not closed
-    # More details here https://app.clickup.com/t/868cdpe3q
-    duckdb::dbDisconnect(con)
+    master_file <- load_inter_cache(cache_file_path = cache_file_path,
+                                    fill_gaps = fill_gaps)
 
     data_present_in_master <-
       collapse::join(
@@ -60,9 +50,20 @@ return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
 #'
 update_master_file <- function(dat, cache_file_path, fill_gaps) {
   write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
-  target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
+  target_file <- if (fill_gaps) {
+    "fg_master_file"
+  } else {
+    "rg_master_file"
+  }
+
   duckdb::duckdb_register(write_con, "append_data", dat, overwrite = TRUE)
-  unique_keys <- c("country_code", "reporting_year", "is_interpolated", "welfare_type", "poverty_line")
+  unique_keys <- c(
+    "country_code",
+    "reporting_year",
+    "is_interpolated",
+    "welfare_type",
+    "poverty_line"
+  )
 
   # Insert the rows that don't exist already in the master file
   nr <- DBI::dbExecute(write_con, glue::glue("
@@ -82,19 +83,28 @@ update_master_file <- function(dat, cache_file_path, fill_gaps) {
   return(nr)
 }
 
-connect_with_retry <- function(db_path, max_attempts = 5, delay_sec = 1, read_only = TRUE) {
+connect_with_retry <- function(db_path,
+                               max_attempts = 5,
+                               delay_sec = 1,
+                               read_only = TRUE) {
   attempt <- 1
   while (attempt <= max_attempts) {
+
     tryCatch({
-      con <- duckdb::dbConnect(duckdb::duckdb(dbdir = db_path, read_only = read_only))
+      con <- duckdb::duckdb(dbdir = db_path, read_only = read_only) |>
+        duckdb::dbConnect()
       message("Connected on attempt ", attempt)
       return(con)
-    }, error = function(e) {
+    },
+    error = function(e) {
       message("Attempt ", attempt, " failed: ", conditionMessage(e))
-      if (attempt == max_attempts) stop("Failed to connect after ", max_attempts, " attempts.")
+      if (attempt == max_attempts) {
+        stop("Failed to connect after ", max_attempts, " attempts.")
+      }
       Sys.sleep(delay_sec)
       attempt <<- attempt + 1
     })
+
   }
 }
 
@@ -237,3 +247,39 @@ create_duckdb_file <- function(cache_file_path) {
   )")
   DBI::dbDisconnect(con)
 }
+
+
+
+
+#' Load Intermediate cache data
+#'
+#' @inheritParams return_if_exists
+#'
+#' @return data frame
+#' @export
+load_inter_cache <- function(lkup = NULL,
+                             cache_file_path = NULL,
+                             fill_gaps = FALSE) {
+
+  target_file <- if (fill_gaps) {
+    "fg_master_file"
+  } else {
+    "rg_master_file"
+  }
+
+  if (!is.null(lkup)) {
+    cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  }
+  con <- connect_with_retry(cache_file_path)
+
+  master_file <- DBI::dbGetQuery(con,
+                                 glue::glue("select * from {target_file}"))
+
+  # It is important to close the read connection before you open a write connection because
+  # duckdb kind of inherits read_only flag from previous connection object if it is not closed
+  # More details here https://app.clickup.com/t/868cdpe3q
+  duckdb::dbDisconnect(con)
+
+  setDT(master_file)
+}
+
