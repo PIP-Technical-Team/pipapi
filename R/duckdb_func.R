@@ -31,7 +31,7 @@ return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
         overid = 2,
         verbose = 0) |>
       collapse::fsubset(poverty_line %in% povline)
-
+    #browser()
     keep <- TRUE
     if (nrow(data_present_in_master) > 0 &&
           all(povline %in% data_present_in_master$poverty_line)) {
@@ -59,13 +59,12 @@ return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
 #' @export
 #'
 update_master_file <- function(dat, cache_file_path, fill_gaps) {
-  write_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path)
+  write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
   target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
-
   duckdb::duckdb_register(write_con, "append_data", dat, overwrite = TRUE)
   unique_keys <- c("country_code", "reporting_year", "is_interpolated", "welfare_type")
   # Insert the rows that don't exist already in the master file
-  DBI::dbExecute(write_con, glue::glue("
+  nr <- DBI::dbExecute(write_con, glue::glue("
   INSERT INTO {target_file}
   SELECT *
   FROM append_data AS a
@@ -77,16 +76,16 @@ update_master_file <- function(dat, cache_file_path, fill_gaps) {
      );
   "))
   duckdb::dbDisconnect(write_con)
-  message(glue::glue("{target_file} is updated."))
+  if(nr > 0)  message(glue::glue("{target_file} is updated."))
 
-  return(nrow(dat))
+  return(nr)
 }
 
-connect_with_retry <- function(db_path, max_attempts = 5, delay_sec = 1) {
+connect_with_retry <- function(db_path, max_attempts = 5, delay_sec = 1, read_only = TRUE) {
   attempt <- 1
   while (attempt <= max_attempts) {
     tryCatch({
-      con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = TRUE)
+      con <- duckdb::dbConnect(duckdb::duckdb(dbdir = db_path, read_only = read_only))
       message("Connected on attempt ", attempt)
       return(con)
     }, error = function(e) {
