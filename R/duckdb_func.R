@@ -62,7 +62,8 @@ update_master_file <- function(dat, cache_file_path, fill_gaps) {
   write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
   target_file <- if (fill_gaps) "fg_master_file" else "rg_master_file"
   duckdb::duckdb_register(write_con, "append_data", dat, overwrite = TRUE)
-  unique_keys <- c("country_code", "reporting_year", "is_interpolated", "welfare_type")
+  unique_keys <- c("country_code", "reporting_year", "is_interpolated", "welfare_type", "poverty_line")
+
   # Insert the rows that don't exist already in the master file
   nr <- DBI::dbExecute(write_con, glue::glue("
   INSERT INTO {target_file}
