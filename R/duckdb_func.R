@@ -124,7 +124,7 @@ reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'), type = c("both
 }
 
 create_duckdb_file <- function(cache_file_path) {
-  con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path)
+  con <- connect_with_retry(cache_file_path)
   DBI::dbExecute(con, "CREATE OR REPLACE table rg_master_file (
                  country_code VARCHAR,
                  survey_id VARCHAR,
