@@ -60,10 +60,11 @@ rg_pip <- function(country,
   metadata[, file := basename(path)]
 
   out <- join(res,
-               metadata,
-               on = c("file", "reporting_level"),
-               how = "full",
-               validate = "m:1")
+              metadata,
+              on = c("file", "reporting_level"),
+              how = "full",
+              validate = "m:1",
+              verbose = 0)
 
   out[, `:=`(
     mean = survey_mean_ppp,
@@ -163,91 +164,3 @@ load_data_list <- \(metadata) {
 
 }
 
-
-
-#' Compute survey year stats
-#'
-#' Compute the main PIP poverty and inequality statistics for survey years.
-#'
-#' @inheritParams pip
-#' @return data.frame
-#' @keywords internal
-rg_pip_old <- function(country,
-                   year,
-                   povline,
-                   popshare,
-                   welfare_type,
-                   reporting_level,
-                   ppp,
-                   lkup) {
-  # get values from lkup
-  valid_regions <- lkup$query_controls$region$values
-  svy_lkup      <- lkup$svy_lkup
-  data_dir      <- lkup$data_root
-
-  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
-
-  metadata <- subset_lkup(
-    country         = country,
-    year            = year,
-    welfare_type    = welfare_type,
-    reporting_level = reporting_level,
-    lkup            = svy_lkup,
-    valid_regions   = valid_regions,
-    data_dir        = data_dir,
-    povline         = povline,
-    cache_file_path = cache_file_path,
-    fill_gaps       = FALSE
-  )
-  data_present_in_master <- metadata$data_present_in_master
-  metadata <- metadata$lkup
-
-  # Remove aggregate distribution if popshare is specified
-  # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
-  metadata <- filter_lkup(metadata = metadata,
-                          popshare = popshare)
-
-  # return empty dataframe if no metadata is found
-  if (nrow(metadata) == 0) {
-    return(list(main_data = empty_response,
-                data_in_cache = data_present_in_master))
-  }
-
-  out <- vector(mode = "list", length = nrow(metadata))
-
-  for (i in seq_along(out)) {
-    tmp_metadata <- metadata[i, ]
-
-    svy_data <- get_svy_data(
-      tmp_metadata$cache_id,
-      reporting_level = tmp_metadata$reporting_level,
-      path = tmp_metadata$path
-    )
-    tmp_stats <- wbpip:::prod_compute_pip_stats(
-      welfare           = svy_data$df0$welfare,
-      povline           = povline,
-      popshare          = popshare,
-      population        = svy_data$df0$weight,
-      requested_mean    = tmp_metadata$survey_mean_ppp,
-      svy_mean_lcu      = tmp_metadata$survey_mean_lcu,
-      svy_median_lcu    = tmp_metadata$survey_median_lcu,
-      svy_median_ppp    = tmp_metadata$survey_median_ppp,
-      default_ppp       = tmp_metadata$ppp,
-      ppp               = ppp,
-      distribution_type = tmp_metadata$distribution_type
-    )
-    # Add stats columns to data frame
-    for (j in seq_along(tmp_stats)) {
-      tmp_metadata[[names(tmp_stats)[j]]] <- list(tmp_stats[[j]])
-    }
-    # To allow multiple povline values, we store them in a list and unnest
-    tmp_metadata <-
-      tmp_metadata %>%
-      unnest_dt_longer(names(tmp_metadata)[sapply(tmp_metadata, is.list)])
-    out[[i]] <- tmp_metadata
-  }
-  #browser()
-  out <- data.table::rbindlist(out)
-
-  return(list(main_data = out, data_in_cache = data_present_in_master))
-}
