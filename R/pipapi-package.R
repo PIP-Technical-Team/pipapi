@@ -1,8 +1,25 @@
 #' @keywords internal
 "_PACKAGE"
 
+
+## usethis namespace: start
 #' @import data.table
-#' @importFrom collapse deprecated
+#' @importFrom collapse ffirst
+#' @importFrom collapse flast
+#' @importFrom collapse fmax
+#' @importFrom collapse fmean
+#' @importFrom collapse fmedian
+#' @importFrom collapse fmin
+#' @importFrom collapse fmode
+#' @importFrom collapse fndistinct
+#' @importFrom collapse fnobs
+#' @importFrom collapse fnth
+#' @importFrom collapse fprod
+#' @importFrom collapse fsd
+#' @importFrom collapse fsum
+#' @importFrom collapse fvar
+## usethis namespace: end
+NULL
 .datatable.aware = TRUE
 
 #' List of two datasets `pov_trend` and `pov_mrv`
