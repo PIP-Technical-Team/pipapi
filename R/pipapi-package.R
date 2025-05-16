@@ -1,3 +1,10 @@
+#' @keywords internal
+"_PACKAGE"
+
+#' @import data.table
+#' @importFrom collapse deprecated
+.datatable.aware = TRUE
+
 #' List of two datasets `pov_trend` and `pov_mrv`
 #'
 #' @docType data
@@ -118,3 +125,4 @@ utils::globalVariables(
     "path"
   )
 )
+
