@@ -4,6 +4,7 @@
 
 ## usethis namespace: start
 #' @import data.table
+#' @importFrom collapse fduplicated
 #' @importFrom collapse ffirst
 #' @importFrom collapse flast
 #' @importFrom collapse fmax
@@ -18,6 +19,7 @@
 #' @importFrom collapse fsd
 #' @importFrom collapse fsum
 #' @importFrom collapse fvar
+#' @importFrom collapse join
 ## usethis namespace: end
 NULL
 .datatable.aware = TRUE

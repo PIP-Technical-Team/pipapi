@@ -46,41 +46,33 @@ rg_pip <- function(country,
                 data_in_cache = data_present_in_master))
   }
 
-  out <- vector(mode = "list", length = nrow(metadata))
+  # load data
+  lt <- load_data_list(metadata)
 
-  for (i in seq_along(out)) {
-    tmp_metadata <- metadata[i, ]
+  # perform calcualtions
+  res <- lapply(lt, function(dt) { #Should we use future_lapply ???
+    dt[, compute_fgt_dt(.SD, "welfare", "weight", povline),
+       by = .(file, reporting_level)]
+  })
+  res <- rbindlist(res, fill = TRUE)
 
-    svy_data <- get_svy_data(
-      tmp_metadata$cache_id,
-      reporting_level = tmp_metadata$reporting_level,
-      path = tmp_metadata$path
-    )
-    tmp_stats <- wbpip:::prod_compute_pip_stats(
-      welfare           = svy_data$df0$welfare,
-      povline           = povline,
-      popshare          = popshare,
-      population        = svy_data$df0$weight,
-      requested_mean    = tmp_metadata$survey_mean_ppp,
-      svy_mean_lcu      = tmp_metadata$survey_mean_lcu,
-      svy_median_lcu    = tmp_metadata$survey_median_lcu,
-      svy_median_ppp    = tmp_metadata$survey_median_ppp,
-      default_ppp       = tmp_metadata$ppp,
-      ppp               = ppp,
-      distribution_type = tmp_metadata$distribution_type
-    )
-    # Add stats columns to data frame
-    for (j in seq_along(tmp_stats)) {
-      tmp_metadata[[names(tmp_stats)[j]]] <- list(tmp_stats[[j]])
-    }
-    # To allow multiple povline values, we store them in a list and unnest
-    tmp_metadata <-
-      tmp_metadata %>%
-      unnest_dt_longer(names(tmp_metadata)[sapply(tmp_metadata, is.list)])
-    out[[i]] <- tmp_metadata
-  }
-  #browser()
-  out <- data.table::rbindlist(out)
+  # clean data
+  metadata[, file := basename(path)]
+
+  out <- join(res,
+               metadata,
+               on = c("file", "reporting_level"),
+               how = "full",
+               validate = "m:1")
+
+  out[, `:=`(
+    mean = survey_mean_ppp,
+    median = survey_median_ppp,
+    file = NULL
+  )]
+
+  setnames(out, "povline", "poverty_line")
+
 
   return(list(main_data = out, data_in_cache = data_present_in_master))
 }
@@ -96,6 +88,7 @@ rg_pip <- function(country,
 #' @param povlines double: vector with poveryt lines
 #'
 #' @return data.table with estimates poverty estimates
+#' @keywords internal
 compute_fgt_dt <- function(dt, welfare, weight, povlines) {
   w <- dt[[welfare]]
   wt <- dt[[weight]]
@@ -138,6 +131,37 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines) {
   )
 }
 
+
+
+
+
+#' load survey year files and store them in a list
+#'
+#' @param metadata data frame from `subset_lkup()`
+#'
+#' @return list with survey years data
+#' @keywords internal
+load_data_list <- \(metadata) {
+
+  # unique values
+  urow       <- fduplicated(metadata$path)
+  upaths     <- metadata$path[!urow]
+  urep_level <- metadata$reporting_level[!urow]
+
+  seq_along(urep_level) |>
+    lapply(\(f) {
+      path      <- upaths[f]
+      rep_level <- urep_level[f]
+      dt <-  fst::read_fst(path, as.data.table = TRUE)
+
+      if (rep_level == "national") {
+        dt[, area := "national"]
+      }
+      dt[, file := basename(path)]
+      setnames(dt, "area", "reporting_level")
+    })
+
+}
 
 
 
