@@ -26,7 +26,8 @@ add_agg_stats <- function(df,
 
     aggregated <- data.table::rbindlist(aggregated)
     aggregated$path <- as.character(aggregated$path)
-    df <- rbind(df, aggregated)
+    df <- list(df, aggregated) |>
+      data.table::rbindlist()
   }
 
   return(df)
@@ -75,20 +76,23 @@ ag_average_poverty_stats <- function(df, return_cols) {
   ## Handle negatives ------
   df[, (noneg_vars) :=
        lapply(.SD, negative_to_na),
-     .SDcols = noneg_vars, by = poverty_line]
+     .SDcols = noneg_vars]
 
   ## Handle zeros -------------
   df[, (zero_vars) :=
        lapply(.SD, zeros_to_na),
-     .SDcols = zero_vars, by = poverty_line]
+     .SDcols = zero_vars]
 
 
   # STEP 3: Calculations ----------
   ## weighted average  ------
   wgt_df <- df |>
     # this grouping is not necessary, but ensures data.frame as output
-    collapse::fgroup_by(c("country_code", "reporting_year", "welfare_type", "poverty_line")) |>
-    collapse::get_vars(c("reporting_pop", "poverty_line", avg_names)) |>
+    collapse::fgroup_by(c("country_code", 
+                          "reporting_year", 
+                          "welfare_type", 
+                          "poverty_line")) |>
+    collapse::get_vars(c("reporting_pop", avg_names)) |>
     collapse::fmean(reporting_pop,
                     keep.group_vars = TRUE,
                     keep.w = TRUE,
@@ -126,8 +130,11 @@ ag_average_poverty_stats <- function(df, return_cols) {
   ## set order of obs anc col -------
   out <- out[, .SD, .SDcols = orig_names]
   data.table::setcolorder(out, orig_names)
-  data.table::setorderv(out, c("country_code", "reporting_year","welfare_type"))
-
+  data.table::setorderv(out, 
+                       c("country_code", 
+                       "reporting_year",
+                       "welfare_type", 
+                       "poverty_line"))
 
   # Return ------
   return(out)
