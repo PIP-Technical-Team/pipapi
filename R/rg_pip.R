@@ -33,7 +33,8 @@ rg_pip <- function(country,
     fill_gaps       = FALSE
   )
   data_present_in_master <- metadata$data_present_in_master
-  metadata <- metadata$lkup
+  metadata  <- metadata$lkup
+
 
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
@@ -117,7 +118,7 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines) {
 
     # Optimized Watts index calculation
     keep <- poor & pos
-    if (any(keep)) {
+    if (any(keep, na.rm = TRUE)) {
       watts_vec[i] <- (fsum((log(pov) - logw[keep]) * wt[keep])) / fsum(wt)
     } else {
       watts_vec[i] <- 0
@@ -135,7 +136,6 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines) {
 
 
 
-
 #' load survey year files and store them in a list
 #'
 #' @param metadata data frame from `subset_lkup()`
@@ -145,21 +145,43 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines) {
 load_data_list <- \(metadata) {
 
   # unique values
-  urow       <- fduplicated(metadata$path)
-  upaths     <- metadata$path[!urow]
-  urep_level <- metadata$reporting_level[!urow]
+  mdout      <- metadata[, lapply(.SD, list), by = path]
+  upaths     <- mdout$path
+  urep_level <- mdout$reporting_level
+  uppp       <- mdout$ppp
+  ucpi       <- mdout$cpi
 
-  seq_along(urep_level) |>
+  seq_along(upaths) |>
     lapply(\(f) {
       path      <- upaths[f]
-      rep_level <- urep_level[f]
+      rep_level <- urep_level[f][[1]]
+      ppp       <- uppp[f][[1]]
+      cpi       <- ucpi[f][[1]]
+
+      # Build a data.table to merge cpi and ppp
+      fdt <- data.table(reporting_level = rep_level,
+                        ppp             = ppp,
+                        cpi             = cpi)
+
+      # load data and format
       dt <-  fst::read_fst(path, as.data.table = TRUE)
 
-      if (rep_level == "national") {
-        dt[, area := "national"]
+      if (length(rep_level) == 1) {
+        if (rep_level == "national") dt[, area := "national"]
       }
       dt[, file := basename(path)]
       setnames(dt, "area", "reporting_level")
+
+      dt <- join(dt, fdt,
+                 on = "reporting_level",
+                 validate = "m:1",
+                 how = "left",
+                 verbose = 0)
+
+      dt[, welfare := welfare/(cpi * ppp)
+         ][,
+           c("cpi", "ppp") := NULL]
+
     })
 
 }
