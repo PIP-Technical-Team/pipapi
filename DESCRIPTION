@@ -71,6 +71,7 @@ Imports:
     duckdb,
     jsonlite,
     digest,
+    future,
     future.apply
 Remotes:
     PIP-Technical-Team/wbpip@DEV
