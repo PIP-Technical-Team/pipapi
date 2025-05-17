@@ -51,7 +51,7 @@ Imports:
     fst (>= 0.9.8),
     plumber,
     urltools,
-    wbpip  (>= 0.1.5),
+    wbpip (>= 0.1.5),
     rlang (>= 1.1.2),
     fs,
     memoise,
@@ -66,11 +66,12 @@ Imports:
     joyn,
     yaml,
     purrr,
-    glue, 
-    DBI, 
-    duckdb, 
+    glue,
+    DBI,
+    duckdb,
     jsonlite,
-    digest
+    digest,
+    future.apply
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 

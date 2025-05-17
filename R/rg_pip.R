@@ -50,12 +50,16 @@ rg_pip <- function(country,
   # load data
   lt <- load_data_list(metadata)
 
-  # perform calcualtions
-  res <- lapply(lt, function(dt) { #Should we use future_lapply ???
+  res <- my_lapply(lt, \(dt) {
     dt[, compute_fgt_dt(.SD, "welfare", "weight", povline),
-       by = .(file, reporting_level)]
+      by = .(file, reporting_level)]
   })
   res <- rbindlist(res, fill = TRUE)
+
+  # res <- lapply(lt, \(dt) { #Should we use future_lapply ???
+  #   dt[, compute_fgt_dt(.SD, "welfare", "weight", povline),
+  #      by = .(file, reporting_level)]
+  # })
 
   # clean data
   metadata[, file := basename(path)]

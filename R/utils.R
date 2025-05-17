@@ -1393,3 +1393,27 @@ unnest_dt_longer <- function(tbl, cols) {
   tbl
 }
 
+
+
+#' checks if a future plan is set (other than 'sequential')
+#'
+#' @return logical value
+#' @keywords internal
+is_future_plan_set <- function() {
+  !inherits(future::plan("list")[[1]], "sequential")
+}
+
+
+#' selector of apply
+#'
+#' @inheritParams base::lapply
+#'
+#' @return list
+#' @keywords internal
+my_lapply <- function(X, FUN, ...) {
+  if (is_future_plan_set()) {
+    future.apply::future_lapply(X, FUN, ...)
+  } else {
+    lapply(X, FUN, ...)
+  }
+}
