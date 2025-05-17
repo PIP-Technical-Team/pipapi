@@ -50,7 +50,12 @@ rg_pip <- function(country,
   # load data
   lt <- load_data_list(metadata)
 
-  res <- get_pov_estimates(lt, povline = povline)
+  # parallelization
+  # res <- get_pov_estimates(lt, povline = povline)
+
+  # Regular lapply
+  res <- lapply(lt, process_dt, povline = povline)
+  
   res <- rbindlist(res, fill = TRUE)
 
   # res <- lapply(lt, \(dt) { #Should we use future_lapply ???
@@ -173,10 +178,6 @@ get_pov_estimates <- function(lt, povline , threshold = 500) {
     lapply(lt, process_dt, povline = povline)
   }
 }
-
-
-
-
 
 
 #' load survey year files and store them in a list
