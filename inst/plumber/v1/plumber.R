@@ -30,7 +30,8 @@ plumber::pr(endpoints_path) |>
   }) |>
   # Set API spec
   plumber::pr_set_api_spec(api = function(spec) {
-    spec$info$version <- utils::packageVersion("pipapi") |> as.character()
+    spec$info$version <- utils::packageVersion("pipapi") |>
+      as.character()
     spec
   }) |>
   plumber::pr_set_api_spec(
