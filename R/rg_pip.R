@@ -50,10 +50,7 @@ rg_pip <- function(country,
   # load data
   lt <- load_data_list(metadata)
 
-  res <- my_lapply(lt, \(dt) {
-    dt[, compute_fgt_dt(.SD, "welfare", "weight", povline),
-      by = .(file, reporting_level)]
-  })
+  res <- get_pov_estimates(lt, povline = povline)
   res <- rbindlist(res, fill = TRUE)
 
   # res <- lapply(lt, \(dt) { #Should we use future_lapply ???
@@ -138,6 +135,48 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines) {
 }
 
 
+process_dt <- function(dt, povline) {
+  dt[, compute_fgt_dt(.SD, "welfare", "weight", povline),
+     by = .(file, reporting_level)]
+}
+
+#' checks if a future plan is set (other than 'sequential')
+#'
+#' @return logical value
+#' @keywords internal
+is_future_plan_set <- function() {
+  !inherits(future::plan("list")[[1]], "sequential")
+}
+
+
+#' get POV estiamates
+#'
+#' Internally it selects lapply or future_lapply
+#'
+#'
+#' @param lt list with data frames
+#' @param povline  double: vector with poverty lines
+#' @param threshold integer: minimum length of X to use future_lapply (default 30)
+#'
+#' @return list
+#' @keywords internal
+get_pov_estimates <- function(lt, povline , threshold = 500) {
+  if (length(lt) >= threshold && is_future_plan_set()) {
+    cli::cli_inform("running with future (parallel)")
+    future.apply::future_lapply(lt, process_dt, povline = povline)
+  } else {
+    if (is_future_plan_set()) {
+      cli::cli_inform("NOT running with future: below threshold")
+    } else {
+      cli::cli_inform("NOT running with future: plan is sequential")
+    }
+    lapply(lt, process_dt, povline = povline)
+  }
+}
+
+
+
+
 
 
 #' load survey year files and store them in a list
@@ -163,7 +202,7 @@ load_data_list <- \(metadata) {
       cpi       <- ucpi[f][[1]]
 
       # Build a data.table to merge cpi and ppp
-      fdt <- data.table(reporting_level = rep_level,
+      fdt <- data.table(reporting_level = as.character(rep_level),
                         ppp             = ppp,
                         cpi             = cpi)
 
@@ -173,8 +212,13 @@ load_data_list <- \(metadata) {
       if (length(rep_level) == 1) {
         if (rep_level == "national") dt[, area := "national"]
       }
-      dt[, file := basename(path)]
       setnames(dt, "area", "reporting_level")
+      dt[,
+         `:=`(
+           file = basename(path),
+           reporting_level = as.character(reporting_level)
+           )
+           ]
 
       dt <- join(dt, fdt,
                  on = "reporting_level",

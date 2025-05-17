@@ -1395,31 +1395,3 @@ unnest_dt_longer <- function(tbl, cols) {
 
 
 
-#' checks if a future plan is set (other than 'sequential')
-#'
-#' @return logical value
-#' @keywords internal
-is_future_plan_set <- function() {
-  !inherits(future::plan("list")[[1]], "sequential")
-}
-
-
-#' selector of lapply
-#'
-#' @inheritParams base::lapply
-#' @param threshold integer: minimum length of X to use future_lapply (default 30)
-#' @return list
-#' @keywords internal
-my_lapply <- function(X, FUN, ..., threshold = 30) {
-  if (length(X) >= threshold && is_future_plan_set()) {
-    cli::cli_inform("running with future (parallel)")
-    future.apply::future_lapply(X, FUN, ...)
-  } else {
-    if (is_future_plan_set()) {
-      cli::cli_inform("NOT running with future: below threshold")
-    } else {
-      cli::cli_inform("NOT running with future: plan is sequential")
-    }
-    lapply(X, FUN, ...)
-  }
-}
