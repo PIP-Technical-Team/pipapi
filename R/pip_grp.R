@@ -77,7 +77,9 @@ pip_grp <- function(country         = "ALL",
 
   # Handle potential (insignificant) difference in poverty_line values that
   # may mess-up the grouping
-  out$poverty_line <- povline
+  # I don't think we need this out$poverty_line already has the correct values additionally,
+  # since povline is vectorized the below line does not work as expected
+  #out$poverty_line <- povline
 
   # Handle aggregations with sub-groups
   if (group_by != "none") {
@@ -283,6 +285,7 @@ pip_aggregate_by <- function(df,
 
 compute_world_aggregates <- function(rgn, cols) {
   # Compute stats
+  # Grouping by poverty line as well since we now have vectorized poverty line values
   wld <- rgn[, lapply(.SD,
                       stats::weighted.mean,
                       w = reporting_pop,
@@ -292,10 +295,10 @@ compute_world_aggregates <- function(rgn, cols) {
   ]
   # Compute yearly population WLD totals
   tmp <- rgn[, .(reporting_pop = sum(reporting_pop)),
-             by = .(reporting_year)]
+             by = .(reporting_year, poverty_line)]
 
 
-  wld <- wld[tmp, on = .(reporting_year = reporting_year)]
+  wld <- wld[tmp, on = .(reporting_year = reporting_year, poverty_line = poverty_line)]
   wld[["region_code"]] <- "WLD"
   wld[["region_name"]] <- "World"
 

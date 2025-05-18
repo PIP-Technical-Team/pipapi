@@ -583,7 +583,7 @@ pipgd_lorenz_curve <- function(
                            params$gd_params$lq$reg_results$coef[["B"]],
                            params$gd_params$lq$reg_results$coef[["C"]])
 
-    lc <- sapply(
+   lc <- sapply(
       X   = x_vec,
       FUN = function(x1){
         wbpip::value_at_lq(

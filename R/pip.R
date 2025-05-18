@@ -53,6 +53,7 @@
 #'     lkup = lkups)
 #' }
 #' @export
+#'
 pip <- function(country         = "ALL",
                 year            = "ALL",
                 povline         = 1.9,
@@ -103,14 +104,6 @@ pip <- function(country         = "ALL",
       aux_files       =  lkup$aux_files
     )
   # lcv$est_ctrs has all the country_code that we are interested in
-  # Integrate return_if_exists for following scenario
-  # 1) country = "AGO" year = 2000 pl = 1.9 should return from master file
-  # 2) country = "AGO" year = 2019 pl = 1.9 should return pip call
-  # 3) country = c("CHN", "IND"), year = 2019, 2017 should return half from master file and half from pip call
-  #
-  # 4) country = "all" year = 2019
-  # 5) country = "AGO" year = "all"
-  # 6) country = "all" year = "all"
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   if (!file.exists(cache_file_path)) {

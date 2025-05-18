@@ -77,10 +77,13 @@ fg_pip <- function(country,
                                     valid_regions = valid_regions,
                                     data_dir      = data_dir)
 
-    # Join because some data might be coming from cache so it might be absent in metadata
+    # Join because some data might be coming from cache so it might be absent in
+    # metadata
     ctry_years <- collapse::join(ctry_years, metadata |>
-                                collapse::fselect(intersect(names(ctry_years), names(metadata))),
-                    verbose = 0,how = "inner")
+                                collapse::fselect(intersect(names(ctry_years),
+                                                            names(metadata))),
+                                verbose = 0,
+                                how = "inner")
 
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 
@@ -113,8 +116,12 @@ fg_pip <- function(country,
       # tmp_metadata <- unique(tmp_metadata)
       # Add stats columns to data frame
       for (stat in seq_along(tmp_stats)) {
-        tmp_metadata[[names(tmp_stats)[stat]]] <- tmp_stats[[stat]]
+        tmp_metadata[[names(tmp_stats)[stat]]] <- list(tmp_stats[[stat]])
       }
+      # To allow multiple povline values, we store them in a list and unnest
+      tmp_metadata <- tmp_metadata %>%
+        unnest_dt_longer(names(tmp_metadata)[sapply(tmp_metadata, is.list)])
+
       results_subset[[ctry_year_id]] <- tmp_metadata
     }
     out[[svy_id]] <- results_subset
@@ -122,8 +129,7 @@ fg_pip <- function(country,
   out <- unlist(out, recursive = FALSE)
   out <- data.table::rbindlist(out)
 
-
-  # # Remove median
+  # Remove median
   # out[, median := NULL]
 
   # Ensure that out does not have duplicates
@@ -134,6 +140,8 @@ fg_pip <- function(country,
       poverty_line := round(poverty_line, digits = 3) ]
 
   out$path <- as.character(out$path)
+  if("max_year" %in% names(out)) out$max_year <- NULL
+
   return(list(main_data = out, data_in_cache = data_present_in_master))
 }
 

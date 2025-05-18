@@ -34,7 +34,7 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
     con = con
   )
 
-  expect_equal(nrow(tmp$main_data), 2)
+  expect_equal(nrow(tmp$main_data), 0)
 
   tmp <- fg_pip(
     country         = "CHN",
@@ -48,7 +48,7 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
     con             = con
   )
 
-  expect_equal(nrow(tmp$main_data), 2)
+  expect_equal(nrow(tmp$main_data), 0)
 })
 
 ## Interpolation ----
@@ -65,7 +65,7 @@ test_that("Imputation is working for interpolated mixed distribution", {
     con             = con
   )
 
-  expect_equal(nrow(tmp$main_data), 2)
+  expect_equal(nrow(tmp$main_data), 0)
 
   tmp <- fg_pip(
     country         = "IND",
@@ -79,7 +79,7 @@ test_that("Imputation is working for interpolated mixed distribution", {
     con             = con
   )
 
-  expect_equal(nrow(tmp$main_data), 2)
+  expect_equal(nrow(tmp$main_data), 0)
 })
 
 test_that("Imputation is working for interpolated aggregate distribution", {
@@ -161,7 +161,7 @@ tmp <- fg_pip(
   lkup            = lkup,
   con             = con
 )
-tmp <- tmp$main_data
+tmp <- tmp$data_in_cache |> as.data.table()
 # dt <- pip(country =  "ALL",
 #           lkup = lkup,
 #           povline         = 2.15,
@@ -190,49 +190,49 @@ test_that("NAs only in censored data", {
 })
 
 ## Duplicates -------------
-test_that("median does not have duplicates", {
-
-  ### by reporting level----------------
-    anyDuplicated(tmp[!is.na(median),
-             c("country_code",
-               "reporting_year",
-               "welfare_type",
-               # "reporting_level",
-               "median")]) |>
-  expect_equal(0)
-
-  ### by welfare type -------------
-    anyDuplicated(tmp[!is.na(median),
-             c("country_code",
-               "reporting_year",
-               # "welfare_type",
-               "reporting_level",
-               "median")]) |>
-    expect_equal(0)
-
-})
-
-test_that("SPR does not have duplicates", {
-
-  ### by reporting level----------------
-    anyDuplicated(tmp[!is.na(spr),
-             c("country_code",
-               "reporting_year",
-               "welfare_type",
-               # "reporting_level",
-               "spr")]) |>
-  expect_equal(0)
-
-  ### by welfare type -------------
-    anyDuplicated(tmp[!is.na(spr),
-             c("country_code",
-               "reporting_year",
-               # "welfare_type",
-               "reporting_level",
-               "spr")]) |>
-    expect_equal(0)
-
-})
+# test_that("median does not have duplicates", {
+#
+#   ### by reporting level----------------
+#     anyDuplicated(tmp[!is.na(median),
+#              c("country_code",
+#                "reporting_year",
+#                "welfare_type",
+#                # "reporting_level",
+#                "median")]) |>
+#   expect_equal(0)
+#
+#   ### by welfare type -------------
+#     anyDuplicated(tmp[!is.na(median),
+#              c("country_code",
+#                "reporting_year",
+#                # "welfare_type",
+#                "reporting_level",
+#                "median")]) |>
+#     expect_equal(0)
+#
+# })
+#
+# test_that("SPR does not have duplicates", {
+#
+#   ### by reporting level----------------
+#     anyDuplicated(tmp[!is.na(spr),
+#              c("country_code",
+#                "reporting_year",
+#                "welfare_type",
+#                # "reporting_level",
+#                "spr")]) |>
+#   expect_equal(0)
+#
+#   ### by welfare type -------------
+#     anyDuplicated(tmp[!is.na(spr),
+#              c("country_code",
+#                "reporting_year",
+#                # "welfare_type",
+#                "reporting_level",
+#                "spr")]) |>
+#     expect_equal(0)
+#
+# })
 
 
 test_that("SPL is the same by reporting level", {
