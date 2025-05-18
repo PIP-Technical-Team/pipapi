@@ -46,9 +46,8 @@ subset_lkup <- function(country,
 
   lkup <- lkup[keep, ]
 
-  cached_data <- return_if_exists(lkup, povline, cache_file_path, fill_gaps)
-
-  return(list(lkup = cached_data$lkup, data_present_in_master = cached_data$data_present_in_master))
+  # Return with grace
+  return_if_exists(lkup, povline, cache_file_path, fill_gaps)
 }
 
 #' select_country

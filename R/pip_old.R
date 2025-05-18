@@ -319,8 +319,10 @@ rg_pip_old <- function(country,
     cache_file_path = cache_file_path,
     fill_gaps       = FALSE
   )
+
   data_present_in_master <- metadata$data_present_in_master
   metadata <- metadata$lkup
+  povline  <- metadata$povline
 
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions

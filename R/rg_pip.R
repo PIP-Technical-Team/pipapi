@@ -32,8 +32,10 @@ rg_pip <- function(country,
     cache_file_path = cache_file_path,
     fill_gaps       = FALSE
   )
+
   data_present_in_master <- metadata$data_present_in_master
   metadata  <- metadata$lkup
+  povline  <- metadata$povline
 
 
   # Remove aggregate distribution if popshare is specified
@@ -55,7 +57,7 @@ rg_pip <- function(country,
 
   # Regular lapply
   res <- lapply(lt, process_dt, povline = povline)
-  
+
   res <- rbindlist(res, fill = TRUE)
 
 

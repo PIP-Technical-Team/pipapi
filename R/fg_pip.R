@@ -42,6 +42,7 @@ fg_pip <- function(country,
 
   data_present_in_master <- metadata$data_present_in_master
   metadata <- metadata$lkup
+  povline  <- metadata$povline
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
   metadata <- filter_lkup(metadata = metadata,
