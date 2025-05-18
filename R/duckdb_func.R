@@ -4,7 +4,11 @@
 #'
 #' @return Dataframe
 #' @export
-return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
+return_if_exists <- function(lkup,
+                             povline,
+                             cache_file_path,
+                             fill_gaps,
+                             verbose = getOption("pipapi.verbose")) {
   # It is not possible to append to parquet file https://stackoverflow.com/questions/39234391/how-to-append-data-to-an-existing-parquet-file
   # Writing entire data will be very costly as data keeps on growing, better is to save data in duckdb and append to it.
   if (!getOption("pipapi.query_live_data")) {
@@ -41,7 +45,7 @@ return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
              overid = 2,
              verbose = 0)
 
-      message("Returning data from cache.")
+      if (verbose) message("Returning data from cache.")
     }
   } else {
     data_present_in_master <- NULL
@@ -58,8 +62,14 @@ return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
 #' @return number of rows updated
 #' @export
 #'
-update_master_file <- function(dat, cache_file_path, fill_gaps) {
+update_master_file <- function(dat,
+                               cache_file_path,
+                               fill_gaps,
+                               verbose = getOption("pipapi.verbose")
+                               ) {
+
   write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
+
   target_file <- if (fill_gaps) {
     "fg_master_file"
   } else {
@@ -76,19 +86,20 @@ update_master_file <- function(dat, cache_file_path, fill_gaps) {
   )
 
   # Insert the rows that don't exist already in the master file
-  nr <- DBI::dbExecute(write_con, glue::glue("
+  nr <- DBI::dbExecute(write_con, glue("
   INSERT INTO {target_file}
   SELECT *
   FROM append_data AS a
   WHERE NOT EXISTS (
     SELECT 1
     FROM {target_file} AS t
-    WHERE {glue::glue_collapse(
-          glue::glue('t.{unique_keys} = a.{unique_keys}'), sep = ' AND ')}
+    WHERE {glue_collapse(
+          glue('t.{unique_keys} = a.{unique_keys}'), sep = ' AND ')}
      );
   "))
+
   duckdb::dbDisconnect(write_con)
-  if(nr > 0)  message(glue::glue("{target_file} is updated."))
+  if (nr > 0 && verbose)  message(glue("{target_file} is updated."))
 
   return(nr)
 }
@@ -96,18 +107,23 @@ update_master_file <- function(dat, cache_file_path, fill_gaps) {
 connect_with_retry <- function(db_path,
                                max_attempts = 5,
                                delay_sec = 1,
-                               read_only = TRUE) {
+                               read_only = TRUE,
+                               verbose = getOption("pipapi.verbose")
+                               ) {
   attempt <- 1
   while (attempt <= max_attempts) {
 
     tryCatch({
       con <- duckdb::duckdb(dbdir = db_path, read_only = read_only) |>
         duckdb::dbConnect()
-      message("Connected on attempt ", attempt)
+      if (verbose) message("Connected on attempt ", attempt)
       return(con)
     },
     error = function(e) {
-      message("Attempt ", attempt, " failed: ", conditionMessage(e))
+      if (verbose) {
+        message("Attempt ", attempt,
+               " failed: ", conditionMessage(e))
+      }
       if (attempt == max_attempts) {
         stop("Failed to connect after ", max_attempts, " attempts.")
       }
@@ -122,9 +138,12 @@ connect_with_retry <- function(db_path,
 #' Reset the cache. Only to be used internally
 #'
 #' @noRd
-reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'), type = c("both", "rg", "fg"), lkup) {
-  # lkup will be passed through API and will not be an argument to endpoint, same as pip call
-  # Checks if the keys match across local and server before reseting the cache
+reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'),
+                        type = c("both", "rg", "fg"),
+                        lkup) {
+  # lkup will be passed through API and will not be an argument to endpoint,
+  # same as pip call Checks if the keys match across local and server before
+  # reseting the cache
   if (pass != Sys.getenv('PIP_CACHE_SERVER_KEY')) {
     rlang::abort("Either key not set or incorrect key!")
   }
@@ -283,11 +302,12 @@ load_inter_cache <- function(lkup = NULL,
   con <- connect_with_retry(cache_file_path)
 
   master_file <- DBI::dbGetQuery(con,
-                                 glue::glue("select * from {target_file}"))
+                                 glue("select * from {target_file}"))
 
-  # It is important to close the read connection before you open a write connection because
-  # duckdb kind of inherits read_only flag from previous connection object if it is not closed
-  # More details here https://app.clickup.com/t/868cdpe3q
+  # It is important to close the read connection before you open a write
+  # connection because duckdb kind of inherits read_only flag from previous
+  # connection object if it is not closed More details here
+  # https://app.clickup.com/t/868cdpe3q
   duckdb::dbDisconnect(con)
 
   setDT(master_file)

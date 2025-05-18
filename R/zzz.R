@@ -1,5 +1,6 @@
 pipapi_default_options <- list(
-  pipapi.query_live_data = FALSE
+  pipapi.query_live_data = FALSE,
+  pipapi.verbose = FALSE
 )
 
 

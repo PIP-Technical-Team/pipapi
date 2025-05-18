@@ -4,7 +4,12 @@
 \alias{update_master_file}
 \title{Update master file with the contents of the dataframe}
 \usage{
-update_master_file(dat, cache_file_path, fill_gaps)
+update_master_file(
+  dat,
+  cache_file_path,
+  fill_gaps,
+  verbose = getOption("pipapi.verbose")
+)
 }
 \arguments{
 \item{dat}{Dataframe to be appended}

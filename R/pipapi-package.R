@@ -24,6 +24,7 @@
 #' @importFrom collapse ftransform
 #' @importFrom collapse fvar
 #' @importFrom collapse join
+#' @importFrom glue glue
 ## usethis namespace: end
 NULL
 .datatable.aware = TRUE
