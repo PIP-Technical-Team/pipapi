@@ -3,27 +3,8 @@
 
 
 ## usethis namespace: start
-#' @import data.table
-#' @importFrom collapse fduplicated
-#' @importFrom collapse ffirst
-#' @importFrom collapse flast
-#' @importFrom collapse fmax
-#' @importFrom collapse fmean
-#' @importFrom collapse fmedian
-#' @importFrom collapse fmin
-#' @importFrom collapse fmode
-#' @importFrom collapse fmutate
-#' @importFrom collapse fndistinct
-#' @importFrom collapse fnobs
-#' @importFrom collapse fnth
-#' @importFrom collapse fprod
-#' @importFrom collapse fsd
-#' @importFrom collapse fselect
-#' @importFrom collapse fsubset
-#' @importFrom collapse fsum
-#' @importFrom collapse ftransform
-#' @importFrom collapse fvar
-#' @importFrom collapse join
+#' @rawNamespace import(collapse, except = fdroplevels)
+#' @rawNamespace import(data.table, except = fdroplevels)
 #' @importFrom glue glue
 ## usethis namespace: end
 NULL
