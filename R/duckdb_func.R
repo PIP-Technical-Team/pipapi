@@ -11,25 +11,35 @@ return_if_exists <- function(lkup, povline, cache_file_path, fill_gaps) {
     master_file <- load_inter_cache(cache_file_path = cache_file_path,
                                     fill_gaps = fill_gaps)
 
-    data_present_in_master <-
-      collapse::join(
-        x = master_file,
-        y = lkup |>
-          collapse::fselect(country_code, reporting_year, is_interpolated, welfare_type),
-        on = c("country_code", "reporting_year", "is_interpolated", "welfare_type"),
-        how = "inner",
-        overid = 2,
-        verbose = 0) |>
-      collapse::fsubset(poverty_line %in% povline)
-    #browser()
-    keep <- TRUE
-    if (nrow(data_present_in_master) > 0 &&
-          all(povline %in% data_present_in_master$poverty_line)) {
-      # Remove the rows from lkup that are present in master
-      keep <- !with(lkup, paste(country_code, reporting_year, is_interpolated, welfare_type)) %in%
-        with(data_present_in_master, paste(country_code, reporting_year, is_interpolated, welfare_type))
+    key_vars <- c("country_code",
+                  "reporting_year",
+                  "reporting_year",
+                  "reporting_level",
+                  "is_interpolated", # why this variable?
+                  "welfare_type")
 
-      lkup <- lkup[keep, ]
+    lkup_kvars <- lkup[, ..key_vars]
+
+    data_present_in_master <-
+      join(x = master_file,
+           y = lkup_kvars,
+           on = key_vars,
+           how = "inner",
+           overid = 2,
+           verbose = 0) |>
+      fsubset(poverty_line %in% povline)
+
+
+    if (nrow(data_present_in_master) > 0 &&
+        all(povline %in% data_present_in_master$poverty_line)) {
+      # Remove the rows from lkup that are present in master
+      lkup <-
+        join(x      = lkup,
+             y      = master_file,
+             on     = key_vars,
+             how    = "anti",
+             overid = 2,
+             verbose = 0)
 
       message("Returning data from cache.")
     }
