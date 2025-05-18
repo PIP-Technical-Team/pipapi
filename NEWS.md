@@ -1,3 +1,8 @@
+# pipapi 1.3.15
+
+* vectorization of poverty line. Just in internal functions. They are still not available in the API
+* Fix issue with aggregates.
+
 # pipapi 1.3.14
 
 * Fix issues with intermediate caching when multiple R sessions are open
