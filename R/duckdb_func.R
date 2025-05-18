@@ -9,49 +9,112 @@ return_if_exists <- function(lkup,
                              cache_file_path,
                              fill_gaps,
                              verbose = getOption("pipapi.verbose")) {
-  # It is not possible to append to parquet file https://stackoverflow.com/questions/39234391/how-to-append-data-to-an-existing-parquet-file
-  # Writing entire data will be very costly as data keeps on growing, better is to save data in duckdb and append to it.
-  if (!getOption("pipapi.query_live_data")) {
-    master_file <- load_inter_cache(cache_file_path = cache_file_path,
-                                    fill_gaps = fill_gaps)
 
-    key_vars <- c("country_code",
-                  "reporting_year",
-                  "reporting_year",
-                  "reporting_level",
-                  "is_interpolated", # why this variable?
-                  "welfare_type")
-
-    lkup_kvars <- lkup[, ..key_vars]
-
-    data_present_in_master <-
-      join(x = master_file,
-           y = lkup_kvars,
-           on = key_vars,
-           how = "inner",
-           overid = 2,
-           verbose = 0) |>
-      fsubset(poverty_line %in% povline)
-
-
-    if (nrow(data_present_in_master) > 0 &&
-        all(povline %in% data_present_in_master$poverty_line)) {
-      # Remove the rows from lkup that are present in master
-      lkup <-
-        join(x      = lkup,
-             y      = master_file,
-             on     = key_vars,
-             how    = "anti",
-             overid = 2,
-             verbose = 0)
-
-      if (verbose) message("Returning data from cache.")
-    }
-  } else {
-    data_present_in_master <- NULL
+  if (getOption("pipapi.query_live_data")) {
+    return(list(data_present_in_master = NULL,
+                lkup = lkup,
+                povline = povline))
   }
-  # nrow(data_present_in_master) should be equal to sum(keep)
-  return(list(data_present_in_master = data_present_in_master, lkup = lkup))
+  master_file <- load_inter_cache(cache_file_path = cache_file_path,
+                                  fill_gaps = fill_gaps)
+
+  key_vars <- c("country_code",
+                "reporting_year",
+                "reporting_year",
+                "reporting_level",
+                "is_interpolated", # why this variable?
+                "welfare_type")
+
+  # This is probably unnecesary
+  lkup_kvars <- funique(lkup[, ..key_vars])
+
+  # Find all (key_vars, poverty_line) combinations present in master_file
+  key_vars_pl <- c(key_vars, "poverty_line")
+  master_kvars_pov <- master_file[, ..key_vars_pl]
+
+  # Suppose lkup_kvars is a data.table and povline is a vector
+  # lkup_kvars_pov <- lkup_kvars[, .(poverty_line = povline),
+  #                              by = eval(names(lkup_kvars))]
+  lkup_kvars_pov <- lkup_kvars[rep(seq_len(nrow(lkup_kvars)),
+                                   each = length(povline))]
+  lkup_kvars_pov[, poverty_line := rep(povline, times = nrow(lkup_kvars))]
+
+
+  # Find which (key_vars, poverty_line) are present in master_file
+  master_lkup <- join(x = master_kvars_pov,
+                      y = lkup_kvars_pov,
+                      how = "full",
+                      overid = 2,
+                      verbose = 0,
+                      column = list(".join", c("x", "y", "xy")))
+
+
+  join_table <- collapse::qtable(master_lkup$.join)
+
+  # If no data is present in master
+  if (join_table["yx"] == 0) {
+    return(list(data_present_in_master = NULL,
+                lkup = lkup,
+                povline = povline))
+  }
+
+  # if lkup is all contained in master
+  data_present_in_master <-
+    master_lkup[.join == "xy"
+                ][,
+                  .join := NULL]
+
+  if (join_table["y"] == 0) {
+    if (verbose) message("Returning data from cache.")
+    return(list(data_present_in_master = master_file[data_present_in_master,
+                                                     on = key_vars_pl],
+                lkup = lkup[0],
+                povline = povline))
+  }
+
+
+  # find out if all the key-vars in lkup are in data_present_in master, so if
+  # that is the case, then we subset the poverty line
+  present_master_kvars <-
+    data_present_in_master[, ..key_vars] |>
+    funique()
+
+  # Find which key_vars in lkup are NOT present in master
+  lkup_not_in_master <-
+    join(lkup_kvars,
+         present_master_kvars,
+         how = "anti",
+         overid = 2,
+         verbose = 0)
+
+
+  all_in_master <- fnrow(lkup_not_in_master) == 0
+
+
+  # Update povline if all key_vars in lkup are present in master_file
+  if (all_in_master) {
+    # For each key_vars, keep only povlines not present in master_file
+
+    # NOTE: here the povline changes
+    povline_in_master <- funique(data_present_in_master[, poverty_line])
+    povline <- setdiff(povline, povline_in_master)
+
+    if (length(povline) == 0) {
+      stop("at this stage, povline must be 1 or greater")
+    }
+
+  } else {
+    # lkup: keep only key_vars not present in master_file
+    # NOTE: here the lkup changes
+    lkup <- lkup[lkup_not_in_master, on = key_vars]
+  }
+
+  if (verbose) message("Returning data from cache.")
+
+  return(list(data_present_in_master = master_file[data_present_in_master,
+                                                   on = key_vars_pl],
+              lkup = lkup,
+              povline = povline))
 }
 
 #' Update master file with the contents of the dataframe
