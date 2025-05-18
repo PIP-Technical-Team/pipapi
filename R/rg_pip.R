@@ -58,10 +58,6 @@ rg_pip <- function(country,
   
   res <- rbindlist(res, fill = TRUE)
 
-  # res <- lapply(lt, \(dt) { #Should we use future_lapply ???
-  #   dt[, compute_fgt_dt(.SD, "welfare", "weight", povline),
-  #      by = .(file, reporting_level)]
-  # })
 
   # clean data
   metadata[, file := basename(path)]
@@ -144,41 +140,6 @@ process_dt <- function(dt, povline) {
   dt[, compute_fgt_dt(.SD, "welfare", "weight", povline),
      by = .(file, reporting_level)]
 }
-
-#' checks if a future plan is set (other than 'sequential')
-#'
-#' @return logical value
-#' @keywords internal
-is_future_plan_set <- function() {
-  !inherits(future::plan("list")[[1]], "sequential")
-}
-
-
-#' get POV estiamates
-#'
-#' Internally it selects lapply or future_lapply
-#'
-#'
-#' @param lt list with data frames
-#' @param povline  double: vector with poverty lines
-#' @param threshold integer: minimum length of X to use future_lapply (default 30)
-#'
-#' @return list
-#' @keywords internal
-get_pov_estimates <- function(lt, povline , threshold = 500) {
-  if (length(lt) >= threshold && is_future_plan_set()) {
-    cli::cli_inform("running with future (parallel)")
-    future.apply::future_lapply(lt, process_dt, povline = povline)
-  } else {
-    if (is_future_plan_set()) {
-      cli::cli_inform("NOT running with future: below threshold")
-    } else {
-      cli::cli_inform("NOT running with future: plan is sequential")
-    }
-    lapply(lt, process_dt, povline = povline)
-  }
-}
-
 
 #' load survey year files and store them in a list
 #'
