@@ -47,7 +47,10 @@ subset_lkup <- function(country,
   lkup <- lkup[keep, ]
 
   # Return with grace
-  return_if_exists(lkup, povline, cache_file_path, fill_gaps)
+  return_if_exists(slkup = lkup,
+                   povline = povline,
+                   cache_file_path = cache_file_path,
+                   fill_gaps = fill_gaps)
 }
 
 #' select_country
