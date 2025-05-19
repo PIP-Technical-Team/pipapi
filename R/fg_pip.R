@@ -94,9 +94,11 @@ fg_pip <- function(country,
       interp_id    <- ctry_years[["interpolation_id"]][ctry_year_id]
       tmp_metadata <- metadata[metadata$interpolation_id == interp_id, ]
 
+      report_year <- ctry_years[["reporting_year"]][ctry_year_id]
+
       # Compute estimated statistics using the fill_gap method
       tmp_stats <- wbpip:::prod_fg_compute_pip_stats(
-        request_year           = ctry_years[["reporting_year"]][ctry_year_id],
+        request_year           = report_year,
         data                   = svy_data,
         predicted_request_mean = tmp_metadata[["predicted_mean_ppp"]],
         svy_mean_lcu           = tmp_metadata[["survey_mean_lcu"]],
@@ -117,14 +119,22 @@ fg_pip <- function(country,
       #
       # tmp_metadata <- unique(tmp_metadata)
       # Add stats columns to data frame
-      for (stat in seq_along(tmp_stats)) {
-        tmp_metadata[[names(tmp_stats)[stat]]] <- list(tmp_stats[[stat]])
-      }
-      # To allow multiple povline values, we store them in a list and unnest
-      tmp_metadata <- tmp_metadata %>%
-        unnest_dt_longer(names(tmp_metadata)[sapply(tmp_metadata, is.list)])
 
-      results_subset[[ctry_year_id]] <- tmp_metadata
+      # Convert Statas into Data.table
+      ts_DT <- as.data.table(tmp_stats)
+      # Add reporting year to merge
+      ts_DT[, reporting_year := report_year]
+      # merge with tmp_metadata. with multiple = TRUE
+      # now it is stats plus metadata
+      ts_md <- join(ts_DT,
+                 tmp_metadata,
+                 on = "reporting_year",
+                 how = "full",
+                 verbose = 0,
+                 overid = 2,
+                 multiple = TRUE)
+
+      results_subset[[ctry_year_id]] <- ts_md
     }
     out[[svy_id]] <- results_subset
   }
