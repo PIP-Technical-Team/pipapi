@@ -24,19 +24,20 @@ return_if_exists <- function(slkup,
                 povline = povline))
   }
 
-  key_vars <- c("country_code",
-                "reporting_year",
-                "reporting_year",
-                "reporting_level",
-                "is_interpolated", # why this variable?
-                "welfare_type")
+
+  if (fill_gaps) {
+    key_vars <- c("interpolation_id")
+  } else {
+    key_vars <- c("cache_id",
+                  "reporting_level")
+  }
+
 
   # This is probably unnecesary
-  lkup_kvars <- funique(slkup[, ..key_vars])
+  lkup_kvars <- funique(slkup) # this is not big.
 
   # Find all (key_vars, poverty_line) combinations present in master_file
   key_vars_pl <- c(key_vars, "poverty_line")
-  master_kvars_pov <- master_file[, ..key_vars_pl]
 
   # Suppose lkup_kvars is a data.table and povline is a vector
   # lkup_kvars_pov <- lkup_kvars[, .(poverty_line = povline),
@@ -47,9 +48,11 @@ return_if_exists <- function(slkup,
 
 
   # Find which (key_vars, poverty_line) are present in master_file
-  master_lkup <- join(x = master_kvars_pov,
+  master_lkup <- join(x = master_file,
                       y = lkup_kvars_pov,
+                      on = key_vars_pl,
                       how = "full",
+                      # validate = "1:1",
                       overid = 2,
                       verbose = 0,
                       column = list(".join", c("x", "y", "xy")))
@@ -67,13 +70,22 @@ return_if_exists <- function(slkup,
   # if slkup is all contained in master
   data_present_in_master <-
     master_lkup[.join == "xy"
-                ][,
-                  .join := NULL]
+    ][,
+      .join := NULL]
 
+  # some times it is NA and sometimes it is zero.
+  # They can't be ewvaluated at the same time
+  if (is.na(join_table["y"])) {
+    if (verbose) message("Returning data from cache.")
+    return(list(data_present_in_master = data_present_in_master,
+                lkup = slkup[0],
+                povline = povline))
+  }
+
+  # THe case with zero
   if (join_table["y"] == 0) {
     if (verbose) message("Returning data from cache.")
-    return(list(data_present_in_master = master_file[data_present_in_master,
-                                                     on = key_vars_pl],
+    return(list(data_present_in_master = data_present_in_master,
                 lkup = slkup[0],
                 povline = povline))
   }
@@ -93,14 +105,12 @@ return_if_exists <- function(slkup,
          overid = 2,
          verbose = 0)
 
-
   all_in_master <- fnrow(lkup_not_in_master) == 0
 
 
   # Update povline if all key_vars in slkup are present in master_file
   if (all_in_master) {
     # For each key_vars, keep only povlines not present in master_file
-
     # NOTE: here the povline changes
     povline_in_master <- funique(data_present_in_master[, poverty_line])
     povline <- setdiff(povline, povline_in_master)
@@ -117,8 +127,7 @@ return_if_exists <- function(slkup,
 
   if (verbose) message("Returning data from cache.")
 
-  return(list(data_present_in_master = master_file[data_present_in_master,
-                                                   on = key_vars_pl],
+  return(list(data_present_in_master = data_present_in_master,
               lkup = slkup,
               povline = povline))
 }
@@ -139,20 +148,40 @@ update_master_file <- function(dat,
 
   write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
 
-  target_file <- if (fill_gaps) {
-    "fg_master_file"
+  if (fill_gaps) {
+    target_file <- "fg_master_file"
+    unique_keys  <- c("interpolation_id")
+    keep_vars <- c(
+      "interpolation_id",
+      "poverty_line",
+      "mean",
+      "median",
+      "headcount",
+      "poverty_gap",
+      "poverty_severity",
+      "watts"
+    )
   } else {
-    "rg_master_file"
+    target_file <- "rg_master_file"
+    unique_keys <- c("cache_id",
+                  "reporting_level")
+    keep_vars <- c(
+      "cache_id",
+      "reporting_level",
+      "poverty_line",
+      "mean",
+      "median",
+      "headcount",
+      "poverty_gap",
+      "poverty_severity",
+      "watts"
+    )
   }
 
+  # Select variables
+  dat <- dat[, ..keep_vars]
+
   duckdb::duckdb_register(write_con, "append_data", dat, overwrite = TRUE)
-  unique_keys <- c(
-    "country_code",
-    "reporting_year",
-    "is_interpolated",
-    "welfare_type",
-    "poverty_line"
-  )
 
   # Insert the rows that don't exist already in the master file
   nr <- DBI::dbExecute(write_con, glue("
