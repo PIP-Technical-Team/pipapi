@@ -5,7 +5,7 @@
 \title{Return the rows of the table if they exist in master file}
 \usage{
 return_if_exists(
-  lkup,
+  slkup,
   povline,
   cache_file_path,
   fill_gaps,
@@ -13,8 +13,6 @@ return_if_exists(
 )
 }
 \arguments{
-\item{lkup}{list: A list of lkup tables}
-
 \item{povline}{numeric: Poverty line}
 
 \item{cache_file_path}{file path for cache}

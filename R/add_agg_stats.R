@@ -24,10 +24,9 @@ add_agg_stats <- function(df,
                          ag_average_poverty_stats,
                          return_cols)
 
-    aggregated <- data.table::rbindlist(aggregated)
-    aggregated$path <- as.character(aggregated$path)
+    aggregated <- rbindlist(aggregated)
     df <- list(df, aggregated) |>
-      data.table::rbindlist()
+      rbindlist()
   }
 
   return(df)
@@ -88,9 +87,9 @@ ag_average_poverty_stats <- function(df, return_cols) {
   ## weighted average  ------
   wgt_df <- df |>
     # this grouping is not necessary, but ensures data.frame as output
-    collapse::fgroup_by(c("country_code", 
-                          "reporting_year", 
-                          "welfare_type", 
+    collapse::fgroup_by(c("country_code",
+                          "reporting_year",
+                          "welfare_type",
                           "poverty_line")) |>
     collapse::get_vars(c("reporting_pop", avg_names)) |>
     collapse::fmean(reporting_pop,
@@ -130,10 +129,10 @@ ag_average_poverty_stats <- function(df, return_cols) {
   ## set order of obs anc col -------
   out <- out[, .SD, .SDcols = orig_names]
   data.table::setcolorder(out, orig_names)
-  data.table::setorderv(out, 
-                       c("country_code", 
+  data.table::setorderv(out,
+                       c("country_code",
                        "reporting_year",
-                       "welfare_type", 
+                       "welfare_type",
                        "poverty_line"))
 
   # Return ------

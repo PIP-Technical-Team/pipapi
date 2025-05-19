@@ -7,8 +7,6 @@
 load_inter_cache(lkup = NULL, cache_file_path = NULL, fill_gaps = FALSE)
 }
 \arguments{
-\item{lkup}{list: A list of lkup tables}
-
 \item{cache_file_path}{file path for cache}
 
 \item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate

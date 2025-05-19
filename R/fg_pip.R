@@ -84,7 +84,8 @@ fg_pip <- function(country,
                                 collapse::fselect(intersect(names(ctry_years),
                                                             names(metadata))),
                                 verbose = 0,
-                                how = "inner")
+                                how = "inner",
+                                overid = 2)
 
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 
@@ -140,6 +141,7 @@ fg_pip <- function(country,
   out[,
       poverty_line := round(poverty_line, digits = 3) ]
 
+  # Formatting. MUST be done in data.table tom modify by reference
   out$path <- as.character(out$path)
   if("max_year" %in% names(out)) out$max_year <- NULL
 

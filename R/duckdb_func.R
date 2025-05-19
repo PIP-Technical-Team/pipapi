@@ -10,6 +10,13 @@ return_if_exists <- function(slkup,
                              fill_gaps,
                              verbose = getOption("pipapi.verbose")) {
 
+  if (fnrow(slkup) == 0 ) {
+    return(list(data_present_in_master = NULL,
+                lkup = slkup,
+                povline = povline))
+  }
+
+
   if (getOption("pipapi.query_live_data")) {
     return(list(data_present_in_master = NULL,
                 lkup = slkup,
@@ -61,7 +68,7 @@ return_if_exists <- function(slkup,
   join_table <- collapse::qtable(master_lkup$.join)
 
   # If no data is present in master
-  if (join_table["yx"] == 0) {
+  if (join_table["xy"] == 0) {
     return(list(data_present_in_master = NULL,
                 lkup = slkup,
                 povline = povline))
