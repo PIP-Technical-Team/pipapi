@@ -173,12 +173,18 @@ update_master_file <- function(dat,
   return(nr)
 }
 
-connect_with_retry <- function(db_path,
+connect_with_retry <- function(db_path = NULL,
                                max_attempts = 5,
                                delay_sec = 1,
                                read_only = TRUE,
+                               lkup = NULL,
                                verbose = getOption("pipapi.verbose")
                                ) {
+
+  if (!is.null(lkup)) {
+    db_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  }
+
   attempt <- 1
   while (attempt <= max_attempts) {
 
