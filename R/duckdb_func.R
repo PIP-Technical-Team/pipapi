@@ -65,6 +65,7 @@ return_if_exists <- function(slkup,
                       # validate = "1:1",
                       overid = 2,
                       verbose = 0,
+                      multiple = TRUE,
                       column = list(".join", c("x", "y", "xy")))
 
 
@@ -122,8 +123,10 @@ return_if_exists <- function(slkup,
   if (all_in_master) {
     # For each key_vars, keep only povlines not present in master_file
     # NOTE: here the povline changes
-    povline_in_master <- funique(data_present_in_master[, poverty_line])
-    povline <- setdiff(povline, povline_in_master)
+
+    povline <- funique(master_lkup[.join == "y", poverty_line])
+    # povline_in_master <- funique(data_present_in_master[, poverty_line])
+    # povline <- setdiff(povline, povline_in_master)
 
     if (length(povline) == 0) {
       stop("at this stage, povline must be 1 or greater")
