@@ -4,7 +4,7 @@
 #'
 #' @return Dataframe
 #' @export
-return_if_exists <- function(lkup,
+return_if_exists <- function(slkup,
                              povline,
                              cache_file_path,
                              fill_gaps,
@@ -12,11 +12,17 @@ return_if_exists <- function(lkup,
 
   if (getOption("pipapi.query_live_data")) {
     return(list(data_present_in_master = NULL,
-                lkup = lkup,
+                lkup = slkup,
                 povline = povline))
   }
   master_file <- load_inter_cache(cache_file_path = cache_file_path,
                                   fill_gaps = fill_gaps)
+
+  if (fnrow(master_file) == 0) {
+    return(list(data_present_in_master = NULL,
+                lkup = slkup,
+                povline = povline))
+  }
 
   key_vars <- c("country_code",
                 "reporting_year",
@@ -26,7 +32,7 @@ return_if_exists <- function(lkup,
                 "welfare_type")
 
   # This is probably unnecesary
-  lkup_kvars <- funique(lkup[, ..key_vars])
+  lkup_kvars <- funique(slkup[, ..key_vars])
 
   # Find all (key_vars, poverty_line) combinations present in master_file
   key_vars_pl <- c(key_vars, "poverty_line")
@@ -54,11 +60,11 @@ return_if_exists <- function(lkup,
   # If no data is present in master
   if (join_table["yx"] == 0) {
     return(list(data_present_in_master = NULL,
-                lkup = lkup,
+                lkup = slkup,
                 povline = povline))
   }
 
-  # if lkup is all contained in master
+  # if slkup is all contained in master
   data_present_in_master <-
     master_lkup[.join == "xy"
                 ][,
@@ -68,18 +74,18 @@ return_if_exists <- function(lkup,
     if (verbose) message("Returning data from cache.")
     return(list(data_present_in_master = master_file[data_present_in_master,
                                                      on = key_vars_pl],
-                lkup = lkup[0],
+                lkup = slkup[0],
                 povline = povline))
   }
 
 
-  # find out if all the key-vars in lkup are in data_present_in master, so if
+  # find out if all the key-vars in slkup are in data_present_in master, so if
   # that is the case, then we subset the poverty line
   present_master_kvars <-
     data_present_in_master[, ..key_vars] |>
     funique()
 
-  # Find which key_vars in lkup are NOT present in master
+  # Find which key_vars in slkup are NOT present in master
   lkup_not_in_master <-
     join(lkup_kvars,
          present_master_kvars,
@@ -91,7 +97,7 @@ return_if_exists <- function(lkup,
   all_in_master <- fnrow(lkup_not_in_master) == 0
 
 
-  # Update povline if all key_vars in lkup are present in master_file
+  # Update povline if all key_vars in slkup are present in master_file
   if (all_in_master) {
     # For each key_vars, keep only povlines not present in master_file
 
@@ -105,15 +111,15 @@ return_if_exists <- function(lkup,
 
   } else {
     # lkup: keep only key_vars not present in master_file
-    # NOTE: here the lkup changes
-    lkup <- lkup[lkup_not_in_master, on = key_vars]
+    # NOTE: here the slkup changes
+    slkup <- slkup[lkup_not_in_master, on = key_vars]
   }
 
   if (verbose) message("Returning data from cache.")
 
   return(list(data_present_in_master = master_file[data_present_in_master,
                                                    on = key_vars_pl],
-              lkup = lkup,
+              lkup = slkup,
               povline = povline))
 }
 
@@ -228,107 +234,19 @@ reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'),
 create_duckdb_file <- function(cache_file_path) {
   con <- connect_with_retry(cache_file_path, read_only = FALSE)
   DBI::dbExecute(con, "CREATE OR REPLACE table rg_master_file (
-                 country_code VARCHAR,
-                 survey_id VARCHAR,
                  cache_id VARCHAR,
-                 wb_region_code VARCHAR,
-                 reporting_year DOUBLE,
-                 surveyid_year  VARCHAR,
-                 survey_year   DOUBLE,
-                 survey_time VARCHAR,
-                 survey_acronym  VARCHAR,
-                 survey_coverage  VARCHAR,
-                 survey_comparability  DOUBLE,
-                 comparable_spell   VARCHAR,
-                 welfare_type   VARCHAR,
                  reporting_level   VARCHAR,
-                 survey_mean_lcu    DOUBLE,
-                 survey_mean_ppp    DOUBLE,
-                 survey_median_ppp    DOUBLE,
-                 survey_median_lcu    DOUBLE,
-                 predicted_mean_ppp    DOUBLE,
-                 ppp  DOUBLE,
-                 cpi  DOUBLE,
-                 reporting_pop    DOUBLE,
-                 reporting_gdp    DOUBLE,
-                 reporting_pce    DOUBLE,
-                 pop_data_level   VARCHAR,
-                 gdp_data_level   VARCHAR,
-                 pce_data_level  VARCHAR,
-                 cpi_data_level   VARCHAR,
-                 ppp_data_level   VARCHAR,
-                 distribution_type   VARCHAR,
-                 gd_type   VARCHAR,
-                 is_interpolated BOOLEAN,
-                 is_used_for_line_up  BOOLEAN,
-                 is_used_for_aggregation BOOLEAN,
-                 estimation_type    VARCHAR,
-                 display_cp  DOUBLE,
-                 path VARCHAR,
-                 country_name  VARCHAR,
-                 africa_split  VARCHAR,
-                 africa_split_code  VARCHAR,
-                 region_name  VARCHAR,
-                 region_code  VARCHAR,
-                 world  VARCHAR,
-                 world_code  VARCHAR,
                  poverty_line   DOUBLE,
                  mean   DOUBLE,
                  median DOUBLE,
                  headcount    DOUBLE,
                  poverty_gap   DOUBLE,
                  poverty_severity  DOUBLE,
-                 watts     DOUBLE
-
-  )")
+                 watts     DOUBLE)"
+                 )
 
   DBI::dbExecute(con, "CREATE OR REPLACE table fg_master_file (
-                 country_code VARCHAR,
-                 survey_id VARCHAR,
-                 cache_id VARCHAR,
-                 wb_region_code VARCHAR,
-                 reporting_year DOUBLE,
-                 surveyid_year  VARCHAR,
-                 survey_year   DOUBLE,
-                 survey_time VARCHAR,
-                 survey_acronym  VARCHAR,
-                 survey_coverage  VARCHAR,
-                 survey_comparability  DOUBLE,
-                 comparable_spell   VARCHAR,
-                 welfare_type   VARCHAR,
-                 reporting_level   VARCHAR,
-                 survey_mean_lcu    DOUBLE,
-                 survey_mean_ppp    DOUBLE,
-                 survey_median_ppp    DOUBLE,
-                 survey_median_lcu    DOUBLE,
-                 predicted_mean_ppp    DOUBLE,
-                 ppp  DOUBLE,
-                 cpi  DOUBLE,
-                 reporting_pop    DOUBLE,
-                 reporting_gdp    DOUBLE,
-                 reporting_pce    DOUBLE,
-                 pop_data_level   VARCHAR,
-                 gdp_data_level   VARCHAR,
-                 pce_data_level  VARCHAR,
-                 cpi_data_level   VARCHAR,
-                 ppp_data_level   VARCHAR,
-                 distribution_type   VARCHAR,
-                 gd_type   VARCHAR,
-                 is_interpolated BOOLEAN,
-                 is_used_for_line_up  BOOLEAN,
-                 is_used_for_aggregation BOOLEAN,
-                 estimation_type    VARCHAR,
                  interpolation_id VARCHAR,
-                 display_cp  DOUBLE,
-                 country_name  VARCHAR,
-                 africa_split  VARCHAR,
-                 africa_split_code  VARCHAR,
-                 region_name  VARCHAR,
-                 region_code  VARCHAR,
-                 world  VARCHAR,
-                 world_code  VARCHAR,
-                 path VARCHAR,
-                 data_interpolation_id VARCHAR,
                  poverty_line   DOUBLE,
                  mean   DOUBLE,
                  median DOUBLE,
