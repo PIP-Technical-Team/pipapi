@@ -43,6 +43,9 @@ return_if_exists <- function(slkup,
   # This is probably unnecesary
   lkup_kvars <- funique(slkup) # this is not big.
 
+  # formating
+  lkup_kvars[, path := as.character(path)]
+
   # Find all (key_vars, poverty_line) combinations present in master_file
   key_vars_pl <- c(key_vars, "poverty_line")
 
@@ -157,7 +160,7 @@ update_master_file <- function(dat,
 
   if (fill_gaps) {
     target_file <- "fg_master_file"
-    unique_keys  <- c("interpolation_id")
+    unique_keys  <- c("interpolation_id", "poverty_line")
     keep_vars <- c(
       "interpolation_id",
       "poverty_line",
@@ -171,7 +174,8 @@ update_master_file <- function(dat,
   } else {
     target_file <- "rg_master_file"
     unique_keys <- c("cache_id",
-                  "reporting_level")
+                  "reporting_level",
+                  "poverty_line")
     keep_vars <- c(
       "cache_id",
       "reporting_level",

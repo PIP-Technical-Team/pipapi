@@ -3,9 +3,10 @@
 
 
 ## usethis namespace: start
+#' @importFrom glue glue
+#' @importFrom glue glue_collapse
 #' @rawNamespace import(collapse, except = fdroplevels)
 #' @rawNamespace import(data.table, except = fdroplevels)
-#' @importFrom glue glue
 ## usethis namespace: end
 NULL
 .datatable.aware = TRUE

@@ -95,7 +95,7 @@ ag_average_poverty_stats <- function(df, return_cols) {
     collapse::fmean(reporting_pop,
                     keep.group_vars = TRUE,
                     keep.w = TRUE,
-                    stub   = FALSE)|>
+                    stub   = FALSE) |>
     collapse::fselect(-country_code, -reporting_year, -welfare_type)
 
 
@@ -112,8 +112,9 @@ ag_average_poverty_stats <- function(df, return_cols) {
   #                  .SDcols = c(nonum_names)]
   #
   # out <- merge(first_rows, wgt_df, by = "poverty_line", all = TRUE)
-  out <- cbind(df[1, .SD, .SDcols = nonum_names], wgt_df)
-  out$path <- fs::path(out$path)
+
+  out <- ftransform(wgt_df, df[1, ..nonum_names]) # instead of cbind
+
 
   ## convert years back to numeric ----
   out[, (years_vars) :=

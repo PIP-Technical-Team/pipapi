@@ -142,8 +142,11 @@ fg_pip <- function(country,
       poverty_line := round(poverty_line, digits = 3) ]
 
   # Formatting. MUST be done in data.table tom modify by reference
-  out$path <- as.character(out$path)
-  if("max_year" %in% names(out)) out$max_year <- NULL
+  out[, path := as.character(path)]
+
+  if ("max_year" %in% names(out)) {
+    out[, max_year := NULL]
+  }
 
   return(list(main_data = out, data_in_cache = data_present_in_master))
 }
