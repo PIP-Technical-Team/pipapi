@@ -47,6 +47,7 @@ fg_pip <- function(country,
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
   metadata <- filter_lkup(metadata = metadata,
                           popshare = popshare)
+  setDT(metadata)
 
 
   # Return empty dataframe if no metadata is found
