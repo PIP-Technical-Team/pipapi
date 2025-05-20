@@ -72,6 +72,9 @@ pip <- function(country         = "ALL",
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
+  povline         <- round(povline, digits = 3)
+
+
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
