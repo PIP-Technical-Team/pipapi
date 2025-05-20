@@ -58,43 +58,38 @@ return_if_exists <- function(slkup,
 
 
   # Find which (key_vars, poverty_line) are present in master_file
-  master_lkup <- join(x = master_file,
-                      y = lkup_kvars_pov,
-                      on = key_vars_pl,
-                      how = "full",
-                      # validate = "1:1",
-                      overid = 2,
-                      verbose = 0,
-                      multiple = TRUE,
-                      column = list(".join", c("x", "y", "xy")))
+  lk_not_ms <- join(x = lkup_kvars_pov,
+                    y = master_file,
+                    on = key_vars_pl,
+                    how = "anti",
+                    # validate = "1:1",
+                    overid = 2,
+                    verbose = 0,
+                    multiple = TRUE)
 
 
-  join_table <- collapse::qtable(master_lkup$.join)
+
+  data_present_in_master <- join(x = lkup_kvars_pov,
+                                 y = master_file,
+                                 on = key_vars_pl,
+                                 how = "inner",
+                                 # validate = "1:1",
+                                 overid = 2,
+                                 verbose = 0,
+                                 multiple = TRUE)
+
 
   # If no data is present in master
-  if (join_table["xy"] == 0) {
+  if (fnrow(data_present_in_master) == 0) {
     return(list(data_present_in_master = NULL,
                 lkup = slkup,
                 povline = povline))
   }
 
-  # if slkup is all contained in master
-  data_present_in_master <-
-    master_lkup[.join == "xy"
-    ][,
-      .join := NULL]
 
-  # some times it is NA and sometimes it is zero.
-  # They can't be ewvaluated at the same time
-  if (is.na(join_table["y"])) {
-    if (verbose) message("Returning data from cache.")
-    return(list(data_present_in_master = data_present_in_master,
-                lkup = slkup[0],
-                povline = povline))
-  }
-
-  # THe case with zero
-  if (join_table["y"] == 0) {
+  # There is nothing in lkup that is not present in master (i.e., all lkup in
+  # master)
+  if (fnrow(lk_not_ms) == 0) {
     if (verbose) message("Returning data from cache.")
     return(list(data_present_in_master = data_present_in_master,
                 lkup = slkup[0],
@@ -124,7 +119,7 @@ return_if_exists <- function(slkup,
     # For each key_vars, keep only povlines not present in master_file
     # NOTE: here the povline changes
 
-    povline <- funique(master_lkup[.join == "y", poverty_line])
+    povline <- funique(lk_not_ms[, poverty_line])
     # povline_in_master <- funique(data_present_in_master[, poverty_line])
     # povline <- setdiff(povline, povline_in_master)
 
