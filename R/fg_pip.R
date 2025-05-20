@@ -114,7 +114,7 @@ fg_pip <- function(country,
 
       # Handle multiple distribution types (for aggregated distributions)
       if (length(unique(tmp_metadata$distribution_type)) > 1) {
-        tmp_metadata$distribution_type <- "mixed"
+        tmp_metadata[, distribution_type := "mixed"]
       }
       #
       # tmp_metadata <- unique(tmp_metadata)
