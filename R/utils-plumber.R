@@ -114,7 +114,8 @@ validate_query_parameters <-
     "lorenz",
     "n_bins",
     "pass",
-    "type"
+    "type",
+    "exclude"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]
@@ -236,6 +237,7 @@ assign_required_params <- function(req, pl_lkup) {
     # If no table is defined
     if (is.null(req$argsQuery$table)) {
       req$argsQuery$long_format <- FALSE
+      req$argsQuery$exclude <- FALSE
     }
 
     # If long format is not selected
@@ -251,6 +253,13 @@ assign_required_params <- function(req, pl_lkup) {
       # end of if NULL long_format
     } else {
       req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
+    }
+
+    # manage exclude paramter
+    if (is.null(req$argsQuery$exclude)) {
+      req$argsQuery$exclude <- FALSE
+    } else {
+      req$argsQuery$exclude <- as.logical(req$argsQuery$exclude)
     }
   }
   return(req)
