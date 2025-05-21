@@ -5,13 +5,13 @@
 #' @return logical
 #' @noRd
 check_parameters_values <- function(req, query_controls) {
-  out <- lapply(seq_along(req$argsQuery), function(i) {
-    param_name <- names(req$argsQuery)[i]
-    check_parameter_values(
-      values = req$argsQuery[[i]],
-      valid_values = query_controls[[param_name]][["values"]],
-      type = query_controls[[param_name]][["type"]]
-    )
+  out <- lapply(seq_along(req$argsQuery),
+                \(i) {
+                    param_name <- names(req$argsQuery)[i]
+                    check_parameter_values(
+                      values = req$argsQuery[[i]],
+                      valid_values = query_controls[[param_name]][["values"]],
+                      type = query_controls[[param_name]][["type"]])
   })
   out <- unlist(out)
   return(out)

@@ -552,6 +552,7 @@ create_query_controls <- function(svy_lkup,
     aggregate      <-
     long_format    <-
     additional_ind <-
+    exclude        <-
     list(values = c(TRUE, FALSE),
          type = "logical")
 
@@ -666,6 +667,7 @@ create_query_controls <- function(svy_lkup,
     fill_gaps       = fill_gaps,
     aggregate       = aggregate,
     long_format     = long_format,
+    exclude         = exclude,
     additional_ind  = additional_ind,
     group_by        = group_by,
     welfare_type    = welfare_type,
