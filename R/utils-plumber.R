@@ -237,7 +237,6 @@ assign_required_params <- function(req, pl_lkup) {
     # If no table is defined
     if (is.null(req$argsQuery$table)) {
       req$argsQuery$long_format <- FALSE
-      req$argsQuery$exclude <- FALSE
     }
 
     # If long format is not selected
@@ -254,6 +253,12 @@ assign_required_params <- function(req, pl_lkup) {
     } else {
       req$argsQuery$long_format <- as.logical(req$argsQuery$long_format)
     }
+  } # end of aux endpoint
+
+  if (endpoint == "ui_aux") {
+    if (is.null(req$argsQuery$table)) {
+      req$argsQuery$exclude <- FALSE
+    }
 
     # manage exclude paramter
     if (is.null(req$argsQuery$exclude)) {
@@ -262,6 +267,7 @@ assign_required_params <- function(req, pl_lkup) {
       req$argsQuery$exclude <- as.logical(req$argsQuery$exclude)
     }
   }
+
   return(req)
 }
 
