@@ -607,7 +607,7 @@ create_query_controls <- function(svy_lkup,
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format", "table", "long_format", "type", "pass"),
+                    "format", "table", "long_format", "exclude", "type", "pass"),
          type = "character")
 
   # cum_welfare
