@@ -295,10 +295,8 @@ function(req, res) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param long_format:[bool] Data in long format
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
-#* @param exclude:[bool] exclude countries. only applies for "countries" table
 function(req, res) {
   params <- req$argsQuery
-  exclude <- req$argsQuery$exclude
   res$serializer <- pipapi::assign_serializer(format = params$format)
 
   if (is.null(req$args$table)) {
@@ -310,18 +308,11 @@ function(req, res) {
     params$data_dir <- lkups$versions_paths[[params$version]]$data_root
     params$format <- NULL
     params$version <- NULL
-    params$exclude <- NULL
     out <- do.call(pipapi::get_aux_table, params)
-
-    if (req$args$table == "countries" && exclude == TRUE) {
-      # hardcoded
-      to_remove <- "MDG"
-      out[!(country_code %in% to_remove)]
-    }
-
   }
   out
 }
+
 
 ### versions ----------------------
 #* Return available data versions
@@ -666,6 +657,7 @@ function(req) {
 
 ## UI Endpoints: Poverty calculator ----------------------------------------
 
+### pc-charts -----------
 #* Return data for Poverty Calculator main chart
 #* @get /api/v1/pc-charts
 #* @param country:[chr] Country ISO3 code
@@ -688,6 +680,7 @@ function(req) {
   return(out)
 }
 
+### pc-download -----------
 #* Return data for Poverty Calculator download
 #* @get /api/v1/pc-download
 #* @param country:[chr] Country ISO3 code
@@ -711,6 +704,7 @@ function(req) {
 
 }
 
+### pc-regional-aggregates -----------
 #* Return regional aggregations for all years
 #* @get /api/v1/pc-regional-aggregates
 #* @param country:[chr] Region code
@@ -729,8 +723,10 @@ function(req) {
 
 }
 
+
 ## UI Endpoints: Country Profiles ----------------------------------------
 
+### cp-key-indicators -----------
 #* Return Country Profile - Key Indicators
 #* @get /api/v1/cp-key-indicators
 #* @param country:[chr] Country ISO3 code
@@ -747,6 +743,7 @@ function(req) {
 }
 
 
+### cp-charts -----------
 #* Return Country Profile - Charts
 #* @get /api/v1/cp-charts
 #* @param country:[chr] Country ISO3 code
@@ -763,6 +760,7 @@ function(req) {
     do.call(pipapi::ui_cp_charts, params)
 }
 
+### cp-download -----------
 #* Return Country Profile - Downloads
 #* @get /api/v1/cp-download
 #* @param country:[chr] Country ISO3 code
@@ -783,6 +781,7 @@ function(req, res) {
 
 ## UI endpoints: Miscellaneous ----
 
+### ui_aux -----------
 #* Return auxiliary data table
 #* @get /api/v1/ui_aux
 #* @param table:[chr] Auxiliary data table to be returned
@@ -790,8 +789,10 @@ function(req, res) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
+#* @param exclude:[bool] exclude countries. only applies for "countries" table
 function(req, res) {
   params <- req$argsQuery
+  exclude <- req$argsQuery$exclude
   res$serializer <- pipapi::assign_serializer(format = params$format)
   if (is.null(req$args$table)) {
     # return all available tables if none selected
@@ -802,11 +803,19 @@ function(req, res) {
     params$data_dir <- lkups$versions_paths[[params$version]]$data_root
     params$format <- NULL
     params$version <- NULL
+    params$exclude <- NULL
     out <- do.call(pipapi::get_aux_table_ui, params)
+
+    if (req$args$table == "countries" && exclude == TRUE) {
+      # hardcoded
+      to_remove <- "MDG"
+      out[!(country_code %in% to_remove)]
+    }
   }
   out
 }
 
+### survey-metadata -----------
 #* Return metadata for the Data Sources page
 #* @get /api/v1/survey-metadata
 #* @param country:[chr] Country ISO3 code
@@ -822,6 +831,7 @@ function(req) {
   out
 }
 
+### valid-years -----------
 #* Return valid years
 #* @get /api/v1/valid-years
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -835,6 +845,7 @@ function(req) {
   out
 }
 
+### wld-lineup-year -----------
 #* Return lineup year for the World
 #* @get /api/v1/wld-lineup-year
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -849,6 +860,7 @@ function(req) {
 }
 
 
+### citation -----------
 #* Return citation
 #* @get /api/v1/citation
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
