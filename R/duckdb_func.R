@@ -43,8 +43,6 @@ return_if_exists <- function(slkup,
   # This is probably unnecesary
   lkup_kvars <- funique(slkup) # this is not big.
 
-  # formating
-  lkup_kvars[, path := as.character(path)]
 
   # Find all (key_vars, poverty_line) combinations present in master_file
   key_vars_pl <- c(key_vars, "poverty_line")
@@ -130,7 +128,11 @@ return_if_exists <- function(slkup,
   } else {
     # lkup: keep only key_vars not present in master_file
     # NOTE: here the slkup changes
-    slkup <- slkup[lkup_not_in_master, on = key_vars]
+    slkup <- join(slkup, lkup_not_in_master,
+                  on = key_vars,
+                  how = "semi",
+                  overid = 2,
+                  verbose = 0)
   }
 
   if (verbose) message("Returning data from cache.")
