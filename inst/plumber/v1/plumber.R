@@ -1,10 +1,27 @@
 library(plumber)
+library(logger)
 
 endpoints_path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
 api_spec_path <-  system.file("plumber/v1/openapi.yaml", package = "pipapi")
 # convert_empty <- pipapi:::convert_empty
 
+log_appender(appender_console())
+log_layout(layout_glue_colors)
+log_threshold(INFO)
+
 plumber::pr(endpoints_path) |>
+  plumber::pr_set_error(function(req, res, err) {
+    log_error("Error at {req$REQUEST_METHOD} {req$PATH_INFO}: {err$message}")
+    res$status <- 500
+    list(error = "Internal server error")
+  }) |>
+
+  # Optional: global hooks (these are more general than pr_hook stages)
+  plumber::pr_register_hooks(list(
+    preroute = function(req) {
+      log_info("Incoming request: {req$REQUEST_METHOD} {req$PATH_INFO}")
+    }
+  )) |>
   # pre-route log
   plumber::pr_hook("preroute", function() {
     # log_separator()
