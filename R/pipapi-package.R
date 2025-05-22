@@ -3,23 +3,10 @@
 
 
 ## usethis namespace: start
-#' @import data.table
-#' @importFrom collapse fduplicated
-#' @importFrom collapse ffirst
-#' @importFrom collapse flast
-#' @importFrom collapse fmax
-#' @importFrom collapse fmean
-#' @importFrom collapse fmedian
-#' @importFrom collapse fmin
-#' @importFrom collapse fmode
-#' @importFrom collapse fndistinct
-#' @importFrom collapse fnobs
-#' @importFrom collapse fnth
-#' @importFrom collapse fprod
-#' @importFrom collapse fsd
-#' @importFrom collapse fsum
-#' @importFrom collapse fvar
-#' @importFrom collapse join
+#' @importFrom glue glue
+#' @importFrom glue glue_collapse
+#' @rawNamespace import(collapse, except = fdroplevels)
+#' @rawNamespace import(data.table, except = fdroplevels)
 ## usethis namespace: end
 NULL
 .datatable.aware = TRUE

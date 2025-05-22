@@ -53,7 +53,6 @@
 #'     lkup = lkups)
 #' }
 #' @export
-#'
 pip <- function(country         = "ALL",
                 year            = "ALL",
                 povline         = 1.9,
@@ -73,6 +72,9 @@ pip <- function(country         = "ALL",
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
+  povline         <- round(povline, digits = 3)
+
+
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
@@ -142,14 +144,10 @@ pip <- function(country         = "ALL",
 
     if (nrow(main_data) > 0) {
       out <- main_data |>
-        collapse::fmutate(path = as.character(path)) |>
-        collapse::rowbind(cached_data)
-      # cached_data is NULL when we are querying live data in which case we don't update cache
-      # This will be used only for development purpose and we don't have any intention to use it in production.
-      if(!is.null(cached_data)) {
-        # Update cache with data
+        rowbind(cached_data)
+
         update_master_file(main_data, cache_file_path, fill_gaps)
-      }
+
     } else {
       out <- cached_data
     }

@@ -24,10 +24,9 @@ add_agg_stats <- function(df,
                          ag_average_poverty_stats,
                          return_cols)
 
-    aggregated <- data.table::rbindlist(aggregated)
-    aggregated$path <- as.character(aggregated$path)
+    aggregated <- rbindlist(aggregated)
     df <- list(df, aggregated) |>
-      data.table::rbindlist()
+      rbindlist()
   }
 
   return(df)
@@ -88,15 +87,15 @@ ag_average_poverty_stats <- function(df, return_cols) {
   ## weighted average  ------
   wgt_df <- df |>
     # this grouping is not necessary, but ensures data.frame as output
-    collapse::fgroup_by(c("country_code", 
-                          "reporting_year", 
-                          "welfare_type", 
+    collapse::fgroup_by(c("country_code",
+                          "reporting_year",
+                          "welfare_type",
                           "poverty_line")) |>
     collapse::get_vars(c("reporting_pop", avg_names)) |>
     collapse::fmean(reporting_pop,
                     keep.group_vars = TRUE,
                     keep.w = TRUE,
-                    stub   = FALSE)|>
+                    stub   = FALSE) |>
     collapse::fselect(-country_code, -reporting_year, -welfare_type)
 
 
@@ -113,8 +112,9 @@ ag_average_poverty_stats <- function(df, return_cols) {
   #                  .SDcols = c(nonum_names)]
   #
   # out <- merge(first_rows, wgt_df, by = "poverty_line", all = TRUE)
-  out <- cbind(df[1, .SD, .SDcols = nonum_names], wgt_df)
-  out$path <- fs::path(out$path)
+
+  out <- ftransform(wgt_df, df[1, ..nonum_names]) # instead of cbind
+
 
   ## convert years back to numeric ----
   out[, (years_vars) :=
@@ -130,10 +130,10 @@ ag_average_poverty_stats <- function(df, return_cols) {
   ## set order of obs anc col -------
   out <- out[, .SD, .SDcols = orig_names]
   data.table::setcolorder(out, orig_names)
-  data.table::setorderv(out, 
-                       c("country_code", 
+  data.table::setorderv(out,
+                       c("country_code",
                        "reporting_year",
-                       "welfare_type", 
+                       "welfare_type",
                        "poverty_line"))
 
   # Return ------

@@ -6,11 +6,10 @@
 \usage{
 fg_remove_duplicates(
   df,
-  cols = c("comparable_spell", "cpi", "display_cp", "gd_type", "interpolation_id",
-    "path", "predicted_mean_ppp", "survey_acronym", "survey_comparability",
-    "survey_coverage", "survey_id", "survey_mean_lcu", "survey_mean_ppp",
-    "survey_median_lcu", "survey_median_ppp", "survey_time", "survey_year",
-    "surveyid_year")
+  cols = c("comparable_spell", "cpi", "display_cp", "gd_type", "path",
+    "predicted_mean_ppp", "survey_acronym", "survey_comparability", "survey_coverage",
+    "survey_id", "survey_mean_lcu", "survey_mean_ppp", "survey_median_lcu",
+    "survey_median_ppp", "survey_time", "survey_year", "surveyid_year")
 )
 }
 \arguments{

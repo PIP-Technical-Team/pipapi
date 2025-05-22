@@ -46,9 +46,11 @@ subset_lkup <- function(country,
 
   lkup <- lkup[keep, ]
 
-  cached_data <- return_if_exists(lkup, povline, cache_file_path, fill_gaps)
-
-  return(list(lkup = cached_data$lkup, data_present_in_master = cached_data$data_present_in_master))
+  # Return with grace
+  return_if_exists(slkup = lkup,
+                   povline = povline,
+                   cache_file_path = cache_file_path,
+                   fill_gaps = fill_gaps)
 }
 
 #' select_country
@@ -550,6 +552,7 @@ create_query_controls <- function(svy_lkup,
     aggregate      <-
     long_format    <-
     additional_ind <-
+    exclude        <-
     list(values = c(TRUE, FALSE),
          type = "logical")
 
@@ -604,7 +607,7 @@ create_query_controls <- function(svy_lkup,
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format", "table", "long_format", "type", "pass"),
+                    "format", "table", "long_format", "exclude", "type", "pass"),
          type = "character")
 
   # cum_welfare
@@ -664,6 +667,7 @@ create_query_controls <- function(svy_lkup,
     fill_gaps       = fill_gaps,
     aggregate       = aggregate,
     long_format     = long_format,
+    exclude         = exclude,
     additional_ind  = additional_ind,
     group_by        = group_by,
     welfare_type    = welfare_type,

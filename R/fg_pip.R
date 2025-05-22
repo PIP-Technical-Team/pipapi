@@ -35,18 +35,20 @@ fg_pip <- function(country,
     lkup            = ref_lkup,
     valid_regions   = valid_regions,
     data_dir        = data_dir,
-    povline = povline,
+    povline         = povline,
     cache_file_path = cache_file_path,
     fill_gaps = TRUE
   )
 
   data_present_in_master <- metadata$data_present_in_master
+  povline  <- metadata$povline
   metadata <- metadata$lkup
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
   metadata <- filter_lkup(metadata = metadata,
                           popshare = popshare)
-  metadata <- as.data.frame(metadata) # data.tables speed only kicks in for big datasets
+  setDT(metadata)
+
 
   # Return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
@@ -83,7 +85,8 @@ fg_pip <- function(country,
                                 collapse::fselect(intersect(names(ctry_years),
                                                             names(metadata))),
                                 verbose = 0,
-                                how = "inner")
+                                how = "inner",
+                                overid = 2)
 
     results_subset <- vector(mode = "list", length = nrow(ctry_years))
 
@@ -92,9 +95,11 @@ fg_pip <- function(country,
       interp_id    <- ctry_years[["interpolation_id"]][ctry_year_id]
       tmp_metadata <- metadata[metadata$interpolation_id == interp_id, ]
 
+      report_year <- ctry_years[["reporting_year"]][ctry_year_id]
+
       # Compute estimated statistics using the fill_gap method
       tmp_stats <- wbpip:::prod_fg_compute_pip_stats(
-        request_year           = ctry_years[["reporting_year"]][ctry_year_id],
+        request_year           = report_year,
         data                   = svy_data,
         predicted_request_mean = tmp_metadata[["predicted_mean_ppp"]],
         svy_mean_lcu           = tmp_metadata[["survey_mean_lcu"]],
@@ -110,19 +115,27 @@ fg_pip <- function(country,
 
       # Handle multiple distribution types (for aggregated distributions)
       if (length(unique(tmp_metadata$distribution_type)) > 1) {
-        tmp_metadata$distribution_type <- "mixed"
+        tmp_metadata[, distribution_type := "mixed"]
       }
       #
       # tmp_metadata <- unique(tmp_metadata)
       # Add stats columns to data frame
-      for (stat in seq_along(tmp_stats)) {
-        tmp_metadata[[names(tmp_stats)[stat]]] <- list(tmp_stats[[stat]])
-      }
-      # To allow multiple povline values, we store them in a list and unnest
-      tmp_metadata <- tmp_metadata %>%
-        unnest_dt_longer(names(tmp_metadata)[sapply(tmp_metadata, is.list)])
 
-      results_subset[[ctry_year_id]] <- tmp_metadata
+      # Convert Statas into Data.table
+      ts_DT <- as.data.table(tmp_stats)
+      # Add reporting year to merge
+      ts_DT[, reporting_year := report_year]
+      # merge with tmp_metadata. with multiple = TRUE
+      # now it is stats plus metadata
+      ts_md <- join(ts_DT,
+                 tmp_metadata,
+                 on = "reporting_year",
+                 how = "full",
+                 verbose = 0,
+                 overid = 2,
+                 multiple = TRUE)
+
+      results_subset[[ctry_year_id]] <- ts_md
     }
     out[[svy_id]] <- results_subset
   }
@@ -139,8 +152,12 @@ fg_pip <- function(country,
   out[,
       poverty_line := round(poverty_line, digits = 3) ]
 
-  out$path <- as.character(out$path)
-  if("max_year" %in% names(out)) out$max_year <- NULL
+  # Formatting. MUST be done in data.table tom modify by reference
+  out[, path := as.character(path)]
+
+  if ("max_year" %in% names(out)) {
+    out[, max_year := NULL]
+  }
 
   return(list(main_data = out, data_in_cache = data_present_in_master))
 }
@@ -158,7 +175,7 @@ fg_remove_duplicates <- function(df,
                                           "cpi",
                                           "display_cp",
                                           "gd_type",
-                                          "interpolation_id",
+                                          # "interpolation_id",
                                           "path",
                                           "predicted_mean_ppp",
                                           "survey_acronym",
