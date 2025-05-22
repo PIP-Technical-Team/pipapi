@@ -1,4 +1,7 @@
-# pipapi (development version)
+# pipapi 1.3.16
+
+* Fix algorithm loading duckdb code.
+* Vectorization of pov line working now
 
 # pipapi 1.3.15
 
