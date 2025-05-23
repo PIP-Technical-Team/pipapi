@@ -18,7 +18,7 @@ rg_pip <- function(country,
   svy_lkup      <- lkup$svy_lkup
   data_dir      <- lkup$data_root
 
-  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  cache_file_path <- fs::path(lkup$data_root, 'rg_master_file', ext = "parquet")
 
   metadata <- subset_lkup(
     country         = country,

@@ -40,7 +40,7 @@ return_if_exists <- function(slkup,
   }
 
 
-  # This is probably unnecesary
+  # This is probably unnecessary
   lkup_kvars <- funique(slkup) # this is not big.
 
 
@@ -156,7 +156,7 @@ update_master_file <- function(dat,
                                verbose = getOption("pipapi.verbose")
                                ) {
 
-  write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
+  # write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
 
   if (fill_gaps) {
     target_file <- "fg_master_file"
@@ -192,25 +192,27 @@ update_master_file <- function(dat,
   # Select variables
   dat <- dat[, ..keep_vars]
 
-  duckdb::duckdb_register(write_con, "append_data", dat, overwrite = TRUE)
+  # duckdb::duckdb_register(write_con, "append_data", dat, overwrite = TRUE)
 
   # Insert the rows that don't exist already in the master file
-  nr <- DBI::dbExecute(write_con, glue("
-  INSERT INTO {target_file}
-  SELECT *
-  FROM append_data AS a
-  WHERE NOT EXISTS (
-    SELECT 1
-    FROM {target_file} AS t
-    WHERE {glue_collapse(
-          glue('t.{unique_keys} = a.{unique_keys}'), sep = ' AND ')}
-     );
-  "))
-
-  duckdb::dbDisconnect(write_con)
-  if (nr > 0 && verbose)  message(glue("{target_file} is updated."))
-
-  return(nr)
+  # nr <- DBI::dbExecute(write_con, glue("
+  # INSERT INTO {target_file}
+  # SELECT *
+  # FROM append_data AS a
+  # WHERE NOT EXISTS (
+  #   SELECT 1
+  #   FROM {target_file} AS t
+  #   WHERE {glue_collapse(
+  #         glue('t.{unique_keys} = a.{unique_keys}'), sep = ' AND ')}
+  #    );
+  # "))
+  #
+  # duckdb::dbDisconnect(write_con)
+  # if (nr > 0 && verbose)  message(glue("{target_file} is updated."))
+  master_file <- arrow::read_parquet(cache_file_path, mmap = FALSE)
+  out <- collapse::rowbind(master_file, dat)
+  arrow::write_parquet(out, cache_file_path)
+  return(NROW(dat))
 }
 
 connect_with_retry <- function(db_path = NULL,
@@ -324,18 +326,17 @@ load_inter_cache <- function(lkup = NULL,
   }
 
   if (!is.null(lkup)) {
-    cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+    cache_file_path <- fs::path(lkup$data_root, target_file, ext = "parquet")
   }
-  con <- connect_with_retry(cache_file_path)
+  # con <- connect_with_retry(cache_file_path)
 
-  master_file <- DBI::dbGetQuery(con,
-                                 glue("select * from {target_file}"))
+  master_file <- arrow::read_parquet(cache_file_path, mmap = FALSE)
 
   # It is important to close the read connection before you open a write
   # connection because duckdb kind of inherits read_only flag from previous
   # connection object if it is not closed More details here
   # https://app.clickup.com/t/868cdpe3q
-  duckdb::dbDisconnect(con)
+  #duckdb::dbDisconnect(con)
 
   setDT(master_file)
 }
