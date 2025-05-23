@@ -74,7 +74,7 @@ pip <- function(country         = "ALL",
   group_by        <- match.arg(group_by)
   povline         <- round(povline, digits = 3)
 
-
+  cache_file_path <- fs::path(lkup$data_root, paste0(if(fill_gaps) "fg" else "rg", "_master_file"), ext = "parquet")
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
@@ -108,10 +108,10 @@ pip <- function(country         = "ALL",
   # lcv$est_ctrs has all the country_code that we are interested in
 
 
-  # if (!file.exists(cache_file_path)) {
-  #   # Create an empty duckdb file
-  #   create_duckdb_file(cache_file_path)
-  # }
+  if (!file.exists(cache_file_path)) {
+    # Create an empty duckdb file
+    create_duckdb_file(lkup$data_root, fill_gaps)
+  }
     # mains estimates ---------------
     if (fill_gaps) {
       ## lineup years-----------------
@@ -143,12 +143,9 @@ pip <- function(country         = "ALL",
     main_data <- out$main_data
 
     if (nrow(main_data) > 0) {
-      out <- main_data |>
-        rowbind(cached_data)
+      out <- main_data |> rowbind(cached_data)
 
-        cache_file_path <- fs::path(lkup$data_root, paste0(if(fill_gaps) "fg" else "rg", "_master_file"), ext = "parquet")
-        update_master_file(main_data, cache_file_path, fill_gaps)
-
+      update_master_file(main_data, cache_file_path, fill_gaps)
     } else {
       out <- cached_data
     }
@@ -168,9 +165,6 @@ pip <- function(country         = "ALL",
         out <- out[reporting_level == "national"]
       }
     }
-
-
-
     add_vars_out_of_pipeline(out, fill_gaps = fill_gaps, lkup = lkup)
 
     # **** TO BE REMOVED **** REMOVAL STARTS HERE
