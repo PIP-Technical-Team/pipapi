@@ -125,15 +125,30 @@ fg_pip <- function(country,
       ts_DT <- as.data.table(tmp_stats)
       # Add reporting year to merge
       ts_DT[, reporting_year := report_year]
-      # merge with tmp_metadata. with multiple = TRUE
-      # now it is stats plus metadata
+
+      # get all vars
+      meta_vars <- setdiff(names(tmp_metadata), "reporting_year")
+      # transform to NA when necessary
+      tmp_metadata[, (meta_vars) := lapply(.SD, \(x) {
+        if (uniqueN(x) == 1) {
+          x
+          } else {
+            NA
+            }}),
+        by = reporting_year, .SDcols = meta_vars]
+
+      # Remove duplicate rows by reporting_year (keep only one row per
+      # reporting_year)
+      tmp_metadata_unique <- unique(tmp_metadata, by = "reporting_year")
+
+      # Now join as usual
+
       ts_md <- join(ts_DT,
-                 tmp_metadata,
-                 on = "reporting_year",
-                 how = "full",
-                 verbose = 0,
-                 overid = 2,
-                 multiple = TRUE)
+                    tmp_metadata,
+                    on = "reporting_year",
+                    how = "left",
+                    verbose = 0,
+                    overid = 2)
 
       results_subset[[ctry_year_id]] <- ts_md
     }
