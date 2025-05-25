@@ -19,7 +19,7 @@ fg_pip <- function(country,
   data_dir            <- lkup$data_root
   ref_lkup            <- lkup$ref_lkup
 
-  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  cache_file_path <- fs::path(lkup$data_root, 'fg_master_file', ext = "qs")
   # fg_pip is called from multiple places like pip, pip_grp_logic. We have connection object created
   # when calling from `pip`. For other functions we create it here.
   # if (is.null(con)) {

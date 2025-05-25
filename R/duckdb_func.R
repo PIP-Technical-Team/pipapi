@@ -156,7 +156,6 @@ update_master_file <- function(dat,
                                verbose = getOption("pipapi.verbose")
                                ) {
 
-  write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
 
   if (fill_gaps) {
     target_file <- "fg_master_file"
@@ -192,61 +191,12 @@ update_master_file <- function(dat,
   # Select variables
   dat <- dat[, ..keep_vars]
 
-  duckdb::duckdb_register(write_con, "append_data", dat, overwrite = TRUE)
+  master_file <- qs::qread(cache_file_path)
+  out <- collapse::rowbind(master_file, dat)
+  qs::qsave(out, cache_file_path)
+  invisible(gc())
 
-  # Insert the rows that don't exist already in the master file
-  nr <- DBI::dbExecute(write_con, glue("
-  INSERT INTO {target_file}
-  SELECT *
-  FROM append_data AS a
-  WHERE NOT EXISTS (
-    SELECT 1
-    FROM {target_file} AS t
-    WHERE {glue_collapse(
-          glue('t.{unique_keys} = a.{unique_keys}'), sep = ' AND ')}
-     );
-  "))
-
-  duckdb::dbDisconnect(write_con)
-  if (nr > 0 && verbose)  message(glue("{target_file} is updated."))
-
-  return(nr)
-}
-
-connect_with_retry <- function(db_path = NULL,
-                               max_attempts = 5,
-                               delay_sec = 1,
-                               read_only = TRUE,
-                               lkup = NULL,
-                               verbose = getOption("pipapi.verbose")
-                               ) {
-
-  if (!is.null(lkup)) {
-    db_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
-  }
-
-  attempt <- 1
-  while (attempt <= max_attempts) {
-
-    tryCatch({
-      con <- duckdb::duckdb(dbdir = db_path, read_only = read_only) |>
-        duckdb::dbConnect()
-      if (verbose) message("Connected on attempt ", attempt)
-      return(con)
-    },
-    error = function(e) {
-      if (verbose) {
-        message("Attempt ", attempt,
-               " failed: ", conditionMessage(e))
-      }
-      if (attempt == max_attempts) {
-        stop("Failed to connect after ", max_attempts, " attempts.")
-      }
-      Sys.sleep(delay_sec)
-      attempt <<- attempt + 1
-    })
-
-  }
+  return(NROW(dat))
 }
 
 
@@ -277,31 +227,24 @@ reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'),
   duckdb::dbDisconnect(write_con)
 }
 
-create_duckdb_file <- function(cache_file_path) {
-  con <- connect_with_retry(cache_file_path, read_only = FALSE)
-  DBI::dbExecute(con, "CREATE OR REPLACE table rg_master_file (
-                 cache_id VARCHAR,
-                 reporting_level   VARCHAR,
-                 poverty_line   DOUBLE,
-                 mean   DOUBLE,
-                 median DOUBLE,
-                 headcount    DOUBLE,
-                 poverty_gap   DOUBLE,
-                 poverty_severity  DOUBLE,
-                 watts     DOUBLE)"
-                 )
+create_duckdb_file <- function(file_path, fill_gaps) {
+  if (fill_gaps) {
+    dat2 <- structure(list(interpolation_id = character(0), poverty_line = numeric(0),
+                           mean = numeric(0), median = numeric(0), headcount = numeric(0),
+                           poverty_gap = numeric(0), poverty_severity = numeric(0),
+                           watts = numeric(0)), row.names = c(NA, 0L), class = "data.frame")
 
-  DBI::dbExecute(con, "CREATE OR REPLACE table fg_master_file (
-                 interpolation_id VARCHAR,
-                 poverty_line   DOUBLE,
-                 mean   DOUBLE,
-                 median DOUBLE,
-                 headcount    DOUBLE,
-                 poverty_gap   DOUBLE,
-                 poverty_severity  DOUBLE,
-                 watts     DOUBLE
-  )")
-  DBI::dbDisconnect(con)
+    qs::qsave(dat2, fs::path(file_path, "fg_master_file", ext = "qs"))
+  } else {
+
+    dat1 <- structure(list(cache_id = character(0), reporting_level = character(0),
+                           poverty_line = numeric(0), mean = numeric(0), median = numeric(0),
+                           headcount = numeric(0), poverty_gap = numeric(0), poverty_severity = numeric(0),
+                           watts = numeric(0)), row.names = c(NA, 0L), class = "data.frame")
+
+    qs::qsave(dat1, fs::path(file_path, "rg_master_file", ext = "qs"))
+  }
+  invisible(gc())
 }
 
 
@@ -324,18 +267,9 @@ load_inter_cache <- function(lkup = NULL,
   }
 
   if (!is.null(lkup)) {
-    cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+    cache_file_path <- fs::path(lkup$data_root, target_file, ext = "qs")
   }
-  con <- connect_with_retry(cache_file_path)
-
-  master_file <- DBI::dbGetQuery(con,
-                                 glue("select * from {target_file}"))
-
-  # It is important to close the read connection before you open a write
-  # connection because duckdb kind of inherits read_only flag from previous
-  # connection object if it is not closed More details here
-  # https://app.clickup.com/t/868cdpe3q
-  duckdb::dbDisconnect(con)
+  master_file <- qs::qread(cache_file_path)
 
   setDT(master_file)
 }
