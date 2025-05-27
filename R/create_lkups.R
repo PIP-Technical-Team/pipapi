@@ -175,6 +175,40 @@ create_lkups <- function(data_dir, versions) {
                                             collapse = "|"),
              by = .(interpolation_id)]
 
+  # ZP ADD - CREATE OBJECT: refy_lkup
+  #___________________________________________________________________________
+  refy_lkup_path <- fs::path(data_dir,
+                             "estimations/prod_svy_estimation.fst")
+  refy_lkup      <- fst::read_fst(refy_lkup_path,
+                                  as.data.table = TRUE)
+  refy_lkup      <- refy_lkup[cache_id %in% paths_ids]
+  refy_lkup[ ,
+             path := {
+               fs::path(data_dir,
+                        "lineup_data",
+                        paste0(country_code,
+                               "_",
+                               reporting_year),
+                        ext = "qs") |>
+                 as.character()
+               }
+             ]
+
+  if ("region_code" %in% names(svy_lkup)) {
+    refy_lkup[,
+              region_code := NULL]
+  }
+  refy_lkup <- joyn::joyn(x         = refy_lkup,
+                          y         = countries,
+                          by        = 'country_code',
+                          keep      = "left",
+                          reportvar = FALSE)
+
+
+
+  #___________________________________________________________________________
+
+
 
   # CREATE OBJECT: interpolation_list ----
   # This is to facilitate interpolation computations
@@ -521,6 +555,7 @@ create_lkups <- function(data_dir, versions) {
   lkup <- list(
     svy_lkup           = svy_lkup,
     ref_lkup           = ref_lkup,
+    refy_lkup          = refy_lkup,
     dist_stats         = dist_stats,
     pop_region         = pop_region,
     cp_lkups           = cp_lkups,
