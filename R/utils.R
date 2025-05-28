@@ -476,8 +476,6 @@ estimate_type_ctr_lnp <- function(out, lkup) {
 
 
 
-
-
 #' Create query controls
 #' @param syv_lkup data.table: Survey lkup table
 #' @param ref_lkup data.table: Reference lkup table
@@ -493,9 +491,9 @@ create_query_controls <- function(svy_lkup,
                                   versions) {
   # Countries and regions
   countries <- unique(c(
-      svy_lkup$country_code,
-      ref_lkup$country_code
-    ))
+    svy_lkup$country_code,
+    ref_lkup$country_code
+  ))
 
   regions <- unique(c(
     aux_files$regions$region_code
@@ -543,6 +541,7 @@ create_query_controls <- function(svy_lkup,
     aggregate      <-
     long_format    <-
     additional_ind <-
+    exclude        <-
     list(values = c(TRUE, FALSE),
          type = "logical")
 
@@ -586,13 +585,18 @@ create_query_controls <- function(svy_lkup,
                  type = "character")
   # Tables
   table <- list(values = aux_tables, type = "character")
+
+  # type
+  type <- list(values = c("both", "rg", "fg"), type = "character")
+
+  pass <- list(values = Sys.getenv('PIP_CACHE_SERVER_KEY'), type = "character")
   # parameters
   parameter <-
     list(values = c("country", "year", "povline",
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format", "table", "long_format"),
+                    "format", "table", "long_format", "exclude", "type", "pass"),
          type = "character")
 
   # cum_welfare
@@ -642,7 +646,7 @@ create_query_controls <- function(svy_lkup,
                     "valid-params"),
          type = "character")
 
-    # Create list of query controls
+  # Create list of query controls
   query_controls <- list(
     country         = country,
     region          = region,
@@ -652,6 +656,7 @@ create_query_controls <- function(svy_lkup,
     fill_gaps       = fill_gaps,
     aggregate       = aggregate,
     long_format     = long_format,
+    exclude         = exclude,
     additional_ind  = additional_ind,
     group_by        = group_by,
     welfare_type    = welfare_type,
@@ -668,11 +673,18 @@ create_query_controls <- function(svy_lkup,
     times_mean      = times_mean,
     lorenz          = lorenz,
     n_bins          = n_bins,
-    endpoint        = endpoint
+    endpoint        = endpoint,
+    type            = type,
+    pass            = pass
   )
 
   return(query_controls)
 }
+
+
+
+
+
 
 convert_empty <- function(string) {
   if (string == "") {
