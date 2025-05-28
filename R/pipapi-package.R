@@ -1,8 +1,10 @@
 #' @keywords internal
 "_PACKAGE"
 
-#' @import data.table
-#' @importFrom collapse deprecated
+## usethis namespace: start
+#' @rawNamespace import(collapse, except = fdroplevels)
+#' @rawNamespace import(data.table, except = fdroplevels)
+## usethis namespace: end
 .datatable.aware = TRUE
 
 #' List of two datasets `pov_trend` and `pov_mrv`
