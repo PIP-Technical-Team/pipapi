@@ -1,3 +1,10 @@
+#' @keywords internal
+"_PACKAGE"
+
+#' @import data.table
+#' @importFrom collapse deprecated
+.datatable.aware = TRUE
+
 #' List of two datasets `pov_trend` and `pov_mrv`
 #'
 #' @docType data
@@ -27,6 +34,15 @@ NULL
 NULL
 
 
+
+#' Dataframe for fill gaps empty response
+#'
+#' @docType data
+#' @keywords datasets
+#' @name empty_response_fg
+#' @usage data(empty_response_fg)
+#' @format Data frame with 0 rows and 53 columns
+NULL
 
 utils::globalVariables(
   c(
@@ -105,6 +121,8 @@ utils::globalVariables(
     "use_bin",
     "use_groupdata",
     "use_imputed",
-    "use_microdata"
+    "use_microdata",
+    "path"
   )
 )
+
