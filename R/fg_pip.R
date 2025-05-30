@@ -144,7 +144,7 @@ fg_pip <- function(country,
       # Now join as usual
 
       ts_md <- join(ts_DT,
-                    tmp_metadata,
+                    tmp_metadata_unique,
                     on = "reporting_year",
                     how = "left",
                     verbose = 0,

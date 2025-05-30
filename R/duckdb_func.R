@@ -41,7 +41,25 @@ return_if_exists <- function(slkup,
 
 
   # This is probably unnecesary
-  lkup_kvars <- funique(slkup) # this is not big.
+  lkup_kvars <- slkup |>
+    copy() |>
+    funique() # this is not big.
+  # get all vars
+  slkup_vars <- setdiff(names(slkup), key_vars)
+  # transform to NA when necessary
+  lkup_kvars[is_interpolated == TRUE,
+             (slkup_vars) := lapply(.SD, \(x) {
+    if (fnunique(x) == 1) {
+      x
+    } else {
+      NA
+    }}),
+    by = key_vars,
+    .SDcols = slkup_vars]
+
+  lkup_kvars <- unique(lkup_kvars, by = key_vars)
+
+
 
 
   # Find all (key_vars, poverty_line) combinations present in master_file
