@@ -1,3 +1,24 @@
+# pipapi 1.3.17
+
+# pipapi 1.3.16
+
+* Fix algorithm loading duckdb code.
+* Vectorization of pov line working now
+
+# pipapi 1.3.15
+
+* vectorization of poverty line. Just in internal functions. They are still not available in the API
+* Fix issue with aggregates.
+
+# pipapi 1.3.14
+
+* Fix issues with intermediate caching when multiple R sessions are open
+* Optimize opening and closing of duckdb connection. 
+
+# pipapi 1.3.13
+
+* implement intermediate caching
+
 # pipapi 1.3.12
 
 * Hot fix with `future` dependency.

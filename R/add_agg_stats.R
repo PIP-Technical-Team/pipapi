@@ -23,9 +23,10 @@ add_agg_stats <- function(df,
     aggregated <- lapply(aggregated_list,
                          ag_average_poverty_stats,
                          return_cols)
-    aggregated <- data.table::rbindlist(aggregated)
 
-    df <- rbind(df, aggregated)
+    aggregated <- rbindlist(aggregated)
+    df <- list(df, aggregated) |>
+      rbindlist()
   }
 
   return(df)
@@ -44,9 +45,6 @@ ag_average_poverty_stats <- function(df, return_cols) {
   zero_vars     <- return_cols$zero_vars
   na_cols       <- return_cols$na_cols
   national_cols <- return_cols$national_cols
-
-  # This should be removed eventually
-  assertthat::assert_that(assertthat::are_equal(length(df$reporting_level), 2))
 
   # STEP 1: Identify groups of variables that will be handled differently ------
   ## original names
@@ -84,16 +82,22 @@ ag_average_poverty_stats <- function(df, return_cols) {
        lapply(.SD, zeros_to_na),
      .SDcols = zero_vars]
 
+
   # STEP 3: Calculations ----------
   ## weighted average  ------
   wgt_df <- df |>
     # this grouping is not necessary, but ensures data.frame as output
-    collapse::fgroup_by(c("country_code", "reporting_year", "welfare_type")) |>
+    collapse::fgroup_by(c("country_code",
+                          "reporting_year",
+                          "welfare_type",
+                          "poverty_line")) |>
     collapse::get_vars(c("reporting_pop", avg_names)) |>
     collapse::fmean(reporting_pop,
-                    keep.group_vars = FALSE,
+                    keep.group_vars = TRUE,
                     keep.w = TRUE,
-                    stub   = FALSE)
+                    stub   = FALSE) |>
+    collapse::fselect(-country_code, -reporting_year, -welfare_type)
+
 
 
   ## Sum: National total of reporting vars ------
@@ -103,7 +107,14 @@ ag_average_poverty_stats <- function(df, return_cols) {
 
   # STEP 4: Format results ----
   ## Bind resulting tables ----
-  out <- cbind(df[1, .SD, .SDcols = nonum_names], wgt_df)
+
+  # first_rows <- df[, .SD[1], by = poverty_line,
+  #                  .SDcols = c(nonum_names)]
+  #
+  # out <- merge(first_rows, wgt_df, by = "poverty_line", all = TRUE)
+
+  out <- ftransform(wgt_df, df[1, ..nonum_names]) # instead of cbind
+
 
   ## convert years back to numeric ----
   out[, (years_vars) :=
@@ -119,8 +130,11 @@ ag_average_poverty_stats <- function(df, return_cols) {
   ## set order of obs anc col -------
   out <- out[, .SD, .SDcols = orig_names]
   data.table::setcolorder(out, orig_names)
-  data.table::setorderv(out, c("country_code", "reporting_year","welfare_type"))
-
+  data.table::setorderv(out,
+                       c("country_code",
+                       "reporting_year",
+                       "welfare_type",
+                       "poverty_line"))
 
   # Return ------
   return(out)

@@ -112,10 +112,15 @@ create_lkups <- function(data_dir, versions) {
   svy_lkup      <- fst::read_fst(svy_lkup_path, as.data.table = TRUE)
 
   ## TEMP cleaning - START ----
-  svy_lkup <- svy_lkup[svy_lkup$cache_id %in% paths_ids, ]
+  svy_lkup <- svy_lkup[cache_id %in% paths_ids]
 
 
-  svy_lkup$path <- fs::path(data_dir,"survey_data", svy_lkup$cache_id, ext = "fst")
+  svy_lkup[ , path := {
+    fs::path(data_dir,"survey_data",
+              cache_id, ext = "fst") |>
+      as.character()
+    }
+    ]
 
   ## TEMP: Ideally, region should come from one single place
   if ("region_code" %in% names(svy_lkup)) {
@@ -134,7 +139,7 @@ create_lkups <- function(data_dir, versions) {
   ref_lkup      <- fst::read_fst(ref_lkup_path, as.data.table = TRUE)
 
   ## TEMP cleaning - START ----
-  ref_lkup <- ref_lkup[ref_lkup$cache_id %in% paths_ids, ]
+  ref_lkup <- ref_lkup[cache_id %in% paths_ids]
 
   # TEMP: Ideally, region should come from one single place
   if ("region_code" %in% names(ref_lkup)) {
@@ -149,19 +154,22 @@ create_lkups <- function(data_dir, versions) {
   ## TEMP cleaning - END
 
   # Add path to survey files
-  ref_lkup$path <-
-  fs::path(data_dir, "survey_data", ref_lkup$cache_id, ext = "fst")
+  ref_lkup[, path := {
+    fs::path(data_dir, "survey_data",
+             cache_id, ext = "fst") |>
+      as.character()
+  }]
+
 
   # Add data interpolation ID (unique combination of survey files used for one
   # or more reporting years)
-  ref_lkup <-
-    ref_lkup[,
+
+  ref_lkup[,
              data_interpolation_id := paste(cache_id,
                                             reporting_level,
                                             sep = "_")
              ]
 
-  ref_lkup <-
     ref_lkup[,
              data_interpolation_id := paste(unique(data_interpolation_id),
                                             collapse = "|"),

@@ -69,10 +69,12 @@ pip <- function(country         = "ALL",
 
 
   # set up -------------
-
   welfare_type    <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by        <- match.arg(group_by)
+  povline         <- round(povline, digits = 3)
+
+
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
@@ -103,175 +105,177 @@ pip <- function(country         = "ALL",
       valid_years     =  lkup$valid_years,
       aux_files       =  lkup$aux_files
     )
+  # lcv$est_ctrs has all the country_code that we are interested in
 
-  # mains estimates ---------------
-  if (fill_gaps) {
-    ## lineup years-----------------
-    out <- fg_pip(
-      country            = lcv$est_ctrs,
-      year               = year,
-      povline            = povline,
-      popshare           = popshare,
-      welfare_type       = welfare_type,
-      reporting_level    = reporting_level,
-      ppp                = ppp,
-      lkup               = lkup
+  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  if (!file.exists(cache_file_path)) {
+    # Create an empty duckdb file
+    create_duckdb_file(cache_file_path)
+  }
+    # mains estimates ---------------
+    if (fill_gaps) {
+      ## lineup years-----------------
+      out <- fg_pip(
+        country            = lcv$est_ctrs,
+        year               = year,
+        povline            = povline,
+        popshare           = popshare,
+        welfare_type       = welfare_type,
+        reporting_level    = reporting_level,
+        ppp                = ppp,
+        lkup               = lkup
+        )
+    } else {
+      ## survey years ------------------
+      out <- rg_pip(
+        country         = lcv$est_ctrs,
+        year            = year,
+        povline         = povline,
+        popshare        = popshare,
+        welfare_type    = welfare_type,
+        reporting_level = reporting_level,
+        ppp             = ppp,
+        lkup            = lkup
       )
-  } else {
-    ## survey years ------------------
-    out <- rg_pip(
-      country         = lcv$est_ctrs,
-      year            = year,
-      povline         = povline,
-      popshare        = popshare,
-      welfare_type    = welfare_type,
-      reporting_level = reporting_level,
-      ppp             = ppp,
-      lkup            = lkup
-    )
-  }
+    }
 
-  # Eary return for empty table---------------
-  if (nrow(out) == 0) {
-    return(out)
-  }
+    cached_data <- out$data_in_cache
+    main_data <- out$main_data
 
-  # aggregate distributions ------------------
-  if (reporting_level %in% c("national", "all")) {
-    out <- add_agg_stats(
+    if (nrow(main_data) > 0) {
+      out <- main_data |>
+        rowbind(cached_data)
+
+        update_master_file(main_data, cache_file_path, fill_gaps)
+
+    } else {
+      out <- cached_data
+    }
+    if (!data.table::is.data.table(out)) {
+      setDT(out)
+    }
+    # Early return for empty table---------------
+    if (nrow(out) == 0) return(pipapi::empty_response)
+
+    # aggregate distributions ------------------
+    if (reporting_level %in% c("national", "all")) {
+      out <- add_agg_stats(
+        df = out,
+        return_cols = lkup$return_cols$ag_average_poverty_stats
+        )
+      if (reporting_level == "national") {
+        out <- out[reporting_level == "national"]
+      }
+    }
+
+
+
+    add_vars_out_of_pipeline(out, fill_gaps = fill_gaps, lkup = lkup)
+
+    # **** TO BE REMOVED **** REMOVAL STARTS HERE
+    # Once `pip-grp` has been integrated in ingestion pipeline
+    # Handles grouped aggregations
+    if (group_by != "none") {
+      # Handle potential (insignificant) difference in poverty_line values that
+      # may mess-up the grouping
+      out$poverty_line <- povline
+
+      out <- pip_aggregate_by(
+        df          = out,
+        group_lkup  = lkup[["pop_region"]],
+        return_cols = lkup$return_cols$pip_grp
+      )
+      # Censor regional values
+      if (censor) {
+        out <- censor_rows(out, lkup[["censored"]], type = "regions")
+      }
+
+      out <- out[, c("region_name",
+                     "region_code",
+                     "reporting_year",
+                     "reporting_pop",
+                     "poverty_line",
+                     "headcount",
+                     "poverty_gap",
+                     "poverty_severity",
+                     "watts",
+                     "mean",
+                     "pop_in_poverty")]
+
+      return(out)
+    }
+    # **** TO BE REMOVED **** REMOVAL ENDS HERE
+
+
+    # pre-computed distributional stats ---------------
+    crr_names  <- names(out)    # current variables
+    names2keep <- lkup$return_cols$pip$cols # all variables
+
+    out <- add_dist_stats(
       df = out,
-      return_cols = lkup$return_cols$ag_average_poverty_stats
-      )
-    if (reporting_level == "national") {
-      out <- out[reporting_level == "national"]
-    }
-  }
-
-  # Add extra variables --------------
-
-  # ## Add SPL and SPR  ---------------
-  # out <- add_spl(df        = out,
-  #                fill_gaps = fill_gaps,
-  #                data_dir  = lkup$data_root)
-  #
-  # ## Add prosperity Gap -----------
-  #
-  # out <- add_pg(df        = out,
-  #               fill_gaps = fill_gaps,
-  #               data_dir  = lkup$data_root)
-  #
-  # ## add distribution type -------------
-  # # based on info in framework data, rather than welfare data
-  # add_distribution_type(df = out,
-  #                       lkup = lkup,
-  #                       fill_gaps = fill_gaps)
-
-  add_vars_out_of_pipeline(out, fill_gaps = fill_gaps, lkup = lkup)
-
-
-
-
-  # **** TO BE REMOVED **** REMOVAL STARTS HERE
-  # Once `pip-grp` has been integrated in ingestion pipeline
-  # Handles grouped aggregations
-  if (group_by != "none") {
-    # Handle potential (insignificant) difference in poverty_line values that
-    # may mess-up the grouping
-    out$poverty_line <- povline
-
-    out <- pip_aggregate_by(
-      df          = out,
-      group_lkup  = lkup[["pop_region"]],
-      return_cols = lkup$return_cols$pip_grp
+      dist_stats = lkup[["dist_stats"]]
     )
-    # Censor regional values
-    if (censor) {
-      out <- censor_rows(out, lkup[["censored"]], type = "regions")
+
+    # Add aggregate medians ----------------
+    out <- add_agg_medians(
+      df        = out,
+      fill_gaps = fill_gaps,
+      data_dir  = lkup$data_root
+    )
+
+    # format ----------------
+
+
+    if (fill_gaps) {
+
+    ## Inequality indicators to NA for lineup years ----
+      dist_vars  <- names2keep[!(names2keep %in% crr_names)]
+      out[,
+          (dist_vars) := NA_real_]
+
+      ## estimate_var -----
+      out <- estimate_type_ctr_lnp(out, lkup)
+
+    } else {
+      out[, estimate_type := NA_character_]
+    }
+    ## Handle survey coverage ------------
+    if (reporting_level != "all") {
+      keep <- out$reporting_level == reporting_level
+      out <- out[keep, ]
     }
 
-    out <- out[, c("region_name",
-                   "region_code",
-                   "reporting_year",
-                   "reporting_pop",
-                   "poverty_line",
-                   "headcount",
-                   "poverty_gap",
-                   "poverty_severity",
-                   "watts",
-                   "mean",
-                   "pop_in_poverty")]
-
-    return(out)
-  }
-  # **** TO BE REMOVED **** REMOVAL ENDS HERE
+    # Censor country values
+    if (censor) {
+      out <- censor_rows(out, lkup[["censored"]], type = "countries")
+    }
 
 
-  # pre-computed distributional stats ---------------
-  crr_names  <- names(out)    # current variables
-  names2keep <- lkup$return_cols$pip$cols # all variables
+    # Select columns
+    if (additional_ind) {
+      get_additional_indicators(out)
+      added_names <- attr(out, "new_indicators_names")
+      names2keep  <- c(names2keep, added_names)
 
-  out <- add_dist_stats(
-    df = out,
-    dist_stats = lkup[["dist_stats"]]
-  )
-
-  # Add aggregate medians ----------------
-  out <- add_agg_medians(
-    df        = out,
-    fill_gaps = fill_gaps,
-    data_dir  = lkup$data_root
-  )
-
-  # format ----------------
+    }
+    # Keep relevant variables
+    out  <- out[, .SD, .SDcols = names2keep]
 
 
-  if (fill_gaps) {
+    # make sure we always report the same precision in all numeric variables
+    doub_vars <-
+      names(out)[unlist(lapply(out, is.double))] |>
+      data.table::copy()
 
-  ## Inequality indicators to NA for lineup years ----
-    dist_vars  <- names2keep[!(names2keep %in% crr_names)]
-    out[,
-        (dist_vars) := NA_real_]
+    out[, (doub_vars) := lapply(.SD, round, digits = 12),
+       .SDcols = doub_vars]
 
-    ## estimate_var -----
-    out <- estimate_type_ctr_lnp(out, lkup)
+    # Order rows by country code and reporting year
+    data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
+  #}
 
-  } else {
-    out[, estimate_type := NA_character_]
-  }
-  ## Handle survey coverage ------------
-  if (reporting_level != "all") {
-    keep <- out$reporting_level == reporting_level
-    out <- out[keep, ]
-  }
-
-  # Censor country values
-  if (censor) {
-    out <- censor_rows(out, lkup[["censored"]], type = "countries")
-  }
-
-
-  # Select columns
-  if (additional_ind) {
-    get_additional_indicators(out)
-    added_names <- attr(out, "new_indicators_names")
-    names2keep  <- c(names2keep, added_names)
-
-  }
-  # Keep relevant variables
-  out  <- out[, .SD, .SDcols = names2keep]
-
-
-  # make sure we always report the same precision in all numeric variables
-  doub_vars <-
-    names(out)[unlist(lapply(out, is.double))] |>
-    data.table::copy()
-
-  out[, (doub_vars) := lapply(.SD, round, digits = 12),
-     .SDcols = doub_vars]
-
-  # Order rows by country code and reporting year
-  data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
-
+  # Make sure no duplicate remains
+  out <- out |> collapse::funique()
   # return -------------
   return(out)
 }
