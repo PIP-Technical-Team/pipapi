@@ -45,7 +45,7 @@ rg_pip <- function(country,
 
   # return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    return(list(main_data = empty_response,
+    return(list(main_data = pipapi::empty_response,
                 data_in_cache = data_present_in_master))
   }
 

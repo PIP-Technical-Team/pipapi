@@ -41,6 +41,15 @@ NULL
 
 
 
+#' Dataframe for survey years empty response
+#'
+#' @docType data
+#' @keywords datasets
+#' @name empty_response
+#' @usage data(empty_response)
+#' @format Data frame with 0 rows and 44 columns
+NULL
+
 #' Dataframe for fill gaps empty response
 #'
 #' @docType data
