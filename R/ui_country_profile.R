@@ -242,7 +242,7 @@ cp_correct_reporting_level <- function(df) {
      by = .(country_code)]
   df <- df[, cp_select_reporting_level(.SD),
            by = .(country_code)]
-  df$N <- NULL
+  df[, N := NULL]
 
   return(df)
 }
