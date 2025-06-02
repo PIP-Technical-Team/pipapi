@@ -140,7 +140,7 @@ ui_cp_charts <- function(country   = "AGO",
 #' @keywords internal
 ui_cp_poverty_charts <- function(country,
                                  povline,
-                                 pop_units,
+                                 pop_units = 1e6,
                                  lkup) {
   # STEP 1: Identify all regional countries to be used in comparison chart ----
   # Region of the selected country
