@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.3.18
 * Fix country profile data
 * Add UKR
 * fix some deletion of column by reference
