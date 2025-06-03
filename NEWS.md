@@ -1,4 +1,11 @@
+# pipapi 1.3.18
+* Fix country profile data
+* Add UKR
+* fix some deletion of column by reference
+
 # pipapi 1.3.17
+* Fix bugs
+* improve matching algorithm
 
 # pipapi 1.3.16
 
