@@ -34,6 +34,12 @@ return_if_exists <- function(slkup,
 
   if (fill_gaps) {
     key_vars <- c("interpolation_id")
+    # convert survey_comparability to NA
+    # NOTE: This should not be necessary. for the new lineup distribution
+    # metadata should come without this variable.
+    slkup[, survey_comparability := NA]
+
+
   } else {
     key_vars <- c("cache_id",
                   "reporting_level")
