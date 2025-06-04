@@ -1,4 +1,5 @@
 # pipapi (development version)
+* fix issue with comparability
 
 # pipapi 1.3.18
 * Fix country profile data
