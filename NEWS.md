@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.3.19
 * fix issue with comparability
 
 # pipapi 1.3.18
