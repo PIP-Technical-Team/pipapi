@@ -1,3 +1,16 @@
+#' @keywords internal
+"_PACKAGE"
+
+
+## usethis namespace: start
+#' @importFrom glue glue
+#' @importFrom glue glue_collapse
+#' @rawNamespace import(collapse, except = fdroplevels)
+#' @rawNamespace import(data.table, except = fdroplevels)
+## usethis namespace: end
+NULL
+.datatable.aware = TRUE
+
 #' List of two datasets `pov_trend` and `pov_mrv`
 #'
 #' @docType data
@@ -27,6 +40,24 @@ NULL
 NULL
 
 
+
+#' Dataframe for survey years empty response
+#'
+#' @docType data
+#' @keywords datasets
+#' @name empty_response
+#' @usage data(empty_response)
+#' @format Data frame with 0 rows and 44 columns
+NULL
+
+#' Dataframe for fill gaps empty response
+#'
+#' @docType data
+#' @keywords datasets
+#' @name empty_response_fg
+#' @usage data(empty_response_fg)
+#' @format Data frame with 0 rows and 53 columns
+NULL
 
 utils::globalVariables(
   c(
@@ -105,6 +136,8 @@ utils::globalVariables(
     "use_bin",
     "use_groupdata",
     "use_imputed",
-    "use_microdata"
+    "use_microdata",
+    "path"
   )
 )
+

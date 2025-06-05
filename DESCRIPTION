@@ -1,15 +1,23 @@
 Package: pipapi
 Title: API for the Poverty and Inequality Platform
-Version: 1.3.11.9000
+Version: 1.3.19
 Authors@R: 
     c(person(given = "Tony",
             family = "Fujs",
-            role = c("aut", "cre"),
+            role = c("aut"),
             email = "tfujs@worldbank.org"),
      person(given = "Aleksander",
             family = "Eilertsen",
             role = "aut",
             email = "aeilertsen@worldbank.org"),
+      person(given = "R.Andrés",
+            family = "Castañeda",
+            role = c("aut", "cre"),
+            email = "acastanedaa@worldbank.org"),
+     person(given = "Ronak",
+            family = "Shah",
+            role =  "aut",
+            email = "rshah11@worldbank.org"),
      person(given = "World Bank",
             role = "cph")
      )
@@ -26,24 +34,24 @@ Suggests:
     covr,
     testthat,
     spelling,
-    knitr,
     rmarkdown,
     markdown,
     assertthat,
     callr,
     httr,
-    jsonlite,
     lintr,
     withr,
     devtools, 
-    stringr
+    stringr, 
+    knitr, 
+    dplyr
 Language: en-US
 Imports: 
     data.table,
     fst (>= 0.9.8),
     plumber,
     urltools,
-    wbpip,
+    wbpip (>= 0.1.5),
     rlang (>= 1.1.2),
     fs,
     memoise,
@@ -58,7 +66,11 @@ Imports:
     joyn,
     yaml,
     purrr,
-    future
+    glue,
+    DBI,
+    duckdb,
+    jsonlite,
+    digest
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 

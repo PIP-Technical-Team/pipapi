@@ -1,3 +1,9 @@
+pipapi_default_options <- list(
+  pipapi.query_live_data = FALSE,
+  pipapi.verbose = FALSE
+)
+
+
 .onLoad <- function(libname, pkgname) {
   if (Sys.getenv("PIPAPI_APPLY_CACHING") == "TRUE") {
     d <- rappdirs::user_cache_dir("pipapi")
@@ -10,6 +16,7 @@
                              logfile = NULL,
                              max_size = as.numeric(Sys.getenv("PIPAPI_CACHE_MAX_SIZE")),
                              prune_rate = 50)
+
     pip <<- memoise::memoise(pip, cache = cd, omit_args = "lkup")
     ui_hp_stacked <<- memoise::memoise(ui_hp_stacked, cache = cd, omit_args = "lkup")
     pip_grp_logic <<- memoise::memoise(pip_grp_logic, cache = cd, omit_args = "lkup")
@@ -21,5 +28,12 @@
     assign("cd", cd, envir = as.environment(pos))
     packageStartupMessage("Info: Disk based caching is enabled.")
   }
+
+  op <- options()
+  toset <- !(names(pipapi_default_options) %in% names(op))
+  if (any(toset)) options(pipapi_default_options[toset])
+
+  invisible()
+
 }
 

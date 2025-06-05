@@ -209,7 +209,7 @@ get_user_alt_gt <- function(user_gt, off_gt) {
   return(out)
 }
 
-#' Helper function to define user_{var}_code
+#' Helper function to define user_\{var\}_code
 #'
 #' @param x character: Grouping type needed by user
 #'

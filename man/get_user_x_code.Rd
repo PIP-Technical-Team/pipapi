@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_countries_vctr.R
 \name{get_user_x_code}
 \alias{get_user_x_code}
-\title{Helper function to define user_{var}_code}
+\title{Helper function to define user_\{var\}_code}
 \usage{
 get_user_x_code(x)
 }
@@ -13,5 +13,5 @@ get_user_x_code(x)
 character
 }
 \description{
-Helper function to define user_{var}_code
+Helper function to define user_\{var\}_code
 }

@@ -1,6 +1,39 @@
-# pipapi (development version)
+# pipapi 1.3.19
+* fix issue with comparability
+
+# pipapi 1.3.18
+* Fix country profile data
+* Add UKR
+* fix some deletion of column by reference
+
+# pipapi 1.3.17
+* Fix bugs
+* improve matching algorithm
+
+# pipapi 1.3.16
+
+* Fix algorithm loading duckdb code.
+* Vectorization of pov line working now
+
+# pipapi 1.3.15
+
+* vectorization of poverty line. Just in internal functions. They are still not available in the API
+* Fix issue with aggregates.
+
+# pipapi 1.3.14
+
+* Fix issues with intermediate caching when multiple R sessions are open
+* Optimize opening and closing of duckdb connection. 
+
+# pipapi 1.3.13
+
+* implement intermediate caching
+
+# pipapi 1.3.12
 
 * Hot fix with `future` dependency.
+* Fix examples for `/grouped-stats` endpoint. 
+* cache-control header added for test
 
 # pipapi 1.3.11
 

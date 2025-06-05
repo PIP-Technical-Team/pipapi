@@ -15,8 +15,6 @@ pipgd_lorenz_curve(welfare = NULL, weight = NULL, lorenz = NULL, n_bins = 100)
 
 \item{n_bins}{atomic double vector of length 1: number of points on the
 lorenz curve}
-
-\item{params}{list of parameters}
 }
 \value{
 Returns a list which contains:

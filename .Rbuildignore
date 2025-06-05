@@ -12,3 +12,5 @@ TEMP/
 ^docs$
 ^pkgdown$
 CONTRIBUTING.md
+^doc$
+^Meta$

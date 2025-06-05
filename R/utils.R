@@ -1,8 +1,10 @@
 #' Subset look-up data
 #' @inheritParams pip
+#' @inheritParams rg_pip
 #' @param valid_regions character: List of valid region codes that can be used
 #' for region selection
 #' @param data_dir character: directory path from lkup$data_root
+#' @param cache_file_path file path for cache
 #' @return data.frame
 #' @keywords internal
 subset_lkup <- function(country,
@@ -11,7 +13,11 @@ subset_lkup <- function(country,
                         reporting_level,
                         lkup,
                         valid_regions,
-                        data_dir = NULL) {
+                        data_dir = NULL,
+                        povline,
+                        cache_file_path,
+                        fill_gaps
+                        ) {
 
   # STEP 1 - Keep every row by default
   keep <- rep(TRUE, nrow(lkup))
@@ -37,9 +43,14 @@ subset_lkup <- function(country,
                                  keep = keep,
                                  reporting_level = reporting_level[1])
 
+
   lkup <- lkup[keep, ]
 
-  return(lkup)
+  # Return with grace
+  return_if_exists(slkup = lkup,
+                   povline = povline,
+                   cache_file_path = cache_file_path,
+                   fill_gaps = fill_gaps)
 }
 
 #' select_country
@@ -89,8 +100,6 @@ select_years <- function(lkup,
   is_agg       <-
     grepl("pip_grp", caller_names) |>
     any()
-
-
 
   dtmp <- lkup
 
@@ -374,7 +383,6 @@ censor_stats <- function(df, censored_table) {
   setDT(df)
   setDT(censored_table)
 
-
   # Create a binary column to mark rows for removal based on 'all' statistic
   df[, to_remove := FALSE]
   censor_all <- censored_table[statistic == "all", .(id)]
@@ -389,7 +397,8 @@ censor_stats <- function(df, censored_table) {
   censor_stats <- censored_table[statistic != "all"]
   if (nrow(censor_stats) > 0) {
     # Perform a non-equi join to mark relevant statistics
-    df[censor_stats, on = .(tmp_id = id), mult = "first",
+    # Commenting mult = "first" since with multiple povline values there are more than one rows
+    df[censor_stats, on = .(tmp_id = id), #mult = "first",
        unique(censor_stats$statistic) := NA_real_]
   }
 
@@ -404,7 +413,7 @@ censor_stats <- function(df, censored_table) {
 #' It also censors specific stats
 #'
 #' @param df data.table: Table to censor.
-#' @param censored_table data.table: Censor table
+#' @param lkup lkup value
 #' @keywords internal
 estimate_type_var <- function(df, lkup) {
 
@@ -543,6 +552,7 @@ create_query_controls <- function(svy_lkup,
     aggregate      <-
     long_format    <-
     additional_ind <-
+    exclude        <-
     list(values = c(TRUE, FALSE),
          type = "logical")
 
@@ -586,13 +596,18 @@ create_query_controls <- function(svy_lkup,
                  type = "character")
   # Tables
   table <- list(values = aux_tables, type = "character")
+
+  # type
+  type <- list(values = c("both", "rg", "fg"), type = "character")
+
+  pass <- list(values = Sys.getenv('PIP_CACHE_SERVER_KEY'), type = "character")
   # parameters
   parameter <-
     list(values = c("country", "year", "povline",
                     "popshare", "fill_gaps", "aggregate",
                     "group_by", "welfare_type",
                     "reporting_level", "ppp", "version",
-                    "format", "table", "long_format"),
+                    "format", "table", "long_format", "exclude", "type", "pass"),
          type = "character")
 
   # cum_welfare
@@ -652,6 +667,7 @@ create_query_controls <- function(svy_lkup,
     fill_gaps       = fill_gaps,
     aggregate       = aggregate,
     long_format     = long_format,
+    exclude         = exclude,
     additional_ind  = additional_ind,
     group_by        = group_by,
     welfare_type    = welfare_type,
@@ -668,7 +684,9 @@ create_query_controls <- function(svy_lkup,
     times_mean      = times_mean,
     lorenz          = lorenz,
     n_bins          = n_bins,
-    endpoint        = endpoint
+    endpoint        = endpoint,
+    type            = type,
+    pass            = pass
   )
 
   return(query_controls)
@@ -713,7 +731,7 @@ subset_ctry_years <- function(country,
     } else {
       keep_regions <- rep(FALSE, length(lkup$region_code))
     }
-    keep_countries <- lkup$country_code %chin% country
+    keep_countries <- lkup$country_code %chin% as.character(country)
     keep <- keep & (keep_countries | keep_regions)
   }
 
@@ -1346,5 +1364,38 @@ add_vars_out_of_pipeline <- function(out, fill_gaps, lkup) {
 
   invisible(out)
 }
+
+#' An efficient tidyr::unnest_longer
+#'
+#' @param tbl a dataframe/tibble/data.table
+#' @param cols one (or more) column names in `tbl`
+#'
+#' @return A longer data.table
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' df <- data.frame(
+#'  a = LETTERS[1:5],
+#'  b = LETTERS[6:10],
+#'  list_column1 = list(c(LETTERS[1:5]), "F", "G", "H", "I"),
+#'  list_column2 = list(c(LETTERS[1:5]), "F", "G", "H", "K")
+#' )
+#'  unnest_dt_longer(df, grep("^list_column", names(df), value = TRUE))
+#' }
+unnest_dt_longer <- function(tbl, cols) {
+
+  tbl <- data.table::as.data.table(tbl)
+  clnms <- rlang::syms(setdiff(colnames(tbl), cols))
+
+  tbl <- eval(
+    rlang::expr(tbl[, lapply(.SD, unlist), by = list(!!!clnms), .SDcols = cols])
+  )
+
+  colnames(tbl) <- c(as.character(clnms), cols)
+
+  tbl
+}
+
 
 

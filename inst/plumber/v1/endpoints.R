@@ -85,7 +85,6 @@ function(req, res) {
     # treated asynchronously.
     # 2) The introduction of PPP versioning implies having a dynamic default
     # poverty line
-
     req <- pipapi:::assign_required_params(req,
                                            pl_lkup = lkups$pl_lkup)
 
@@ -179,6 +178,10 @@ function(req, res) {
 
   res$setHeader("Access-Control-Allow-Origin",
                 "*")
+
+  # Set Cache-Control header to allow caching
+  res$setHeader("Cache-Control", "public, max-age=7200")
+
   # Set max-age to 48hours (specified in seconds)
   # res$setHeader("Cache-Control",
   #               "max-age=172800")
@@ -194,6 +197,7 @@ function(req, res) {
 # Endpoints definition ----------------------------------------------------
 ## Endpoints: Core endpoints ----
 
+### pip-info -----------
 #* Return PIP information
 #* @get /api/v1/pip-info
 function(req) {
@@ -202,6 +206,7 @@ function(req) {
                           data_versions = lkups$versions)
 }
 
+### valid-params -------------
 #* Return valid parameters
 #* @get /api/v1/valid-params
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -222,6 +227,7 @@ function(req, res) {
   out
 }
 
+### pip ----------------
 #* Return main poverty and inequality statistics
 #* @get /api/v1/pip
 #* @param country:[chr] Country ISO3 code
@@ -253,6 +259,7 @@ function(req, res) {
   out
 }
 
+### pip-grp ----------
 #* Return aggregated poverty and inequality statistics
 #* @get /api/v1/pip-grp
 #* @param country:[chr] Country ISO3 code
@@ -279,6 +286,7 @@ function(req, res) {
   out
 }
 
+###  aux ------------------
 #* Return auxiliary data table
 #* @get /api/v1/aux
 #* @param table:[chr] Auxiliary data table to be returned
@@ -305,6 +313,8 @@ function(req, res) {
   out
 }
 
+
+### versions ----------------------
 #* Return available data versions
 #* @get /api/v1/versions
 function(req, res) {
@@ -313,6 +323,8 @@ function(req, res) {
   out
 }
 
+
+### version ---------------
 #* Return information about a specific data version
 #* @get /api/v1/version
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -327,6 +339,7 @@ function(req, res) {
 
 ## Endpoints: Cache endpoints ----
 
+### cache-reset ------------
 #* Reset current cache directory
 #* @get /api/v1/cache-reset
 #* @serializer unboxedJSON
@@ -334,6 +347,7 @@ function() {
   pipapi:::clear_cache(cd)
 }
 
+### cache-delete ------------
 #* Delete current cache directory
 #* @get /api/v1/cache-delete
 #* @serializer unboxedJSON
@@ -341,6 +355,8 @@ function() {
   unlink(cd$info()$dir, recursive = TRUE)
 }
 
+
+### cache-get -----------
 #* Get the cached value from a specified key
 #* @get /api/v1/cache-get
 #* @param key: [chr] key corresponding to a specific cached value
@@ -349,6 +365,8 @@ function(key) {
   cd$get(key)
 }
 
+
+### cache-keys --------------
 #* Return all keys from the cache
 #* @get /api/v1/cache-keys
 #* @serializer unboxedJSON
@@ -356,6 +374,7 @@ function(key) {
   cd$keys()
 }
 
+### cache-info ---------------
 #* Return cache info
 #* @get /api/v1/cache-info
 #* @serializer unboxedJSON
@@ -365,6 +384,19 @@ function() {
     info$missing <- NULL
     c(n_items = cd$size(), info)
   }
+}
+
+### duckdb-reset ---------------
+#* Reset DuckDB cache file
+#* @get /api/v1/duckdb-reset
+#* @param pass:[chr] Local password, this password is checked against the server password
+#* @param type:[chr] Which table do you want to delete? Values accepted are "both", "rg" and "fg"
+#* @serializer unboxedJSON
+function(req, res) {
+  params         <- req$argsQuery
+  params$lkup    <- lkups$versions_paths[[params$version]]
+  params$version <- NULL
+  do.call(pipapi:::reset_cache, params)
 }
 
 # #* Return cache log
@@ -378,6 +410,7 @@ function() {
 
 ## Endpoints: Miscellaneous ----
 
+### health-check ----------
 #* Check status of API
 #* @get /api/v1/health-check
 function() {
@@ -395,6 +428,8 @@ function(req) {
   readLines(sprintf("%s/data_update_timestamp.txt", dir))
 }
 
+
+### data-signature -----------
 #* Retrieve data signature hash
 #* @get /api/v1/data-signature
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -405,6 +440,8 @@ function(req) {
   lkups$versions_paths[[req$argsQuery$version]]$cache_data_id
 }
 
+
+### grouped-stats -----------
 #* Retrieve grouped data stats
 #* @get /api/v1/grouped-stats
 #* @param cum_welfare:[dbl] numeric vector for welfare
@@ -428,6 +465,7 @@ function(req, res) {
   out
 }
 
+### regression-params -------------
 #* Retrieve regression parameters
 #* @get /api/v1/regression-params
 #* @param cum_welfare:[dbl] numeric vector for welfare
@@ -447,6 +485,8 @@ function(req, res) {
   return(new)
 }
 
+
+### lorenz-curve ---------------
 #* Lorenz curve data points
 #* @get /api/v1/lorenz-curve
 #* @param cum_welfare:[dbl] numeric vector for population
@@ -473,6 +513,8 @@ function(req, res) {
   return(out)
 }
 
+
+### dir-info ---------------
 #* Get information on directory contents
 #* @get /api/v1/dir-info
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -490,6 +532,8 @@ function(req) {
   )
 }
 
+
+### gh-hash ----------------
 #* Check Github hash for the PIP packages
 #* @get /api/v1/gh-hash
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -501,6 +545,7 @@ function(req) {
        wbpip = packageDescription("wbpip")$GithubSHA1)
 }
 
+### pkgs-version ---------
 #* Check packages version deployed according to DESCRIPTION file.
 #* @get /api/v1/pkgs-version
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -541,6 +586,7 @@ function(req) {
 
 ## UI endpoints: Homepage --------------------------------------------------
 
+### poverty-lines -----------
 #* Return poverty lines for home page display
 #* @get /api/v1/poverty-lines
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -552,6 +598,7 @@ function(req) {
                         table = "poverty_lines")
 }
 
+### indicators ---------------
 #* Return indicators master table
 #* @get /api/v1/indicators
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -563,6 +610,7 @@ function(req) {
                         table = "indicators")
 }
 
+### decomposition-vars --------------
 #* Return list of variables used for decomposition
 #* @get /api/v1/decomposition-vars
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -574,6 +622,7 @@ function(req) {
                         table = "decomposition_master")
 }
 
+### hp-stacked -----------
 #* Return data for home page main chart
 #* @get /api/v1/hp-stacked
 #* @param povline:[dbl] Poverty Line
@@ -590,6 +639,7 @@ function(req) {
 
 }
 
+### hp-countries -------------
 #* Return data for home page country charts
 #* @get /api/v1/hp-countries
 #* @param povline:[dbl] Poverty Line
@@ -607,6 +657,7 @@ function(req) {
 
 ## UI Endpoints: Poverty calculator ----------------------------------------
 
+### pc-charts -----------
 #* Return data for Poverty Calculator main chart
 #* @get /api/v1/pc-charts
 #* @param country:[chr] Country ISO3 code
@@ -629,6 +680,7 @@ function(req) {
   return(out)
 }
 
+### pc-download -----------
 #* Return data for Poverty Calculator download
 #* @get /api/v1/pc-download
 #* @param country:[chr] Country ISO3 code
@@ -652,6 +704,7 @@ function(req) {
 
 }
 
+### pc-regional-aggregates -----------
 #* Return regional aggregations for all years
 #* @get /api/v1/pc-regional-aggregates
 #* @param country:[chr] Region code
@@ -670,8 +723,10 @@ function(req) {
 
 }
 
+
 ## UI Endpoints: Country Profiles ----------------------------------------
 
+### cp-key-indicators -----------
 #* Return Country Profile - Key Indicators
 #* @get /api/v1/cp-key-indicators
 #* @param country:[chr] Country ISO3 code
@@ -688,6 +743,7 @@ function(req) {
 }
 
 
+### cp-charts -----------
 #* Return Country Profile - Charts
 #* @get /api/v1/cp-charts
 #* @param country:[chr] Country ISO3 code
@@ -704,6 +760,7 @@ function(req) {
     do.call(pipapi::ui_cp_charts, params)
 }
 
+### cp-download -----------
 #* Return Country Profile - Downloads
 #* @get /api/v1/cp-download
 #* @param country:[chr] Country ISO3 code
@@ -724,6 +781,7 @@ function(req, res) {
 
 ## UI endpoints: Miscellaneous ----
 
+### ui_aux -----------
 #* Return auxiliary data table
 #* @get /api/v1/ui_aux
 #* @param table:[chr] Auxiliary data table to be returned
@@ -731,8 +789,10 @@ function(req, res) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
+#* @param exclude:[bool] exclude countries. only applies for "countries" table
 function(req, res) {
   params <- req$argsQuery
+  exclude <- req$argsQuery$exclude
   res$serializer <- pipapi::assign_serializer(format = params$format)
   if (is.null(req$args$table)) {
     # return all available tables if none selected
@@ -743,11 +803,19 @@ function(req, res) {
     params$data_dir <- lkups$versions_paths[[params$version]]$data_root
     params$format <- NULL
     params$version <- NULL
+    params$exclude <- NULL
     out <- do.call(pipapi::get_aux_table_ui, params)
+
+    if (req$args$table == "countries" && exclude == TRUE) {
+      # hardcoded
+      to_remove <- c("MDG", "UKR")
+      out <- out[!(country_code %in% to_remove)]
+    }
   }
   out
 }
 
+### survey-metadata -----------
 #* Return metadata for the Data Sources page
 #* @get /api/v1/survey-metadata
 #* @param country:[chr] Country ISO3 code
@@ -763,6 +831,7 @@ function(req) {
   out
 }
 
+### valid-years -----------
 #* Return valid years
 #* @get /api/v1/valid-years
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -776,6 +845,7 @@ function(req) {
   out
 }
 
+### wld-lineup-year -----------
 #* Return lineup year for the World
 #* @get /api/v1/wld-lineup-year
 #* @param release_version:[chr] date when the data was published in YYYYMMDD format
@@ -790,6 +860,7 @@ function(req) {
 }
 
 
+### citation -----------
 #* Return citation
 #* @get /api/v1/citation
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
