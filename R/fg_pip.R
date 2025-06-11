@@ -18,6 +18,7 @@ fg_pip <- function(country,
   interpolation_list  <- lkup$interpolation_list
   data_dir            <- lkup$data_root
   ref_lkup            <- lkup$ref_lkup
+  refy_lkup           <- lkup$refy_lkup
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   # fg_pip is called from multiple places like pip, pip_grp_logic. We have connection object created
@@ -49,11 +50,102 @@ fg_pip <- function(country,
                           popshare = popshare)
   setDT(metadata)
 
-
   # Return empty dataframe if no metadata is found
-  if (nrow(metadata) == 0) {
-    return(list(main_data = pipapi::empty_response_fg, data_in_cache = data_present_in_master))
+  # if (nrow(metadata) == 0) {
+  #   return(list(main_data = pipapi::empty_response_fg, data_in_cache = data_present_in_master))
+  # }
+
+
+  # ZP Add: load refy data
+  #-------------------------
+  # Extract unique combinations of country-year
+  if (any(c("ALL", "WLD") %in% country)) {
+    cntry <- ref_lkup$country_code |>
+      unique()
+  } else {
+    cntry <- refy_lkup[country_code %in% country,
+                       .(country_code)] |>
+      funique()
   }
+  if (any(c("ALL") %in% year)) {
+    yr <- ref_lkup$reporting_year |>
+      unique()
+  } else {
+    yr <- refy_lkup[reporting_year %in% year,
+                       .(reporting_year)] |>
+      funique()
+  }
+
+  lt <-
+    pipload::load_list_refy(input_list = list(country_code = cntry,
+                                              year         = yr),
+                            path = fs::path(data_dir,
+                                            "lineup_data"))
+  lt <- lapply(lt,
+               FUN = \(x) {
+                  x <- x |>
+                   pipload::attr_to_column("reporting_level_rows") |> # only rep level????
+                   pipload::attr_to_column("country_code") |>
+                   pipload::attr_to_column("reporting_year") |>
+                   fmutate(file = paste0(country_code,
+                                         "_",
+                                         reporting_year))
+
+                  if ("welfare_refy" %in% names(x)) {
+                    setnames(x,
+                             old = c("welfare_refy",
+                                     "weight_refy"),
+                             new = c("welfare",
+                                     "weight"))
+                  }
+
+                  x
+               })
+
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "pipload_list",
+                  value = lt)
+
+  # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
+  #-------------------------
+  res <- lapply(lt, process_dt, povline = povline)
+  res <- rbindlist(res, fill = TRUE)
+
+  # TO BE REMOVED, ONLY FOR TESTING!!!
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "res_povest",
+                  value = res)
+
+  # ZP Add: join to metadata
+  #-------------------------
+  metadata[,
+           file := basename(path)]
+
+  out <- join(res,
+              metadata,
+              on       = c("file",
+                           "reporting_level"),
+              how      = "full",
+              validate = "m:1",
+              verbose  = 0)
+
+  out[, `:=`(
+    #mean   = survey_mean_ppp,
+    #median = survey_median_ppp,
+    file   = NULL
+  )]
+
+  setnames(out,
+           "povline",
+           "poverty_line")
+
+
+
+
+
+
+
+
 
   unique_survey_files <- unique(metadata$data_interpolation_id)
 
