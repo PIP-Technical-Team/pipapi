@@ -180,10 +180,10 @@ create_lkups <- function(data_dir, versions) {
   refy_lkup_path <- fs::path(data_dir,
                              "estimations/prod_refy_estimation.fst")
 
-  # NOTE: THIS `prod_refy_estimation.fst` is the refy table
+  # NOTE: THIS `prod_refy_estimation.fst` is the refy table (not really)
   refy_lkup      <- fst::read_fst(refy_lkup_path,
                                   as.data.table = TRUE)
-  print(dim(refy_lkup))
+
   refy_lkup[ ,
              path := {
                fs::path(data_dir,
@@ -196,20 +196,17 @@ create_lkups <- function(data_dir, versions) {
                }
              ]
 
-  print(dim(refy_lkup))
   if ("region_code" %in% names(refy_lkup)) {
     refy_lkup[,
               region_code := NULL]
   }
 
-  refy_lkup <- joyn::joyn(x         = refy_lkup,
-                          y         = countries,
-                          by        = 'country_code',
-                          keep      = "left",
-                          reportvar = FALSE,
+  refy_lkup <- joyn::joyn(x          = refy_lkup,
+                          y          = countries,
+                          by         = 'country_code',
+                          keep       = "left",
+                          reportvar  = FALSE,
                           match_type = "m:1")
-
-  print(dim(refy_lkup))
 
   #___________________________________________________________________________
 
