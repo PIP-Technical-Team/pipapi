@@ -263,8 +263,11 @@ connect_with_retry <- function(db_path = NULL,
         message("Attempt ", attempt,
                " failed: ", conditionMessage(e))
       }
+      # if (attempt == max_attempts) {
+      #   stop("Failed to connect after ", max_attempts, " attempts.")
+      # }
       if (attempt == max_attempts) {
-        stop("Failed to connect after ", max_attempts, " attempts.")
+        stop("Failed to connect after ", max_attempts, " attempts.\nLast error: ", conditionMessage(e))
       }
       Sys.sleep(delay_sec)
       attempt <<- attempt + 1
