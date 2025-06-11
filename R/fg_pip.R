@@ -218,6 +218,11 @@ fg_pip <- function(country,
       # Add reporting year to merge
       ts_DT[, reporting_year := report_year]
 
+      # convert survey_comparability to NA
+      # NOTE: This should not be necessary. for the new lineup distribution
+      # metadata should come without this variable.
+      tmp_metadata[, survey_comparability := NA]
+
       # get all vars
       meta_vars <- setdiff(names(tmp_metadata), "reporting_year")
       # transform to NA when necessary
@@ -236,7 +241,7 @@ fg_pip <- function(country,
       # Now join as usual
 
       ts_md <- join(ts_DT,
-                    tmp_metadata,
+                    tmp_metadata_unique,
                     on = "reporting_year",
                     how = "left",
                     verbose = 0,
