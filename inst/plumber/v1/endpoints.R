@@ -151,7 +151,7 @@ function(req, res) {
     # Round poverty line
     # This is to prevent users to abuse the API by passing too many decimals
     if (!is.null(req$argsQuery$povline)) {
-      req$argsQuery$povline <- round(req$argsQuery$povline, digits = 3)
+      req$argsQuery$povline <- round(req$argsQuery$povline, digits = 2)
     }
   }
   plumber::forward()
