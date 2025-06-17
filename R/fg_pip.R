@@ -38,8 +38,7 @@ fg_pip <- function(country,
     data_dir        = data_dir,
     povline         = povline,
     cache_file_path = cache_file_path,
-    fill_gaps = TRUE
-  )
+    fill_gaps       = TRUE)
 
   data_present_in_master <- metadata$data_present_in_master
   povline  <- metadata$povline
@@ -51,9 +50,10 @@ fg_pip <- function(country,
   setDT(metadata)
 
   # Return empty dataframe if no metadata is found
-  # if (nrow(metadata) == 0) {
-  #   return(list(main_data = pipapi::empty_response_fg, data_in_cache = data_present_in_master))
-  # }
+  if (nrow(metadata) == 0) {
+    return(list(main_data     = pipapi::empty_response_fg,
+                data_in_cache = data_present_in_master))
+  }
 
 
   # ZP Add: load refy data
@@ -108,8 +108,11 @@ fg_pip <- function(country,
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
-  res <- lapply(lt, process_dt, povline = povline)
-  res <- rbindlist(res, fill = TRUE)
+  res <- lapply(lt,
+                process_dt,
+                povline = povline)
+  res <- rbindlist(res,
+                   fill = TRUE)
 
   # TO BE REMOVED, ONLY FOR TESTING!!!
   rlang::env_poke(env   = globalenv(),
@@ -120,6 +123,10 @@ fg_pip <- function(country,
   #-------------------------
   metadata[,
            file := basename(path)]
+  # TO BE REMOVED, ONLY FOR TESTING!!!
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "metadata_check",
+                  value = metadata)
 
   out <- join(res,
               metadata,
