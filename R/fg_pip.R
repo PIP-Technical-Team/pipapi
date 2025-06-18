@@ -87,6 +87,10 @@ fg_pip <- function(country,
                    pipload::attr_to_column("reporting_level_rows") |> # only rep level????
                    pipload::attr_to_column("country_code") |>
                    pipload::attr_to_column("reporting_year") |>
+                   pipload::attr_to_column("mean",
+                                           dist_stats = TRUE) |>
+                   pipload::attr_to_column("median",
+                                           dist_stats = TRUE) |>
                    fmutate(file = paste0(country_code,
                                          "_",
                                          reporting_year))
@@ -110,7 +114,8 @@ fg_pip <- function(country,
   #-------------------------
   res <- lapply(lt,
                 process_dt,
-                povline = povline)
+                povline      = povline,
+                mean_and_med = TRUE)
   res <- rbindlist(res,
                    fill = TRUE)
 
@@ -127,9 +132,40 @@ fg_pip <- function(country,
   rlang::env_poke(env   = globalenv(),
                   nm    = "metadata_check",
                   value = metadata)
+  # try metadata unique code
+  tmp_metadata <- metadata
+  # Handle multiple distribution types (for aggregated distributions)
+  if (length(unique(tmp_metadata$distribution_type)) > 1) {
+    tmp_metadata[, distribution_type := "mixed"]
+  }
+  # convert survey_comparability to NA
+  # NOTE: This should not be necessary. for the new lineup distribution
+  # metadata should come without this variable.
+  tmp_metadata[, survey_comparability := NA]
+  # get all vars
+  meta_vars <- setdiff(names(tmp_metadata), "reporting_year")
+  # transform to NA when necessary - i.e. when interpolated (two rows per reporting_year)
+  tmp_metadata[, (meta_vars) := lapply(.SD, \(x) {
+    if (uniqueN(x) == 1) {
+      x
+    } else {
+      NA
+    }}),
+    by = reporting_year, .SDcols = meta_vars]
+
+  # Remove duplicate rows by reporting_year (keep only one row per
+  # reporting_year)
+  tmp_metadata_unique <- unique(tmp_metadata, by = "reporting_year")
+  tmp_metadata_unique[,
+                      file := paste0(country_code,
+                                     "_",
+                                     reporting_year)]
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "tmp_metadata_unique_check",
+                  value = tmp_metadata_unique)
 
   out <- join(res,
-              metadata,
+              tmp_metadata_unique,
               on       = c("file",
                            "reporting_level"),
               how      = "full",
@@ -142,127 +178,11 @@ fg_pip <- function(country,
     file   = NULL
   )]
 
+
   setnames(out,
            "povline",
            "poverty_line")
 
-
-
-
-
-
-
-
-
-  unique_survey_files <- unique(metadata$data_interpolation_id)
-
-  # Interpolation list
-  interpolation_list <- interpolation_list[names(interpolation_list) %in% unique_survey_files]
-
-  # Unique set of survey data to be read
-  out <- vector(mode = "list", length = length(unique_survey_files))
-
-  #NEW: iterate over survey files
-  for (svy_id in seq_along(unique_survey_files)) {
-    # Extract country-years for which stats will be computed from the same files
-    # tmp_metadata <- interpolation_list[[unique_survey_files[svy_id]]]$tmp_metadata
-    iteration           <- interpolation_list[[unique_survey_files[svy_id]]]
-    svy_data <- get_svy_data(svy_id          = iteration$cache_ids,
-                             reporting_level = iteration$reporting_level,
-                             path            = iteration$paths)
-
-    # Extract unique combinations of country-year
-    ctry_years <- subset_ctry_years(country       = country,
-                                    year          = year,
-                                    lkup          = iteration$ctry_years,
-                                    valid_regions = valid_regions,
-                                    data_dir      = data_dir)
-
-    # Join because some data might be coming from cache so it might be absent in
-    # metadata
-    ctry_years <- collapse::join(ctry_years, metadata |>
-                                collapse::fselect(intersect(names(ctry_years),
-                                                            names(metadata))),
-                                verbose = 0,
-                                how = "inner",
-                                overid = 2)
-
-    results_subset <- vector(mode = "list", length = nrow(ctry_years))
-
-    for (ctry_year_id in seq_along(ctry_years$interpolation_id)) {
-      # Extract records to be used for a single country-year estimation
-      interp_id    <- ctry_years[["interpolation_id"]][ctry_year_id]
-      tmp_metadata <- metadata[metadata$interpolation_id == interp_id, ]
-
-      report_year <- ctry_years[["reporting_year"]][ctry_year_id]
-
-      # Compute estimated statistics using the fill_gap method
-      tmp_stats <- wbpip:::prod_fg_compute_pip_stats(
-        request_year           = report_year,
-        data                   = svy_data,
-        predicted_request_mean = tmp_metadata[["predicted_mean_ppp"]],
-        svy_mean_lcu           = tmp_metadata[["survey_mean_lcu"]],
-        svy_median_lcu         = tmp_metadata$survey_median_lcu,
-        svy_median_ppp         = tmp_metadata$survey_median_ppp,
-        survey_year            = tmp_metadata[["survey_year"]],
-        default_ppp            = tmp_metadata[["ppp"]],
-        ppp                    = ppp,
-        distribution_type      = tmp_metadata[["distribution_type"]],
-        poverty_line           = povline,
-        popshare               = popshare
-      )
-
-      # Handle multiple distribution types (for aggregated distributions)
-      if (length(unique(tmp_metadata$distribution_type)) > 1) {
-        tmp_metadata[, distribution_type := "mixed"]
-      }
-      #
-      # tmp_metadata <- unique(tmp_metadata)
-      # Add stats columns to data frame
-
-      # Convert Statas into Data.table
-      ts_DT <- as.data.table(tmp_stats)
-      # Add reporting year to merge
-      ts_DT[, reporting_year := report_year]
-
-      # convert survey_comparability to NA
-      # NOTE: This should not be necessary. for the new lineup distribution
-      # metadata should come without this variable.
-      tmp_metadata[, survey_comparability := NA]
-
-      # get all vars
-      meta_vars <- setdiff(names(tmp_metadata), "reporting_year")
-      # transform to NA when necessary
-      tmp_metadata[, (meta_vars) := lapply(.SD, \(x) {
-        if (uniqueN(x) == 1) {
-          x
-          } else {
-            NA
-            }}),
-        by = reporting_year, .SDcols = meta_vars]
-
-      # Remove duplicate rows by reporting_year (keep only one row per
-      # reporting_year)
-      tmp_metadata_unique <- unique(tmp_metadata, by = "reporting_year")
-
-      # Now join as usual
-
-      ts_md <- join(ts_DT,
-                    tmp_metadata_unique,
-                    on = "reporting_year",
-                    how = "left",
-                    verbose = 0,
-                    overid = 2)
-
-      results_subset[[ctry_year_id]] <- ts_md
-    }
-    out[[svy_id]] <- results_subset
-  }
-  out <- unlist(out, recursive = FALSE)
-  out <- data.table::rbindlist(out)
-
-  # Remove median
-  # out[, median := NULL]
 
   # Ensure that out does not have duplicates
   out <- fg_remove_duplicates(out)
@@ -278,7 +198,9 @@ fg_pip <- function(country,
     out[, max_year := NULL]
   }
 
-  return(list(main_data = out, data_in_cache = data_present_in_master))
+  return(list(main_data     = out,
+              data_in_cache = data_present_in_master))
+
 }
 
 #' Remove duplicated rows created during the interpolation process
