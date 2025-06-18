@@ -106,9 +106,9 @@ fg_pip <- function(country,
                   x
                })
 
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "pipload_list",
-                  value = lt)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "pipload_list",
+  #                 value = lt)
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
@@ -120,18 +120,18 @@ fg_pip <- function(country,
                    fill = TRUE)
 
   # TO BE REMOVED, ONLY FOR TESTING!!!
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "res_povest",
-                  value = res)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "res_povest",
+  #                 value = res)
 
   # ZP Add: join to metadata
   #-------------------------
   metadata[,
            file := basename(path)]
   # TO BE REMOVED, ONLY FOR TESTING!!!
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "metadata_check",
-                  value = metadata)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "metadata_check",
+  #                 value = metadata)
   # try metadata unique code
   tmp_metadata <- metadata
   # Handle multiple distribution types (for aggregated distributions)
@@ -160,9 +160,9 @@ fg_pip <- function(country,
                       file := paste0(country_code,
                                      "_",
                                      reporting_year)]
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "tmp_metadata_unique_check",
-                  value = tmp_metadata_unique)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "tmp_metadata_unique_check",
+  #                 value = tmp_metadata_unique)
 
   out <- join(res,
               tmp_metadata_unique,
