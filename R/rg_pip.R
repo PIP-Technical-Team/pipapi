@@ -95,11 +95,11 @@ rg_pip <- function(country,
 #'
 #' @return data.table with estimates poverty estimates
 #' @keywords internal
-compute_fgt_dt <- function(dt, welfare, weight, povlines) {
-  w <- dt[[welfare]]
-  wt <- dt[[weight]]
-  n <- length(w)
-  m <- length(povlines)
+compute_fgt_dt <- function(dt, welfare, weight, povlines, mean_and_med = FALSE) {
+  w   <- dt[[welfare]]
+  wt  <- dt[[weight]]
+  n   <- length(w)
+  m   <- length(povlines)
 
   # Pre-allocate result matrix
   res <- matrix(NA_real_, nrow = m, ncol = 3)
@@ -128,18 +128,34 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines) {
       watts_vec[i] <- 0
     }
   }
-  data.table(
-    povline = povlines,
-    headcount = res[, 1],
-    poverty_gap = res[, 2],
-    poverty_severity = res[, 3],
-    watts = watts_vec
-  )
+
+  if (mean_and_med) {
+    mn  <- funique(dt$mean)
+    med <- funique(dt$median)
+    out <- data.table(
+      povline          = povlines,
+      headcount        = res[, 1],
+      poverty_gap      = res[, 2],
+      poverty_severity = res[, 3],
+      watts            = watts_vec,
+      mean             = mn,
+      median           = med)
+  } else {
+    out <- data.table(
+      povline          = povlines,
+      headcount        = res[, 1],
+      poverty_gap      = res[, 2],
+      poverty_severity = res[, 3],
+      watts            = watts_vec)
+  }
+
+  out
+
 }
 
 
-process_dt <- function(dt, povline) {
-  dt[, compute_fgt_dt(.SD, "welfare", "weight", povline),
+process_dt <- function(dt, povline, mean_and_med = FALSE) {
+  dt[, compute_fgt_dt(.SD, "welfare", "weight", povline, mean_and_med),
      by = .(file, reporting_level)]
 }
 
