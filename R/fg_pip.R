@@ -17,8 +17,8 @@ fg_pip <- function(country,
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
   data_dir            <- lkup$data_root
-  ref_lkup            <- lkup$ref_lkup
-  refy_lkup           <- lkup$refy_lkup
+  ref_lkup            <- lkup$ref_lkup # the normal refy table, some country-years have two rows (interpolation)
+  refy_lkup           <- lkup$refy_lkup # cleaned refy table, unique by country-years but some columns removed in order to do that
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   # fg_pip is called from multiple places like pip, pip_grp_logic. We have connection object created
@@ -33,7 +33,7 @@ fg_pip <- function(country,
     year            = year,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
-    lkup            = ref_lkup,
+    lkup            = ref_lkup, # only place this is used, for 'interpolation_id'
     valid_regions   = valid_regions,
     data_dir        = data_dir,
     povline         = povline,
@@ -51,6 +51,7 @@ fg_pip <- function(country,
 
   # Return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
+    print("no metadata")
     return(list(main_data     = pipapi::empty_response_fg,
                 data_in_cache = data_present_in_master))
   }
@@ -59,28 +60,90 @@ fg_pip <- function(country,
   # ZP Add: load refy data
   #-------------------------
   # Extract unique combinations of country-year
+  # if (any(c("ALL", "WLD") %in% country)) {
+  #   cntry <- refy_lkup$country_code |>
+  #     unique()
+  #   print("A")
+  #   #cntry[!cntry %in% c("SSD", "SVK", "TLS", "VEN", "XKX")] # to be removed
+  # } else {
+  #   cntry <- refy_lkup[country_code %in% country,
+  #                      .(country_code)] |>
+  #     funique()
+  #   print("B")
+  # }
+  # if (any(c("ALL") %in% year)) {
+  #   yr <- refy_lkup$reporting_year |>
+  #     unique()
+  #   print("C")
+  # } else {
+  #   yr <- refy_lkup[reporting_year %in% year,
+  #                      .(reporting_year)] |>
+  #     funique()
+  #   print("D")
+  # }
+  #
+  # print(as.vector(cntry))
+  # print(yr)
+  # lt <-
+  #   pipload::load_list_refy(input_list = list(country_code = cntry,
+  #                                             year         = yr),
+  #                           path = fs::path(data_dir,
+  #                                           "lineup_data"))
+
+
+  #'     # ZP Add: load refy data
+  #-------------------------
+  # Extract unique combinations of country-year
   if (any(c("ALL", "WLD") %in% country)) {
-    cntry <- ref_lkup$country_code |>
+    cntry <- refy_lkup$country_code |>
       unique()
+    print("A")
+    #cntry[!cntry %in% c("SSD", "SVK", "TLS", "VEN", "XKX")] # to be removed
   } else {
     cntry <- refy_lkup[country_code %in% country,
                        .(country_code)] |>
       funique()
+    print("B")
   }
   if (any(c("ALL") %in% year)) {
-    yr <- ref_lkup$reporting_year |>
+    yr <- refy_lkup$reporting_year |>
       unique()
+    print("C")
   } else {
     yr <- refy_lkup[reporting_year %in% year,
-                       .(reporting_year)] |>
+                    .(reporting_year)] |>
       funique()
+    print("D")
   }
+  dtemp <-
+    ref_lkup |>
+    fsubset(country_code     %in% cntry &
+              reporting_year %in% yr) |>
+    fselect(country_code,
+            year = reporting_year) |>
+    funique()
 
+  # Split years by country
+  full_list <- dtemp[, .(year = list(year)), by = country_code][
+    , .(country_code, year = year)
+  ]
+
+  # Convert to desired structure
+  full_list <- list(
+    country_code = full_list$country_code,
+    year = lapply(full_list$year, as.numeric)
+  )
+  #return(full_list)
+  print(as.vector(cntry))
+  print(yr)
   lt <-
-    pipload::load_list_refy(input_list = list(country_code = cntry,
-                                              year         = yr),
+    pipload::load_list_refy(input_list = full_list,
                             path = fs::path(data_dir,
                                             "lineup_data"))
+
+
+
+  print(names(lt))
   lt <- lapply(lt,
                FUN = \(x) {
                   x <- x |>
@@ -106,9 +169,9 @@ fg_pip <- function(country,
                   x
                })
 
-  # rlang::env_poke(env   = globalenv(),
-  #                 nm    = "pipload_list",
-  #                 value = lt)
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "pipload_list",
+                  value = lt)
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
@@ -120,18 +183,18 @@ fg_pip <- function(country,
                    fill = TRUE)
 
   # TO BE REMOVED, ONLY FOR TESTING!!!
-  # rlang::env_poke(env   = globalenv(),
-  #                 nm    = "res_povest",
-  #                 value = res)
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "res_povest",
+                  value = res)
 
   # ZP Add: join to metadata
   #-------------------------
   metadata[,
            file := basename(path)]
   # TO BE REMOVED, ONLY FOR TESTING!!!
-  # rlang::env_poke(env   = globalenv(),
-  #                 nm    = "metadata_check",
-  #                 value = metadata)
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "metadata_check",
+                  value = metadata)
   # try metadata unique code
   tmp_metadata <- metadata
   # Handle multiple distribution types (for aggregated distributions)
@@ -160,9 +223,9 @@ fg_pip <- function(country,
                       file := paste0(country_code,
                                      "_",
                                      reporting_year)]
-  # rlang::env_poke(env   = globalenv(),
-  #                 nm    = "tmp_metadata_unique_check",
-  #                 value = tmp_metadata_unique)
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "tmp_metadata_unique_check",
+                  value = tmp_metadata_unique)
 
   out <- join(res,
               tmp_metadata_unique,
@@ -203,6 +266,13 @@ fg_pip <- function(country,
 
 }
 
+
+# process_dt_fg <- function(dt, povline, mean_and_med = FALSE) {
+#   dt[, compute_fgt_dt(.SD, "welfare", "weight", povline, mean_and_med),
+#      by = .(file, reporting_level)]
+# }
+
+
 #' Remove duplicated rows created during the interpolation process
 #'
 #' @param df data.table: Table of results created in `fg_pip()`
@@ -210,7 +280,6 @@ fg_pip <- function(country,
 #'
 #' @return data.table
 #'
-
 fg_remove_duplicates <- function(df,
                                  cols = c("comparable_spell",
                                           "cpi",
