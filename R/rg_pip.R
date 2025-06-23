@@ -132,6 +132,8 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines, mean_and_med = FALSE) 
   if (mean_and_med) {
     mn  <- funique(dt$mean)
     med <- funique(dt$median)
+    cy  <- funique(dt$coutnry_code)
+    ry  <- funique(dt$reporting_year)
     out <- data.table(
       povline          = povlines,
       headcount        = res[, 1],
@@ -139,7 +141,9 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines, mean_and_med = FALSE) 
       poverty_severity = res[, 3],
       watts            = watts_vec,
       mean             = mn,
-      median           = med)
+      median           = med,
+      country_code     = cy,
+      reporting_year   = ry)
   } else {
     out <- data.table(
       povline          = povlines,
