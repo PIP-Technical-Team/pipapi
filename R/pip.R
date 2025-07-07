@@ -107,6 +107,16 @@ pip <- function(country         = "ALL",
     )
   # lcv$est_ctrs has all the country_code that we are interested in
 
+  # Calculate and update poverty line if popshare is passed
+  if (!is.null(popshare)) {
+    # Filter only relevant data
+    lkup_metadata <- lkup_filter(lkup$svy_lkup, country, year, lkup$query_controls$region$values,
+                                 welfare_type, reporting_level, lkup$data_root)
+    lt <- load_data_list(lkup_metadata) |>
+            data.table::rbindlist(fill = TRUE)
+    povline <- wbpip:::md_infer_poverty_line(lt$welfare, lt$weight, popshare)
+  }
+
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   if (!file.exists(cache_file_path)) {
     # Create an empty duckdb file

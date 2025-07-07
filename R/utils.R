@@ -18,7 +18,16 @@ subset_lkup <- function(country,
                         cache_file_path,
                         fill_gaps
                         ) {
+  lkup <- lkup_filter(lkup, country, year, valid_regions, reporting_level, welfare_type, data_dir)
+  # Return with grace
+  return_if_exists(slkup = lkup,
+                   povline = povline,
+                   cache_file_path = cache_file_path,
+                   fill_gaps = fill_gaps)
+}
 
+#' @keywords internal
+lkup_filter <- function(lkup, country, year, valid_regions, reporting_level, welfare_type, data_dir) {
   # STEP 1 - Keep every row by default
   keep <- rep(TRUE, nrow(lkup))
   # STEP 2 - Select countries
@@ -31,9 +40,6 @@ subset_lkup <- function(country,
                        data_dir =  data_dir,
                        valid_regions = valid_regions)
 
-  # # step 4. Select MRV
-  # keep <- select_MRV(lkup, keep, year, country, valid_regions, data_dir)
-
   # STEP 4 - Select welfare_type
   if (welfare_type[1] != "all") {
     keep <- keep & lkup$welfare_type == welfare_type
@@ -45,14 +51,8 @@ subset_lkup <- function(country,
 
 
   lkup <- lkup[keep, ]
-
-  # Return with grace
-  return_if_exists(slkup = lkup,
-                   povline = povline,
-                   cache_file_path = cache_file_path,
-                   fill_gaps = fill_gaps)
+  return(lkup)
 }
-
 #' select_country
 #' Helper function for subset_lkup()
 #' @inheritParams subset_lkup
