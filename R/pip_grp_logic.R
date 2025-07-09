@@ -90,19 +90,13 @@ pip_grp_logic <- function(country         = "ALL",
       setDT(fg_pip_master)
     }
 
-    add_vars_out_of_pipeline(fg_pip_master, fill_gaps = TRUE, lkup = lkup)
+    add_vars_out_of_pipeline(fg_pip_master,
+                             fill_gaps = TRUE,
+                             lkup = lkup)
 
     if (lcv$off_alt_agg == "both") {
       ### STEP 3.2.1 Estimates for official aggregates ----
       off_ret <-
-        # pip_grp(country         =  lcv$user_off_reg,
-        #         year            =  year,
-        #         povline         =  povline,
-        #         group_by        =  "wb",
-        #         welfare_type    =  welfare_type,
-        #         reporting_level =  reporting_level,
-        #         lkup            =  lkup,
-        #         censor          =  censor)
         pip_grp_helper(lcv_country     = lcv$ctr_off_reg,
                        country         = country,
                        year            = year,
