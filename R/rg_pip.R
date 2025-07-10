@@ -33,7 +33,6 @@ rg_pip <- function(country,
     cache_file_path = cache_file_path,
     fill_gaps       = FALSE
   )
-  povline       <- list(povline)
 
   data_present_in_master <- metadata$data_present_in_master
   povline  <- metadata$povline
@@ -60,7 +59,8 @@ rg_pip <- function(country,
   # When poverty line is passed explicitly by user
   if (length(povline) == 1) {
     # Regular lapply
-    res <- lapply(lt, process_dt, povline = povline)
+    # passing povline[[1]] to pass povline as vector
+    res <- lapply(lt, process_dt, povline = povline[[1]])
   # When poverty line is calculated i.e popshare is passed
   } else if (length(povline) == length(lt)) {
     res <- Map(process_dt, lt, povline)
