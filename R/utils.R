@@ -19,6 +19,12 @@ subset_lkup <- function(country,
                         fill_gaps
                         ) {
   lkup <- lkup_filter(lkup, country, year, valid_regions, reporting_level, welfare_type, data_dir)
+  # If povline is NULL, this happens when popshare is passed i.e popshare is not NULL
+  if (is.null(povline)) {
+    return(list(data_present_in_master = NULL,
+                lkup = lkup,
+                povline = NULL))
+  }
   # Return with grace
   return_if_exists(slkup = lkup,
                    povline = povline,
