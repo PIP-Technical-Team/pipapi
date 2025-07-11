@@ -13,7 +13,7 @@ lkups <- create_versioned_lkups(data_dir,
                                 vintage_pattern = latest_version)
 lkup <- lkups$versions_paths[[lkups$latest_release]]
 
-con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = fs::path(lkup$data_root, "cache", ext = "duckdb"))
+# con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = fs::path(lkup$data_root, "cache", ext = "duckdb"))
 
 local_mocked_bindings(
   get_caller_names = function() c("else")
@@ -30,8 +30,7 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
     welfare_type    = "all",
     reporting_level = "all",
     ppp             = NULL,
-    lkup            = lkup,
-    con = con
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
@@ -44,8 +43,7 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
     welfare_type    = "all",
     reporting_level = "national",
     ppp             = NULL,
-    lkup            = lkup,
-    con             = con
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
@@ -61,8 +59,7 @@ test_that("Imputation is working for interpolated mixed distribution", {
     welfare_type    = "all",
     reporting_level = "all",
     ppp             = NULL,
-    lkup            = lkup,
-    con             = con
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
@@ -75,8 +72,7 @@ test_that("Imputation is working for interpolated mixed distribution", {
     welfare_type    = "all",
     reporting_level = "national",
     ppp             = NULL,
-    lkup            = lkup,
-    con             = con
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
@@ -91,8 +87,7 @@ test_that("Imputation is working for interpolated aggregate distribution", {
     welfare_type    = "all",
     reporting_level = "all",
     ppp             = NULL,
-    lkup            = lkup,
-    con             = con
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 2)
@@ -105,8 +100,7 @@ test_that("Imputation is working for interpolated aggregate distribution", {
     welfare_type    = "all",
     reporting_level = "national",
     ppp             = NULL,
-    lkup            = lkup,
-    con             = con
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 2)
@@ -158,8 +152,7 @@ tmp <- fg_pip(
   welfare_type    = "all",
   reporting_level = "all",
   ppp             = NULL,
-  lkup            = lkup,
-  con             = con
+  lkup            = lkup
 )
 tmp <- tmp$data_in_cache |> as.data.table()
 # dt <- pip(country =  "ALL",
