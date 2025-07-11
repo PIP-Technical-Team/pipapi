@@ -59,6 +59,15 @@ NULL
 #' @format Data frame with 0 rows and 53 columns
 NULL
 
+#' Dataframe for fill gaps empty response with additional variables
+#'
+#' @docType data
+#' @keywords datasets
+#' @name empty_response_fg_add
+#' @usage data(empty_response_fg_add)
+#' @format Data frame with 0 rows and 56 columns
+NULL
+
 utils::globalVariables(
   c(
     ".",

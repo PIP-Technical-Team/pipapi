@@ -198,7 +198,7 @@ pip_grp_logic <- function(country         = "ALL",
                     by = "country_code",
                     all.x = TRUE)
   } else {
-    md_grp <- pipapi::empty_response_fg
+    md_grp <- pipapi::empty_response_fg_add
   }
 
 
@@ -279,7 +279,7 @@ pip_grp_logic <- function(country         = "ALL",
   #   ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
   # }
 
-  data.table::setcolorder(ret, names_grp)
+  data.table::setcolorder(ret, names(pipapi::empty_response_grp))
 
   # Select columns
   if (additional_ind) {
