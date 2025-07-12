@@ -73,6 +73,7 @@ select_country <- function(lkup, keep, country, valid_regions) {
       selected_regions <- country[country %in% valid_regions]
       # Find all columns ending with _code
       code_cols <- grep("_code$", names(lkup), value = TRUE)
+      code_cols <- code_cols[!code_cols %in% "wb_region_code"] # Temporary solution
       # For each code column, check if any value matches selected_regions
       keep_regions_list <- lapply(code_cols, \(col) {
         lkup[[col]] %in% selected_regions
