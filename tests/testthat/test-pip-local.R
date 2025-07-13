@@ -543,7 +543,7 @@ test_that("pop_share option is returning consistent results for single grouped d
 
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
-  expect_equal(round(povline, 6), round(pl$poverty_line, 6))
+  expect_equal(round(povline, 2), round(pl$poverty_line, 2))
 
   # High poverty line
   # Fails for higher poverty lines

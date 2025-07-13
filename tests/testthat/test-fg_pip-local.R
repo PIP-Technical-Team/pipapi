@@ -90,7 +90,8 @@ test_that("Imputation is working for interpolated aggregate distribution", {
     lkup            = lkup
   )
 
-  expect_equal(nrow(tmp$main_data), 2)
+  expect_equal(nrow(tmp$main_data), 0)
+  expect_equal(nrow(tmp$data_in_cache), 2)
 
   tmp <- fg_pip(
     country         = "CHN",
@@ -103,7 +104,8 @@ test_that("Imputation is working for interpolated aggregate distribution", {
     lkup            = lkup
   )
 
-  expect_equal(nrow(tmp$main_data), 2)
+  expect_equal(nrow(tmp$main_data), 0)
+  expect_equal(nrow(tmp$data_in_cache), 2)
 })
 
 
