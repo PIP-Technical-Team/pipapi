@@ -840,4 +840,12 @@ test_that("SPL is the same by reporting level", {
     )
 })
 
+test_that("make sure popshare bug no which was reported no longer exists", {
+  out <- pip(country = "USA", year = 2022,
+             popshare = .5, lkup = lkup)
+  # Ensure poverty line is not the default one
+  expect_false(out$poverty_line %in% c(1.9, 3))
+  # Ensure headcount is closer to 0.5
+  expect_equal(out$headcount, 0.5, tolerance = .05)
+})
 
