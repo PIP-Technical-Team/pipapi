@@ -19,6 +19,7 @@ plumber::pr(endpoints_path) |>
   plumber::pr_hook("exit", function() {
   }) |>
   plumber::pr_set_error(function(req, res, err) {
+    # In case of error, make sure you log the endpoint for #432
     method <- req$REQUEST_METHOD
     path <- req$PATH_INFO
     cat(sprintf("ERROR at %s %s: %s\n", method, path, err$message))
