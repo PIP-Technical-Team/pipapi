@@ -13,8 +13,9 @@ if (Sys.info()[["user"]] == "wb384996") {
     max()
 
   # latest_version <- NULL
-  lkups <- create_versioned_lkups(data_dir,
-                                  vintage_pattern = latest_version)
+  # lkups <- create_versioned_lkups(data_dir,
+  #                                 vintage_pattern = latest_version)
+  lkups <- create_versioned_lkups(data_dir)
   # lkup <- lkups$versions_paths[[lkups$latest_release]]
 
   start_api(port = 8080)
