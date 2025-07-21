@@ -106,7 +106,6 @@ pip <- function(country         = "ALL",
       aux_files       =  lkup$aux_files
     )
   # lcv$est_ctrs has all the country_code that we are interested in
-
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   if (!file.exists(cache_file_path)) {
     # Create an empty duckdb file

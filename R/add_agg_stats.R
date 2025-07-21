@@ -16,7 +16,8 @@ add_agg_stats <- function(df,
     aggregated_list <- split(aggregated,
       interaction(
         aggregated$country_code,
-        aggregated$reporting_year
+        aggregated$reporting_year,
+        aggregated$poverty_line
       ),
       drop = TRUE
     )
