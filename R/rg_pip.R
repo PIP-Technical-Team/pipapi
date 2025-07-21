@@ -17,7 +17,8 @@ rg_pip <- function(country,
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
   data_dir      <- lkup$data_root
-
+  # povline is set to NULL if popshare is given
+  if (!is.null(popshare)) povline <- NULL
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
 
   metadata <- subset_lkup(
@@ -36,8 +37,6 @@ rg_pip <- function(country,
   data_present_in_master <- metadata$data_present_in_master
   povline  <- metadata$povline
   metadata  <- metadata$lkup
-
-
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
   metadata <- filter_lkup(metadata = metadata,
@@ -51,12 +50,21 @@ rg_pip <- function(country,
 
   # load data
   lt <- load_data_list(metadata)
-
+  # Calculate and update poverty line if popshare is passed
+  if (!is.null(popshare)) {
+    povline <- lapply(lt, \(x) wbpip:::md_infer_poverty_line(x$welfare, x$weight, popshare))
+  }
   # parallelization
   # res <- get_pov_estimates(lt, povline = povline)
-
-  # Regular lapply
-  res <- lapply(lt, process_dt, povline = povline)
+  # When poverty line is passed explicitly by user
+  if (length(povline) == 1) {
+    # Regular lapply
+    # passing povline[[1]] to pass povline as vector
+    res <- lapply(lt, process_dt, povline = povline[[1]])
+  # When poverty line is calculated i.e popshare is passed
+  } else if (length(povline) == length(lt)) {
+    res <- Map(process_dt, lt, povline)
+  }
 
   res <- rbindlist(res, fill = TRUE)
 

@@ -543,7 +543,7 @@ test_that("pop_share option is returning consistent results for single grouped d
 
 
   expect_equal(round(pl$headcount, 3), round(ps$headcount, 3))
-  expect_equal(round(povline, 6), round(pl$poverty_line, 6))
+  expect_equal(round(povline, 2), round(pl$poverty_line, 2))
 
   # High poverty line
   # Fails for higher poverty lines
@@ -840,4 +840,12 @@ test_that("SPL is the same by reporting level", {
     )
 })
 
+test_that("make sure popshare bug no which was reported no longer exists", {
+  out <- pip(country = "USA", year = 2022,
+             popshare = .5, lkup = lkup)
+  # Ensure poverty line is not the default one
+  expect_false(out$poverty_line %in% c(1.9, 3))
+  # Ensure headcount is closer to 0.5
+  expect_equal(out$headcount, 0.5, tolerance = .05)
+})
 

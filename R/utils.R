@@ -18,7 +18,22 @@ subset_lkup <- function(country,
                         cache_file_path,
                         fill_gaps
                         ) {
+  lkup <- lkup_filter(lkup, country, year, valid_regions, reporting_level, welfare_type, data_dir)
+  # If povline is NULL, this happens when popshare is passed i.e popshare is not NULL
+  if (is.null(povline)) {
+    return(list(data_present_in_master = NULL,
+                lkup = lkup,
+                povline = NULL))
+  }
+  # Return with grace
+  return_if_exists(slkup = lkup,
+                   povline = povline,
+                   cache_file_path = cache_file_path,
+                   fill_gaps = fill_gaps)
+}
 
+#' @keywords internal
+lkup_filter <- function(lkup, country, year, valid_regions, reporting_level, welfare_type, data_dir) {
   # STEP 1 - Keep every row by default
   keep <- rep(TRUE, nrow(lkup))
   # STEP 2 - Select countries
@@ -31,9 +46,6 @@ subset_lkup <- function(country,
                        data_dir =  data_dir,
                        valid_regions = valid_regions)
 
-  # # step 4. Select MRV
-  # keep <- select_MRV(lkup, keep, year, country, valid_regions, data_dir)
-
   # STEP 4 - Select welfare_type
   if (welfare_type[1] != "all") {
     keep <- keep & lkup$welfare_type == welfare_type
@@ -45,14 +57,8 @@ subset_lkup <- function(country,
 
 
   lkup <- lkup[keep, ]
-
-  # Return with grace
-  return_if_exists(slkup = lkup,
-                   povline = povline,
-                   cache_file_path = cache_file_path,
-                   fill_gaps = fill_gaps)
+  return(lkup)
 }
-
 #' select_country
 #' Helper function for subset_lkup()
 #' @inheritParams subset_lkup
@@ -65,7 +71,19 @@ select_country <- function(lkup, keep, country, valid_regions) {
     # Select regions
     if (any(country %in% valid_regions)) {
       selected_regions <- country[country %in% valid_regions]
-      keep_regions <- lkup$region_code %in% selected_regions
+      # Find all columns ending with _code
+      code_cols <- grep("_code$", names(lkup), value = TRUE)
+      code_cols <- code_cols[!code_cols %in% "wb_region_code"] # Temporary solution
+      # For each code column, check if any value matches selected_regions
+      keep_regions_list <- lapply(code_cols, \(col) {
+        lkup[[col]] %in% selected_regions
+    })
+      # Combine with logical OR across all code columns
+      if (length(keep_regions_list) > 0) {
+        keep_regions <- Reduce(`|`, keep_regions_list)
+      } else {
+        keep_regions <- rep(FALSE, nrow(lkup))
+      }
     } else {
       keep_regions <- rep(FALSE, length(lkup$country_code))
     }

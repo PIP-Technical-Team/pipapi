@@ -68,13 +68,13 @@ pip_grp_logic <- function(country         = "ALL",
                    censor          =  censor)
     return(res)
 
-  } else {
+  } else if (lcv$off_alt_agg == "both") {
 
     ## STEP 3.2: Compute fg_pip for ALL required countries ----
     ## This will then be re-used in various part of the function
     ## This is to avoid re-computing and re-loading the same data over and over
     fg_pip_master <- fg_pip(
-      country         = c(lcv$md_off_reg, lcv$user_off_reg),
+      country         = c(lcv$md_off_reg, lcv$user_alt_agg, lcv$user_off_reg),
       year            = year,
       povline         = povline,
       popshare        = NULL,
@@ -90,19 +90,13 @@ pip_grp_logic <- function(country         = "ALL",
       setDT(fg_pip_master)
     }
 
-    add_vars_out_of_pipeline(fg_pip_master, fill_gaps = TRUE, lkup = lkup)
+    add_vars_out_of_pipeline(fg_pip_master,
+                             fill_gaps = TRUE,
+                             lkup = lkup)
 
-    if (lcv$off_alt_agg == "both") {
+
       ### STEP 3.2.1 Estimates for official aggregates ----
       off_ret <-
-        # pip_grp(country         =  lcv$user_off_reg,
-        #         year            =  year,
-        #         povline         =  povline,
-        #         group_by        =  "wb",
-        #         welfare_type    =  welfare_type,
-        #         reporting_level =  reporting_level,
-        #         lkup            =  lkup,
-        #         censor          =  censor)
         pip_grp_helper(lcv_country     = lcv$ctr_off_reg,
                        country         = country,
                        year            = year,
@@ -111,12 +105,35 @@ pip_grp_logic <- function(country         = "ALL",
                        censor          = FALSE,
                        fg_pip          = fg_pip_master,
                        lkup            = lkup)
-    } else {
-      ### STEP 3.2.2 Alternate aggregates only ----
-      ### Prepare necessary variables
-      off_ret <- NULL
-      alt_agg <- country
+  } else {
+    ### STEP 3.2.2 Alternate aggregates only ----
+    ### Prepare necessary variables
+    fg_pip_master <- fg_pip(
+      country         = c(lcv$user_alt_agg, lcv$md_off_reg),
+      year            = year,
+      povline         = povline,
+      popshare        = NULL,
+      welfare_type    = welfare_type,
+      reporting_level = reporting_level,
+      ppp             = NULL,
+      lkup            = lkup
+    )
+    # For now just rowbinding two dataframes, but we would need to use it more smartly in the future
+    fg_pip_master <- collapse::rowbind(fg_pip_master)
+
+    if (!data.table::is.data.table(fg_pip_master)) {
+      setDT(fg_pip_master)
     }
+
+    add_vars_out_of_pipeline(fg_pip_master,
+                             fill_gaps = TRUE,
+                             lkup = lkup)
+
+
+
+
+    off_ret <- NULL
+    alt_agg <- country
   }
 
   #   ________________________________________________________
@@ -131,52 +148,58 @@ pip_grp_logic <- function(country         = "ALL",
   ## calculation of off regions but we still have to input to missing data
   ## countries, we estimate official region estimates for such countries
 
-  if (lcv$grp_use %in% c("append", "not")) {
+  # Only if there is md countries. Otherwise, skip.
+  if (!is.null(lcv$grp_use)) {
 
-    grp <- pip_grp_helper(lcv_country         = lcv$md_off_reg,
-                          country             = country,
-                          year                = lcv$md_year,
-                          povline             = povline,
-                          reporting_level     = reporting_level,
-                          censor              = FALSE,
-                          fg_pip              = fg_pip_master,
-                          lkup                = lkup)
+    if (lcv$grp_use %in% c("append", "not")) {
 
-    if (lcv$grp_use == "append") {
-      grp <- data.table::rbindlist(list(off_ret, grp))
+      grp <- pip_grp_helper(lcv_country         = lcv$md_off_reg,
+                            country             = country,
+                            year                = lcv$md_year,
+                            povline             = povline,
+                            reporting_level     = reporting_level,
+                            censor              = FALSE,
+                            fg_pip              = fg_pip_master,
+                            lkup                = lkup)
+
+      if (lcv$grp_use == "append") {
+        grp <- data.table::rbindlist(list(off_ret, grp))
+      }
+
+    } else {
+      # If previous estimations are enough, we don't need to do any estimation.
+      grp <- data.table::copy(off_ret)
     }
 
+    names_grp <- names(grp)
+
+    ### Prepare grp to be merge with pop_md
+    grp[,
+        c("reporting_pop", "pop_in_poverty") := NULL]
+
+
+    ### Merge population with Missing data table ---------
+
+    ### Merge with pop_md ------
+    pop_md <- lcv$md
+    data.table::setnames(pop_md, "year", "reporting_year")
+
+    # This merge will remove those countries for which there is no official
+    # aggregate because of lack of coverage in the region. Eg. There is not data
+    # for SAS in 2000, so for countries like AFG 2000 we can't input estimates
+    md_grp <- merge(pop_md, grp,
+                    by = c("region_code", "reporting_year"))
+
+    ### Merge other region codes -----------
+    md_grp[,
+           region_code := NULL]
+
+    md_grp <- merge(md_grp, cl,
+                    by = "country_code",
+                    all.x = TRUE)
   } else {
-    # If previous estimations are enough, we don't need to do any estimation.
-    grp <- data.table::copy(off_ret)
+    md_grp <- pipapi::empty_response_fg_add
   }
-
-  names_grp <- names(grp)
-
-  ### Prepare grp to be merge with pop_md
-  grp[,
-      c("reporting_pop", "pop_in_poverty") := NULL]
-
-
-  ### Merge population with Missing data table ---------
-
-  ### Merge with pop_md ------
-  pop_md <- lcv$md
-  data.table::setnames(pop_md, "year", "reporting_year")
-
-  # This merge will remove those countries for which there is no official
-  # aggregate because of lack of coverage in the region. Eg. There is not data
-  # for SAS in 2000, so for countries like AFG 2000 we can't input estimates
-  md_grp <- merge(pop_md, grp,
-                  by = c("region_code", "reporting_year"))
-
-  ### Merge other region codes -----------
-  md_grp[,
-         region_code := NULL]
-
-  md_grp <- merge(md_grp, cl,
-                  by = "country_code",
-                  all.x = TRUE)
 
 
   ## Fill gaps estimates with countries with Survey  -----
@@ -256,7 +279,7 @@ pip_grp_logic <- function(country         = "ALL",
   #   ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
   # }
 
-  data.table::setcolorder(ret, names_grp)
+  data.table::setcolorder(ret, names(pipapi::empty_response_grp))
 
   # Select columns
   if (additional_ind) {
@@ -325,15 +348,13 @@ pip_grp_helper <- function(lcv_country,
     #   out <- censor_rows(out, lkup[["censored"]], type = "regions")
     # }
 
-    out <- estimate_type_var(out,lkup)
-
 
   } else {
     # Handle simple aggregation
     out <- pip_aggregate(df = out,
                          return_cols = lkup$return_cols$pip_grp)
-    out <- estimate_type_var(out,lkup)
   }
+  out <- estimate_type_var(out,lkup)
 
   keep <- lkup$return_cols$pip_grp$cols
   out <- out[, .SD, .SDcols = keep]
