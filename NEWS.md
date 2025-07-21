@@ -1,3 +1,9 @@
+# pipapi 1.3.21
+* Fix issue with popshare in survey year calls
+* Fix problem with alternative aggregates like AFW and AFE
+* Make sure all tests pass
+* add logs in docker container
+
 # pipapi 1.3.20
 
 # pipapi 1.3.19
