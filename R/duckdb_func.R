@@ -22,8 +22,20 @@ return_if_exists <- function(slkup,
                 lkup = slkup,
                 povline = povline))
   }
-  master_file <- load_inter_cache(cache_file_path = cache_file_path,
-                                  fill_gaps = fill_gaps)
+
+  # ZP new temp code to avoid error from load_inter_cache due to dbConnect
+  master_file <- tryCatch(
+    load_inter_cache(cache_file_path = cache_file_path,
+                     fill_gaps       = fill_gaps),
+    error = function(e) {
+      cli::cli_warn("Failed to load intermediate cache: {e$message}")
+      master_file <- slkup[0]  # zero-row data.table with same columns as lkup
+    }
+  )
+
+  # ZP old code:
+  # master_file <- load_inter_cache(cache_file_path = cache_file_path,
+  #                                 fill_gaps = fill_gaps)
 
   if (fnrow(master_file) == 0) {
     return(list(data_present_in_master = NULL,
@@ -37,6 +49,9 @@ return_if_exists <- function(slkup,
     # convert survey_comparability to NA
     # NOTE: This should not be necessary. for the new lineup distribution
     # metadata should come without this variable.
+
+    # ZP comment: if using refy_lkup, this should be removed because
+    #             it does not include survey_comparability
     slkup[, survey_comparability := NA]
 
 
@@ -47,9 +62,13 @@ return_if_exists <- function(slkup,
 
 
   # This is probably unnecesary
+  # ZP comment: in my quick checks this has no impact, meaning
+  #             slkup is already unique
+  # ZP Question: is this to get rid of duplicates from df_refy???
   lkup_kvars <- slkup |>
     copy() |>
     funique() # this is not big.
+
   # get all vars
   slkup_vars <- setdiff(names(slkup), key_vars)
   # transform to NA when necessary
@@ -75,15 +94,15 @@ return_if_exists <- function(slkup,
   # lkup_kvars_pov <- lkup_kvars[, .(poverty_line = povline),
   #                              by = eval(names(lkup_kvars))]
   lkup_kvars_pov <- lkup_kvars[rep(seq_len(nrow(lkup_kvars)),
-                                   each = length(povline))]
+                                   each = length(povline))] # ZP: add povline
   lkup_kvars_pov[, poverty_line := rep(povline, times = nrow(lkup_kvars))]
 
 
   # Find which (key_vars, poverty_line) are present in master_file
   lk_not_ms <- join(x = lkup_kvars_pov,
-                    y = master_file,
+                    y = master_file, # ZP: remember, master_file is full cache file
                     on = key_vars_pl,
-                    how = "anti",
+                    how = "anti", # rows in lkup not in master_file to know what new to do
                     # validate = "1:1",
                     overid = 2,
                     verbose = 0,
