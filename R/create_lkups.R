@@ -195,6 +195,11 @@ create_lkups <- function(data_dir, versions) {
                  as.character()
                }
              ]
+  refy_lkup[,
+            interpolation_id := paste(country_code,
+                                      reporting_year,
+                                      reporting_level,
+                                      sep = "_")]
 
   if ("region_code" %in% names(refy_lkup)) {
     refy_lkup[,
