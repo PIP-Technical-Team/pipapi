@@ -17,7 +17,7 @@ fg_pip <- function(country,
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
   data_dir            <- lkup$data_root
-  ref_lkup            <- lkup$ref_lkup # the normal refy table, some country-years have two rows (interpolation)
+  ref_lkup            <- lkup$ref_lkup  # the normal refy table, some country-years have two rows (interpolation)
   refy_lkup           <- lkup$refy_lkup # cleaned refy table, unique by country-years but some columns removed in order to do that
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
@@ -27,18 +27,20 @@ fg_pip <- function(country,
   #   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   #   con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
   # }
+
   # Handle interpolation
   metadata <- subset_lkup(
     country         = country,
     year            = year,
     welfare_type    = welfare_type,
     reporting_level = reporting_level,
-    lkup            = ref_lkup, # only place this is used, for 'interpolation_id'
+    lkup            = refy_lkup, # only place this is used, for 'interpolation_id'
     valid_regions   = valid_regions,
     data_dir        = data_dir,
     povline         = povline,
     cache_file_path = cache_file_path,
     fill_gaps       = TRUE)
+
 
   data_present_in_master <- metadata$data_present_in_master
   povline  <- metadata$povline
@@ -51,7 +53,7 @@ fg_pip <- function(country,
 
   # Return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    print("no metadata")
+    print("ZP: no metadata - i.e. nothing additional to estimate")
     return(list(main_data     = pipapi::empty_response_fg,
                 data_in_cache = data_present_in_master))
   }
@@ -157,14 +159,6 @@ fg_pip <- function(country,
                    fmutate(file = paste0(country_code,
                                          "_",
                                          reporting_year))
-
-                  if ("welfare_refy" %in% names(x)) {
-                    setnames(x,
-                             old = c("welfare_refy",
-                                     "weight_refy"),
-                             new = c("welfare",
-                                     "weight"))
-                  }
 
                   x
                })
