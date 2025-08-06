@@ -52,7 +52,7 @@ return_if_exists <- function(slkup,
 
     # ZP comment: if using refy_lkup, this should be removed because
     #             it does not include survey_comparability
-    slkup[, survey_comparability := NA]
+    slkup[, survey_comparability := NA_real_]
 
 
   } else {
