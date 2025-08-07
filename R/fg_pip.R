@@ -87,7 +87,7 @@ fg_pip <- function(country,
   # print(as.vector(cntry))
   # print(yr)
   # lt <-
-  #   pipload::load_list_refy(input_list = list(country_code = cntry,
+  #   pipdata::load_list_refy(input_list = list(country_code = cntry,
   #                                             year         = yr),
   #                           path = fs::path(data_dir,
   #                                           "lineup_data"))
@@ -138,7 +138,7 @@ fg_pip <- function(country,
   print(as.vector(cntry))
   print(yr)
   lt <-
-    pipload::load_list_refy(input_list = full_list,
+    pipdata::load_list_refy(input_list = full_list,
                             path = fs::path(data_dir,
                                             "lineup_data"))
 
@@ -148,12 +148,12 @@ fg_pip <- function(country,
   lt <- lapply(lt,
                FUN = \(x) {
                   x <- x |>
-                   pipload::attr_to_column("reporting_level_rows") |> # only rep level????
-                   pipload::attr_to_column("country_code") |>
-                   pipload::attr_to_column("reporting_year") |>
-                   pipload::attr_to_column("mean",
+                   pipdata::attr_to_column("reporting_level_rows") |> # only rep level????
+                   pipdata::attr_to_column("country_code") |>
+                   pipdata::attr_to_column("reporting_year") |>
+                   pipdata::attr_to_column("mean",
                                            dist_stats = TRUE) |>
-                   pipload::attr_to_column("median",
+                   pipdata::attr_to_column("median",
                                            dist_stats = TRUE) |>
                    fmutate(file = paste0(country_code,
                                          "_",
@@ -163,7 +163,7 @@ fg_pip <- function(country,
                })
 
   rlang::env_poke(env   = globalenv(),
-                  nm    = "pipload_list",
+                  nm    = "pipdata_list",
                   value = lt)
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
