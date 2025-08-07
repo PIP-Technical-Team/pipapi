@@ -120,20 +120,23 @@ fg_pip <- function(country,
     ref_lkup |>
     fsubset(country_code     %in% cntry &
               reporting_year %in% yr) |>
+    fsubset(reporting_year %in% lkup$valid_years$lineup_years) |>
     fselect(country_code,
             year = reporting_year) |>
     funique()
 
   # Split years by country
-  full_list <- dtemp[, .(year = list(year)), by = country_code][
+  full_list <- dtemp[,
+                     .(year = list(year)),
+                     by = country_code][
     , .(country_code, year = year)
   ]
 
   # Convert to desired structure
   full_list <- list(
     country_code = full_list$country_code,
-    year = lapply(full_list$year, as.numeric)
-  )
+    year         = lapply(full_list$year,
+                          as.numeric))
   #return(full_list)
   print(as.vector(cntry))
   print(yr)
