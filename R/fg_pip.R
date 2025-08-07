@@ -98,12 +98,11 @@ fg_pip <- function(country,
   # Extract unique combinations of country-year
   if (any(c("ALL", "WLD") %in% country)) {
     cntry <- refy_lkup$country_code |>
-      unique()
+      funique()
     print("A")
-    #cntry[!cntry %in% c("SSD", "SVK", "TLS", "VEN", "XKX")] # to be removed
   } else {
     cntry <- refy_lkup[country_code %in% country,
-                       .(country_code)] |>
+                       ]$country_code |>
       funique()
     print("B")
   }
@@ -113,7 +112,7 @@ fg_pip <- function(country,
     print("C")
   } else {
     yr <- refy_lkup[reporting_year %in% year,
-                    .(reporting_year)] |>
+                    ]$reporting_year |>
       funique()
     print("D")
   }
