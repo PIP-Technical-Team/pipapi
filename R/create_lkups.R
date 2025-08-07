@@ -213,8 +213,19 @@ create_lkups <- function(data_dir, versions) {
                           reportvar  = FALSE,
                           match_type = "m:1")
 
-  #___________________________________________________________________________
 
+  # ZP ADD - CREATE OBJECT: refy_lkup
+  #___________________________________________________________________________
+  lineup_years_path <-
+    fs::path(data_dir,
+             "estimations/lineup_years.fst")
+
+  # NOTE: THIS `prod_refy_estimation.fst` is the refy table (not really)
+  lineup_years <- fst::read_fst(lineup_years_path) |>
+    as.list()
+
+
+  #___________________________________________________________________________
 
 
   # CREATE OBJECT: interpolation_list ----
@@ -455,6 +466,8 @@ create_lkups <- function(data_dir, versions) {
 
   # CREATE OBJECT: valid_years ----
   valid_years <- valid_years(data_dir)
+  valid_years <- c(valid_years,
+                   lineup_years) # add lineup years
 
   # CREATE OBJECT: query_controls ----
   # Create list of query controls
