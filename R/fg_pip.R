@@ -145,8 +145,6 @@ fg_pip <- function(country,
                             path = fs::path(data_dir,
                                             "lineup_data"))
 
-
-
   print(names(lt))
   lt <- lapply(lt,
                FUN = \(x) {
@@ -154,10 +152,6 @@ fg_pip <- function(country,
                    pipdata::attr_to_column("reporting_level_rows") |> # only rep level????
                    pipdata::attr_to_column("country_code") |>
                    pipdata::attr_to_column("reporting_year") |>
-                   pipdata::attr_to_column("mean",
-                                           dist_stats = TRUE) |>
-                   pipdata::attr_to_column("median",
-                                           dist_stats = TRUE) |>
                    fmutate(file = paste0(country_code,
                                          "_",
                                          reporting_year))
@@ -181,6 +175,20 @@ fg_pip <- function(country,
   # TO BE REMOVED, ONLY FOR TESTING!!!
   rlang::env_poke(env   = globalenv(),
                   nm    = "res_povest",
+                  value = res)
+
+  # ZP Add: join to dist_stats
+  #-------------------------
+  ly_dist <- lkup$lineup_dist_stats
+  res <- res |>
+    joyn::left_join(y            = ly_dist,
+                    by           = c("file",
+                                     "reporting_level",
+                                     "reporting_year"),
+                    relationship = "one-to-one",
+                    reportvar    = FALSE)
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "res_dist",
                   value = res)
 
   # ZP Add: join to metadata
@@ -232,19 +240,21 @@ fg_pip <- function(country,
               verbose  = 0)
 
   out[, `:=`(
-    #mean   = survey_mean_ppp,
-    #median = survey_median_ppp,
     file   = NULL
   )]
-
 
   setnames(out,
            "povline",
            "poverty_line")
 
-
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "out1",
+                  value = out)
   # Ensure that out does not have duplicates
   out <- fg_remove_duplicates(out)
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "out2",
+                  value = out)
 
   # Fix issue with rounding of poverty lines
   out[,
@@ -261,12 +271,6 @@ fg_pip <- function(country,
               data_in_cache = data_present_in_master))
 
 }
-
-
-# process_dt_fg <- function(dt, povline, mean_and_med = FALSE) {
-#   dt[, compute_fgt_dt(.SD, "welfare", "weight", povline, mean_and_med),
-#      by = .(file, reporting_level)]
-# }
 
 
 #' Remove duplicated rows created during the interpolation process
@@ -295,6 +299,9 @@ fg_remove_duplicates <- function(df,
                                           "survey_time",
                                           "survey_year",
                                           "surveyid_year")) {
+  # not all cols need to be changes
+  cols <- setdiff(cols,
+                  colnames(df))
   # Modify cache_id
   # * Ensures that cache_id is unique for both extrapolated and interpolated surveys
   # * Ensures that cache_id can be kept as an output of fg_pip() while still removing duplicated rows
@@ -318,7 +325,6 @@ fg_remove_duplicates <- function(df,
 #' @param reporting_level character
 #'
 #' @return character
-
 fg_standardize_cache_id <- function(cache_id,
                                     interpolation_id,
                                     reporting_level) {
@@ -338,7 +344,6 @@ fg_standardize_cache_id <- function(cache_id,
 #' @inheritParams fg_remove_duplicates
 #'
 #' @return data.table
-
 fg_assign_nas_values_to_dup_cols <- function(df,
                                              cols) {
   #Classes are maintained by default.
