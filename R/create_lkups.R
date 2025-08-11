@@ -180,7 +180,8 @@ create_lkups <- function(data_dir, versions) {
   refy_lkup_path <- fs::path(data_dir,
                              "estimations/prod_refy_estimation.fst")
 
-  # NOTE: THIS `prod_refy_estimation.fst` is the refy table (not really)
+  # NOTE: THIS `prod_refy_estimation.fst` is the refy table but
+  #             unique at the country-year level
   refy_lkup      <- fst::read_fst(refy_lkup_path,
                                   as.data.table = TRUE)
 
@@ -214,15 +215,29 @@ create_lkups <- function(data_dir, versions) {
                           match_type = "m:1")
 
 
-  # ZP ADD - CREATE OBJECT: refy_lkup
+  # ZP ADD - CREATE OBJECT: lineup years
   #___________________________________________________________________________
   lineup_years_path <-
     fs::path(data_dir,
              "estimations/lineup_years.fst")
 
-  # NOTE: THIS `prod_refy_estimation.fst` is the refy table (not really)
   lineup_years <- fst::read_fst(lineup_years_path) |>
     as.list()
+
+  # ZP ADD - CREATE OBJECT: lineup dist stats
+  #___________________________________________________________________________
+  lineup_dist_stats <-
+    fs::path(data_dir,
+             "estimations/lineup_dist_stats.fst")
+
+  lineup_dist_stats <- fst::read_fst(lineup_dist_stats,
+                                     as.data.table = TRUE) |>
+    fmutate(file = paste(country_code,
+                         reporting_year,
+                         sep = "_"))
+  gv(lineup_dist_stats,
+     c("min",
+       "max")) <- NULL
 
 
   #___________________________________________________________________________
@@ -588,7 +603,8 @@ create_lkups <- function(data_dir, versions) {
     aux_tables         = aux_tables,
     interpolation_list = interpolation_list,
     valid_years        = valid_years,
-    cache_data_id      = cache_data_id
+    cache_data_id      = cache_data_id,
+    lineup_dist_stats  = lineup_dist_stats
   )
 
   return(lkup)
