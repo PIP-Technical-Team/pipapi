@@ -234,11 +234,14 @@ fg_pip <- function(country,
 
   out <- join(res,
               tmp_metadata_unique,
-              on       = c("file",
-                           "reporting_level"),
-              how      = "full",
-              validate = "m:1",
-              verbose  = 0)
+              on            = c("file",
+                                "reporting_level"),
+              how           = "left", # ZP: change from full to left,
+                                      #  this rm nowcast years - i.e. years not included
+                                      #  as lineup years
+              validate      = "m:1",
+              drop.dup.cols = TRUE,
+              verbose       = 0)
 
   out[, `:=`(
     file   = NULL
@@ -306,9 +309,9 @@ fg_remove_duplicates <- function(df,
   # Modify cache_id
   # * Ensures that cache_id is unique for both extrapolated and interpolated surveys
   # * Ensures that cache_id can be kept as an output of fg_pip() while still removing duplicated rows
-  df$cache_id <- fg_standardize_cache_id(cache_id = df$cache_id,
-                                         interpolation_id = df$data_interpolation_id,
-                                         reporting_level = df$reporting_level)
+  # df$cache_id <- fg_standardize_cache_id(cache_id = df$cache_id,
+  #                                        interpolation_id = df$data_interpolation_id,
+  #                                        reporting_level = df$reporting_level)
   # Set collapse vars to NA (by type)
   df <- fg_assign_nas_values_to_dup_cols(df = df,
                                          cols = cols)
