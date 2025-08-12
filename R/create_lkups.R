@@ -11,7 +11,6 @@ create_versioned_lkups <-
 
     vintage_pattern <- create_vintage_pattern_call(vintage_pattern)
 
-
     data_dirs <- extract_data_dirs(data_dir = data_dir,
                                    vintage_pattern = vintage_pattern)
 
@@ -175,6 +174,7 @@ create_lkups <- function(data_dir, versions) {
                                             collapse = "|"),
              by = .(interpolation_id)]
 
+
   # ZP ADD - CREATE OBJECT: refy_lkup
   #___________________________________________________________________________
   refy_lkup_path <- fs::path(data_dir,
@@ -239,6 +239,8 @@ create_lkups <- function(data_dir, versions) {
      c("min",
        "max")) <- NULL
 
+
+  use_new_lineup_version <- use_new_lineup_version(versions)
 
   #___________________________________________________________________________
 
@@ -588,24 +590,24 @@ create_lkups <- function(data_dir, versions) {
 
   # Create list of lkups
   lkup <- list(
-    svy_lkup           = svy_lkup,
-    ref_lkup           = ref_lkup,
-    refy_lkup          = refy_lkup,
-    dist_stats         = dist_stats,
-    pop_region         = pop_region,
-    cp_lkups           = cp_lkups,
-    pl_lkup            = pl_lkup,
-    censored           = censored,
-    aux_files          = aux_files,
-    return_cols        = return_cols,
-    query_controls     = query_controls,
-    data_root          = data_dir,
-    aux_tables         = aux_tables,
-    interpolation_list = interpolation_list,
-    valid_years        = valid_years,
-    cache_data_id      = cache_data_id,
-    lineup_dist_stats  = lineup_dist_stats
-  )
+    svy_lkup               = svy_lkup,
+    ref_lkup               = ref_lkup,
+    refy_lkup              = refy_lkup,
+    dist_stats             = dist_stats,
+    pop_region             = pop_region,
+    cp_lkups               = cp_lkups,
+    pl_lkup                = pl_lkup,
+    censored               = censored,
+    aux_files              = aux_files,
+    return_cols            = return_cols,
+    query_controls         = query_controls,
+    data_root              = data_dir,
+    aux_tables             = aux_tables,
+    interpolation_list     = interpolation_list,
+    valid_years            = valid_years,
+    cache_data_id          = cache_data_id,
+    lineup_dist_stats      = lineup_dist_stats,
+    use_new_lineup_version = use_new_lineup_version)
 
   return(lkup)
 }
@@ -805,3 +807,38 @@ available_versions <- function(data_dir) {
                   test_regex = vintage_pattern$test_regex)
 
 }
+
+
+#' Should the new lineup approach be used?
+#'
+#' Check if the date in a string is more recent than May 2025
+#'
+#' This function extracts the first 8 characters from an input string,
+#' interprets them as a date in the format \code{YYYYMMDD}, and checks
+#' whether this date is more recent than May 1st, 2025.
+#'
+#' @param x A character vector where each element starts with an
+#'   8-digit date in the format \code{YYYYMMDD}.
+#'
+#' @return A logical vector: \code{TRUE} if the extracted date is
+#'   after May 1st, 2025, otherwise \code{FALSE}.
+#'
+#' @examples
+#' use_new_lineup_version("20250401_2021_01_02_PROD") # FALSE
+#' use_new_lineup_version("20250615_2021_01_02_PROD") # TRUE
+#'
+#' @export
+use_new_lineup_version <- function(x) {
+  # Extract YYYYMMDD
+  date_str <- substr(x, 1, 8)
+
+  # Convert to Date
+  date_val <- as.Date(date_str, format = "%Y%m%d")
+
+  # Threshold date
+  threshold <- as.Date("2025-05-01")
+
+  # Compare
+  date_val > threshold
+}
+
