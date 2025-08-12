@@ -16,7 +16,6 @@ create_versioned_lkups <-
 
     versions <- names(data_dirs)
     # versions[1] <- "latest_release"
-
     versions_paths <- lapply(data_dirs, create_lkups, versions = versions)
     names(versions_paths) <- versions
 
@@ -35,6 +34,9 @@ extract_data_dirs <-
   function(data_dir,
            vintage_pattern
            ) {
+
+
+
   # List data directories under data_dir
 
   data_dirs  <- fs::dir_ls(data_dir, type = "directory")
@@ -70,6 +72,11 @@ extract_data_dirs <-
 #' @keywords internal
 #' @return list
 create_lkups <- function(data_dir, versions) {
+
+  # Use new lineup approach? -----
+  use_new_lineup_version <- use_new_lineup_version(versions)
+  # ZP temp
+  use_new_lineup_version <- TRUE
 
   # Get survey paths ----
   paths <- list.files(fs::path(data_dir, "survey_data"))
@@ -175,72 +182,110 @@ create_lkups <- function(data_dir, versions) {
              by = .(interpolation_id)]
 
 
+
+
   # ZP ADD - CREATE OBJECT: refy_lkup
   #___________________________________________________________________________
-  refy_lkup_path <- fs::path(data_dir,
-                             "estimations/prod_refy_estimation.fst")
+  if (use_new_lineup_version) {
+      refy_lkup_path <- fs::path(data_dir,
+                                 "estimations/prod_refy_estimation.fst")
 
-  # NOTE: THIS `prod_refy_estimation.fst` is the refy table but
-  #             unique at the country-year level
-  refy_lkup      <- fst::read_fst(refy_lkup_path,
-                                  as.data.table = TRUE)
+      # NOTE: THIS `prod_refy_estimation.fst` is the refy table but
+      #             unique at the country-year level
+      refy_lkup      <- fst::read_fst(refy_lkup_path,
+                                      as.data.table = TRUE)
 
-  refy_lkup[ ,
-             path := {
-               fs::path(data_dir,
-                        "lineup_data",
-                        paste0(country_code,
-                               "_",
-                               reporting_year),
-                        ext = "qs") |>
-                 as.character()
-               }
-             ]
-  refy_lkup[,
-            interpolation_id := paste(country_code,
-                                      reporting_year,
-                                      reporting_level,
-                                      sep = "_")]
+      refy_lkup[ ,
+                 path := {
+                   fs::path(data_dir,
+                            "lineup_data",
+                            paste0(country_code,
+                                   "_",
+                                   reporting_year),
+                            ext = "qs") |>
+                     as.character()
+                 }
+      ]
+      refy_lkup[,
+                interpolation_id := paste(country_code,
+                                          reporting_year,
+                                          reporting_level,
+                                          sep = "_")]
 
-  if ("region_code" %in% names(refy_lkup)) {
-    refy_lkup[,
-              region_code := NULL]
+      if ("region_code" %in% names(refy_lkup)) {
+        refy_lkup[,
+                  region_code := NULL]
+      }
+
+
+      refy_lkup[,
+                data_interpolation_id := paste(cache_id,
+                                               reporting_level,
+                                               sep = "_")
+      ]
+
+      refy_lkup[,
+                data_interpolation_id := paste(unique(data_interpolation_id),
+                                               collapse = "|"),
+                by = .(interpolation_id)]
+
+      refy_lkup <- joyn::joyn(x          = refy_lkup,
+                              y          = countries,
+                              by         = 'country_code',
+                              keep       = "left",
+                              reportvar  = FALSE,
+                              match_type = "m:1")
+
+
+      gv(refy_lkup,
+         c("monotonic",
+           "same_direction",
+           "mult_factor",
+           "nac",
+           "nac_sy",
+           "svy_mean",
+           #"data_interpolation",
+           "relative_distance")) <- NULL
+      gv(ref_lkup,
+         c("monotonic",
+           "same_direction",
+           "nac",
+           "nac_sy",
+           "svy_mean",
+           #"data_interpolation",
+           "relative_distance")) <- NULL
+
+
+      # ZP ADD - CREATE OBJECT: lineup years
+      #___________________________________________________________________________
+      lineup_years_path <-
+        fs::path(data_dir,
+                 "estimations/lineup_years.fst")
+
+      lineup_years <- fst::read_fst(lineup_years_path) |>
+        as.list()
+
+      # ZP ADD - CREATE OBJECT: lineup dist stats
+      #___________________________________________________________________________
+      lineup_dist_stats <-
+        fs::path(data_dir,
+                 "estimations/lineup_dist_stats.fst")
+
+      lineup_dist_stats <- fst::read_fst(lineup_dist_stats,
+                                         as.data.table = TRUE) |>
+        fmutate(file = paste(country_code,
+                             reporting_year,
+                             sep = "_"))
+      gv(lineup_dist_stats,
+         c("min",
+           "max")) <- NULL
+
   }
 
-  refy_lkup <- joyn::joyn(x          = refy_lkup,
-                          y          = countries,
-                          by         = 'country_code',
-                          keep       = "left",
-                          reportvar  = FALSE,
-                          match_type = "m:1")
 
 
-  # ZP ADD - CREATE OBJECT: lineup years
-  #___________________________________________________________________________
-  lineup_years_path <-
-    fs::path(data_dir,
-             "estimations/lineup_years.fst")
-
-  lineup_years <- fst::read_fst(lineup_years_path) |>
-    as.list()
-
-  # ZP ADD - CREATE OBJECT: lineup dist stats
-  #___________________________________________________________________________
-  lineup_dist_stats <-
-    fs::path(data_dir,
-             "estimations/lineup_dist_stats.fst")
-
-  lineup_dist_stats <- fst::read_fst(lineup_dist_stats,
-                                     as.data.table = TRUE) |>
-    fmutate(file = paste(country_code,
-                         reporting_year,
-                         sep = "_"))
-  gv(lineup_dist_stats,
-     c("min",
-       "max")) <- NULL
 
 
-  use_new_lineup_version <- use_new_lineup_version(versions)
 
   #___________________________________________________________________________
 
