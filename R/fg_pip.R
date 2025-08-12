@@ -59,62 +59,24 @@ fg_pip <- function(country,
   }
 
 
-  # ZP Add: load refy data
-  #-------------------------
-  # Extract unique combinations of country-year
-  # if (any(c("ALL", "WLD") %in% country)) {
-  #   cntry <- refy_lkup$country_code |>
-  #     unique()
-  #   print("A")
-  #   #cntry[!cntry %in% c("SSD", "SVK", "TLS", "VEN", "XKX")] # to be removed
-  # } else {
-  #   cntry <- refy_lkup[country_code %in% country,
-  #                      .(country_code)] |>
-  #     funique()
-  #   print("B")
-  # }
-  # if (any(c("ALL") %in% year)) {
-  #   yr <- refy_lkup$reporting_year |>
-  #     unique()
-  #   print("C")
-  # } else {
-  #   yr <- refy_lkup[reporting_year %in% year,
-  #                      .(reporting_year)] |>
-  #     funique()
-  #   print("D")
-  # }
-  #
-  # print(as.vector(cntry))
-  # print(yr)
-  # lt <-
-  #   pipdata::load_list_refy(input_list = list(country_code = cntry,
-  #                                             year         = yr),
-  #                           path = fs::path(data_dir,
-  #                                           "lineup_data"))
-
-
   #'     # ZP Add: load refy data
   #-------------------------
   # Extract unique combinations of country-year
   if (any(c("ALL", "WLD") %in% country)) {
     cntry <- refy_lkup$country_code |>
       funique()
-    print("A")
   } else {
     cntry <- refy_lkup[country_code %in% country,
                        ]$country_code |>
       funique()
-    print("B")
   }
   if (any(c("ALL") %in% year)) {
     yr <- refy_lkup$reporting_year |>
       unique()
-    print("C")
   } else {
     yr <- refy_lkup[reporting_year %in% year,
                     ]$reporting_year |>
       funique()
-    print("D")
   }
   dtemp <-
     ref_lkup |>
@@ -137,21 +99,19 @@ fg_pip <- function(country,
     country_code = full_list$country_code,
     year         = lapply(full_list$year,
                           as.numeric))
-  #return(full_list)
-  print(as.vector(cntry))
-  print(yr)
   lt <-
     pipdata::load_list_refy(input_list = full_list,
                             path = fs::path(data_dir,
                                             "lineup_data"))
 
-  print(names(lt))
   lt <- lapply(lt,
                FUN = \(x) {
                   x <- x |>
                    pipdata::attr_to_column("reporting_level_rows") |> # only rep level????
                    pipdata::attr_to_column("country_code") |>
                    pipdata::attr_to_column("reporting_year") |>
+                    pipdata::attr_to_column("mean", dist_stats = TRUE) |>
+                    pipdata::attr_to_column("median", dist_stats = TRUE) |>
                    fmutate(file = paste0(country_code,
                                          "_",
                                          reporting_year))
@@ -179,18 +139,18 @@ fg_pip <- function(country,
 
   # ZP Add: join to dist_stats
   #-------------------------
-  ly_dist <- lkup$lineup_dist_stats
-  res <- res |>
-    joyn::left_join(y            = ly_dist,
-                    by           = c("file",
-                                     "reporting_level",
-                                     "reporting_year"),
-                    relationship = "one-to-one",
-                    reportvar    = FALSE,
-                    verbose      = FALSE)
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "res_dist",
-                  value = res)
+  # ly_dist <- lkup$lineup_dist_stats
+  # res <- res |>
+  #   joyn::left_join(y            = ly_dist,
+  #                   by           = c("file",
+  #                                    "reporting_level",
+  #                                    "reporting_year"),
+  #                   relationship = "one-to-one",
+  #                   reportvar    = FALSE,
+  #                   verbose      = FALSE)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "res_dist",
+  #                 value = res)
 
   # ZP Add: join to metadata
   #-------------------------
@@ -231,6 +191,9 @@ fg_pip <- function(country,
   rlang::env_poke(env   = globalenv(),
                   nm    = "tmp_metadata_unique_check",
                   value = tmp_metadata_unique)
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "res_final",
+                  value = res)
 
   out <- join(res,
               tmp_metadata_unique,
@@ -243,6 +206,9 @@ fg_pip <- function(country,
               drop.dup.cols = TRUE,
               verbose       = 0)
 
+  rlang::env_poke(env   = globalenv(),
+                  nm    = "out_check",
+                  value = out)
   out[, `:=`(
     file   = NULL
   )]
@@ -313,7 +279,7 @@ fg_remove_duplicates <- function(df,
   #                                        interpolation_id = df$data_interpolation_id,
   #                                        reporting_level = df$reporting_level)
   # Set collapse vars to NA (by type)
-  df <- fg_assign_nas_values_to_dup_cols(df = df,
+  df <- fg_assign_nas_values_to_dup_cols(df   = df,
                                          cols = cols)
 
   # Ensure that out does not have duplicates

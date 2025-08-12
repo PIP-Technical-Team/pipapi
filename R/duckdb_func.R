@@ -12,15 +12,15 @@ return_if_exists <- function(slkup,
 
   if (fnrow(slkup) == 0 ) {
     return(list(data_present_in_master = NULL,
-                lkup = slkup,
-                povline = povline))
+                lkup                   = slkup,
+                povline                = povline))
   }
 
 
   if (getOption("pipapi.query_live_data")) {
     return(list(data_present_in_master = NULL,
-                lkup = slkup,
-                povline = povline))
+                lkup                   = slkup,
+                povline                = povline))
   }
 
   # ZP new temp code to avoid error from load_inter_cache due to dbConnect
@@ -32,6 +32,8 @@ return_if_exists <- function(slkup,
       master_file <- slkup[0]  # zero-row data.table with same columns as lkup
     }
   )
+  # temp ZP just to bypass cache
+  #master_file <- slkup[0]
 
   # ZP old code:
   # master_file <- load_inter_cache(cache_file_path = cache_file_path,
@@ -39,8 +41,8 @@ return_if_exists <- function(slkup,
 
   if (fnrow(master_file) == 0) {
     return(list(data_present_in_master = NULL,
-                lkup = slkup,
-                povline = povline))
+                lkup                   = slkup,
+                povline                = povline))
   }
 
 

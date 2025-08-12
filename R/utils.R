@@ -24,11 +24,11 @@ subset_lkup <- function(country,
   # STEP 2 - Select countries
   keep <- select_country(lkup, keep, country, valid_regions)
   # STEP 3 - Select years
-  keep <- select_years(lkup = lkup,
-                       keep = keep,
-                       year = year,
-                       country = country,
-                       data_dir =  data_dir,
+  keep <- select_years(lkup          = lkup,
+                       keep          = keep,
+                       year          = year,
+                       country       = country,
+                       data_dir      =  data_dir,
                        valid_regions = valid_regions)
 
   # # step 4. Select MRV
@@ -39,18 +39,18 @@ subset_lkup <- function(country,
     keep <- keep & lkup$welfare_type == welfare_type
   }
   # STEP 5 - Select reporting_level
-  keep <- select_reporting_level(lkup = lkup,
-                                 keep = keep,
+  keep <- select_reporting_level(lkup            = lkup,
+                                 keep            = keep,
                                  reporting_level = reporting_level[1])
 
 
   lkup <- lkup[keep, ]
 
   # Return with grace
-  return_if_exists(slkup = lkup,
-                   povline = povline,
+  return_if_exists(slkup           = lkup,
+                   povline         = povline,
                    cache_file_path = cache_file_path,
-                   fill_gaps = fill_gaps)
+                   fill_gaps       = fill_gaps)
 }
 
 #' select_country
@@ -290,30 +290,53 @@ get_svy_data <- function(svy_id,
 #' @return data.table
 #' @export
 #'
-add_dist_stats <- function(df, dist_stats) {
-  # Keep only relevant columns
-  cols <- c(
-    "cache_id",
-    # "country_code",
-    # "reporting_year",
-    # "welfare_type",
-    "reporting_level",
-    "gini",
-    "polarization",
-    "mld",
-    sprintf("decile%s", 1:10)
-  )
-  dist_stats <- dist_stats[, .SD, .SDcols = cols]
+add_dist_stats <- function(df, lkup, fill_gaps) {
 
-  # merge dist stats with main table
-  # data.table::setnames(dist_stats, "survey_median_ppp", "median")
+  if (fill_gaps) {
+    dist_stats <- lkup[["lineup_dist_stats"]]
+  } else {
+    dist_stats <- lkup[["dist_stats"]]
+  }
 
-  df <- dist_stats[df,
-                   on = .(cache_id, reporting_level), #.(country_code, reporting_year, welfare_type, reporting_level),
-                   allow.cartesian = TRUE
-  ]
+  if (fill_gaps) {
 
-  return(df)
+    df <- df |>
+      joyn::joyn(y                = dist_stats,
+                 by               = c("country_code",
+                                      "reporting_level",
+                                      "reporting_year"),
+                 match_type       = "1:1",
+                 keep_common_vars = FALSE,
+                 reportvar        = FALSE,
+                 verbose          = FALSE,
+                 keep             = "left")
+
+  } else {
+    # Keep only relevant columns
+    cols <- c(
+      "cache_id",
+      # "country_code",
+      # "reporting_year",
+      # "welfare_type",
+      "reporting_level",
+      "gini",
+      "polarization",
+      "mld",
+      sprintf("decile%s", 1:10)
+    )
+    dist_stats <- dist_stats[, .SD, .SDcols = cols]
+
+    # merge dist stats with main table
+    # data.table::setnames(dist_stats, "survey_median_ppp", "median")
+
+    df <- dist_stats[df,
+                     on = .(cache_id, reporting_level), #.(country_code, reporting_year, welfare_type, reporting_level),
+                     allow.cartesian = TRUE
+    ]
+  }
+
+
+  df
 }
 
 #' Collapse rows

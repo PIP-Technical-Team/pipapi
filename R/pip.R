@@ -139,12 +139,27 @@ pip <- function(country         = "ALL",
       )
     }
 
-    cached_data <- out$data_in_cache
-    main_data <- out$main_data
 
+  # Cache new data
+  #---------------------------------------------
+    cached_data <- out$data_in_cache
+  #print(out)
+  cached_data <- qDT(cached_data)
+    main_data   <- qDT(out$main_data)
+    # print(colnames(main_data))
+    # print(colnames(cached_data))
+    #print(setdiff(colnames(main_data), colnames(cached_data)))
     if (nrow(main_data) > 0) {
-      out <- main_data |>
-        rowbind(cached_data)
+      #print(is.data.table(cached_data))
+      if (is.null(out$data_in_cache)) {
+        out <- main_data
+      } else {
+        if (fill_gaps) {
+          cached_data <- fg_remove_duplicates(cached_data)
+        }
+        out <- main_data |>
+          rowbind(cached_data)
+      }
 
         update_master_file(main_data, cache_file_path, fill_gaps)
 
@@ -168,7 +183,8 @@ pip <- function(country         = "ALL",
       }
     }
 
-
+    # Add out of pipeline variablse
+    #---------------------------------------------
 
     add_vars_out_of_pipeline(out, fill_gaps = fill_gaps, lkup = lkup)
 
@@ -212,10 +228,11 @@ pip <- function(country         = "ALL",
     names2keep <- lkup$return_cols$pip$cols # all variables
 
     out <- add_dist_stats(
-      df = out,
-      dist_stats = lkup[["dist_stats"]]
-    )
-
+      df         = out,
+      lkup       = lkup,
+      fill_gaps  = fill_gaps)
+    print("fooooooo")
+    return(out)
     # Add aggregate medians ----------------
     out <- add_agg_medians(
       df        = out,
@@ -239,6 +256,7 @@ pip <- function(country         = "ALL",
     } else {
       out[, estimate_type := NA_character_]
     }
+
     ## Handle survey coverage ------------
     if (reporting_level != "all") {
       keep <- out$reporting_level == reporting_level
