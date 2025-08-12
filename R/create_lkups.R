@@ -264,6 +264,7 @@ create_lkups <- function(data_dir, versions) {
 
       lineup_years <- fst::read_fst(lineup_years_path) |>
         as.list()
+      refy_lkup <- refy_lkup[reporting_year %in% lineup_years$lineup_years, ]
 
       # ZP ADD - CREATE OBJECT: lineup dist stats
       #___________________________________________________________________________
