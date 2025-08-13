@@ -139,31 +139,35 @@ pip <- function(country         = "ALL",
       )
     }
 
-
   # Cache new data
   #---------------------------------------------
-    cached_data <- out$data_in_cache
-  #print(out)
-  cached_data <- qDT(cached_data)
+    cached_data <- qDT(out$data_in_cache)
     main_data   <- qDT(out$main_data)
-    # print(colnames(main_data))
-    # print(colnames(cached_data))
-    #print(setdiff(colnames(main_data), colnames(cached_data)))
+    print("A")
+
     if (nrow(main_data) > 0) {
-      #print(is.data.table(cached_data))
+
+      print("B")
+
       if (is.null(out$data_in_cache)) {
+        print("C")
         out <- main_data
       } else {
+        print("D")
         if (fill_gaps) {
+          print("E")
           cached_data <- fg_remove_duplicates(cached_data)
         }
+        print("F")
         out <- main_data |>
           rowbind(cached_data)
       }
+      print("G")
 
         update_master_file(main_data, cache_file_path, fill_gaps)
 
     } else {
+      print("H")
       out <- cached_data
     }
     if (!data.table::is.data.table(out)) {
@@ -175,9 +179,8 @@ pip <- function(country         = "ALL",
     # aggregate distributions ------------------
     if (reporting_level %in% c("national", "all")) {
       out <- add_agg_stats(
-        df = out,
-        return_cols = lkup$return_cols$ag_average_poverty_stats
-        )
+        df          = out,
+        return_cols = lkup$return_cols$ag_average_poverty_stats)
       if (reporting_level == "national") {
         out <- out[reporting_level == "national"]
       }
@@ -185,8 +188,9 @@ pip <- function(country         = "ALL",
 
     # Add out of pipeline variablse
     #---------------------------------------------
-
-    add_vars_out_of_pipeline(out, fill_gaps = fill_gaps, lkup = lkup)
+    add_vars_out_of_pipeline(out,
+                             fill_gaps = fill_gaps,
+                             lkup      = lkup)
 
     # **** TO BE REMOVED **** REMOVAL STARTS HERE
     # Once `pip-grp` has been integrated in ingestion pipeline
@@ -199,11 +203,13 @@ pip <- function(country         = "ALL",
       out <- pip_aggregate_by(
         df          = out,
         group_lkup  = lkup[["pop_region"]],
-        return_cols = lkup$return_cols$pip_grp
-      )
+        return_cols = lkup$return_cols$pip_grp)
+
       # Censor regional values
       if (censor) {
-        out <- censor_rows(out, lkup[["censored"]], type = "regions")
+        out <- censor_rows(out,
+                           lkup[["censored"]],
+                           type = "regions")
       }
 
       out <- out[, c("region_name",
@@ -231,8 +237,7 @@ pip <- function(country         = "ALL",
       df         = out,
       lkup       = lkup,
       fill_gaps  = fill_gaps)
-    print("fooooooo")
-    return(out)
+
     # Add aggregate medians ----------------
     out <- add_agg_medians(
       df        = out,
@@ -242,20 +247,20 @@ pip <- function(country         = "ALL",
 
     # format ----------------
 
-
-    if (fill_gaps) {
-
-    ## Inequality indicators to NA for lineup years ----
-      dist_vars  <- names2keep[!(names2keep %in% crr_names)]
-      out[,
-          (dist_vars) := NA_real_]
-
-      ## estimate_var -----
-      out <- estimate_type_ctr_lnp(out, lkup)
-
-    } else {
-      out[, estimate_type := NA_character_]
-    }
+# ZP temp NA lineups
+    # if (fill_gaps) {
+    #
+    # ## Inequality indicators to NA for lineup years ----
+    #   dist_vars  <- names2keep[!(names2keep %in% crr_names)]
+    #   out[,
+    #       (dist_vars) := NA_real_]
+    #
+    #   ## estimate_var -----
+    #   out <- estimate_type_ctr_lnp(out, lkup)
+    #
+    # } else {
+       out[, estimate_type := NA_character_]
+    # }
 
     ## Handle survey coverage ------------
     if (reporting_level != "all") {
