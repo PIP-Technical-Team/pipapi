@@ -113,7 +113,7 @@ pip_old <- function(country         = "ALL",
   # mains estimates ---------------
   if (fill_gaps) {
     ## lineup years-----------------
-    out <- fg_pip(
+    out <- fg_pip_old(
       country            = lcv$est_ctrs,
       year               = year,
       povline            = povline,
