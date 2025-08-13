@@ -51,7 +51,7 @@ fg_pip <- function(country,
                           popshare = popshare)
   setDT(metadata)
 
-  # Return empty dataframe if no metadata is found
+  # Return empty dataframe if no metadata is found (i.e. all in cache)
   if (nrow(metadata) == 0) {
     print("ZP: no metadata - i.e. nothing additional to estimate")
     return(list(main_data     = pipapi::empty_response_fg,

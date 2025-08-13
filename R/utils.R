@@ -289,7 +289,6 @@ get_svy_data <- function(svy_id,
 #'
 #' @return data.table
 #' @export
-#'
 add_dist_stats <- function(df, lkup, fill_gaps) {
 
   if (fill_gaps) {

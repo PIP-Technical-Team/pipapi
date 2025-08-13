@@ -10,19 +10,21 @@ return_if_exists <- function(slkup,
                              fill_gaps,
                              verbose = getOption("pipapi.verbose")) {
 
+  # none selected
   if (fnrow(slkup) == 0 ) {
     return(list(data_present_in_master = NULL,
                 lkup                   = slkup,
                 povline                = povline))
   }
 
-
+  # don't use cache
   if (getOption("pipapi.query_live_data")) {
     return(list(data_present_in_master = NULL,
                 lkup                   = slkup,
                 povline                = povline))
   }
 
+  # load cache
   # ZP new temp code to avoid error from load_inter_cache due to dbConnect
   master_file <- tryCatch(
     load_inter_cache(cache_file_path = cache_file_path,
@@ -39,6 +41,7 @@ return_if_exists <- function(slkup,
   # master_file <- load_inter_cache(cache_file_path = cache_file_path,
   #                                 fill_gaps = fill_gaps)
 
+  # if no cached files, return selected lkup
   if (fnrow(master_file) == 0) {
     return(list(data_present_in_master = NULL,
                 lkup                   = slkup,
@@ -121,8 +124,13 @@ return_if_exists <- function(slkup,
                                  verbose = 0,
                                  multiple = TRUE)
 
+  # now we have two dfs: lk_not_ms and data_present_in_master
+  #    which gives the lkup rows not in cache (master_file),
+  #    and the lkup rows in cache (master_file)
+
 
   # If no data is present in master
+  #  i.e. if no common rows between
   if (fnrow(data_present_in_master) == 0) {
     return(list(data_present_in_master = NULL,
                 lkup = slkup,
