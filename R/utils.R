@@ -338,6 +338,43 @@ add_dist_stats <- function(df, lkup, fill_gaps) {
   df
 }
 
+
+
+#' Add pre-computed distributional stats
+#'
+#' @param df data.table: Data frame of poverty statistics
+#' @param dist_stats data.table: Distributional stats lookup
+#'
+#' @return data.table
+#' @export
+#'
+add_dist_stats_old <- function(df, dist_stats) {
+  # Keep only relevant columns
+  cols <- c(
+    "cache_id",
+    # "country_code",
+    # "reporting_year",
+    # "welfare_type",
+    "reporting_level",
+    "gini",
+    "polarization",
+    "mld",
+    sprintf("decile%s", 1:10)
+  )
+  dist_stats <- dist_stats[, .SD, .SDcols = cols]
+
+  # merge dist stats with main table
+  # data.table::setnames(dist_stats, "survey_median_ppp", "median")
+
+  df <- dist_stats[df,
+                   on = .(cache_id, reporting_level), #.(country_code, reporting_year, welfare_type, reporting_level),
+                   allow.cartesian = TRUE
+  ]
+
+  return(df)
+}
+
+
 #' Collapse rows
 #' @return data.table
 #' @noRd

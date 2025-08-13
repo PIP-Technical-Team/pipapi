@@ -213,7 +213,7 @@ pip_old <- function(country         = "ALL",
   crr_names  <- names(out)    # current variables
   names2keep <- lkup$return_cols$pip$cols # all variables
 
-  out <- add_dist_stats(
+  out <- add_dist_stats_old(
     df = out,
     dist_stats = lkup[["dist_stats"]]
   )
