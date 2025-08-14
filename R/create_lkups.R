@@ -73,6 +73,7 @@ extract_data_dirs <-
 #' @return list
 create_lkups <- function(data_dir, versions) {
 
+
   # Use new lineup approach? -----
   use_new_lineup_version <- use_new_lineup_version(versions)
 
@@ -527,8 +528,11 @@ create_lkups <- function(data_dir, versions) {
 
   # CREATE OBJECT: valid_years ----
   valid_years <- valid_years(data_dir)
-  valid_years <- c(valid_years,
-                   lineup_years) # add lineup years
+  if (use_new_lineup_version) {
+    valid_years <- c(valid_years,
+                     lineup_years) # add lineup years
+
+  }
 
   # CREATE OBJECT: query_controls ----
   # Create list of query controls
@@ -636,7 +640,6 @@ create_lkups <- function(data_dir, versions) {
   lkup <- list(
     svy_lkup               = svy_lkup,
     ref_lkup               = ref_lkup,
-    refy_lkup              = refy_lkup,
     dist_stats             = dist_stats,
     pop_region             = pop_region,
     cp_lkups               = cp_lkups,
@@ -650,8 +653,12 @@ create_lkups <- function(data_dir, versions) {
     interpolation_list     = interpolation_list,
     valid_years            = valid_years,
     cache_data_id          = cache_data_id,
-    lineup_dist_stats      = lineup_dist_stats,
     use_new_lineup_version = use_new_lineup_version)
+
+  if (use_new_lineup_version) {
+    lkup$refy_lkup         <- refy_lkup
+    lkup$lineup_dist_stats <- lineup_dist_stats
+  }
 
   return(lkup)
 }
