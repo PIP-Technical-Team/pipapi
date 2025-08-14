@@ -63,26 +63,26 @@ Compute the main PIP poverty and inequality statistics.
 lkups <- create_lkups("<data-folder>")
 
 # A single country and year
-pip(country = "AGO",
+pip_old(country = "AGO",
     year = 2000,
     povline = 1.9,
     lkup = lkups)
 
 # All years for a single country
-pip(country = "AGO",
+pip_old(country = "AGO",
     year = "all",
     povline = 1.9,
     lkup = lkups)
 
 # Fill gaps
-pip(country = "AGO",
+pip_old(country = "AGO",
     year = "all",
     povline = 1.9,
     fill_gaps = TRUE,
     lkup = lkups)
 
 # Group by regions
-pip(country = "all",
+pip_old(country = "all",
     year = "all",
     povline = 1.9,
     group_by = "wb",
