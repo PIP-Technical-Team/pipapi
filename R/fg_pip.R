@@ -17,7 +17,6 @@ fg_pip <- function(country,
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
   data_dir            <- lkup$data_root
-  ref_lkup            <- lkup$ref_lkup  # the normal refy table, some country-years have two rows (interpolation)
   refy_lkup           <- lkup$refy_lkup # cleaned refy table, unique by country-years but some columns removed in order to do that
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
@@ -79,7 +78,7 @@ fg_pip <- function(country,
       funique()
   }
   dtemp <-
-    ref_lkup |>
+    refy_lkup |>
     fsubset(country_code     %in% cntry &
               reporting_year %in% yr) |>
     fsubset(reporting_year %in% lkup$valid_years$lineup_years) |>
