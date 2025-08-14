@@ -1203,8 +1203,8 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
     dt[,
        # distribution type by year
        distribution_type := fcase(use_groupdata == 1, "group",
-                                  use_imputed == 1,   "imputed",
-                                  default = "micro")
+                                  use_imputed   == 1, "imputed",
+                                  default        =    "micro")
     ]
 
     dt <- dt[, # collapse by reporting_year and keep relevant variables
@@ -1213,9 +1213,12 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
 
   }
 
-  df[,
-      surveyid_year := as.numeric(surveyid_year)
-    ][dt,
+  if (!fill_gaps) {
+    df <- df[,
+       surveyid_year := as.numeric(surveyid_year)
+    ]
+  }
+  df[dt,
       on = by_vars,
       distribution_type := i.distribution_type
       ][,
@@ -1404,6 +1407,7 @@ get_caller_names <- function() {
 #' @keywords internal
 #' @return data.table from pip or pip_grp functions.
 add_vars_out_of_pipeline <- function(out, fill_gaps, lkup) {
+
   ## Add SPL and SPR  ---------------
   out <- add_spl(df        = out,
                  fill_gaps = fill_gaps,
@@ -1417,9 +1421,9 @@ add_vars_out_of_pipeline <- function(out, fill_gaps, lkup) {
 
   ## add distribution type -------------
   # based on info in framework data, rather than welfare data
-  out <- add_distribution_type(df = out,
-                        lkup = lkup,
-                        fill_gaps = fill_gaps)
+  out <- add_distribution_type(df        = out,
+                               lkup      = lkup,
+                               fill_gaps = fill_gaps)
 
   invisible(out)
 }
