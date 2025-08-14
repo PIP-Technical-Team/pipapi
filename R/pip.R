@@ -247,20 +247,21 @@ pip <- function(country         = "ALL",
 
     # format ----------------
 
-# ZP temp NA lineups
-    # if (fill_gaps) {
-    #
+
+    if (fill_gaps) {
+      # ZP temp NA lineups:
+      #---------------------
     # ## Inequality indicators to NA for lineup years ----
     #   dist_vars  <- names2keep[!(names2keep %in% crr_names)]
     #   out[,
     #       (dist_vars) := NA_real_]
     #
-    #   ## estimate_var -----
-    #   out <- estimate_type_ctr_lnp(out, lkup)
-    #
-    # } else {
-       out[, estimate_type := NA_character_]
-    # }
+      ## estimate_var -----
+      out <- estimate_type_ctr_lnp(out, lkup)
+
+    } else {
+      out[, estimate_type := NA_character_]
+    }
 
     ## Handle survey coverage ------------
     if (reporting_level != "all") {
