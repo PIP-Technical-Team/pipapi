@@ -75,8 +75,6 @@ create_lkups <- function(data_dir, versions) {
 
   # Use new lineup approach? -----
   use_new_lineup_version <- use_new_lineup_version(versions)
-  # ZP temp
-  use_new_lineup_version <- TRUE
 
   # Get survey paths ----
   paths <- list.files(fs::path(data_dir, "survey_data"))
