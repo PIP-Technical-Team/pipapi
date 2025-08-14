@@ -27,26 +27,26 @@
 #' lkups <- create_lkups("<data-folder>")
 #'
 #' # A single country and year
-#' pip(country = "AGO",
+#' pip_old(country = "AGO",
 #'     year = 2000,
 #'     povline = 1.9,
 #'     lkup = lkups)
 #'
 #' # All years for a single country
-#' pip(country = "AGO",
+#' pip_old(country = "AGO",
 #'     year = "all",
 #'     povline = 1.9,
 #'     lkup = lkups)
 #'
 #' # Fill gaps
-#' pip(country = "AGO",
+#' pip_old(country = "AGO",
 #'     year = "all",
 #'     povline = 1.9,
 #'     fill_gaps = TRUE,
 #'     lkup = lkups)
 #'
 #' # Group by regions
-#' pip(country = "all",
+#' pip_old(country = "all",
 #'     year = "all",
 #'     povline = 1.9,
 #'     group_by = "wb",
@@ -55,18 +55,18 @@
 #' @export
 #'
 pip_old <- function(country         = "ALL",
-                year            = "ALL",
-                povline         = 1.9,
-                popshare        = NULL,
-                fill_gaps       = FALSE,
-                group_by        = c("none", "wb"),
-                welfare_type    = c("all", "consumption", "income"),
-                reporting_level = c("all", "national", "rural", "urban"),
-                ppp             = NULL,
-                lkup,
-                censor          = TRUE,
-                lkup_hash       = lkup$cache_data_id$hash_pip,
-                additional_ind  = FALSE) {
+                    year            = "ALL",
+                    povline         = 1.9,
+                    popshare        = NULL,
+                    fill_gaps       = FALSE,
+                    group_by        = c("none", "wb"),
+                    welfare_type    = c("all", "consumption", "income"),
+                    reporting_level = c("all", "national", "rural", "urban"),
+                    ppp             = NULL,
+                    lkup,
+                    censor          = TRUE,
+                    lkup_hash       = lkup$cache_data_id$hash_pip,
+                    additional_ind  = FALSE) {
 
 
   # set up -------------

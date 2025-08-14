@@ -1,24 +1,13 @@
+
+
 #' Compute PIP statistics
 #'
 #' Compute the main PIP poverty and inequality statistics.
 #'
-#' @param country character: Country ISO 3 codes
-#' @param year integer: Reporting year
-#' @param povline numeric: Poverty line
-#' @param popshare numeric: Proportion of the population living below the
-#'   poverty line
-#' @param fill_gaps logical: If set to TRUE, will interpolate / extrapolate
-#'   values for missing years
-#' @param group_by character: Will return aggregated values for predefined
-#'   sub-groups
-#' @param welfare_type character: Welfare type
-#' @param reporting_level character: Geographical reporting level
-#' @param ppp numeric: Custom Purchase Power Parity value
-#' @param lkup list: A list of lkup tables
-#' @param censor logical: Triggers censoring of country/year statistics
-#' @param lkup_hash character: hash of pip
-#' @param additional_ind logical: If TRUE add new set of indicators. Default if
-#'   FALSE
+#' This function is a wrapper around the [pip_new_lineups] and [pip_old_lineups]
+#' functions.
+#'
+#' @inheritParams pip_new_lineups
 #'
 #' @return data.table
 #' @examples
@@ -66,6 +55,124 @@ pip <- function(country         = "ALL",
                 censor          = TRUE,
                 lkup_hash       = lkup$cache_data_id$hash_pip,
                 additional_ind  = FALSE) {
+
+  # Should pip_old or pip_new be used?
+  #-------------------------------------
+  use_new <- lkup$use_new_lineup_version
+
+  # Run correct function
+  #-------------------------------------
+  out <- if (use_new) {
+    pip_new_lineups(country         = country,
+                    year            = year,
+                    povline         = povline,
+                    popshare        = popshare,
+                    fill_gaps       = fill_gaps,
+                    group_by        = group_by,
+                    welfare_type    = welfare_type,
+                    reporting_level = reporting_level,
+                    ppp             = ppp,
+                    lkup            = lkup,
+                    censor          = censor,
+                    lkup_hash       = lkup_hash,
+                    additional_ind  = additional_ind)
+  } else {
+    pip_old_lineups(country         = country,
+                    year            = year,
+                    povline         = povline,
+                    popshare        = popshare,
+                    fill_gaps       = fill_gaps,
+                    group_by        = group_by,
+                    welfare_type    = welfare_type,
+                    reporting_level = reporting_level,
+                    ppp             = ppp,
+                    lkup            = lkup,
+                    censor          = censor,
+                    lkup_hash       = lkup_hash,
+                    additional_ind  = additional_ind)
+  }
+
+  # Return
+  #-------------------------------------
+  out
+
+}
+
+
+
+
+
+
+
+
+#' Compute PIP statistics
+#'
+#' Compute the main PIP poverty and inequality statistics.
+#'
+#' @param country character: Country ISO 3 codes
+#' @param year integer: Reporting year
+#' @param povline numeric: Poverty line
+#' @param popshare numeric: Proportion of the population living below the
+#'   poverty line
+#' @param fill_gaps logical: If set to TRUE, will interpolate / extrapolate
+#'   values for missing years
+#' @param group_by character: Will return aggregated values for predefined
+#'   sub-groups
+#' @param welfare_type character: Welfare type
+#' @param reporting_level character: Geographical reporting level
+#' @param ppp numeric: Custom Purchase Power Parity value
+#' @param lkup list: A list of lkup tables
+#' @param censor logical: Triggers censoring of country/year statistics
+#' @param lkup_hash character: hash of pip
+#' @param additional_ind logical: If TRUE add new set of indicators. Default if
+#'   FALSE
+#'
+#' @return data.table
+#' @examples
+#' \dontrun{
+#' # Create lkups
+#' lkups <- create_lkups("<data-folder>")
+#'
+#' # A single country and year
+#' pip_new_lineups(country = "AGO",
+#'     year = 2000,
+#'     povline = 1.9,
+#'     lkup = lkups)
+#'
+#' # All years for a single country
+#' pip_new_lineups(country = "AGO",
+#'     year = "all",
+#'     povline = 1.9,
+#'     lkup = lkups)
+#'
+#' # Fill gaps
+#' pip_new_lineups(country = "AGO",
+#'     year = "all",
+#'     povline = 1.9,
+#'     fill_gaps = TRUE,
+#'     lkup = lkups)
+#'
+#' # Group by regions
+#' pip_new_lineups(country = "all",
+#'     year = "all",
+#'     povline = 1.9,
+#'     group_by = "wb",
+#'     lkup = lkups)
+#' }
+#' @export
+pip_new_lineups <- function(country         = "ALL",
+                            year            = "ALL",
+                            povline         = 1.9,
+                            popshare        = NULL,
+                            fill_gaps       = FALSE,
+                            group_by        = c("none", "wb"),
+                            welfare_type    = c("all", "consumption", "income"),
+                            reporting_level = c("all", "national", "rural", "urban"),
+                            ppp             = NULL,
+                            lkup,
+                            censor          = TRUE,
+                            lkup_hash       = lkup$cache_data_id$hash_pip,
+                            additional_ind  = FALSE) {
 
 
   # set up -------------

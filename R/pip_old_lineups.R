@@ -1,4 +1,4 @@
-#' Compute PIP statistics
+#' Compute PIP statistics - Old lineups function
 #'
 #' Compute the main PIP poverty and inequality statistics.
 #'
@@ -27,33 +27,33 @@
 #' lkups <- create_lkups("<data-folder>")
 #'
 #' # A single country and year
-#' pip(country = "AGO",
+#' pip_old_lineups(country = "AGO",
 #'     year = 2000,
 #'     povline = 1.9,
 #'     lkup = lkups)
 #'
 #' # All years for a single country
-#' pip(country = "AGO",
+#' pip_old_lineups(country = "AGO",
 #'     year = "all",
 #'     povline = 1.9,
 #'     lkup = lkups)
 #'
 #' # Fill gaps
-#' pip(country = "AGO",
+#' pip_old_lineups(country = "AGO",
 #'     year = "all",
 #'     povline = 1.9,
 #'     fill_gaps = TRUE,
 #'     lkup = lkups)
 #'
 #' # Group by regions
-#' pip(country = "all",
+#' pip_old_lineups(country = "all",
 #'     year = "all",
 #'     povline = 1.9,
 #'     group_by = "wb",
 #'     lkup = lkups)
 #' }
 #' @export
-pip_zp_old <- function(country         = "ALL",
+pip_old_lineups <- function(country         = "ALL",
                 year            = "ALL",
                 povline         = 1.9,
                 popshare        = NULL,
