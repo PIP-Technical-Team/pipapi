@@ -57,47 +57,11 @@ fg_pip <- function(country,
                 data_in_cache = data_present_in_master))
   }
 
+  full_list <- create_full_list(country                = country,
+                                year                   = year,
+                                refy_lkup              = refy_lkup,
+                                data_present_in_master = data_present_in_master)
 
-  #'     # ZP Add: load refy data
-  #-------------------------
-  # Extract unique combinations of country-year
-  if (any(c("ALL", "WLD") %in% country)) {
-    cntry <- refy_lkup$country_code |>
-      funique()
-  } else {
-    cntry <- refy_lkup[country_code %in% country,
-                       ]$country_code |>
-      funique()
-  }
-  if (any(c("ALL") %in% year)) {
-    yr <- refy_lkup$reporting_year |>
-      unique()
-  } else {
-    yr <- refy_lkup[reporting_year %in% year,
-                    ]$reporting_year |>
-      funique()
-  }
-  dtemp <-
-    refy_lkup |>
-    fsubset(country_code     %in% cntry &
-              reporting_year %in% yr) |>
-    fsubset(reporting_year %in% lkup$valid_years$lineup_years) |>
-    fselect(country_code,
-            year = reporting_year) |>
-    funique()
-
-  # Split years by country
-  full_list <- dtemp[,
-                     .(year = list(year)),
-                     by = country_code][
-    , .(country_code, year = year)
-  ]
-
-  # Convert to desired structure
-  full_list <- list(
-    country_code = full_list$country_code,
-    year         = lapply(full_list$year,
-                          as.numeric))
   lt <-
     pipdata::load_list_refy(input_list = full_list,
                             path = fs::path(data_dir,
@@ -155,10 +119,14 @@ fg_pip <- function(country,
   #-------------------------
   metadata[,
            file := basename(path)]
+  print(metadata)
+
   # TO BE REMOVED, ONLY FOR TESTING!!!
   rlang::env_poke(env   = globalenv(),
-                  nm    = "metadata_check",
+                  nm    = "metadata_check2",
                   value = metadata)
+  metadata <- copy(metadata_check2)
+  #stop("---------------")
   # try metadata unique code
   tmp_metadata <- metadata
   # Handle multiple distribution types (for aggregated distributions)
@@ -178,17 +146,21 @@ fg_pip <- function(country,
     } else {
       NA
     }}),
-    by = reporting_year, .SDcols = meta_vars]
+    by      = c("reporting_year", "country_code", "reporting_level", "welfare_type"),
+    .SDcols = meta_vars]
 
   # Remove duplicate rows by reporting_year (keep only one row per
   # reporting_year)
-  tmp_metadata_unique <- unique(tmp_metadata, by = "reporting_year")
+  tmp_metadata_unique <- funique(tmp_metadata)
   tmp_metadata_unique[,
                       file := paste0(country_code,
                                      "_",
                                      reporting_year)]
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "tmp_metadata_unique_check",
+  #                 value = tmp_metadata_unique)
   rlang::env_poke(env   = globalenv(),
-                  nm    = "tmp_metadata_unique_check",
+                  nm    = "tmp_metadata_unique_check2",
                   value = tmp_metadata_unique)
   rlang::env_poke(env   = globalenv(),
                   nm    = "res_final",
@@ -235,6 +207,13 @@ fg_pip <- function(country,
   if ("max_year" %in% names(out)) {
     out[, max_year := NULL]
   }
+
+  # in_cache <- data_present_in_master |>
+  #   fmutate(file = paste(country_code, reporting_year, sep = "_")) |>
+  #   fselect(file) |>
+  #   reg_elem()
+  # # rm rows in out that are in cache
+  # out <- out[!(file %in% in_cache)]
 
   return(list(main_data     = out,
               data_in_cache = data_present_in_master))
@@ -318,4 +297,72 @@ fg_assign_nas_values_to_dup_cols <- function(df,
   #Classes are maintained by default.
   df[, (cols) := NA]
   return(df)
+}
+
+
+
+
+
+
+#' Create full list for fg data load, not including country-years in cache
+#'
+#' @param country Country selected in [fg_pip] function
+#' @param year Year/s selected in [fg_pip] function
+#' @param refy_lkup reference year lkup table with full lineups and new method
+#' @param data_present_in_master cache data
+#'
+#' @return list
+create_full_list <- function(country, year, refy_lkup, data_present_in_master) {
+
+  if (!is.null(data_present_in_master)) {
+    data_not_in_cache <-
+      joyn::anti_join(x =  refy_lkup,
+                      y =  data_present_in_master,
+                      by = c("country_code", "reporting_year"))
+  } else {
+    data_not_in_cache <- refy_lkup
+  }
+
+  # Extract unique combinations of country-year
+  if (any(c("ALL", "WLD") %in% country)) {
+    cntry <- data_not_in_cache$country_code |>
+      funique()
+  } else {
+    cntry <- data_not_in_cache[country_code %in% country,
+    ]$country_code |>
+      funique()
+  }
+  if (any(c("ALL") %in% year)) {
+    yr <- data_not_in_cache$reporting_year |>
+      unique()
+  } else {
+    yr <- data_not_in_cache[reporting_year %in% year,
+    ]$reporting_year |>
+      funique()
+  }
+  dtemp <-
+    data_not_in_cache |>
+    fsubset(country_code     %in% cntry &
+              reporting_year %in% yr) |>
+    fsubset(reporting_year %in% lkup$valid_years$lineup_years) |>
+    fselect(country_code,
+            year = reporting_year) |>
+    funique()
+
+  # Split years by country
+  full_list <- dtemp[,
+                     .(year = list(year)),
+                     by = country_code][
+                       , .(country_code, year = year)
+                     ]
+
+  # Convert to desired structure
+  full_list <- list(
+    country_code = full_list$country_code,
+    year         = lapply(full_list$year,
+                          as.numeric))
+
+
+  full_list
+
 }
