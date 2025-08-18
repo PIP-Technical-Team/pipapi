@@ -82,9 +82,9 @@ fg_pip <- function(country,
                   x
                })
 
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "pipdata_list",
-                  value = lt)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "pipdata_list",
+  #                 value = lt)
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
@@ -95,10 +95,10 @@ fg_pip <- function(country,
   res <- rbindlist(res,
                    fill = TRUE)
 
-  # TO BE REMOVED, ONLY FOR TESTING!!!
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "res_povest",
-                  value = res)
+  # # TO BE REMOVED, ONLY FOR TESTING!!!
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "res_povest",
+  #                 value = res)
 
   # ZP Add: join to dist_stats
   #-------------------------
@@ -122,10 +122,10 @@ fg_pip <- function(country,
   print(metadata)
 
   # TO BE REMOVED, ONLY FOR TESTING!!!
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "metadata_check2",
-                  value = metadata)
-  metadata <- copy(metadata_check2)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "metadata_check2",
+  #                 value = metadata)
+  # metadata <- copy(metadata_check2)
   #stop("---------------")
   # try metadata unique code
   tmp_metadata <- metadata
@@ -159,12 +159,12 @@ fg_pip <- function(country,
   # rlang::env_poke(env   = globalenv(),
   #                 nm    = "tmp_metadata_unique_check",
   #                 value = tmp_metadata_unique)
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "tmp_metadata_unique_check2",
-                  value = tmp_metadata_unique)
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "res_final",
-                  value = res)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "tmp_metadata_unique_check2",
+  #                 value = tmp_metadata_unique)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "res_final",
+  #                 value = res)
 
   out <- join(res,
               tmp_metadata_unique,
@@ -177,9 +177,9 @@ fg_pip <- function(country,
               drop.dup.cols = TRUE,
               verbose       = 0)
 
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "out_check",
-                  value = out)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "out_check",
+  #                 value = out)
   out[, `:=`(
     file   = NULL
   )]
@@ -188,14 +188,14 @@ fg_pip <- function(country,
            "povline",
            "poverty_line")
 
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "out1",
-                  value = out)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "out1",
+  #                 value = out)
   # Ensure that out does not have duplicates
   out <- fg_remove_duplicates(out)
-  rlang::env_poke(env   = globalenv(),
-                  nm    = "out2",
-                  value = out)
+  # rlang::env_poke(env   = globalenv(),
+  #                 nm    = "out2",
+  #                 value = out)
 
   # Fix issue with rounding of poverty lines
   out[,
@@ -316,9 +316,11 @@ create_full_list <- function(country, year, refy_lkup, data_present_in_master) {
 
   if (!is.null(data_present_in_master)) {
     data_not_in_cache <-
-      joyn::anti_join(x =  refy_lkup,
-                      y =  data_present_in_master,
-                      by = c("country_code", "reporting_year"))
+      joyn::anti_join(x         =  refy_lkup,
+                      y         =  data_present_in_master,
+                      by        = c("country_code", "reporting_year"),
+                      reportvar = FALSE,
+                      verbose   = FALSE)
   } else {
     data_not_in_cache <- refy_lkup
   }
