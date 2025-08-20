@@ -359,10 +359,10 @@ pip_new_lineups <- function(country         = "ALL",
       # ZP temp NA lineups:
       #---------------------
     # ## Inequality indicators to NA for lineup years ----
-    #   dist_vars  <- names2keep[!(names2keep %in% crr_names)]
-    #   out[,
-    #       (dist_vars) := NA_real_]
-    #
+      dist_vars  <- names2keep[!(names2keep %in% crr_names)]
+      out[,
+          (dist_vars) := NA_real_]
+
       ## estimate_var -----
       out <- estimate_type_ctr_lnp(out, lkup)
 
