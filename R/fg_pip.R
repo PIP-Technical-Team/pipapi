@@ -75,9 +75,8 @@ fg_pip <- function(country,
   res <- lapply(lt,
                 process_dt,
                 povline      = povline,
-                mean_and_med = TRUE)
-  res <- rbindlist(res,
-                   fill = TRUE)
+                mean_and_med = TRUE) |>
+  rbindlist(fill = TRUE)
 
   # ZP Add: join to metadata
   #-------------------------

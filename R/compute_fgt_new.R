@@ -31,7 +31,8 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines, mean_and_med = FALSE) 
     pov <- povlines[i]
     poor <- w < pov
     rel_dist <- 1 - (w / pov)
-    rel_dist[!poor] <- 0
+    setv(rel_dist, poor, 0, invert = TRUE)
+    # rel_dist[!poor] <- 0
     res[i, 1] <- fmean(poor, w = wt) # FGT0
     res[i, 2] <- fmean(rel_dist, w = wt) # FGT1
     res[i, 3] <- fmean(rel_dist^2, w = wt) # FGT2
@@ -46,10 +47,10 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines, mean_and_med = FALSE) 
   }
 
   if (mean_and_med) {
-    mn  <- funique(dt$mean)
-    med <- funique(dt$median)
-    cy  <- funique(dt$coutnry_code)
-    ry  <- funique(dt$reporting_year)
+    mn  <- ffirst(dt$mean)
+    med <- ffirst(dt$median)
+    cy  <- ffirst(dt$coutnry_code)
+    ry  <- ffirst(dt$reporting_year)
     out <- data.table(
       povline          = povlines,
       headcount        = res[, 1],
