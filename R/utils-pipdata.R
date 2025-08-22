@@ -149,18 +149,22 @@ add_attributes_as_columns_vectorized <- function(dt) {
 
   # dist_stats per reporting_level (align by names, then replicate by counts)
   ds <- attr(dt, "dist_stats")
+
+
+
   if (length(ds)) {
-    if (!is.null(ds$mean)) {
-      for (l in lev) {
-        dt[reporting_level == l,
-           mean := ds$mean[[l]]]
-      }
-    }
-    if (!is.null(ds$median)) {
-      for (l in lev) {
-        dt[reporting_level == l,
-           median := ds$median[[l]]]
-      }
+    dstats <- c("mean", "median")
+    for (l in lev) {
+      wrl <- whichv(dt$reporting_level, l)
+      ld <- lapply(dstats, \(d) {
+        if (is.null(ds[[d]][[l]])) {
+          NA
+        } else {
+          ds[[d]][[l]]
+        }
+      })
+
+      dt[wrl, (dstats) := ld]
     }
   }
 
