@@ -250,31 +250,27 @@ pip_new_lineups <- function(country         = "ALL",
   #---------------------------------------------
     cached_data <- qDT(out$data_in_cache)
     main_data   <- qDT(out$main_data)
-    print("A")
 
     if (nrow(main_data) > 0) {
 
-      print("B")
-
       if (is.null(out$data_in_cache)) {
-        print("C")
+
         out <- main_data
       } else {
-        print("D")
+
         if (fill_gaps) {
-          print("E")
-          cached_data <- fg_remove_duplicates(cached_data)
+
+          cached_data <- fg_remove_duplicates(cached_data,
+                                              use_new_lineup_version = lkup$use_new_lineup_version)
         }
-        print("F")
+
         out <- main_data |>
           rowbind(cached_data)
       }
-      print("G")
 
         update_master_file(main_data, cache_file_path, fill_gaps)
 
     } else {
-      print("H")
       out <- cached_data
     }
     if (!data.table::is.data.table(out)) {
@@ -293,7 +289,7 @@ pip_new_lineups <- function(country         = "ALL",
       }
     }
 
-    # Add out of pipeline variablse
+    # Add out of pipeline variable
     #---------------------------------------------
     add_vars_out_of_pipeline(out,
                              fill_gaps = fill_gaps,
