@@ -19,10 +19,9 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines, mean_and_med = FALSE) 
   colnames(res) <- c("FGT0", "FGT1", "FGT2")
   watts_vec <- numeric(m)
 
-  # Precompute log(w) for efficiency
-  logw <- rep(NA_real_, n)
+  # Precompute log(w) for efficiency (vectorized)
+  logw <- fifelse(w > 0, log(w), NA_real_)
   pos <- w > 0
-  logw[pos] <- log(w[pos])
 
   for (i in seq_along(povlines)) {
     pov <- povlines[i]
