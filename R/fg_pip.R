@@ -66,9 +66,17 @@ fg_pip <- function(country,
     load_list_refy(input_list = full_list,
                    path       = fs::path(data_dir, "lineup_data"))
 
-  lt <- lapply(lt, \(x) {
-                   add_attributes_as_columns_vectorized(x)
-               })
+  # lt <- lapply(lt, \(x) {
+  #                  add_attributes_as_columns_vectorized(x)
+  #              })
+
+  lt_att <- lapply(lt, \(.) {
+    list(
+      dist_stats = attr(., "dt_dist_stats"),
+      rl_rows    = attr(., "reporting_level_rows")
+    )
+  })
+
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------

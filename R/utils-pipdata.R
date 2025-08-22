@@ -8,16 +8,15 @@
 load_list_refy <- \(input_list, path){
   input_list <- transform_input(input_list)
 
-  dl <- lapply(input_list, FUN = function(x) {
-    qs::qread(file = fs::path(path, paste0(x$country_code, "_",
-                                                x$year),
-                              ext = "qs"))
-    })
+  inames <- lapply(input_list, \(x) {
+    paste0(x$country_code, "_", x$year)
+  })
 
-  names(dl) <- vapply(input_list, \(x) {
-    paste0(x$country_code, x$year)
-    },
-    FUN.VALUE = character(1))
+  dl <- lapply(inames, \(x) {
+    qs::qread(file = fs::path(path, x, ext = "qs"))
+    }) |>
+    setNames(inames)
+
   dl
 }
 
@@ -151,7 +150,7 @@ add_attributes_as_columns_vectorized <- function(dt) {
   ds <- attr(dt, "dist_stats")
 
 
-
+  # AC: I think this is not necessary at this stage. Can we merge at a later point?
   if (length(ds)) {
     dstats <- c("mean", "median")
     for (l in lev) {

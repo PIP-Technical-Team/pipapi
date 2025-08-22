@@ -75,6 +75,63 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines, mean_and_med = FALSE) 
 }
 
 
+
+# Efficient FGT calculation for vectors (No data.table)
+#'
+#' @param w character: welfare variable name
+#' @param wt character: weight variable name
+#' @param povlines double: vector with poverty lines
+#'
+#' @return data.table with estimates poverty estimates
+#' @keywords internal
+compute_fgt <- function(w, wt, povlines) {
+  n   <- length(w)
+  m   <- length(povlines)
+
+  # Pre-allocate result matrix
+  res <- matrix(NA_real_, nrow = m, ncol = 3)
+  colnames(res) <- c("FGT0", "FGT1", "FGT2")
+  watts_vec <- numeric(m)
+
+  # Precompute log(w) for efficiency (vectorized)
+
+  pos  <- w > 0
+  # logw <- log(w)
+  logw <- copyv(log(w), pos, NA_real_, invert = TRUE) |>
+    suppressWarnings()
+  # logw <- fifelse(w > 0, log(w), NA_real_)
+
+  for (i in seq_along(povlines)) {
+    pov <- povlines[i]
+    poor <- w < pov
+    rel_dist <- 1 - (w / pov)
+    setv(rel_dist, poor, 0, invert = TRUE)
+    # rel_dist[!poor] <- 0
+    res[i, 1] <- fmean(poor, w = wt) # FGT0
+    res[i, 2] <- fmean(rel_dist, w = wt) # FGT1
+    res[i, 3] <- fmean(rel_dist^2, w = wt) # FGT2
+
+    # Optimized Watts index calculation
+    keep <- poor & pos
+    if (any(keep, na.rm = TRUE)) {
+      watts_vec[i] <- (fsum((log(pov) - logw[keep]) * wt[keep])) / fsum(wt)
+    } else {
+      watts_vec[i] <- 0
+    }
+  }
+
+
+  data.table(
+      povline          = povlines,
+      headcount        = res[, 1],
+      poverty_gap      = res[, 2],
+      poverty_severity = res[, 3],
+      watts            = watts_vec)
+
+}
+
+
+
 process_dt <- function(dt, povline, mean_and_med = FALSE) {
   dt[, compute_fgt_dt(.SD, "welfare", "weight", povline, mean_and_med),
      by = .(file, reporting_level)]
