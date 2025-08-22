@@ -142,7 +142,18 @@ pip_new_lineups <- function(country         = "ALL",
 
   # Cache new data
   #---------------------------------------------
-  cached_data <- qDT(out$data_in_cache)
+  cached_data <- if (is.null(out$data_in_cache)) {
+    NULL
+  } else if (is.data.frame(out$data_in_cache)) {
+    if (fnrow(out$data_in_cache) == 0) {
+      NULL
+    } else {
+      qDT(out$data_in_cache)
+    }
+  } else {
+    cli::cli_abort("{.code out$data_in_cache} must be NULL or data.frame not {.field {class(out$data_in_cache)}}")
+  }
+
   main_data   <- qDT(out$main_data)
 
   if (nrow(main_data) > 0) {
