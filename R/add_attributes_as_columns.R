@@ -64,6 +64,7 @@
 #' @import data.table
 #' @export
 add_attributes_as_columns_vectorized <- function(dt) {
+
   # Ensure proper internal state & spare column capacity (handles readRDS/load cases)
   setDT(dt)        # harmless if already a data.table
   alloc.col(dt)    # pre-allocate room for new columns
@@ -74,10 +75,11 @@ add_attributes_as_columns_vectorized <- function(dt) {
   n    <- nrow(dt)
 
   counts <- diff(c(0L, rows))
-  if (sum(counts) != n) stop("Sum of 'rows' in attribute does not equal nrow(dt).")
+  if (sum(counts) != n) cli::cli_abort("Sum of 'rows' in attribute does not equal nrow(dt).")
 
   # reporting_level: vectorized, no loops, no findInterval edge cases
-  dt[, reporting_level := rep.int(lev, counts)]
+  dt[,
+     reporting_level := rep.int(lev, counts)]
 
   # constants
   cc <- attr(dt, "country_code")
@@ -93,11 +95,17 @@ add_attributes_as_columns_vectorized <- function(dt) {
   if (length(ds)) {
     if (!is.null(ds$mean)) {
       m <- unlist(ds$mean, use.names = TRUE)
-      dt[, mean := rep.int(unname(m[match(lev, names(m))]), counts)]
+      dt[,
+         mean := rep.int(unname(m[match(lev,
+                                        names(m))]),
+                         counts)]
     }
     if (!is.null(ds$median)) {
       md <- unlist(ds$median, use.names = TRUE)
-      dt[, median := rep.int(unname(md[match(lev, names(md))]), counts)]
+      dt[,
+         median := rep.int(unname(md[match(lev,
+                                           names(md))]),
+                           counts)]
     }
   }
 
@@ -139,19 +147,19 @@ add_attributes_as_columns_multi <- function(dt) {
   # --- Pull + validate segment metadata ---
   rl <- attr(dt, "reporting_level_rows")
   if (is.null(rl) || is.null(rl$reporting_level) || is.null(rl$rows)) {
-    stop("Missing 'reporting_level_rows' attribute with $reporting_level and $rows.")
+    cli::cli_abort("Missing 'reporting_level_rows' attribute with $reporting_level and $rows.")
   }
   lev  <- as.character(rl$reporting_level)
   rows <- as.integer(rl$rows)
   n    <- nrow(dt)
 
-  if (length(lev) != length(rows)) stop("'reporting_level' and 'rows' lengths differ.")
-  if (length(rows) == 0L) stop("'rows' is empty.")
-  if (any(diff(rows) < 0L)) stop("'rows' must be non-decreasing.")
-  if (rows[length(rows)] != n) stop("Last element of 'rows' must equal nrow(dt).")
+  if (length(lev) != length(rows)) cli::cli_abort("'reporting_level' and 'rows' lengths differ.")
+  if (length(rows) == 0L) cli::cli_abort("'rows' is empty.")
+  if (any(diff(rows) < 0L)) cli::cli_abort("'rows' must be non-decreasing.")
+  if (rows[length(rows)] != n) cli::cli_abort("Last element of 'rows' must equal nrow(dt).")
 
   counts <- diff(c(0L, rows))
-  if (any(counts <= 0L)) stop("Computed non-positive segment length(s).")
+  if (any(counts <= 0L)) cli::cli_abort("Computed non-positive segment length(s).")
 
   # --- reporting_level: vectorized per-segment replication ---
   dt[, reporting_level := rep.int(lev, counts)]
