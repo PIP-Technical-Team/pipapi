@@ -52,7 +52,7 @@ fg_pip <- function(country,
 
   # Return empty dataframe if no metadata is found (i.e. all in cache)
   if (nrow(metadata) == 0) {
-    print("ZP: no metadata - i.e. nothing additional to estimate")
+    #print("ZP: no metadata - i.e. nothing additional to estimate")
     return(list(main_data     = pipapi::empty_response_fg,
                 data_in_cache = data_present_in_master))
   }
@@ -69,17 +69,8 @@ fg_pip <- function(country,
 
   lt <- lapply(lt,
                FUN = \(x) {
-                  x <- x |>
-                   pipdata::attr_to_column("reporting_level_rows") |> # only rep level????
-                   pipdata::attr_to_column("country_code") |>
-                   pipdata::attr_to_column("reporting_year") |>
-                    pipdata::attr_to_column("mean", dist_stats = TRUE) |>
-                    pipdata::attr_to_column("median", dist_stats = TRUE) |>
-                   fmutate(file = paste0(country_code,
-                                         "_",
-                                         reporting_year))
-
-                  x
+                  x |>
+                    add_attributes_as_columns_vectorized()
                })
 
   # rlang::env_poke(env   = globalenv(),
@@ -119,7 +110,6 @@ fg_pip <- function(country,
   #-------------------------
   metadata[,
            file := basename(path)]
-  print(metadata)
 
   # TO BE REMOVED, ONLY FOR TESTING!!!
   # rlang::env_poke(env   = globalenv(),
@@ -192,7 +182,8 @@ fg_pip <- function(country,
   #                 nm    = "out1",
   #                 value = out)
   # Ensure that out does not have duplicates
-  out <- fg_remove_duplicates(out)
+  out <- fg_remove_duplicates(out,
+                              use_new_lineup_version = lkup$use_new_lineup_version)
   # rlang::env_poke(env   = globalenv(),
   #                 nm    = "out2",
   #                 value = out)
@@ -246,22 +237,28 @@ fg_remove_duplicates <- function(df,
                                           "survey_median_ppp",
                                           "survey_time",
                                           "survey_year",
-                                          "surveyid_year")) {
-  # not all cols need to be changes
-  cols <- setdiff(cols,
-                  colnames(df))
-  # Modify cache_id
-  # * Ensures that cache_id is unique for both extrapolated and interpolated surveys
-  # * Ensures that cache_id can be kept as an output of fg_pip() while still removing duplicated rows
-  # df$cache_id <- fg_standardize_cache_id(cache_id = df$cache_id,
-  #                                        interpolation_id = df$data_interpolation_id,
-  #                                        reporting_level = df$reporting_level)
-  # Set collapse vars to NA (by type)
-  df <- fg_assign_nas_values_to_dup_cols(df   = df,
-                                         cols = cols)
+                                          "surveyid_year"),
+                                 use_new_lineup_version = FALSE) {
 
-  # Ensure that out does not have duplicates
-  df <- unique(df)
+  if (isFALSE(use_new_lineup_version)) {
+    print("here")
+    # not all cols need to be changes
+    cols <- setdiff(cols,
+                    colnames(df))
+    # Modify cache_id
+    # * Ensures that cache_id is unique for both extrapolated and interpolated surveys
+    # * Ensures that cache_id can be kept as an output of fg_pip() while still removing duplicated rows
+    # df$cache_id <- fg_standardize_cache_id(cache_id = df$cache_id,
+    #                                        interpolation_id = df$data_interpolation_id,
+    #                                        reporting_level = df$reporting_level)
+    # Set collapse vars to NA (by type)
+    df <- fg_assign_nas_values_to_dup_cols(df   = df,
+                                           cols = cols)
+
+    # Ensure that out does not have duplicates
+    df <- unique(df)
+  }
+
 
   return(df)
 }
