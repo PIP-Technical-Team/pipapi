@@ -39,10 +39,4 @@ data.frame
 \description{
 Compute the main PIP poverty and inequality statistics for imputed years.
 }
-\keyword{#}
-\keyword{Add:}
-\keyword{ZP}
-\keyword{data}
 \keyword{internal}
-\keyword{load}
-\keyword{refy}

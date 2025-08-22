@@ -9,7 +9,8 @@ fg_remove_duplicates(
   cols = c("comparable_spell", "cpi", "display_cp", "gd_type", "path",
     "predicted_mean_ppp", "survey_acronym", "survey_comparability", "survey_coverage",
     "survey_id", "survey_mean_lcu", "survey_mean_ppp", "survey_median_lcu",
-    "survey_median_ppp", "survey_time", "survey_year", "surveyid_year")
+    "survey_median_ppp", "survey_time", "survey_year", "surveyid_year"),
+  use_new_lineup_version = FALSE
 )
 }
 \arguments{

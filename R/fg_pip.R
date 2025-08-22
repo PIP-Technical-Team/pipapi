@@ -63,14 +63,11 @@ fg_pip <- function(country,
                                 data_present_in_master = data_present_in_master)
 
   lt <-
-    pipdata::load_list_refy(input_list = full_list,
-                            path = fs::path(data_dir,
-                                            "lineup_data"))
+    load_list_refy(input_list = full_list,
+                   path       = fs::path(data_dir, "lineup_data"))
 
-  lt <- lapply(lt,
-               FUN = \(x) {
-                  x |>
-                    add_attributes_as_columns_vectorized()
+  lt <- lapply(lt, \(x) {
+                   add_attributes_as_columns_vectorized(x)
                })
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
@@ -297,8 +294,9 @@ create_full_list <- function(country, year, refy_lkup, data_present_in_master) {
   # Split years by country
   full_list <- dtemp[,
                      .(year = list(year)),
-                     by = country_code][
-                       , .(country_code, year = year)
+                     by = country_code
+                     ][,
+                       .(country_code, year = year)
                      ]
 
   # Convert to desired structure
