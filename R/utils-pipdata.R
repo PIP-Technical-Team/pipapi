@@ -118,7 +118,7 @@ add_attributes_as_columns_vectorized <- function(dt) {
 
   # Ensure proper internal state & spare column capacity (handles readRDS/load cases)
   setDT(dt)        # harmless if already a data.table
-  alloc.col(dt)    # pre-allocate room for new columns
+  setalloccol(dt)    # pre-allocate room for new columns... #AC, I am still not sure about this.
 
   rl   <- attr(dt, "reporting_level_rows")
   lev  <- rl$reporting_level
@@ -151,18 +151,16 @@ add_attributes_as_columns_vectorized <- function(dt) {
   ds <- attr(dt, "dist_stats")
   if (length(ds)) {
     if (!is.null(ds$mean)) {
-      m <- unlist(ds$mean, use.names = TRUE)
-      dt[,
-         mean := rep.int(unname(m[match(lev,
-                                        names(m))]),
-                         counts)]
+      for (l in lev) {
+        dt[reporting_level == l,
+           mean := ds$mean[[l]]]
+      }
     }
     if (!is.null(ds$median)) {
-      md <- unlist(ds$median, use.names = TRUE)
-      dt[,
-         median := rep.int(unname(md[match(lev,
-                                           names(md))]),
-                           counts)]
+      for (l in lev) {
+        dt[reporting_level == l,
+           median := ds$median[[l]]]
+      }
     }
   }
 

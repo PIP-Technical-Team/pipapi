@@ -72,10 +72,11 @@ fg_pip <- function(country,
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
-  res <- lapply(lt,
-                process_dt,
-                povline      = povline,
-                mean_and_med = TRUE) |>
+  res <- lapply(lt, \(x) {
+    process_dt(x,
+               povline      = povline,
+               mean_and_med = TRUE)
+    }) |>
   rbindlist(fill = TRUE)
 
   # ZP Add: join to metadata
