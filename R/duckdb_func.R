@@ -217,8 +217,6 @@ update_master_file <- function(dat,
     keep_vars <- c(
       "interpolation_id",
       "poverty_line",
-
-
       "headcount",
       "poverty_gap",
       "poverty_severity",
@@ -233,13 +231,19 @@ update_master_file <- function(dat,
       "cache_id",
       "reporting_level",
       "poverty_line",
-
-
       "headcount",
       "poverty_gap",
       "poverty_severity",
       "watts"
     )
+  }
+
+  # Get column names from DuckDB table
+  table_info <- DBI::dbGetQuery(write_con, glue("PRAGMA table_info({target_file})"))
+  col_names  <- table_info$name
+  # Add mean and median if present in table
+  if (all(c("mean", "median") %in% col_names)) {
+    keep_vars <- c(keep_vars, "mean", "median")
   }
 
   # Select variables

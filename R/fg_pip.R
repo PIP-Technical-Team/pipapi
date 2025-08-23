@@ -83,7 +83,7 @@ fg_pip <- function(country,
   fgt <- map_fgt(lt, l_rl_rows) |>
     funique() # TO REMOVE
 
-  # convert reporting year to numeris
+  # convert reporting year to numeric
   fgt[, reporting_year := as.numeric(reporting_year)]
 
   # Add just mean and median
