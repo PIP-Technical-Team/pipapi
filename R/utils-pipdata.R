@@ -293,3 +293,48 @@ assign_stat <- function(dt, lev, counts, stat, colname) {
   dt[, (colname) := rep.int(unname(v[map_idx]), counts)]
   invisible(dt)
 }
+
+
+
+
+
+#' extract rows indices
+#'
+#' @param a list with attributes from lt
+#'
+#' @return names list with indices for reporting level
+#' @keywords internal
+get_rl_rows_single <- function(a) {
+  rl <- a$rl_rows
+  rl_rows <- vector("list", length(rl$reporting_level))
+
+  start <- 1L
+  for (i in seq_along(rl$reporting_level)) {
+    end <- rl$rows[i]
+    rl_rows[[i]] <- start:end
+    start <- end + 1L
+  }
+  setNames(rl_rows, rl$reporting_level)
+}
+
+
+#' apply get_rl_rows_single
+#' @rdname get_rl_rows_single
+get_rl_rows <- \(lt_att) {
+  lapply(lt_att, get_rl_rows_single)
+}
+
+
+
+#' Get some attributes from lt lis
+#'
+#' @param lt list
+#' @keywords internal
+get_lt_attr <- function(lt) {
+  lapply(lt, \(.) {
+    list(
+      dist_stats = attr(., "dt_dist_stats"),
+      rl_rows    = attr(., "reporting_level_rows")
+    )
+  })
+}

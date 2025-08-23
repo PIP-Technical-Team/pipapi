@@ -97,9 +97,9 @@ compute_fgt <- function(w, wt, povlines) {
 
   pos  <- w > 0
   # logw <- log(w)
-  logw <- copyv(log(w), pos, NA_real_, invert = TRUE) |>
-    suppressWarnings()
-  # logw <- fifelse(w > 0, log(w), NA_real_)
+  # logw <- copyv(log(w), pos, NA_real_, invert = TRUE) |>
+  #   suppressWarnings()
+  logw <- fifelse(w > 0, log(w), NA_real_)
 
   for (i in seq_along(povlines)) {
     pov <- povlines[i]
@@ -130,7 +130,46 @@ compute_fgt <- function(w, wt, povlines) {
 
 }
 
+#' compute FGT using indices by reporting level
+#'
+#' This function is intended to be used inside [map_fgt]
+#'
+#' @param x data.table from lt list, with welfare and weight vectors
+#' @param y list of indices for each reporting level
+#' @param nx name of data table. Usuall country code and year in the form "CCC_YYYY"
+#'
+#' @return data.table with FGT estimates by reporting level
+#' @keywords  internal
+DT_fgt_by_rl <- \(x, y, nx) {
+  DT_fgt <- lapply(names(y), \(rl) {
 
+    idx <- y[[rl]]
+    w   <- x[idx, welfare]
+    wt  <- x[idx, weight]
+    RL  <- compute_fgt(w = w, wt = wt, povlines = povline)
+    RL[, reporting_level := rl]
+
+  }) |>
+    rbindlist(fill = TRUE)
+
+
+  DT_fgt[, `:=`(
+    country_code   = gsub("([^_]+)(_.+)", "\\1", nx),
+    reporting_year = gsub("(.+_)([^_]+)", "\\2", nx)
+  )]
+}
+
+#' map over list of data.tables and indices to compute FGT by reporting_level
+#'
+#' @param lt list of data.tables with welfare and weight data
+#' @param l_rl_rows list of indeces
+#'
+#' @return data.table with all measured
+#' @keywords internal
+map_fgt <- \(lt, l_rl_rows) {
+  Map(DT_fgt_by_rl, lt, l_rl_rows, names(lt)) |>
+    rbindlist(fill = TRUE)
+}
 
 process_dt <- function(dt, povline, mean_and_med = FALSE) {
   dt[, compute_fgt_dt(.SD, "welfare", "weight", povline, mean_and_med),

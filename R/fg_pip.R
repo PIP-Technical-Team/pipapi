@@ -70,22 +70,17 @@ fg_pip <- function(country,
   #                  add_attributes_as_columns_vectorized(x)
   #              })
 
-  lt_att <- lapply(lt, \(.) {
-    list(
-      dist_stats = attr(., "dt_dist_stats"),
-      rl_rows    = attr(., "reporting_level_rows")
-    )
-  })
+  # Extract some attributes
+  lt_att <- get_lt_attr(lt)
+
+  # get rows indices
+  l_rl_rows <- get_rl_rows(lt_att)
+
 
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
-  res <- lapply(lt, \(x) {
-    process_dt(x,
-               povline      = povline,
-               mean_and_med = TRUE)
-    }) |>
-  rbindlist(fill = TRUE)
+  res <- map_fgt(lt, l_rl_rows)
 
   # ZP Add: join to metadata
   #-------------------------
