@@ -325,6 +325,20 @@ get_rl_rows <- \(lt_att) {
 }
 
 
+#' get data.table with distribution stats
+#'
+#' this is a loop over lt attributes
+#'
+#' @param lt_att list of attributes of lt list
+#'
+#' @return data.table
+#' @keywords internal
+get_dt_dist_stats <- \(lt_att) {
+  lapply(lt_att, \(.) {
+    .$dist_stats
+  }) |>
+    rbindlist(fill = TRUE)
+}
 
 #' Get some attributes from lt lis
 #'

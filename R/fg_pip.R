@@ -76,16 +76,13 @@ fg_pip <- function(country,
   # get rows indices
   l_rl_rows <- get_rl_rows(lt_att)
 
+  # get data.table with dist stats
+  dt_dist_stats <- get_dt_dist_stats(la_att)
 
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
   res <- map_fgt(lt, l_rl_rows)
-
-  # ZP Add: join to metadata
-  #-------------------------
-  metadata[,
-           file := basename(path)]
 
   # try metadata unique code
   tmp_metadata <- metadata
@@ -112,25 +109,19 @@ fg_pip <- function(country,
   # Remove duplicate rows by reporting_year (keep only one row per
   # reporting_year)
   tmp_metadata_unique <- funique(tmp_metadata)
-  tmp_metadata_unique[,
-                      file := paste0(country_code,
-                                     "_",
-                                     reporting_year)]
+
 
   out <- join(res,
               tmp_metadata_unique,
-              on            = c("file",
+              on            = c("country_code", "reporting_year",
                                 "reporting_level"),
               how           = "left", # ZP: change from full to left,
                                       #  this rm nowcast years - i.e. years not included
                                       #  as lineup years
               validate      = "m:1",
               drop.dup.cols = TRUE,
-              verbose       = 0)
-
-  out[, `:=`(
-    file   = NULL
-  )]
+              verbose       = 0,
+              overid        = 2)
 
   setnames(out,
            "povline",
@@ -140,10 +131,6 @@ fg_pip <- function(country,
   out <- fg_remove_duplicates(out,
                               use_new_lineup_version = lkup$use_new_lineup_version)
 
-
-  # Fix issue with rounding of poverty lines
-  out[,
-      poverty_line := round(poverty_line, digits = 3) ]
 
   # Formatting. MUST be done in data.table tom modify by reference
   out[, path := as.character(path)]
