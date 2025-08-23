@@ -304,7 +304,7 @@ add_dist_stats <- function(df, lkup, fill_gaps) {
                  by               = c("country_code",
                                       "reporting_level",
                                       "reporting_year"),
-                 match_type       = "1:1",
+                 match_type       = "m:1", # multiple poverty lines
                  keep_common_vars = FALSE,
                  reportvar        = FALSE,
                  verbose          = FALSE,

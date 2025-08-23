@@ -322,7 +322,7 @@ fg_get_mean_median <- \(fgt, lkup) {
                                         .(country_code, reporting_year,
                                           reporting_level, mean, median)],
              by = c('country_code', "reporting_year", "reporting_level"),
-             match_type = "1:1",
+             match_type = "m:1", # multiple povlines
              keep = "left",
              reportvar = FALSE,
              verbose = FALSE)
