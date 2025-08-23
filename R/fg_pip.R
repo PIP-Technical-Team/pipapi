@@ -77,12 +77,23 @@ fg_pip <- function(country,
   l_rl_rows <- get_rl_rows(lt_att)
 
   # get data.table with dist stats
-  dt_dist_stats <- get_dt_dist_stats(la_att)
+  dt_dist_stats <- get_dt_dist_stats(lt_att)
 
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
-  res <- map_fgt(lt, l_rl_rows)
+  fgt <- map_fgt(lt, l_rl_rows)
+
+  # add dist stats
+  res <- join(fgt, dt_dist_stats,
+              on            = c("country_code", "reporting_year",
+                                "reporting_level"),
+              how           = "left",
+              validate      = "m:1",
+              drop.dup.cols = TRUE,
+              verbose       = 0,
+              overid        = 2)
+
 
   # try metadata unique code
   tmp_metadata <- metadata
@@ -132,7 +143,7 @@ fg_pip <- function(country,
                               use_new_lineup_version = lkup$use_new_lineup_version)
 
 
-  # Formatting. MUST be done in data.table tom modify by reference
+  # Formatting. MUST be done in data.table to modify by reference
   out[, path := as.character(path)]
 
   if ("max_year" %in% names(out)) {
