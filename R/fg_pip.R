@@ -77,18 +77,19 @@ fg_pip <- function(country,
   # get rows indices
   l_rl_rows <- get_rl_rows(lt_att)
 
-  if (exists("pipenv", envir = .GlobalEnv)) {
-    # get data.table with dist stats
-    dt_dist_stats <- get_dt_dist_stats(lt_att)
-    # Assign them to pipenv to use later
-    pipenv <- get("pipenv", envir = .GlobalEnv)
-    rlang::env_poke(pipenv, "dt_dist_stats", dt_dist_stats)
-  }
+  # if (exists("pipenv", envir = .GlobalEnv)) {
+  #   # get data.table with dist stats
+  #   dt_dist_stats <- get_dt_dist_stats(lt_att)
+  #   # Assign them to pipenv to use later
+  #   pipenv <- get("pipenv", envir = .GlobalEnv)
+  #   rlang::env_poke(pipenv, "dt_dist_stats", dt_dist_stats)
+  # }
 
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
-  res <- map_fgt(lt, l_rl_rows)
+  fgt <- map_fgt(lt, l_rl_rows) |>
+    funique() # TO REMOVE
 
   # # add dist stats
   # res <- join(fgt, dt_dist_stats,
@@ -102,6 +103,10 @@ fg_pip <- function(country,
 
   # convert reporting year to numeris
   res[, reporting_year := as.numeric(reporting_year)]
+
+  # Add just mean and median
+  res <- fg_get_mean_median(fgt, lkup)
+
 
   # try metadata unique code
   tmp_metadata <- copy(metadata) # I think we can avoid this inefficiency.
@@ -318,3 +323,26 @@ create_full_list <- function(country, year, refy_lkup, data_present_in_master) {
   full_list
 
 }
+
+
+
+
+#' merge into fgt table the mean and median from dist stats table in lkup
+#'
+#' @param fgt data,table with fgt measures
+#' @param lkup lkup
+#'
+#' @return data.table with with fgt, mean and median
+#' @keywords internal
+fg_get_mean_median <- \(fgt, lkup) {
+  joyn::joyn(x = fgt,
+             y = lkup$lineup_dist_stats[,
+                                        .(country_code, reporting_year,
+                                          reporting_level, mean, median)],
+             by = c('country_code', "reporting_year", "reporting_level"),
+             match_type = "1:1",
+             keep = "left",
+             reportvar = FALSE,
+             verbose = FALSE)
+}
+
