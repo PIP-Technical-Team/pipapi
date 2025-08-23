@@ -94,9 +94,11 @@ fg_pip <- function(country,
               verbose       = 0,
               overid        = 2)
 
+  # convert reporting year to numeris
+  res[, reporting_year := as.numeric(reporting_year)]
 
   # try metadata unique code
-  tmp_metadata <- metadata
+  tmp_metadata <- copy(metadata) # I think we can avoid this inefficiency.
   # Handle multiple distribution types (for aggregated distributions)
   if (length(unique(tmp_metadata$distribution_type)) > 1) {
     tmp_metadata[, distribution_type := "mixed"]
