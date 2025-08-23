@@ -77,29 +77,11 @@ fg_pip <- function(country,
   # get rows indices
   l_rl_rows <- get_rl_rows(lt_att)
 
-  # if (exists("pipenv", envir = .GlobalEnv)) {
-  #   # get data.table with dist stats
-  #   dt_dist_stats <- get_dt_dist_stats(lt_att)
-  #   # Assign them to pipenv to use later
-  #   pipenv <- get("pipenv", envir = .GlobalEnv)
-  #   rlang::env_poke(pipenv, "dt_dist_stats", dt_dist_stats)
-  # }
-
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
   fgt <- map_fgt(lt, l_rl_rows) |>
     funique() # TO REMOVE
-
-  # # add dist stats
-  # res <- join(fgt, dt_dist_stats,
-  #             on            = c("country_code", "reporting_year",
-  #                               "reporting_level"),
-  #             how           = "left",
-  #             validate      = "m:1",
-  #             drop.dup.cols = TRUE,
-  #             verbose       = 0,
-  #             overid        = 2)
 
   # convert reporting year to numeris
   fgt[, reporting_year := as.numeric(reporting_year)]
