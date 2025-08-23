@@ -76,6 +76,12 @@ pip_new_lineups <- function(country         = "ALL",
   povline         <- round(povline, digits = 3)
 
 
+  # Create temp environment
+  pipenv <- rlang::env()
+  assign("pipenv", pipenv, envir = .GlobalEnv)
+  on.exit(rm("pipenv", envir = .GlobalEnv), add = TRUE)
+
+
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
