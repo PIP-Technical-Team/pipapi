@@ -102,7 +102,7 @@ fg_pip <- function(country,
   #             overid        = 2)
 
   # convert reporting year to numeris
-  res[, reporting_year := as.numeric(reporting_year)]
+  fgt[, reporting_year := as.numeric(reporting_year)]
 
   # Add just mean and median
   res <- fg_get_mean_median(fgt, lkup)
