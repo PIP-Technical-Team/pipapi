@@ -150,7 +150,8 @@ add_attributes_as_columns_vectorized <- function(dt) {
   ds <- attr(dt, "dist_stats")
 
 
-  # AC: I think this is not necessary at this stage. Can we merge at a later point?
+  # This block processes distribution statistics (mean, median) for each reporting level.
+  # If this is not required at this stage, consider removing it or deferring it to a later step.
   if (length(ds)) {
     dstats <- c("mean", "median")
     for (l in lev) {

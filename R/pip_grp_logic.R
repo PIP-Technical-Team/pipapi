@@ -1,6 +1,6 @@
-#' Logic for computing new aggregate
+#' Old way to estimate aggregate data
+#' @rdname pip_agg
 #'
-#' @inheritParams pip
 #' @return data.table
 #' @examples
 #' \dontrun{
@@ -73,7 +73,7 @@ pip_grp_logic <- function(country         = "ALL",
     ## STEP 3.2: Compute fg_pip for ALL required countries ----
     ## This will then be re-used in various part of the function
     ## This is to avoid re-computing and re-loading the same data over and over
-    fg_pip_master <- fg_pip(
+    fg_pip_master <- fg_pip_old(
       country         = c(lcv$md_off_reg, lcv$user_off_reg),
       year            = year,
       povline         = povline,

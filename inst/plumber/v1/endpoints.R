@@ -282,7 +282,7 @@ function(req, res) {
   params$format  <- NULL
   params$version <- NULL
 
-  out <- do.call(pipapi::pip_grp_logic, params)
+  out <- do.call(pipapi::pip_agg, params)
   out
 }
 

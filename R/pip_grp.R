@@ -50,7 +50,7 @@ pip_grp <- function(country         = "ALL",
     reporting_level <- "national"
   }
 
-  out <- fg_pip(
+  out <- fg_pip_old(
     country         = country,
     year            = year,
     povline         = povline,
@@ -208,7 +208,7 @@ pip_aggregate <- function(df, by = NULL, return_cols) {
 }
 
 #' Aggregate by predefined groups
-#' @param df data.frame: Response from `fg_pip()` or `rg_pip()`.
+#' @param df data.frame: Response from `fg_pip_old()` or `rg_pip()`.
 #' @param group_lkup data.frame: Group lkup table (pop_region)
 #' @param country character: Selected countries / regions
 #' @param return_cols list: lkup$return_cols$pip_grp object. Controls returned
@@ -308,7 +308,7 @@ compute_world_aggregates <- function(rgn, cols) {
 
 
 #' Filter relevant rows for aggregating by predefined groups
-#' @param df data.frame: Response from `fg_pip()`
+#' @param df data.frame: Response from `fg_pip_old()`
 #' @noRd
 filter_for_aggregate_by <- function(df) {
   # This algorithm is incorrect, but should mostly work as a first iteration
