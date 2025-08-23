@@ -28,12 +28,10 @@ pip_agg <- function(country         = "ALL",
     pip_grp_new(country         = country,
                 year            = year,
                 povline         = povline,
-                group_by        = group_by,
                 welfare_type    = welfare_type,
                 reporting_level = reporting_level,
                 lkup            = lkup,
                 censor          = censor,
-                lkup_hash       = lkup_hash,
                 additional_ind  = additional_ind)
   } else {
     pip_grp_logic(country         = country,

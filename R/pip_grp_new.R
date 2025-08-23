@@ -3,12 +3,23 @@
 pip_grp_new <- \(country         = "ALL",
                  year            = "ALL",
                  povline         = 1.9,
-                 group_by        = c("wb", "none"),
                  welfare_type    = c("all", "consumption", "income"),
                  reporting_level = c("all", "national"),
                  lkup,
                  censor          = TRUE,
-                 lkup_hash       = lkup$cache_data_id$hash_pip_grp,
                  additional_ind  = FALSE) {
+
+  welfare_type    <- match.arg(welfare_type)
+  reporting_level <- match.arg(reporting_level)
+
+  # Custom aggregations only supported at the national level
+  # subgroups aggregations only supported for "all" countries
+  country <- toupper(country)
+  year    <- toupper(year)
+  reporting_level <- "all"
+  if (!all(country %in% c("ALL", lkup$query_controls$region$values))) {
+    country <- "ALL"
+  }
+
 
 }
