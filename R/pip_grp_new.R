@@ -23,3 +23,25 @@ pip_grp_new <- \(country         = "ALL",
 
 
 }
+
+
+
+get_country_code_subset <- function(dt, country) {
+  # Find all *_code columns except 'country_code'
+  code_cols <- setdiff(grep("_code$", names(dt), value = TRUE), "country_code")
+  
+  # Initialize result vector
+  result <- character(0)
+  
+  # For each code column, check for matches and collect country_code
+  for (col in code_cols) {
+    # Find rows where the code column matches any value in country
+    idx <- dt[[col]] %in% country
+    if (any(idx, na.rm = TRUE)) {
+      result <- c(result, dt[idx, country_code])
+    }
+  }
+  
+  # Return unique country_code values
+  funique(result)
+}
