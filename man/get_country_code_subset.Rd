@@ -2,23 +2,24 @@
 % Please edit documentation in R/pip_grp_new.R
 \name{get_country_code_subset}
 \alias{get_country_code_subset}
-\title{Subset country_code values based on matches in *_code columns}
+\title{Subset country_code values based on matches in *_code columns and country_code}
 \usage{
 get_country_code_subset(dt, country)
 }
 \arguments{
 \item{dt}{A data.table, typically lkup$aux_files$country_list, containing country_code and other *_code columns.}
 
-\item{country}{Character vector of country or region codes to match against *_code columns.}
+\item{country}{Character vector of country or region codes to match against *_code columns and country_code.}
 }
 \value{
-A unique character vector of country_code values corresponding to matches in any *_code column.
+A unique character vector of country_code values corresponding to matches in any *_code column or country_code.
 }
 \description{
-This function searches all columns in a data.table ending with '_code' (except 'country_code')
-and returns a unique character vector of 'country_code' values for rows where any of those
-columns match a value in the provided 'country' vector. The input data.table 'dt' should be
-'lkup$aux_files$country_list', which contains country and region codes for subsetting.
+This function searches all columns in a data.table ending with '_code' (except 'country_code'),
+as well as 'country_code' itself, and returns a unique character vector of 'country_code' values
+for rows where any of those columns match a value in the provided 'country' vector. If any value
+in 'country' is not found in any *_code column or in 'country_code', an error is thrown. The input
+data.table 'dt' should be 'lkup$aux_files$country_list', which contains country and region codes for subsetting.
 }
 \examples{
 \dontrun{
