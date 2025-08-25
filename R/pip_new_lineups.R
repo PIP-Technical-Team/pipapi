@@ -141,45 +141,8 @@ pip_new_lineups <- function(country         = "ALL",
 
   # Cache new data
   #---------------------------------------------
-  cached_data <- if (is.null(out$data_in_cache)) {
-    NULL
-  } else if (is.data.frame(out$data_in_cache)) {
-    if (fnrow(out$data_in_cache) == 0) {
-      NULL
-    } else {
-      qDT(out$data_in_cache)
-    }
-  } else {
-    cli::cli_abort("{.code out$data_in_cache} must be NULL or data.frame not {.field {class(out$data_in_cache)}}")
-  }
+  out <- treat_cache_and_main(out)
 
-  main_data   <- qDT(out$main_data)
-
-  if (nrow(main_data) > 0) {
-
-    if (is.null(out$data_in_cache)) {
-
-      out <- main_data
-    } else {
-
-      if (fill_gaps) {
-
-        cached_data <- fg_remove_duplicates(cached_data,
-                                            use_new_lineup_version = lkup$use_new_lineup_version)
-      }
-
-      out <- main_data |>
-        rowbind(cached_data)
-    }
-
-    update_master_file(main_data, cache_file_path, fill_gaps)
-
-  } else {
-    out <- cached_data
-  }
-  if (!is.data.table(out)) {
-    setDT(out)
-  }
   # Early return for empty table---------------
   if (nrow(out) == 0) return(pipapi::empty_response)
 
@@ -309,4 +272,50 @@ pip_new_lineups <- function(country         = "ALL",
   out <- out |> collapse::funique()
   # return -------------
   return(out)
+}
+
+
+
+
+
+treat_cache_and_main <- \(out) {
+  cached_data <- if (is.null(out$data_in_cache)) {
+    NULL
+  } else if (is.data.frame(out$data_in_cache)) {
+    if (fnrow(out$data_in_cache) == 0) {
+      NULL
+    } else {
+      qDT(out$data_in_cache)
+    }
+  } else {
+    cli::cli_abort("{.code out$data_in_cache} must be NULL or data.frame not {.field {class(out$data_in_cache)}}")
+  }
+
+  main_data   <- qDT(out$main_data)
+
+  if (nrow(main_data) > 0) {
+
+    if (is.null(out$data_in_cache)) {
+
+      out <- main_data
+    } else {
+
+      if (fill_gaps) {
+
+        cached_data <- fg_remove_duplicates(cached_data,
+                                            use_new_lineup_version = lkup$use_new_lineup_version)
+      }
+
+      out <- main_data |>
+        rowbind(cached_data)
+    }
+
+    update_master_file(main_data, cache_file_path, fill_gaps)
+
+  } else {
+    out <- cached_data
+  }
+
+
+  setDT(out)
 }

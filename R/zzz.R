@@ -19,6 +19,8 @@ pipapi_default_options <- list(
 
     pip <<- memoise::memoise(pip, cache = cd, omit_args = "lkup")
     ui_hp_stacked <<- memoise::memoise(ui_hp_stacked, cache = cd, omit_args = "lkup")
+    pip_agg <<- memoise::memoise(pip_agg, cache = cd, omit_args = "lkup")
+    pip_grp_new <<- memoise::memoise(pip_grp_new, cache = cd, omit_args = "lkup")
     pip_grp_logic <<- memoise::memoise(pip_grp_logic, cache = cd, omit_args = "lkup")
     pip_grp <<- memoise::memoise(pip_grp, cache = cd, omit_args = "lkup")
     ui_cp_charts <<- memoise::memoise(ui_cp_charts, cache = cd, omit_args = "lkup")

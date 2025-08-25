@@ -213,7 +213,7 @@ pip_aggregate <- function(df, by = NULL, return_cols) {
 #' @param country character: Selected countries / regions
 #' @param return_cols list: lkup$return_cols$pip_grp object. Controls returned
 #' columns
-#' @noRd
+#' @keywords internal
 pip_aggregate_by <- function(df,
                              group_lkup,
                              country = "ALL",

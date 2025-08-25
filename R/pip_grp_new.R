@@ -30,6 +30,52 @@ pip_grp_new <- \(country         = "ALL",
   }
 
 
+  out <- fg_pip(
+    country         = country_code,
+    year            = year,
+    povline         = povline,
+    popshare        = NULL,
+    welfare_type    = welfare_type,
+    reporting_level = reporting_level,
+    ppp             = NULL,
+    lkup           = lkup)
+
+  out <- treat_cache_and_main(out)
+
+  # return empty dataframe if no metadata is found
+  if (nrow(out) == 0) {
+    return(pipapi::empty_response_grp)
+  }
+
+  # Handles aggregated distributions (like CHN and IND)
+  if (tolower(reporting_level) %in% c("national", "all")) {
+    out <- add_agg_stats(out,
+                         return_cols = lkup$return_cols$ag_average_poverty_stats)
+  }
+
+  add_vars_out_of_pipeline(out, fill_gaps = TRUE, lkup = lkup)
+
+  # Handle potential (insignificant) difference in poverty_line values that
+  # may mess-up the grouping
+  # I don't think we need this out$poverty_line already has the correct values additionally,
+  # since povline is vectorized the below line does not work as expected
+  #out$poverty_line <- povline
+
+  # Handle aggregations with sub-groups
+
+    out <- pip_aggregate_by(
+      df = out,
+      group_lkup = lkup[["pop_region"]],
+      country = country,
+      return_cols = lkup$return_cols$pip_grp
+    )
+
+    out <- estimate_type_var(out,lkup)
+
+    # Censor regional values
+    if (censor) {
+      out <- censor_rows(out, lkup[["censored"]], type = "regions")
+    }
 
 
 }

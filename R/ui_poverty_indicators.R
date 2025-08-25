@@ -75,7 +75,7 @@ ui_pc_regional <- function(country   = "ALL",
     year <- toupper(year)
   }
 
-  out <- pip_grp_logic(country         = country,
+  out <- pip_agg(country         = country,
                        year            = year,
                        group_by        = "wb",
                        reporting_level = "national",
