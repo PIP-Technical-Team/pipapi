@@ -78,6 +78,12 @@ fg_pip <- function(country,
   l_rl_rows <- get_rl_rows(lt_att)
 
 
+  DT <- map_lt_to_dt(lt, l_rl_rows)
+  g  <- GRP(DT,  ~ country_code + reporting_year + reporting_level)
+
+
+
+
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
   fgt <- map_fgt(lt, l_rl_rows) |>

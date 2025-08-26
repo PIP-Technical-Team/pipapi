@@ -103,6 +103,8 @@ compute_fgt <- function(w, wt, povlines) {
   logw <- log(w) |>
     suppressWarnings()
 
+  tot_pop <- fsum(wt)
+
   for (i in seq_along(povlines)) {
     pov <- povlines[i]
     poor <- w < pov
@@ -116,7 +118,7 @@ compute_fgt <- function(w, wt, povlines) {
     # Optimized Watts index calculation
     keep <- poor & pos
     if (any(keep, na.rm = TRUE)) {
-      watts_vec[i] <- (fsum((log(pov) - logw[keep]) * wt[keep])) / fsum(wt)
+      watts_vec[i] <- (fsum((log(pov) - logw[keep]) * wt[keep])) / tot_pop
     } else {
       watts_vec[i] <- 0
     }
@@ -140,7 +142,7 @@ compute_fgt <- function(w, wt, povlines) {
 #' @param y list of indices for each reporting level
 #' @param nx name of data table. Usuall country code and year in the form "CCC_YYYY"
 #'
-#' @return data.table with FGT estimates by reporting level
+#' @rdname map_fgt
 #' @keywords  internal
 DT_fgt_by_rl <- \(x, y, nx) {
   DT_fgt <- lapply(names(y), \(rl) {
@@ -160,6 +162,36 @@ DT_fgt_by_rl <- \(x, y, nx) {
     reporting_year = gsub("(.+_)([^_]+)", "\\2", nx)
   )]
 }
+
+
+
+#' jkoin reporting level and lt list into one data.table
+#'
+#' @rdname map_fgt
+lt_to_dt <- \(x, y, nx) {
+  DT <- lapply(names(y), \(rl) {
+
+    idx <- y[[rl]]
+    x[idx, reporting_level := rl]
+
+  }) |>
+    rbindlist(fill = TRUE)
+
+
+  DT[, `:=`(
+    country_code   = gsub("([^_]+)(_.+)", "\\1", nx),
+    reporting_year = gsub("(.+_)([^_]+)", "\\2", nx)
+  )]
+}
+
+#' Map lt_to_dt
+#'
+#' @rdname map_fgt
+map_lt_to_dt <- \(lt, l_rl_rows) {
+  Map(lt_to_dt, lt, l_rl_rows, names(lt)) |>
+    rbindlist(fill = TRUE)
+}
+
 
 #' map over list of data.tables and indices to compute FGT by reporting_level
 #'
@@ -232,4 +264,75 @@ load_data_list <- \(metadata) {
     })
 
 }
+
+
+
+pov_from_DT <- function(DT, povline, g) {
+  w       <- DT$welfare
+  wt      <- DT$weight
+  n_pov   <- length(povline)
+
+  ng      <- (g)
+  grp_ids <- (g)
+
+  # Precompute log(w) for efficiency
+  pos <- w > 0
+  logw <- fifelse(pos, log(w), NA_real_)
+
+  # Prepare result lists
+  fgt0 <- vector("list", n_pov)
+  fgt1 <- vector("list", n_pov)
+  fgt2 <- vector("list", n_pov)
+  watts <- vector("list", n_pov)
+
+  for (i in seq_along(povline)) {
+    pov <- povline[i]
+    poor <- w < pov
+    rel_dist <- fifelse(poor, 1 - w/pov, 0)
+    keep <- poor & pos
+    watts_val <- fmean((log(pov) - logw) * keep, g = g, w = wt)
+    fgt0[[i]] <- fmean(poor, g = g, w = wt)
+    fgt1[[i]] <- fmean(rel_dist, g = g, w = wt)
+    fgt2[[i]] <- fmean(rel_dist^2, g = g, w = wt)
+    watts[[i]] <- watts_val
+  }
+
+  data.table(
+    povline = rep(povline, each = ng),
+    group_id = rep(grp_ids, times = n_pov),
+    fgt0 = unlist(fgt0),
+    fgt1 = unlist(fgt1),
+    fgt2 = unlist(fgt2),
+    watts = unlist(watts)
+  )
+}
+
+
+
+
+
+# pov_from_DT2 <- function(DT, povline, g) {
+#   fgt0 <- numeric(length(povline))
+#   fgt1 <- numeric(length(povline))
+#   fgt2 <- numeric(length(povline))
+#   w <- DT$welfare
+#   wt <- DT$weight
+#
+#
+#   for (i in seq_along(povline)) {
+#     pov <- povline[i]
+#     poor <- w < pov
+#     rel_dist <- fifelse(poor, 1 - w/pov, 0)
+#     fgt0[i] <- fmean(poor, g = g, w = wt)
+#     fgt1[i] <- fmean(rel_dist, g = g, w = wt)
+#     fgt2[i] <- fmean(rel_dist^2, g = g, w = wt)
+#   }
+#
+#   list(fgt0 = fgt0, fgt1 = fgt1, fgt2 = fgt2)
+# }
+
+
+
+
+
 
