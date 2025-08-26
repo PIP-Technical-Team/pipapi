@@ -70,7 +70,8 @@ Imports:
     DBI,
     duckdb,
     jsonlite,
-    digest
+    digest,
+    parallel
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 

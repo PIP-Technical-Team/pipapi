@@ -35,6 +35,14 @@ pipapi_default_options <- list(
   toset <- !(names(pipapi_default_options) %in% names(op))
   if (any(toset)) options(pipapi_default_options[toset])
 
+
+  # set multi threats
+  available_cores <- parallel::detectCores() - 1
+
+  cores_to_use <- max(available_cores, 1) |>
+    min(8)
+  set_in_pipapienv("cores_to_use", cores_to_use)
+
   invisible()
 
 }

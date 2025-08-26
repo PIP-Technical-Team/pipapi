@@ -12,9 +12,11 @@ load_list_refy <- \(input_list, path){
     paste0(x$country_code, "_", x$year)
   })
 
+  cores <- get_from_pipapienv("cores_to_use")
+
   dl <- lapply(inames, \(x) {
     qs::qread(file = fs::path(path, x, ext = "qs"),
-              nthreads = 4)
+              nthreads = cores)
     }) |>
     setNames(inames)
 
