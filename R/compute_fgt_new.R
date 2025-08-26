@@ -99,7 +99,9 @@ compute_fgt <- function(w, wt, povlines) {
   # logw <- log(w)
   # logw <- copyv(log(w), pos, NA_real_, invert = TRUE) |>
   #   suppressWarnings()
-  logw <- fifelse(w > 0, log(w), NA_real_)
+  # logw <- fifelse(w > 0, log(w), NA_real_)
+  logw <- log(w) |>
+    suppressWarnings()
 
   for (i in seq_along(povlines)) {
     pov <- povlines[i]

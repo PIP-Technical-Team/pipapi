@@ -141,7 +141,7 @@ pip_new_lineups <- function(country         = "ALL",
 
   # Cache new data
   #---------------------------------------------
-  out <- treat_cache_and_main(out)
+  out <- treat_cache_and_main(out, cache_file_path)
 
   # Early return for empty table---------------
   if (nrow(out) == 0) return(pipapi::empty_response)
@@ -278,7 +278,7 @@ pip_new_lineups <- function(country         = "ALL",
 
 
 
-treat_cache_and_main <- \(out) {
+treat_cache_and_main <- \(out, cache_file_path) {
   cached_data <- if (is.null(out$data_in_cache)) {
     NULL
   } else if (is.data.frame(out$data_in_cache)) {

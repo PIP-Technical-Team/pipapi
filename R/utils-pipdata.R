@@ -13,7 +13,8 @@ load_list_refy <- \(input_list, path){
   })
 
   dl <- lapply(inames, \(x) {
-    qs::qread(file = fs::path(path, x, ext = "qs"))
+    qs::qread(file = fs::path(path, x, ext = "qs"),
+              nthreads = 4)
     }) |>
     setNames(inames)
 
