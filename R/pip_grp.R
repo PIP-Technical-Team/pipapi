@@ -228,43 +228,31 @@ pip_aggregate_by <- function(df,
   to_keep <- all_cols[!all_cols %in% c("pop_in_poverty",
                                        "estimate_type")]
 
-  df <- df[, .SD, .SDcols = to_keep]
-
-  group_lkup <- group_lkup[, c("region_code",
-                               "reporting_year",
-                               "reporting_pop")]
+  df <- df[, .SD, .SDcols = to_keep] # I think we can ommit this part
 
   # Compute stats weighted average by groups
-  rgn <- df[, lapply(.SD, stats::weighted.mean,
-                     w = reporting_pop,
-                     na.rm = TRUE),
-            by = .(region_name,
-                   region_code,
-                   reporting_year,
-                   poverty_line),
-            .SDcols = weighted_cols
-            ]
-
-  rgn <- group_lkup[rgn,
-                    on = .(region_code, reporting_year),
-                    allow.cartesian = TRUE
-  ]
+  rgn <- df |>
+    fgroup_by(region_name,
+              region_code,
+              reporting_year,
+              poverty_line) |>
+    fselect(c(weighted_cols, "reporting_pop")) |>
+    fmean(w = reporting_pop, stub = FALSE)
 
   if (any(c("ALL", "WLD") %in% country)) {
     # Compute world aggregates
-    wld <- compute_world_aggregates(rgn = rgn,
-                                    cols = weighted_cols)
+    wld <- compute_world_aggregates(rgn = rgn)
     if (length(country) == 1) {
       if (country == "WLD") {
         # Return only world aggregate
         out <- wld
       } else if (country == "ALL") {
         # Combine with other regional aggregates
-        out <- rbind(rgn, wld, fill = TRUE)
+        out <- rowbind(rgn, wld, fill = TRUE)
       }
     } else {
       # Combine with other regional aggregates
-      out <- rbind(rgn, wld, fill = TRUE)
+      out <- rowbind(rgn, wld, fill = TRUE)
       # Return selection only
       if (!"ALL" %in% country) {
         out <- out[region_code %in% country, ]
@@ -283,24 +271,16 @@ pip_aggregate_by <- function(df,
 }
 
 
-compute_world_aggregates <- function(rgn, cols) {
+compute_world_aggregates <- function(rgn, cols = NULL) {
   # Compute stats
   # Grouping by poverty line as well since we now have vectorized poverty line values
-  wld <- rgn[, lapply(.SD,
-                      stats::weighted.mean,
-                      w = reporting_pop,
-                      na.rm = TRUE),
-             by = .(reporting_year, poverty_line),
-             .SDcols = cols
-  ]
-  # Compute yearly population WLD totals
-  tmp <- rgn[, .(reporting_pop = sum(reporting_pop)),
-             by = .(reporting_year, poverty_line)]
-
-
-  wld <- wld[tmp, on = .(reporting_year = reporting_year, poverty_line = poverty_line)]
-  wld[["region_code"]] <- "WLD"
-  wld[["region_name"]] <- "World"
+  wld <- rgn |>
+    fgroup_by(reporting_year,
+              poverty_line) |>
+    num_vars() |>
+    fmean(w = reporting_pop, stub = FALSE) |>
+    ftransform(region_code = "WLD",
+               region_name = "World")
 
   return(wld)
 
@@ -316,10 +296,10 @@ filter_for_aggregate_by <- function(df) {
   # If nationally representative survey is available, use it
   # Otherwise, use whatever is available
 
-  out <- df[, check := length(reporting_level),
-            by = c("country_code", "reporting_year", "poverty_line")]
-  out <- out[out$check == 1 | (out$check > 1 & reporting_level == "national"), ]
-
-  return(out)
+  df[, check := length(reporting_level),
+      by = c("country_code", "reporting_year", "poverty_line")
+      ][
+        check == 1 | (check > 1 & reporting_level == "national"),
+        ]
 
 }

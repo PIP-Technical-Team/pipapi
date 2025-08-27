@@ -1462,3 +1462,39 @@ unnest_dt_longer <- function(tbl, cols) {
 
 
 
+
+
+
+#' merge into fgt table the mean and median from dist stats table in lkup
+#'
+#' @param fgt data,table with fgt measures
+#' @param lkup lkup
+#' @param fill_gaps logical. whether to use lineup estimates
+#'
+#' @return data.table with with fgt, mean and median
+#' @keywords internal
+get_mean_median <- \(fgt, lkup, fill_gaps) {
+
+  if (isFALSE(lkup$use_new_lineup_version)) return(fgt)
+
+  if (fill_gaps) {
+    dist <- lkup$lineup_dist_stats[,
+                                   .(country_code, reporting_year,
+                                     reporting_level, mean, median)]
+  } else {
+    dist <- lkup$dist_stats[,
+                            .(country_code, reporting_year,
+                              reporting_level, mean,
+                              median = survey_median_ppp)]
+
+  }
+  joyn::joyn(x = fgt,
+             y = dist,
+             by = c('country_code', "reporting_year", "reporting_level"),
+             match_type = "m:1", # multiple povlines
+             keep = "left",
+             reportvar = FALSE,
+             verbose = FALSE)
+}
+
+

@@ -141,7 +141,9 @@ pip_new_lineups <- function(country         = "ALL",
 
   # Cache new data
   #---------------------------------------------
-  out <- treat_cache_and_main(out, cache_file_path)
+  out <- treat_cache_and_main(out,
+                              cache_file_path = cache_file_path,
+                              lkup = lkup, fill_gaps = fill_gaps)
 
   # Early return for empty table---------------
   if (nrow(out) == 0) return(pipapi::empty_response)
@@ -276,36 +278,43 @@ pip_new_lineups <- function(country         = "ALL",
 
 
 
+treat_cache_and_main <- \(out, cache_file_path,
+                          lkup, fill_gaps) {
 
-
-treat_cache_and_main <- \(out, cache_file_path) {
-  cached_data <- if (is.null(out$data_in_cache)) {
+    # early return of cache data if not available.
+  cached_data <-
+    if (is.null(out$data_in_cache)) {
     NULL
   } else if (is.data.frame(out$data_in_cache)) {
+
     if (fnrow(out$data_in_cache) == 0) {
       NULL
     } else {
-      qDT(out$data_in_cache)
+      ft <- qDT(out$data_in_cache)
+      if (fill_gaps) {
+        ft <-
+          fg_remove_duplicates(ft,
+                               use_new_lineup_version = lkup$use_new_lineup_version)
+
+      }
+
+      # Add just mean and median
+      get_mean_median(ft, lkup, fill_gaps = fill_gaps)
+
     }
   } else {
-    cli::cli_abort("{.code out$data_in_cache} must be NULL or data.frame not {.field {class(out$data_in_cache)}}")
+    cli::cli_abort(
+      "{.code out$data_in_cache} must be NULL or data.frame not
+      {.field {class(out$data_in_cache)}}"
+    )
   }
 
   main_data   <- qDT(out$main_data)
 
   if (nrow(main_data) > 0) {
-
-    if (is.null(out$data_in_cache)) {
-
+    if (is.null(cached_data)) {
       out <- main_data
     } else {
-
-      if (fill_gaps) {
-
-        cached_data <- fg_remove_duplicates(cached_data,
-                                            use_new_lineup_version = lkup$use_new_lineup_version)
-      }
-
       out <- main_data |>
         rowbind(cached_data)
     }

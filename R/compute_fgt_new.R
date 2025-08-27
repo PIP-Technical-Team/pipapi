@@ -144,7 +144,7 @@ compute_fgt <- function(w, wt, povlines) {
 #'
 #' @rdname map_fgt
 #' @keywords  internal
-DT_fgt_by_rl <- \(x, y, nx) {
+DT_fgt_by_rl <- \(x, y, nx, povline) {
   DT_fgt <- lapply(names(y), \(rl) {
 
     idx <- y[[rl]]
@@ -168,7 +168,7 @@ DT_fgt_by_rl <- \(x, y, nx) {
 #' jkoin reporting level and lt list into one data.table
 #'
 #' @rdname map_fgt
-lt_to_dt <- \(x, y, nx) {
+lt_to_dt <- \(x, y, nx, povline) {
   DT <- lapply(names(y), \(rl) {
 
     idx <- y[[rl]]
@@ -187,8 +187,9 @@ lt_to_dt <- \(x, y, nx) {
 #' Map lt_to_dt
 #'
 #' @rdname map_fgt
-map_lt_to_dt <- \(lt, l_rl_rows) {
-  Map(lt_to_dt, lt, l_rl_rows, names(lt)) |>
+map_lt_to_dt <- \(lt, l_rl_rows, povline) {
+  Map(lt_to_dt, lt, l_rl_rows, names(lt),
+      MoreArgs = list(povline = povline)) |>
     rbindlist(fill = TRUE)
 }
 
@@ -200,8 +201,9 @@ map_lt_to_dt <- \(lt, l_rl_rows) {
 #'
 #' @return data.table with all measured
 #' @keywords internal
-map_fgt <- \(lt, l_rl_rows) {
-  Map(DT_fgt_by_rl, lt, l_rl_rows, names(lt)) |>
+map_fgt <- \(lt, l_rl_rows, povline) {
+  Map(DT_fgt_by_rl, lt, l_rl_rows, names(lt),
+      MoreArgs = list(povline = povline)) |>
     rbindlist(fill = TRUE)
 }
 
@@ -267,13 +269,13 @@ load_data_list <- \(metadata) {
 
 
 
-pov_from_DT <- function(DT, povline, g) {
+pov_from_DT <- function(DT, povline, g, cores = 1) {
   w       <- DT$welfare
   wt      <- DT$weight
   n_pov   <- length(povline)
 
-  ng      <- (g)
-  grp_ids <- (g)
+  ng      <- g$N.groups
+  grp_ids <- g$groups
 
   # Precompute log(w) for efficiency
   pos <- w > 0
@@ -290,21 +292,28 @@ pov_from_DT <- function(DT, povline, g) {
     poor <- w < pov
     rel_dist <- fifelse(poor, 1 - w/pov, 0)
     keep <- poor & pos
-    watts_val <- fmean((log(pov) - logw) * keep, g = g, w = wt)
-    fgt0[[i]] <- fmean(poor, g = g, w = wt)
-    fgt1[[i]] <- fmean(rel_dist, g = g, w = wt)
-    fgt2[[i]] <- fmean(rel_dist^2, g = g, w = wt)
+    watts_val <- fmean((log(pov) - logw) * keep,
+                       g = g, w = wt, nthreads  = cores )
+    fgt0[[i]] <- fmean(poor, g = g, w = wt,
+                       nthreads  = cores)
+    fgt1[[i]] <- fmean(rel_dist, g = g, w = wt,
+                       nthreads  = cores)
+    fgt2[[i]] <- fmean(rel_dist^2, g = g, w = wt,
+                       nthreads  = cores)
     watts[[i]] <- watts_val
   }
 
-  data.table(
+  out <- data.table(
     povline = rep(povline, each = ng),
-    group_id = rep(grp_ids, times = n_pov),
     fgt0 = unlist(fgt0),
     fgt1 = unlist(fgt1),
     fgt2 = unlist(fgt2),
     watts = unlist(watts)
   )
+  # Repeat group columns for each povline
+  grp_dt <- grp_ids[rep(seq_len(ng), times = n_pov)]
+  add_vars(out, pos = "front") <- grp_dt
+  out
 }
 
 

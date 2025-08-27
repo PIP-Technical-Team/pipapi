@@ -29,14 +29,6 @@ pip_grp_new <- \(country         = "ALL",
     "ALL"
   }
 
-
-
-
-
-
-
-
-
   out <- fg_pip(
     country         = country_code,
     year            = year,
@@ -47,7 +39,14 @@ pip_grp_new <- \(country         = "ALL",
     ppp             = NULL,
     lkup           = lkup)
 
-  out <- treat_cache_and_main(out)
+  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  if (!file.exists(cache_file_path)) {
+    # Create an empty duckdb file
+    create_duckdb_file(cache_file_path)
+  }
+  out <- treat_cache_and_main(out,
+                              cache_file_path = cache_file_path,
+                              lkup = lkup, fill_gaps = fill_gaps)
 
   # return empty dataframe if no metadata is found
   if (nrow(out) == 0) {

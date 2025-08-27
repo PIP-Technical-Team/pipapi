@@ -78,22 +78,25 @@ fg_pip <- function(country,
   l_rl_rows <- get_rl_rows(lt_att)
 
 
-  DT <- map_lt_to_dt(lt, l_rl_rows)
-  g  <- GRP(DT,  ~ country_code + reporting_year + reporting_level)
+  # DT <- map_lt_to_dt(lt, l_rl_rows)
+  # setorder(DT, country_code, reporting_year, reporting_level, welfare)
+  # g  <- GRP(DT,
+  #           ~ country_code + reporting_year + reporting_level,
+  #           sort = TRUE)
 
 
 
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
-  fgt <- map_fgt(lt, l_rl_rows) |>
+  fgt <- map_fgt(lt, l_rl_rows, povline) |>
     funique() # TO REMOVE
 
   # convert reporting year to numeric
   fgt[, reporting_year := as.numeric(reporting_year)]
 
   # Add just mean and median
-  res <- fg_get_mean_median(fgt, lkup)
+  res <- get_mean_median(fgt, lkup, fill_gaps = TRUE)
 
 
   # try metadata unique code
@@ -313,24 +316,4 @@ create_full_list <- function(country, year, refy_lkup, data_present_in_master) {
 }
 
 
-
-
-#' merge into fgt table the mean and median from dist stats table in lkup
-#'
-#' @param fgt data,table with fgt measures
-#' @param lkup lkup
-#'
-#' @return data.table with with fgt, mean and median
-#' @keywords internal
-fg_get_mean_median <- \(fgt, lkup) {
-  joyn::joyn(x = fgt,
-             y = lkup$lineup_dist_stats[,
-                                        .(country_code, reporting_year,
-                                          reporting_level, mean, median)],
-             by = c('country_code', "reporting_year", "reporting_level"),
-             match_type = "m:1", # multiple povlines
-             keep = "left",
-             reportvar = FALSE,
-             verbose = FALSE)
-}
 

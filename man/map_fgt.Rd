@@ -7,13 +7,13 @@
 \alias{map_fgt}
 \title{compute FGT using indices by reporting level}
 \usage{
-DT_fgt_by_rl(x, y, nx)
+DT_fgt_by_rl(x, y, nx, povline)
 
-lt_to_dt(x, y, nx)
+lt_to_dt(x, y, nx, povline)
 
-map_lt_to_dt(lt, l_rl_rows)
+map_lt_to_dt(lt, l_rl_rows, povline)
 
-map_fgt(lt, l_rl_rows)
+map_fgt(lt, l_rl_rows, povline)
 }
 \arguments{
 \item{x}{data.table from lt list, with welfare and weight vectors}
