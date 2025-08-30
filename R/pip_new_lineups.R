@@ -98,13 +98,10 @@ pip_new_lineups <- function(country         = "ALL",
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   # Countries vector ------------
-  lcv <- # List with countries vectors
-    create_countries_vctr(
-      country         =  country,
-      year            =  year,
-      valid_years     =  lkup$valid_years,
-      aux_files       =  lkup$aux_files
-    )
+  validate_country_codes(country = country, lkup = lkup)
+
+
+
   # lcv$est_ctrs has all the country_code that we are interested in
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
@@ -116,7 +113,7 @@ pip_new_lineups <- function(country         = "ALL",
   if (fill_gaps) {
     ## lineup years-----------------
     out <- fg_pip(
-      country            = lcv$est_ctrs,
+      country            = country,
       year               = year,
       povline            = povline,
       popshare           = popshare,
@@ -128,7 +125,7 @@ pip_new_lineups <- function(country         = "ALL",
   } else {
     ## survey years ------------------
     out <- rg_pip(
-      country         = lcv$est_ctrs,
+      country         = country,
       year            = year,
       povline         = povline,
       popshare        = popshare,
@@ -327,4 +324,17 @@ treat_cache_and_main <- \(out, cache_file_path,
 
 
   setDT(out)
+}
+
+
+
+validate_country_codes <- \(country, lkup) {
+  cls <- lkup$aux_files$country_list$country_code |>
+    unique()
+
+  if (any(!country %in% cls)) {
+    wcls <- which(!country %in% cls)
+    cli::cli_abort("{.field {country[wcls]}} {?is/are} not {?a/} valid country code{?s}")
+  }
+  invisible(TRUE)
 }

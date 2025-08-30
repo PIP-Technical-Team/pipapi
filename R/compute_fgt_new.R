@@ -275,7 +275,7 @@ pov_from_DT <- function(DT, povline, g, cores = 1) {
   n_pov   <- length(povline)
 
   ng      <- g$N.groups
-  grp_ids <- g$groups
+  grp_ids <- qDT(g$groups)
 
   # Precompute log(w) for efficiency
   pos <- w > 0
