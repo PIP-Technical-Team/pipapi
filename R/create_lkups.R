@@ -195,6 +195,83 @@ create_lkups <- function(data_dir, versions) {
       refy_lkup      <- fst::read_fst(refy_lkup_path,
                                       as.data.table = TRUE)
 
+
+      # ZP ADD - CREATE OBJECT: lineup years
+      #___________________________________________________________________________
+      lineup_years_path <-
+        fs::path(data_dir,
+                 "estimations/lineup_years.fst")
+
+      lineup_years <- fst::read_fst(lineup_years_path) |>
+        as.list() # Why Is this a list?
+
+
+
+      # --- START NOTE AC> Include here the refy_lkup for CMD
+      ncountries <- nrow(country_list)
+      ly <- lineup_years$lineup_years
+
+
+      # Add reporting year
+      cmd2 <- CJ(country_list$country_code,
+                 ly, c("national", "urban", "rural"))
+
+
+      cmd <-
+        country_list[rep(1:.N,
+                         each = length(ly))
+                     ][,
+                       reporting_year := rep(ly, times = ncountries)
+                       # Add reporting level
+                       ][rep(1:.N, each = 3),
+                         ][,
+                           reporting_level :=
+                             rep(c("national", "urban", "rural"),
+                                 times = (length(ly)*ncountries))]
+
+      cmd <- joyn::joyn(x          = cmd,
+                         y          = refy_lkup,
+                         by         = c('country_code',
+                                        'reporting_year',
+                                        'reporting_level'),
+                         keep       = "anti",
+                         # reportvar  = FALSE,
+                         match_type = "1:1")
+
+      # Delete unnecessary reporting levels
+      cmd <- cmd[(reporting_level == "national" & .joyn == "x")
+                 ][,
+                   .joyn := NULL]
+
+      # build some variables
+      cmd[,
+           `:=`(
+               cache_id = paste(country_code, reporting_year,"NOSVY_D1_CON_CMD",
+                                sep = "_"),
+               survey_coverage = "national",
+               welfare_type = "consumption",
+               distribution_type = "CMD distribution",
+               is_interpolated = FALSE,
+               is_used_for_line_up = TRUE,
+               is_used_for_aggregation = FALSE,
+               estimation_type = "CMD estimation",
+               display_cp = "0",
+               monotonic = TRUE, # ?
+               same_direction = TRUE, # NA ?
+               relative_distance = 1,
+               lineup_approach = "CMD",
+               mult_factor = 1
+
+             )]
+
+      # Append lineup and CMD info
+
+      refy_lkup <- rbindlist(list(refy_lkup, cmd),
+                             use.names = TRUE,
+                             fill = TRUE)
+
+
+      # Create additional variables
       refy_lkup[ ,
                  path := {
                    fs::path(data_dir,
@@ -212,10 +289,10 @@ create_lkups <- function(data_dir, versions) {
                                           reporting_level,
                                           sep = "_")]
 
-      if ("region_code" %in% names(refy_lkup)) {
-        refy_lkup[,
-                  region_code := NULL]
-      }
+      # if ("region_code" %in% names(refy_lkup)) {
+      #   refy_lkup[,
+      #             region_code := NULL]
+      # }
 
 
       refy_lkup[,
@@ -229,13 +306,23 @@ create_lkups <- function(data_dir, versions) {
                                                collapse = "|"),
                 by = .(interpolation_id)]
 
-      refy_lkup <- joyn::joyn(x          = refy_lkup,
-                              y          = countries,
-                              by         = 'country_code',
+
+      # Temporal fix
+      refy_lkup <- joyn::joyn(refy_lkup, country_list,
+                              by         = c('country_code',
+                                             'reporting_year',
+                                             'reporting_level'),
                               keep       = "left",
                               reportvar  = FALSE,
-                              match_type = "m:1")
+                              match_type = "1:1",
+                              update_values = TRUE)
 
+
+
+
+      # --- END inclussion of CMD data.
+
+      refy_lkup <- refy_lkup[reporting_year %in% lineup_years$lineup_years, ]
 
       gv(refy_lkup,
          c("monotonic",
@@ -256,15 +343,7 @@ create_lkups <- function(data_dir, versions) {
            "relative_distance")) <- NULL
 
 
-      # ZP ADD - CREATE OBJECT: lineup years
-      #___________________________________________________________________________
-      lineup_years_path <-
-        fs::path(data_dir,
-                 "estimations/lineup_years.fst")
 
-      lineup_years <- fst::read_fst(lineup_years_path) |>
-        as.list()
-      refy_lkup <- refy_lkup[reporting_year %in% lineup_years$lineup_years, ]
 
       # ZP ADD - CREATE OBJECT: lineup dist stats
       #___________________________________________________________________________
