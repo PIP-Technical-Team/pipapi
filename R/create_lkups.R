@@ -307,6 +307,25 @@ create_lkups <- function(data_dir, versions) {
                               update_values = TRUE)
 
 
+      # merge population
+      popl <- pivot(pop,
+            ids = c("country_code", "data_level"),
+            names = list(variable = "reporting_year",
+                         value = "reporting_pop"),
+            how = "longer") |>
+        frename(data_level = reporting_level)
+
+      refy_lkup <- joyn::joyn(refy_lkup, popl,
+                              by         = c('country_code',
+                                             'reporting_year',
+                                             'reporting_level'),
+                              keep       = "left",
+                              reportvar  = FALSE,
+                              match_type = "1:1",
+                              update_values = TRUE)
+
+
+
 
 
       # --- END inclussion of CMD data.
