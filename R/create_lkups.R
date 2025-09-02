@@ -300,12 +300,10 @@ create_lkups <- function(data_dir, versions) {
 
       # Temporal fix
       refy_lkup <- joyn::joyn(refy_lkup, country_list,
-                              by         = c('country_code',
-                                             'reporting_year',
-                                             'reporting_level'),
+                              by         = "country_code",
                               keep       = "left",
                               reportvar  = FALSE,
-                              match_type = "1:1",
+                              match_type = "m:1",
                               update_values = TRUE)
 
 
