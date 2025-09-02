@@ -217,8 +217,6 @@ update_master_file <- function(dat,
     keep_vars <- c(
       "interpolation_id",
       "poverty_line",
-      "mean",
-      "median",
       "headcount",
       "poverty_gap",
       "poverty_severity",
@@ -233,13 +231,19 @@ update_master_file <- function(dat,
       "cache_id",
       "reporting_level",
       "poverty_line",
-      "mean",
-      "median",
       "headcount",
       "poverty_gap",
       "poverty_severity",
       "watts"
     )
+  }
+
+  # Get column names from DuckDB table
+  table_info <- DBI::dbGetQuery(write_con, glue("PRAGMA table_info({target_file})"))
+  col_names  <- table_info$name
+  # Add mean and median if present in table
+  if (all(c("mean", "median") %in% col_names)) {
+    keep_vars <- c(keep_vars, "mean", "median")
   }
 
   # Select variables
@@ -339,8 +343,7 @@ create_duckdb_file <- function(cache_file_path) {
                  cache_id VARCHAR,
                  reporting_level   VARCHAR,
                  poverty_line   DOUBLE,
-                 mean   DOUBLE,
-                 median DOUBLE,
+
                  headcount    DOUBLE,
                  poverty_gap   DOUBLE,
                  poverty_severity  DOUBLE,
@@ -350,8 +353,7 @@ create_duckdb_file <- function(cache_file_path) {
   DBI::dbExecute(con, "CREATE OR REPLACE table fg_master_file (
                  interpolation_id VARCHAR,
                  poverty_line   DOUBLE,
-                 mean   DOUBLE,
-                 median DOUBLE,
+
                  headcount    DOUBLE,
                  poverty_gap   DOUBLE,
                  poverty_severity  DOUBLE,

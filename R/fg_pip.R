@@ -12,7 +12,8 @@ fg_pip <- function(country,
                    welfare_type,
                    reporting_level,
                    ppp,
-                   lkup) {
+                   lkup,
+                   pipenv = NULL) {
 
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
@@ -66,26 +67,31 @@ fg_pip <- function(country,
     load_list_refy(input_list = full_list,
                    path       = fs::path(data_dir, "lineup_data"))
 
-  lt <- lapply(lt, \(x) {
-                   add_attributes_as_columns_vectorized(x)
-               })
+  # lt <- lapply(lt, \(x) {
+  #                  add_attributes_as_columns_vectorized(x)
+  #              })
+
+  # Extract some attributes
+  lt_att <- get_lt_attr(lt)
+
+  # get rows indices
+  l_rl_rows <- get_rl_rows(lt_att)
+
 
   # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
   #-------------------------
-  res <- lapply(lt,
-                process_dt,
-                povline      = povline,
-                mean_and_med = TRUE)
-  res <- rbindlist(res,
-                   fill = TRUE)
+  fgt <- map_fgt(lt, l_rl_rows) |>
+    funique() # TO REMOVE
 
-  # ZP Add: join to metadata
-  #-------------------------
-  metadata[,
-           file := basename(path)]
+  # convert reporting year to numeric
+  fgt[, reporting_year := as.numeric(reporting_year)]
+
+  # Add just mean and median
+  res <- fg_get_mean_median(fgt, lkup)
+
 
   # try metadata unique code
-  tmp_metadata <- metadata
+  tmp_metadata <- copy(metadata) # I think we can avoid this inefficiency.
   # Handle multiple distribution types (for aggregated distributions)
   if (length(unique(tmp_metadata$distribution_type)) > 1) {
     tmp_metadata[, distribution_type := "mixed"]
@@ -109,25 +115,19 @@ fg_pip <- function(country,
   # Remove duplicate rows by reporting_year (keep only one row per
   # reporting_year)
   tmp_metadata_unique <- funique(tmp_metadata)
-  tmp_metadata_unique[,
-                      file := paste0(country_code,
-                                     "_",
-                                     reporting_year)]
+
 
   out <- join(res,
               tmp_metadata_unique,
-              on            = c("file",
+              on            = c("country_code", "reporting_year",
                                 "reporting_level"),
               how           = "left", # ZP: change from full to left,
                                       #  this rm nowcast years - i.e. years not included
                                       #  as lineup years
               validate      = "m:1",
               drop.dup.cols = TRUE,
-              verbose       = 0)
-
-  out[, `:=`(
-    file   = NULL
-  )]
+              verbose       = 0,
+              overid        = 2)
 
   setnames(out,
            "povline",
@@ -138,11 +138,7 @@ fg_pip <- function(country,
                               use_new_lineup_version = lkup$use_new_lineup_version)
 
 
-  # Fix issue with rounding of poverty lines
-  out[,
-      poverty_line := round(poverty_line, digits = 3) ]
-
-  # Formatting. MUST be done in data.table tom modify by reference
+  # Formatting. MUST be done in data.table to modify by reference
   out[, path := as.character(path)]
 
   if ("max_year" %in% names(out)) {
@@ -309,3 +305,26 @@ create_full_list <- function(country, year, refy_lkup, data_present_in_master) {
   full_list
 
 }
+
+
+
+
+#' merge into fgt table the mean and median from dist stats table in lkup
+#'
+#' @param fgt data,table with fgt measures
+#' @param lkup lkup
+#'
+#' @return data.table with with fgt, mean and median
+#' @keywords internal
+fg_get_mean_median <- \(fgt, lkup) {
+  joyn::joyn(x = fgt,
+             y = lkup$lineup_dist_stats[,
+                                        .(country_code, reporting_year,
+                                          reporting_level, mean, median)],
+             by = c('country_code', "reporting_year", "reporting_level"),
+             match_type = "m:1", # multiple povlines
+             keep = "left",
+             reportvar = FALSE,
+             verbose = FALSE)
+}
+
