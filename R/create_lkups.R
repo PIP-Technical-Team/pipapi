@@ -213,21 +213,12 @@ create_lkups <- function(data_dir, versions) {
 
 
       # Add reporting year
-      cmd2 <- CJ(country_list$country_code,
+      cmd <- CJ(country_list$country_code,
                  ly, c("national", "urban", "rural"))
 
-
-      cmd <-
-        country_list[rep(1:.N,
-                         each = length(ly))
-                     ][,
-                       reporting_year := rep(ly, times = ncountries)
-                       # Add reporting level
-                       ][rep(1:.N, each = 3),
-                         ][,
-                           reporting_level :=
-                             rep(c("national", "urban", "rural"),
-                                 times = (length(ly)*ncountries))]
+      setnames(cmd, new = c('country_code',
+                            'reporting_year',
+                            'reporting_level'))
 
       cmd <- joyn::joyn(x          = cmd,
                          y          = refy_lkup,
