@@ -313,6 +313,7 @@ create_lkups <- function(data_dir, versions) {
             names = list(variable = "reporting_year",
                          value = "reporting_pop"),
             how = "longer") |>
+        ftransform(reporting_year = as_integer_factor(reporting_year)) |>
         frename(data_level = reporting_level)
 
       refy_lkup <- joyn::joyn(refy_lkup, popl,
