@@ -237,29 +237,54 @@ create_lkups <- function(data_dir, versions) {
       # build some variables
       cmd[,
            `:=`(
-               cache_id = paste(country_code, reporting_year,"NOSVY_D1_CON_CMD",
-                                sep = "_"),
-               survey_coverage = "national",
-               welfare_type = "consumption",
-               distribution_type = "CMD distribution",
-               is_interpolated = FALSE,
-               is_used_for_line_up = TRUE,
+               cache_id                = paste(country_code,
+                                               reporting_year,
+                                               "NOSVY_D1_CON_CMD",
+                                               sep = "_"),
+               survey_coverage         = "national",
+               welfare_type            = "consumption",
+               distribution_type       = "CMD distribution",
+               is_interpolated         = FALSE,
+               is_used_for_line_up     = TRUE,
                is_used_for_aggregation = FALSE,
-               estimation_type = "CMD estimation",
-               display_cp = "0",
-               monotonic = TRUE, # ?
-               same_direction = TRUE, # NA ?
-               relative_distance = 1,
-               lineup_approach = "CMD",
-               mult_factor = 1
-
+               estimation_type         = "CMD estimation",
+               display_cp              = "0",
+               monotonic               = TRUE, # ?
+               same_direction          = TRUE, # NA ?
+               relative_distance       = 1,
+               lineup_approach         = "CMD",
+               mult_factor             = 1
              )]
+
+      # add population
+      cmd_pop <-
+        fst::read.fst(path = fs::path(data_dir,
+                                      "_aux",
+                                      "pop.fst")) |>
+        pivot(ids = c("country_code",
+                      "data_level")) |>
+        frename(reporting_year  = variable,
+                reporting_pop   = value,
+                reporting_level = data_level) |>
+        fmutate(reporting_year = as.numeric(as.character(reporting_year))) |>
+        qDT()
+
+
+      cmd <- joyn::joyn(x          = cmd,
+                        y          = cmd_pop,
+                        by         = c('country_code',
+                                       'reporting_year',
+                                       'reporting_level'),
+                        keep       = "left",
+                        match_type = "1:1",
+                        reportvar  = FALSE)
+
 
       # Append lineup and CMD info
 
       refy_lkup <- rbindlist(list(refy_lkup, cmd),
                              use.names = TRUE,
-                             fill = TRUE)
+                             fill      = TRUE)
 
 
       # Create additional variables
