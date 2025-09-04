@@ -92,6 +92,7 @@ create_lkups <- function(data_dir, versions) {
   ## country_list ----
   cl_lkup_path    <- fs::path(data_dir, "_aux/country_list.fst")
   country_list     <- fst::read_fst(cl_lkup_path, as.data.table = TRUE)
+  data.table::setnames(country_list, 'region', 'region_name') # Why is this necessary?
 
   ## countries ----
   cts_path <- fs::path(data_dir, "_aux/countries.fst")

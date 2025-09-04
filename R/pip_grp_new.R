@@ -1,5 +1,5 @@
 #' New way to estimate Aggregate data
-#' @rdname pip_gg
+#' @rdname pip_agg
 pip_grp_new <- \(country         = "ALL",
                  year            = "ALL",
                  povline         = 1.9,
@@ -46,7 +46,7 @@ pip_grp_new <- \(country         = "ALL",
   }
   out <- treat_cache_and_main(out,
                               cache_file_path = cache_file_path,
-                              lkup = lkup, fill_gaps = fill_gaps)
+                              lkup = lkup, fill_gaps = TRUE)
 
   # return empty dataframe if no metadata is found
   if (nrow(out) == 0) {
