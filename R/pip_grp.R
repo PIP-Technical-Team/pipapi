@@ -244,7 +244,9 @@ pip_aggregate_by <- function(df,
               poverty_line) |>
     fselect(c(weighted_cols, "reporting_pop")) |>
     fmean(w = reporting_pop, stub = FALSE) |>
-    fsubset(!is.na(africa_split_code))
+    fsubset(!is.na(africa_split_code)) |>
+    frename(africa_split_code = region_code,
+            africa_split      = region_name)
 
 
 
