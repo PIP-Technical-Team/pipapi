@@ -6,13 +6,9 @@
 #' @return character vector
 #' @keywords internal
 load_list_refy <- \(input_list, path){
-  input_list <- transform_input(input_list)
-
-  inames <- lapply(input_list, \(x) {
-    paste0(x$country_code, "_", x$year)
-  })
 
   cores <- get_from_pipapienv("cores_to_use")
+  inames <- input_list$inames
 
   dl <- lapply(inames, \(x) {
     qs::qread(file = fs::path(path, x, ext = "qs"),

@@ -4,19 +4,13 @@
 \alias{create_full_list}
 \title{Create full list for fg data load, not including country-years in cache}
 \usage{
-create_full_list(country, year, refy_lkup, data_present_in_master)
+create_full_list(metadata)
 }
 \arguments{
-\item{country}{Country selected in \link{fg_pip} function}
-
-\item{year}{Year/s selected in \link{fg_pip} function}
-
-\item{refy_lkup}{reference year lkup table with full lineups and new method}
-
-\item{data_present_in_master}{cache data}
+\item{metadata}{data table from subset_lkup()$lkup}
 }
 \value{
-list
+data.table
 }
 \description{
 Create full list for fg data load, not including country-years in cache
