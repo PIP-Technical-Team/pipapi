@@ -171,7 +171,6 @@ pip_new_lineups <- function(country         = "ALL",
 
     out <- pip_aggregate_by(
       df          = out,
-      group_lkup  = lkup[["pop_region"]],
       return_cols = lkup$return_cols$pip_grp)
 
     # Censor regional values

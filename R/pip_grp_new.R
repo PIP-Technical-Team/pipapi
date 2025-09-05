@@ -71,7 +71,6 @@ pip_grp_new <- \(country         = "ALL",
 
     out <- pip_aggregate_by(
       df = out,
-      group_lkup = lkup[["pop_region"]],
       country = country,
       return_cols = lkup$return_cols$pip_grp
     )

@@ -228,12 +228,18 @@ create_lkups <- function(data_dir, versions) {
                                         'reporting_level'),
                          keep       = "anti",
                          # reportvar  = FALSE,
-                         match_type = "1:1")
+                         match_type = "1:1") |>
+        setDT()
+
+      # get number or reporing levels left after anti join
+      # if less than three, it should NOT be CMD (e.g., ARG or CHN)
+      cmd[, n := .N,
+          by = c("country_code", "reporting_year")]
 
       # Delete unnecessary reporting levels
-      cmd <- cmd[(reporting_level == "national" & .joyn == "x")
-                 ][,
-                   .joyn := NULL]
+      cmd <- cmd[(reporting_level == "national" &
+                     .joyn == "x" & n == 3)
+                 ]
 
       # build some variables
       cmd[,
@@ -252,7 +258,9 @@ create_lkups <- function(data_dir, versions) {
                same_direction = TRUE, # NA ?
                relative_distance = 1,
                lineup_approach = "CMD",
-               mult_factor = 1
+               mult_factor = 1,
+               .joyn = NULL,
+               n     = NULL
 
              )]
 

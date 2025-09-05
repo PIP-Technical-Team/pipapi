@@ -315,7 +315,6 @@ pip_grp_helper <- function(lcv_country,
 
     out <- pip_aggregate_by(
       df = out,
-      group_lkup = lkup[["pop_region"]],
       country = country,
       return_cols = lkup$return_cols$pip_grp
     )
