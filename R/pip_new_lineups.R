@@ -329,7 +329,8 @@ treat_cache_and_main <- \(out, cache_file_path,
 
 validate_country_codes <- \(country, lkup) {
   cls <- lkup$aux_files$country_list$country_code |>
-    unique()
+    unique() |>
+    c("ALL")
 
   if (any(!country %in% cls)) {
     wcls <- which(!country %in% cls)

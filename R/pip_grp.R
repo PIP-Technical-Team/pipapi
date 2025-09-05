@@ -237,6 +237,7 @@ pip_aggregate_by <- function(df,
     fmean(w = reporting_pop, stub = FALSE)
 
   # Africas aggregation
+  if (any(c("ALL", "WLD") %in% country)) {
   afr <- df |>
     fgroup_by(africa_split,
               africa_split_code,
@@ -248,7 +249,7 @@ pip_aggregate_by <- function(df,
     frename(africa_split_code = region_code,
             africa_split      = region_name)
 
-
+  }
 
 
   if (any(c("ALL", "WLD") %in% country)) {

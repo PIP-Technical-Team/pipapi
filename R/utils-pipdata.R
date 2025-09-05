@@ -10,7 +10,14 @@ load_list_refy <- \(input_list, path){
   cores <- get_from_pipapienv("cores_to_use")
   inames <- input_list$inames
 
-  dl <- lapply(inames, \(x) {
+  seq_flex <- if (interactive()) {
+    cli::cli_progress_along
+  } else {
+    base::seq_along
+  }
+
+  dl <- lapply(seq_flex(inames), \(i) {
+    x <- inames[i]
     qs::qread(file = fs::path(path, x, ext = "qs"),
               nthreads = cores)
     }) |>
