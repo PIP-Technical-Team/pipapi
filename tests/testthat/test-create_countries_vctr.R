@@ -568,7 +568,7 @@ test_that("create_vector_countries returns correct results when country = aggreg
   year = "ALL"
   out <- create_countries_vctr(country = country,
                                year    = year,
-                               lkup            = lkup)
+                               lkup    = lkup)
 
   # Returns no official region
   expect_equal(out$user_off_reg, off_country)
