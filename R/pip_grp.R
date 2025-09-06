@@ -258,6 +258,20 @@ pip_aggregate_by <- function(df,
             africa_split      = region_name) |>
     rowbind(rgn, fill = TRUE)
   }
+  # Vintage aggregation
+  if ("ALL" %in% country & "regionpcn_code" %in% names(df)) {
+  rgn <- df |>
+    fgroup_by(regionpcn,
+              regionpcn_code,
+              reporting_year,
+              poverty_line) |>
+    fselect(c(weighted_cols, "reporting_pop")) |>
+    fmean(w = reporting_pop, stub = FALSE) |>
+    fsubset(!is.na(regionpcn_code)) |>
+    frename(regionpcn_code = region_code,
+            regionpcn      = region_name) |>
+    rowbind(rgn, fill = TRUE)
+  }
 
 
     if (length(country) == 1) {
