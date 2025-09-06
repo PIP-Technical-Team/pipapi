@@ -54,7 +54,12 @@ create_countries_vctr <- function(country,
   }
   # STEP 2: Identify regions ----
   ## All available aggregates ----
-  aggs      <- aux_files$regions  ## all aggregates
+  aggs      <- aux_files$regions  |> ## all aggregates
+    # temporal filter
+    _[grouping_type %in% c("region", "regionpcn", "africa_split", "word")]
+
+
+
   ## Official grouping type ----
   off_gt <- c("region", "world") #c("region")
   ## Official valid region codes ----
