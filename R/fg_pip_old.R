@@ -52,7 +52,8 @@ fg_pip_old <- function(country,
 
   # Return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    return(list(main_data = pipapi::empty_response_fg, data_in_cache = data_present_in_master))
+    return(list(main_data = pipapi::empty_response_fg,
+                data_in_cache = data_present_in_master))
   }
 
   unique_survey_files <- unique(metadata$data_interpolation_id)
