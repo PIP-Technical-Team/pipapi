@@ -100,8 +100,7 @@ pip_old <- function(country         = "ALL",
     create_countries_vctr(
       country         =  country,
       year            =  year,
-      valid_years     =  lkup$valid_years,
-      aux_files       =  lkup$aux_files
+      lkup            = lkup
     )
   # lcv$est_ctrs has all the country_code that we are interested in
 

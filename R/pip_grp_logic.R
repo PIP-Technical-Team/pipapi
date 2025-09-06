@@ -44,8 +44,7 @@ pip_grp_logic <- function(country         = "ALL",
     create_countries_vctr(
       country         =  country,
       year            =  year,
-      valid_years     =  lkup$valid_years,
-      aux_files       =  lkup$aux_files
+      lkup            = lkup
     )
 
   # use the same names as before to avoid inconsistencies
@@ -84,7 +83,9 @@ pip_grp_logic <- function(country         = "ALL",
       lkup            = lkup
       )
     # For now just rowbinding two dataframes, but we would need to use it more smartly in the future
-    fg_pip_master <- collapse::rowbind(fg_pip_master)
+    fg_pip_master <- collapse::rowbind(fg_pip_master,
+                                       # THis should not be necessary
+                                       fill = TRUE)
 
     if (!data.table::is.data.table(fg_pip_master)) {
       setDT(fg_pip_master)
