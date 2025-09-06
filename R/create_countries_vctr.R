@@ -6,14 +6,15 @@
 #'
 #' @inheritParams pip
 #' @param valid_years list: Valid years information provided through lkup object
-#' @param aux_files list: List of auxiliary tables provided through lkup object
+#' @param lkup lkup object
 #'
 #' @return a list of vectors with countries and regions code to be used in
 #'   `pip()` and `pip_grp()`
 create_countries_vctr <- function(country,
                                   year,
-                                  valid_years,
-                                  aux_files) {
+                                  lkup) {
+  valid_years <-   lkup$valid_years
+  aux_files   <-   lkup$aux_files
 
   # STEP 1: Setup ----
   ## init Return list ----

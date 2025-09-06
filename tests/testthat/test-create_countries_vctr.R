@@ -457,8 +457,7 @@ test_that("create_vector_countries output the expected object", {
   year = "2010"
   out <- create_countries_vctr(country = country,
                                year    = year,
-                               valid_years = valid_years,
-                               aux_files = aux_files)
+                               lkup            = lkup)
   expect_true(is.list(out))
   expect_equal(sort(names(out)),
                sort(c("ctr_off_reg",
@@ -479,8 +478,7 @@ test_that("create_vector_countries works for countries selection", {
   year = "ALL"
   out <- create_countries_vctr(country = country,
                                year    = year,
-                               valid_years = valid_years,
-                               aux_files = aux_files)
+                               lkup            = lkup)
 
   # Selects all countries with survey data when country="ALL"
   expect_equal(sort(out$est_ctrs), sort(aux_files$countries$country_code))
@@ -492,8 +490,7 @@ test_that("create_vector_countries Returns correct results when country = ALL", 
   year = "2010"
   out <- create_countries_vctr(country = country,
                                year    = year,
-                               valid_years = valid_years,
-                               aux_files = aux_files)
+                               lkup            = lkup)
   # Correct official regions
   expect_equal(out$user_off_reg,
                c("ALL",
@@ -514,8 +511,7 @@ test_that("create_vector_countries Returns correct results when country = WLD", 
   year = "2010"
   out <- create_countries_vctr(country = country,
                                year    = year,
-                               valid_years = valid_years,
-                               aux_files = aux_files)
+                               lkup            = lkup)
   # Correct official regions
   expect_equal(out$user_off_reg,
                c("ALL",
@@ -534,8 +530,7 @@ test_that("create_vector_countries Returns correct results when country = altern
   year = "ALL"
   out <- create_countries_vctr(country = country,
                                year    = year,
-                               valid_years = valid_years,
-                               aux_files = aux_files)
+                               lkup            = lkup)
 
   # Returns no official region
   expect_true(is.null(out$user_off_reg))
@@ -554,8 +549,7 @@ test_that("create_vector_countries returns correct results when country = offica
   year = "ALL"
   out <- create_countries_vctr(country = country,
                                year    = year,
-                               valid_years = valid_years,
-                               aux_files = aux_files)
+                               lkup            = lkup)
 
   # Returns no official region
   expect_equal(out$user_off_reg, country)
@@ -574,8 +568,7 @@ test_that("create_vector_countries returns correct results when country = aggreg
   year = "ALL"
   out <- create_countries_vctr(country = country,
                                year    = year,
-                               valid_years = valid_years,
-                               aux_files = aux_files)
+                               lkup            = lkup)
 
   # Returns no official region
   expect_equal(out$user_off_reg, off_country)
