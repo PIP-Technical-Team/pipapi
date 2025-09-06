@@ -86,7 +86,6 @@ pip_grp <- function(country         = "ALL",
 
     out <- pip_aggregate_by(
       df = out,
-      group_lkup = lkup[["pop_region"]],
       country = country,
       return_cols = lkup$return_cols$pip_grp
     )
@@ -209,15 +208,13 @@ pip_aggregate <- function(df, by = NULL, return_cols) {
 
 #' Aggregate by predefined groups
 #' @param df data.frame: Response from `fg_pip_old()` or `rg_pip()`.
-#' @param group_lkup data.frame: Group lkup table (pop_region)
 #' @param country character: Selected countries / regions
 #' @param return_cols list: lkup$return_cols$pip_grp object. Controls returned
 #' columns
 #' @keywords internal
 pip_aggregate_by <- function(df,
-                             group_lkup,
                              country = "ALL",
-                             return_cols) {
+                             return_cols = NULL) {
 
   all_cols <- return_cols$cols
   weighted_cols <- return_cols$weighted_average_cols
@@ -228,7 +225,7 @@ pip_aggregate_by <- function(df,
   to_keep <- all_cols[!all_cols %in% c("pop_in_poverty",
                                        "estimate_type")]
 
-  df <- df[, .SD, .SDcols = to_keep] # I think we can ommit this part
+  # df <- df[, .SD, .SDcols = to_keep] # I think we can ommit this part
 
   # Compute stats weighted average by groups
   rgn <- df |>
@@ -239,35 +236,47 @@ pip_aggregate_by <- function(df,
     fselect(c(weighted_cols, "reporting_pop")) |>
     fmean(w = reporting_pop, stub = FALSE)
 
+  # World aggregation
   if (any(c("ALL", "WLD") %in% country)) {
     # Compute world aggregates
     wld <- compute_world_aggregates(rgn = rgn)
-    if (length(country) == 1) {
-      if (country == "WLD") {
-        # Return only world aggregate
-        out <- wld
-      } else if (country == "ALL") {
-        # Combine with other regional aggregates
-        out <- rowbind(rgn, wld, fill = TRUE)
-      }
-    } else {
-      # Combine with other regional aggregates
-      out <- rowbind(rgn, wld, fill = TRUE)
-      # Return selection only
-      if (!"ALL" %in% country) {
-        out <- out[region_code %in% country, ]
-      }
-    }
   } else {
-    # Return only selected regions
-    out <- rgn
+    wld <- NULL
+  }
+
+  # Africas aggregation
+  if (any(c("ALL", "AFE", "AFW") %in% country)) {
+  rgn <- df |>
+    fgroup_by(africa_split,
+              africa_split_code,
+              reporting_year,
+              poverty_line) |>
+    fselect(c(weighted_cols, "reporting_pop")) |>
+    fmean(w = reporting_pop, stub = FALSE) |>
+    fsubset(!is.na(africa_split_code)) |>
+    frename(africa_split_code = region_code,
+            africa_split      = region_name) |>
+    rowbind(rgn, fill = TRUE)
   }
 
 
-  # Compute population living in poverty
-  out$pop_in_poverty <- round(out$headcount * out$reporting_pop, 0)
+    if (length(country) == 1) {
+      if (country == "WLD") {
+        # Return only world aggregate
+        wld[, pop_in_poverty := round(headcount * reporting_pop, 0)]
+        return(wld)
+      }
+    }
 
-  return(out)
+  # Combine with other regional aggregates
+    out <- rowbind(rgn, wld, fill = TRUE)
+    out[, pop_in_poverty := round(headcount * reporting_pop, 0)]
+
+    if ("ALL" %in% country) {
+      return(out)
+    }
+
+    out[region_code %in% country, ]
 }
 
 

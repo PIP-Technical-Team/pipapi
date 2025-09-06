@@ -227,12 +227,18 @@ create_lkups <- function(data_dir, versions) {
                                         'reporting_level'),
                          keep       = "anti",
                          # reportvar  = FALSE,
-                         match_type = "1:1")
+                         match_type = "1:1") |>
+        setDT()
+
+      # get number or reporing levels left after anti join
+      # if less than three, it should NOT be CMD (e.g., ARG or CHN)
+      cmd[, n := .N,
+          by = c("country_code", "reporting_year")]
 
       # Delete unnecessary reporting levels
-      cmd <- cmd[(reporting_level == "national" & .joyn == "x")
-                 ][,
-                   .joyn := NULL]
+      cmd <- cmd[(reporting_level == "national" &
+                     .joyn == "x" & n == 3)
+                 ]
 
       # build some variables
       cmd[,
@@ -247,6 +253,7 @@ create_lkups <- function(data_dir, versions) {
                is_interpolated         = FALSE,
                is_used_for_line_up     = TRUE,
                is_used_for_aggregation = FALSE,
+<<<<<<< HEAD
                estimation_type         = "CMD estimation",
                display_cp              = "0",
                monotonic               = TRUE, # ?
@@ -254,6 +261,18 @@ create_lkups <- function(data_dir, versions) {
                relative_distance       = 1,
                lineup_approach         = "CMD",
                mult_factor             = 1
+=======
+               estimation_type = "CMD estimation",
+               display_cp = "0",
+               monotonic = TRUE, # ?
+               same_direction = TRUE, # NA ?
+               relative_distance = 1,
+               lineup_approach = "CMD",
+               mult_factor = 1,
+               .joyn = NULL,
+               n     = NULL
+
+>>>>>>> 9397c8e4fd28fa2eeeefa8947b091522544638b4
              )]
 
       # add population
@@ -330,6 +349,26 @@ create_lkups <- function(data_dir, versions) {
                               reportvar  = FALSE,
                               match_type = "m:1",
                               update_values = TRUE)
+
+
+      # merge population
+      popl <- pivot(pop,
+            ids = c("country_code", "data_level"),
+            names = list(variable = "reporting_year",
+                         value = "reporting_pop"),
+            how = "longer") |>
+        ftransform(reporting_year = as_integer_factor(reporting_year)) |>
+        frename(data_level = reporting_level)
+
+      refy_lkup <- joyn::joyn(refy_lkup, popl,
+                              by         = c('country_code',
+                                             'reporting_year',
+                                             'reporting_level'),
+                              keep       = "left",
+                              reportvar  = FALSE,
+                              match_type = "1:1",
+                              update_values = TRUE)
+
 
 
 

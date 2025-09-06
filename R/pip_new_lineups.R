@@ -171,7 +171,6 @@ pip_new_lineups <- function(country         = "ALL",
 
     out <- pip_aggregate_by(
       df          = out,
-      group_lkup  = lkup[["pop_region"]],
       return_cols = lkup$return_cols$pip_grp)
 
     # Censor regional values
@@ -330,7 +329,8 @@ treat_cache_and_main <- \(out, cache_file_path,
 
 validate_country_codes <- \(country, lkup) {
   cls <- lkup$aux_files$country_list$country_code |>
-    unique()
+    unique() |>
+    c("ALL")
 
   if (any(!country %in% cls)) {
     wcls <- which(!country %in% cls)

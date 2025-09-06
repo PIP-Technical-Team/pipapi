@@ -58,10 +58,7 @@ fg_pip <- function(country,
                 data_in_cache = data_present_in_master))
   }
 
-  full_list <- create_full_list(country                = country,
-                                year                   = year,
-                                refy_lkup              = refy_lkup,
-                                data_present_in_master = data_present_in_master)
+  full_list <- create_full_list(metadata = metadata)
 
   lt <-
     load_list_refy(input_list = full_list,
@@ -251,68 +248,14 @@ fg_assign_nas_values_to_dup_cols <- function(df,
 
 #' Create full list for fg data load, not including country-years in cache
 #'
-#' @param country Country selected in [fg_pip] function
-#' @param year Year/s selected in [fg_pip] function
-#' @param refy_lkup reference year lkup table with full lineups and new method
-#' @param data_present_in_master cache data
-#'
-#' @return list
-create_full_list <- function(country, year, refy_lkup, data_present_in_master) {
+#' @param metadata data table from subset_lkup()$lkup
+#' @return data.table
+create_full_list <- function(metadata) {
 
-  if (!is.null(data_present_in_master)) {
-    data_not_in_cache <-
-      joyn::anti_join(x         =  refy_lkup,
-                      y         =  data_present_in_master,
-                      by        = c("country_code", "reporting_year"),
-                      reportvar = FALSE,
-                      verbose   = FALSE)
-  } else {
-    data_not_in_cache <- refy_lkup
-  }
-
-  # Extract unique combinations of country-year
-  if (any(c("ALL", "WLD") %in% country)) {
-    cntry <- data_not_in_cache$country_code |>
-      funique()
-  } else {
-    cntry <- data_not_in_cache[country_code %in% country,
-    ]$country_code |>
-      funique()
-  }
-  if (any(c("ALL") %in% year)) {
-    yr <- data_not_in_cache$reporting_year |>
-      unique()
-  } else {
-    yr <- data_not_in_cache[reporting_year %in% year,
-    ]$reporting_year |>
-      funique()
-  }
-  dtemp <-
-    data_not_in_cache |>
-    fsubset(country_code     %in% cntry &
-              reporting_year %in% yr) |>
-    fsubset(reporting_year %in% lkup$valid_years$lineup_years) |>
-    fselect(country_code,
-            year = reporting_year) |>
-    funique()
-
-  # Split years by country
-  full_list <- dtemp[,
-                     .(year = list(year)),
-                     by = country_code
-                     ][,
-                       .(country_code, year = year)
-                     ]
-
-  # Convert to desired structure
-  full_list <- list(
-    country_code = full_list$country_code,
-    year         = lapply(full_list$year,
-                          as.numeric))
-
-
-  full_list
-
+  x <- metadata[, .(country_code, reporting_year)
+                ][,
+                  inames := paste0(country_code, "_", reporting_year)]
+  x
 }
 
 
