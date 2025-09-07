@@ -5,21 +5,38 @@
 #'
 #' @return character vector
 #' @keywords internal
+# load_list_refy <- \(input_list, path){
+#   input_list <- transform_input(input_list)
+#
+#   dl <- lapply(input_list, FUN = function(x) {
+#     qs::qread(file = fs::path(path, paste0(x$country_code, "_",
+#                                                 x$year),
+#                               ext = "qs"))
+#     })
+#
+#   names(dl) <- vapply(input_list, \(x) {
+#     paste0(x$country_code, x$year)
+#     },
+#     FUN.VALUE = character(1))
+#   dl
+# }
+
+
+
+
 load_list_refy <- \(input_list, path){
   input_list <- transform_input(input_list)
 
-  inames <- lapply(input_list, \(x) {
-    paste0(x$country_code, "_", x$year)
+  dl <- lapply(input_list, FUN = function(x) {
+    qs::qread(file = fs::path(path, paste0(x$country_code, "_",
+                                           x$year),
+                              ext = "qs"))
   })
 
-  cores <- get_from_pipapienv("cores_to_use")
-
-  dl <- lapply(inames, \(x) {
-    qs::qread(file = fs::path(path, x, ext = "qs"),
-              nthreads = cores)
-    }) |>
-    setNames(inames)
-
+  names(dl) <- vapply(input_list, \(x) {
+    paste0(x$country_code, x$year)
+  },
+  FUN.VALUE = character(1))
   dl
 }
 
