@@ -10,6 +10,8 @@ return_if_exists <- function(slkup,
                              fill_gaps,
                              verbose = getOption("pipapi.verbose")) {
 
+  print("return_if_exists is used")
+
   # none selected
   if (fnrow(slkup) == 0 ) {
     return(list(data_present_in_master = NULL,

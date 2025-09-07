@@ -47,10 +47,13 @@ subset_lkup <- function(country,
   lkup <- lkup[keep, ]
 
   # Return with grace
-  return_if_exists(slkup           = lkup,
-                   povline         = povline,
-                   cache_file_path = cache_file_path,
-                   fill_gaps       = fill_gaps)
+  list(data_present_in_master = NULL,
+       lkup                   = lkup,
+       povline                = povline)
+  # return_if_exists(slkup           = lkup,
+  #                  povline         = povline,
+  #                  cache_file_path = cache_file_path,
+  #                  fill_gaps       = fill_gaps)
 }
 
 #' select_country
