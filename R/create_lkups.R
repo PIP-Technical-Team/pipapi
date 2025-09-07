@@ -330,6 +330,7 @@ create_lkups <- function(data_dir, versions) {
 
 
       # Temporal fix
+      refy_lkup$.joyn <- NULL
       refy_lkup <- joyn::joyn(refy_lkup, country_list,
                               by         = "country_code",
                               keep       = "left",
