@@ -18,11 +18,11 @@ return_if_exists <- function(slkup,
   }
 
   # don't use cache
-  if (getOption("pipapi.query_live_data")) {
+  #if (getOption("pipapi.query_live_data")) {
     return(list(data_present_in_master = NULL,
                 lkup                   = slkup,
                 povline                = povline))
-  }
+  #}
 
   # load cache
   # ZP new temp code to avoid error from load_inter_cache due to dbConnect

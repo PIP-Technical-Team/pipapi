@@ -107,7 +107,7 @@ pip_new_lineups <- function(country         = "ALL",
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   if (!file.exists(cache_file_path)) {
     # Create an empty duckdb file
-    create_duckdb_file(cache_file_path)
+    #create_duckdb_file(cache_file_path)
   }
   # mains estimates ---------------
   if (fill_gaps) {
