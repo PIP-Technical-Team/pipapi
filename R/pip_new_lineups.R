@@ -315,7 +315,7 @@ treat_cache_and_main <- \(out, cache_file_path,
         rowbind(cached_data)
     }
 
-    update_master_file(main_data, cache_file_path, fill_gaps)
+    #update_master_file(main_data, cache_file_path, fill_gaps)
 
   } else {
     out <- cached_data

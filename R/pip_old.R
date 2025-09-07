@@ -147,7 +147,7 @@ pip_old <- function(country         = "ALL",
     # This will be used only for development purpose and we don't have any intention to use it in production.
     if(!is.null(cached_data)) {
       # Update cache with data
-      update_master_file(main_data, cache_file_path, fill_gaps)
+      #update_master_file(main_data, cache_file_path, fill_gaps)
     }
   } else {
     out <- cached_data
