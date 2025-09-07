@@ -286,7 +286,7 @@ create_full_list <- function(country, year, refy_lkup, data_present_in_master) {
     data_not_in_cache |>
     fsubset(country_code     %in% cntry &
               reporting_year %in% yr) |>
-    fsubset(reporting_year %in% lkup$valid_years$lineup_years) |>
+    # ZP rm check bugs: fsubset(reporting_year %in% lkup$valid_years$lineup_years) |>
     fselect(country_code,
             year = reporting_year) |>
     funique()

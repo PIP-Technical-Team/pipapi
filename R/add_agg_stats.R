@@ -12,6 +12,7 @@ add_agg_stats <- function(df,
   # national level
   aggregated <- df[df$is_used_for_aggregation, ]
 
+
   if (nrow(aggregated) > 0) {
     aggregated_list <- split(aggregated,
       interaction(
