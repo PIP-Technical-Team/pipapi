@@ -253,7 +253,6 @@ create_lkups <- function(data_dir, versions) {
                is_interpolated         = FALSE,
                is_used_for_line_up     = TRUE,
                is_used_for_aggregation = FALSE,
-<<<<<<< HEAD
                estimation_type         = "CMD estimation",
                display_cp              = "0",
                monotonic               = TRUE, # ?
@@ -261,18 +260,6 @@ create_lkups <- function(data_dir, versions) {
                relative_distance       = 1,
                lineup_approach         = "CMD",
                mult_factor             = 1
-=======
-               estimation_type = "CMD estimation",
-               display_cp = "0",
-               monotonic = TRUE, # ?
-               same_direction = TRUE, # NA ?
-               relative_distance = 1,
-               lineup_approach = "CMD",
-               mult_factor = 1,
-               .joyn = NULL,
-               n     = NULL
-
->>>>>>> 9397c8e4fd28fa2eeeefa8947b091522544638b4
              )]
 
       # add population
