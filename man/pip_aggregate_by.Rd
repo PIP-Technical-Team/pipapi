@@ -4,12 +4,10 @@
 \alias{pip_aggregate_by}
 \title{Aggregate by predefined groups}
 \usage{
-pip_aggregate_by(df, group_lkup, country = "ALL", return_cols)
+pip_aggregate_by(df, country = "ALL", return_cols = NULL)
 }
 \arguments{
 \item{df}{data.frame: Response from \code{fg_pip_old()} or \code{rg_pip()}.}
-
-\item{group_lkup}{data.frame: Group lkup table (pop_region)}
 
 \item{country}{character: Selected countries / regions}
 

@@ -61,18 +61,17 @@ fg_pip <- function(country,
   full_list <- create_full_list(metadata = metadata)
 
   lt <-
-    load_list_refy(input_list = full_list,
-                   path       = fs::path(data_dir, "lineup_data"))
+    load_list_refy(input_list = full_list)
 
   # lt <- lapply(lt, \(x) {
   #                  add_attributes_as_columns_vectorized(x)
   #              })
 
   # Extract some attributes
-  lt_att <- get_lt_attr(lt)
+  # lt_att <- get_lt_attr(lt)
 
   # get rows indices
-  l_rl_rows <- get_rl_rows(lt_att)
+  # l_rl_rows <- get_rl_rows(lt_att)
 
 
   # DT <- map_lt_to_dt(lt, l_rl_rows)
@@ -252,10 +251,9 @@ fg_assign_nas_values_to_dup_cols <- function(df,
 #' @return data.table
 create_full_list <- function(metadata) {
 
-  x <- metadata[, .(country_code, reporting_year)
-                ][,
-                  inames := paste0(country_code, "_", reporting_year)]
-  x
+  metadata[, path] |>
+    funique()
+
 }
 
 

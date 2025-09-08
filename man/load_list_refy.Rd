@@ -4,7 +4,7 @@
 \alias{load_list_refy}
 \title{load refy list}
 \usage{
-load_list_refy(input_list, path)
+load_list_refy(input_list)
 }
 \arguments{
 \item{input_list}{list. output from \link{create_full_list}}

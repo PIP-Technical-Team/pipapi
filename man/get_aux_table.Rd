@@ -4,7 +4,7 @@
 \alias{get_aux_table}
 \title{Return specified auxiliary data}
 \usage{
-get_aux_table(data_dir, table, long_format = FALSE)
+get_aux_table(data_dir = NULL, table, long_format = FALSE)
 }
 \arguments{
 \item{data_dir}{character: Data directory}

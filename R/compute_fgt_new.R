@@ -1,3 +1,5 @@
+# OLD APPROACH WITH MEAN --------------
+
 # Efficient FGT calculation for a data.table and vector of poverty lines
 #' Title
 #'
@@ -145,7 +147,9 @@ compute_fgt <- function(w, wt, povlines) {
 #' @rdname map_fgt
 #' @keywords  internal
 DT_fgt_by_rl <- \(x, y, nx, povline) {
-  DT_fgt <- lapply(names(y), \(rl) {
+  uni_rl <- names(y) |>
+    unique()
+  DT_fgt <- lapply(uni_rl, \(rl) {
 
     idx <- y[[rl]]
     w   <- x[idx, welfare]
@@ -341,6 +345,133 @@ pov_from_DT <- function(DT, povline, g, cores = 1) {
 # }
 
 
+
+
+# NEW ARPPOACH USING CUMSUM ------------------
+
+#' compute fgt and watts using cumulative welfare rather than means
+#'
+#' @param y numeric welfare (sorted ascending within the subgroup)
+#' @param w numeric weights (same order as y)
+#' @param lines numeric vector of poverty lines
+#'
+#' @return Returns a data.table with columns: line, fgt0,fgt1,fgt2,watts
+#' @export
+fgt_watts_cumsum <- function(y, w, lines) {
+  # types
+
+  y     <- as.double(y)
+  w     <- as.double(w)
+  lines <- as.double(lines)
+  n <- length(y)
+
+  if (n == 0L) {
+    return(data.table(line = lines,
+                      fgt0 = 0, fgt1 = 0, fgt2 = 0, watts = 0))
+  }
+
+  # total weight (collapse: fsum is very fast)
+  W <- fsum(w)
+
+  # cumulative sums (collapse: fcumsum is multithreaded-aware, very fast)
+  cw    <- fcumsum(w)
+  cwy   <- fcumsum(w * y)
+  cwy2  <- fcumsum(w * (y * y))
+
+  # Watts needs log(y) with y>0; clamp tiny positives for safety
+  y_pos <- pmax(y, 1e-12)
+  cwlog <- fcumsum(w * log(y_pos))
+
+  # index of last obs <= line for each z (0..n)
+  i <- findInterval(lines, y)
+
+  take <- function(cs) {
+    out <- cs[pmax.int(i, 0L)]
+    out[i == 0L] <- 0
+    out
+  }
+
+  cw_i    <- take(cw)
+  cwy_i   <- take(cwy)
+  cwy2_i  <- take(cwy2)
+  cwlog_i <- take(cwlog)
+
+  z    <- lines
+  z2   <- z * z
+  z_s  <- pmax(z, 1e-12)
+  z2_s <- pmax(z2, 1e-24)
+
+  data.table(
+    line  = lines,
+    fgt0  = cw_i / W,
+    fgt1  = (z * cw_i - cwy_i) / (z_s * W),
+    fgt2  = (z2 * cw_i - 2 * z * cwy_i + cwy2_i) / (z2_s * W),
+    watts = (log(z_s) * cw_i - cwlog_i) / W
+  )
+}
+
+
+
+# tl: list of data.tables, each with columns id, reporting_level, welfare, weight
+# Assumes: within each element, data are sorted by welfare within each reporting_level
+fgt_watts_list <- function(tl, lines) {
+  rbindlist(lapply(tl, function(dt) {
+    # compute per (id, reporting_level)
+    dt[, fgt_watts_cumsum(welfare, weight, lines),
+       by = .(id, reporting_level)]
+  }),
+  fill = TRUE)
+}
+
+
+# DT: one big data.table with id, reporting_level, welfare, weight
+# Assumes: within each (id, reporting_level), rows are sorted by welfare
+
+
+# DT <- rbindlist(lt)
+
+
+fgt_watts_dt <- function(DT, lines) {
+  DT[, fgt_watts_cumsum(welfare, weight, lines),
+     by = .(id, reporting_level)]
+}
+
+
+# lines <- c(1:100)
+# rlt <- fgt_watts_list(lt, lines)
+# rdt <- fgt_watts_dt(DT, lines)
+#
+# waldo::compare(rlt, rdt)
+#
+#
+#
+#
+# bench <- microbenchmark::microbenchmark(
+#   times = 50,
+#   lt = {
+#     fgt_watts_list(lt, lines)
+#   },
+#   dt = {
+#     fgt_watts_dt(DT, lines)
+#
+#   }
+# )
+# if (requireNamespace("highcharter")) {
+#   hc_dt <- highcharter::data_to_boxplot(bench,
+#                                         time,
+#                                         expr,
+#                                         add_outliers = FALSE,
+#                                         name = "Time in milliseconds")
+#
+#   highcharter::highchart() |>
+#     highcharter::hc_xAxis(type = "category") |>
+#     highcharter::hc_chart(inverted=TRUE) |>
+#     highcharter::hc_add_series_list(hc_dt)
+#
+# } else {
+#   boxplot(bench, outline = FALSE)
+# }
+#
 
 
 

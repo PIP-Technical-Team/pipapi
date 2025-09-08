@@ -5,10 +5,11 @@
 #'
 #' @return character vector
 #' @keywords internal
-load_list_refy <- \(input_list, path){
+load_list_refy <- \(input_list){
 
   cores <- get_from_pipapienv("cores_to_use")
-  inames <- input_list$inames
+  inames <- fs::path_file(input_list) |>
+    fs::path_ext_remove()
 
   seq_flex <- if (interactive()) {
     cli::cli_progress_along
@@ -16,15 +17,18 @@ load_list_refy <- \(input_list, path){
     base::seq_along
   }
 
-  dl <- lapply(seq_flex(inames), \(i) {
-    x <- inames[i]
-    qs::qread(file = fs::path(path, x, ext = "qs"),
-              nthreads = cores)
+  dl <- lapply(seq_flex(input_list), \(x) {
+    qfile <- input_list[x]
+    qname <- inames[x]
+    qs::qread(file = qfile, nthreads = cores) |>
+      _[, id := qname]
     }) |>
     setNames(inames)
 
   dl
 }
+
+
 
 
 #' transform input list
