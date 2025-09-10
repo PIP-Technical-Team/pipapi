@@ -13,113 +13,110 @@
 #' @param lfst List from load_list_refy().
 #' @return List with elements: DT (data.table) and g (GRP object).
 #' @keywords internal
-format_lfst <- \(lfst) {
+format_lfst <- \(lfst, dict) {
 
   DT <- rbindlist(lfst, fill = TRUE)
 
   # Convert to factors (is it faster?)
-  DT[, names(.SD) := lapply(.SD, qF),
-     .SDcols = c("id", "reporting_level")]
+  if (!is.integer(DT$index)) {
+    DT[, index := as.integer(index)]
+  }
 
-  # fix
-  # DT[index == 0,
-  #    names(.SD) := 0,
-  #    .SDcols = is.numeric]
-  #
-  # DT <- DT[!grepl("^CHN_", id)]
+  out <- encode_pairs(DT = DT,
+                      dict = dict,
+                      drop_labels = TRUE)
 
   ## Grouping ----------
+  g <- GRP(out, ~ id_rl, sort = FALSE)
 
-  g <- GRP(DT, ~ id + reporting_level, sort = FALSE)
-
-  list(DT = DT,
+  list(DT = out,
        g = g)
 }
 
 
 
 
-#' get total population by country year and reprting level
-#'
-#' @param LDTg list from format_lfst() with DT and g objects
-#'
-#' @return data.table  with total population by `g[["groups]]`
-#' @export
-#'
-#' @examples
-#' Get total population by country, year, and reporting level
-#'
 #' Computes total population by group using the output of format_lfst().
 #'
 #' @param LDTg List from format_lfst() with DT and g objects.
+#' @param dict data dictionary from build_pair_dict()
+#'
 #' @return data.table with total population by group.
-#' @export
-#' @examples
-#' # get_total_pop(format_lfst(lfst))
-get_total_pop <- \(LDTg) {
-  list2env(LDTg)
+#' @keywords internal
+get_total_pop <- \(LDTg, dict) {
+  list2env(LDTg, envir = environment())
+  rm(LDTg)
   add_vars(g[["groups"]],
            get_vars(DT, c("weight")) |>
            fsum(g)) |>
-    setnames(old = "weight",new =  "totpop")
+    setnames(old = "weight",
+             new =  "W") |>
+    encode_pairs(dict, drop_labels = TRUE)
 }
 
+
+fgt_cumsum <- \(LDTg, tpop, povline,
+                drop_vars = TRUE) {
+  list2env(LDTg, envir = environment())
+  rm(LDTg)
+
+  # Temporal values to be added to the data.table
+  tz      <- pmax(povline, 1e-12)
+  tz2     <- pmax(povline^2, 1e-16)
+  tlogz   <- log(tz)
+
+  # 1) Compute cutpoint index for each z, using ONLY non-zero rows for welfare
+  #    -> findInterval(povline, welfare) returns values in 0..N (never N+1)
+  ID <- DT[index > 0L,
+           {
+             idx <- findInterval(povline, welfare, left.open = TRUE)
+             # 2) Attach z, z2, logz in-group (no replication/copies)
+             data.table(index = idx,
+                        z     = tz,
+                        z2    = tz2,
+                        logz  = tlogz)
+           },
+           by = id_rl]
+
+  # 3) Minimal cumulative view (shallow column subset; avoids copying DT)
+  DT_min <- get_vars(DT,
+                     c("id_rl", "index", "cw", "cwy", "cwy2", "cwylog"))
+
+  # 4) join cutpoints to cumulatives (index==0 hits the already-present zero row)
+  CS <- join(
+    x = ID,
+    y = DT_min,
+    on   = c("id_rl","index"),
+    how  = "left",
+    validate = "m:1",          # many cutpoints -> 1 cumulative row
+    drop.dup.cols = "y",
+    verbose = 0) |>
+  # 5) Bring total population W
+    join(tpop,
+         on = "id_rl",
+         how = "left",
+         validate = "m:1",
+         drop.dup.cols = "y") |>
+    setorder(id_rl, index)
+
+
+  # 6) Compute measures (vectorized). Small clamps for numerical safety.
+  CS[, `:=`(
+    headcount        = cw / W,
+    poverty_gap      = (z * cw - cwy) / (z_s * W),
+    poverty_severity = (z2 * cw - 2 * z * cwy + cwy2) / (z2_s * W),
+    watts            = (logz * cw - cwylog) / W
+  )]
+
+  if (!drop_vars) {
+    return(CS)
+  }
+  get_vars(CS, c("id_rl", "headcount", "poverty_gap", "poverty_severity", "watts"))
+
+}
 
 
 # --- helpers ---------------------------------------------------------------
-#' load refy list
-#'
-#' @param input_list list. output from [create_full_list]
-#' @param path character: directory path
-#'
-#' @return character vector
-#' @keywords internal
-#' Load refy list
-#'
-#' Loads a list of files and returns a named list of data.tables, each with an id column.
-#'
-#' @param input_list Character vector of file paths (output from create_full_list).
-#' @return Named list of data.tables, each with an id column.
-#' @keywords internal
-load_list_refy <- \(input_list){
-
-  id_names <- input_list |>
-    fs::path_file() |>
-    fs::path_ext_remove()
-
-  seq_flex <- if (interactive()) {
-    cli::cli_progress_along
-  } else {
-    base::seq_along
-  }
-
-
-  lfst <- lapply(seq_flex(input_list),
-                 \(i) {
-                   x <- lup_files[i]
-                   idn <- fs::path_file(x) |>
-                     fs::path_ext_remove()
-                   fst::read_fst(x, as.data.table = TRUE) |>
-                     _[, id := idn]
-                 }) |>
-    setNames(id_names)
-
-  lfst
-}
-
-
-# Pull just the 2 id columns as a base R data.frame (robust across classes)
-#' Extract id and level columns as a data.frame
-#'
-#' @param X data.table or data.frame
-#' @param id_col Name of id column
-#' @param level_col Name of level column
-#' @return data.frame with id and level columns
-#' @keywords internal
-.get_pairs_df <- function(X, id_col, level_col) {
-  as.data.frame(X[, c(id_col, level_col), drop = FALSE])
-}
-
 
 # ------------------------------- #
 # 1) Build pair dictionary (DT)   #
@@ -243,14 +240,17 @@ encode_pairs <- function(DT, dict,
 #' @param id_col Name of id column in dict.
 #' @param level_col Name of reporting level column in dict.
 #' @param keep_code Logical, keep code column if TRUE.
+#' @param add_true_vars logical, add `country_code` and `reporting_year`
 #' @param verbose Integer, verbosity level.
+#'
 #' @return data.table with id and reporting_level columns added.
 #' @keywords internal
 decode_pairs <- function(DT, dict,
                          code_col = "id_rl",
                          id_col = "id",
                          level_col = "reporting_level",
-                         keep_code = TRUE,
+                         keep_code = FALSE,
+                         add_true_vars = TRUE,
                          verbose = 0L) {
   stopifnot(exprs = {
     is.data.table(DT)
@@ -261,9 +261,6 @@ decode_pairs <- function(DT, dict,
     all(c("code", id_col, level_col) %in% names(dict))
     })
 
-  # dict_min <- dict[, .(code, ..id_col = get(id_col), ..level_col = get(level_col))]
-  # setnames(dict_min, c("code", id_col, level_col))
-
   out <- join(
     x = DT,
     y = dict,
@@ -272,8 +269,16 @@ decode_pairs <- function(DT, dict,
     drop.dup.cols = "y",
     validate = "m:1",
     verbose = verbose
-  )
-  if (!is.data.table(out)) setDT(out)
+  ) |>
+    qDT()
+
+  if (add_true_vars) {
+    out[, `:=`(
+        country_code   = gsub("(.+)(_.+)", "\\1", id),
+        reporting_year = as.integer(gsub("(.+_)(.+)", "\\2", id))
+      )]
+  }
+
   if (!keep_code) out[, (code_col) := NULL]
   out
 }
@@ -308,3 +313,46 @@ update_pair_dict <- function(dict, DT,
   }
   dict
 }
+
+
+
+#' load refy list
+#'
+#' @param input_list list. output from [create_full_list]
+#' @param path character: directory path
+#'
+#' @return character vector
+#' @keywords internal
+#' Load refy list
+#'
+#' Loads a list of files and returns a named list of data.tables, each with an id column.
+#'
+#' @param input_list Character vector of file paths (output from create_full_list).
+#' @return Named list of data.tables, each with an id column.
+#' @keywords internal
+load_list_refy <- \(input_list){
+
+  id_names <- input_list |>
+    fs::path_file() |>
+    fs::path_ext_remove()
+
+  seq_flex <- if (interactive()) {
+    cli::cli_progress_along
+  } else {
+    base::seq_along
+  }
+
+
+  lfst <- lapply(seq_flex(input_list),
+                 \(i) {
+                   x <- lup_files[i]
+                   idn <- fs::path_file(x) |>
+                     fs::path_ext_remove()
+                   fst::read_fst(x, as.data.table = TRUE) |>
+                     _[, id := idn]
+                 }) |>
+    setNames(id_names)
+
+  lfst
+}
+

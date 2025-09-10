@@ -10,7 +10,8 @@ decode_pairs(
   code_col = "id_rl",
   id_col = "id",
   level_col = "reporting_level",
-  keep_code = TRUE,
+  keep_code = FALSE,
+  add_true_vars = TRUE,
   verbose = 0L
 )
 }
@@ -26,6 +27,8 @@ decode_pairs(
 \item{level_col}{Name of reporting level column in dict.}
 
 \item{keep_code}{Logical, keep code column if TRUE.}
+
+\item{add_true_vars}{logical, add \code{country_code} and \code{reporting_year}}
 
 \item{verbose}{Integer, verbosity level.}
 }

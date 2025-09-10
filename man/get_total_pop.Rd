@@ -2,25 +2,19 @@
 % Please edit documentation in R/fgt_cumsum.R
 \name{get_total_pop}
 \alias{get_total_pop}
-\title{get total population by country year and reprting level}
+\title{Computes total population by group using the output of format_lfst().}
 \usage{
-get_total_pop(LDTg)
+get_total_pop(LDTg, dict)
 }
 \arguments{
 \item{LDTg}{List from format_lfst() with DT and g objects.}
+
+\item{dict}{data dictionary from build_pair_dict()}
 }
 \value{
-data.table  with total population by \verb{g[["groups]]}
-
 data.table with total population by group.
 }
 \description{
-get total population by country year and reprting level
-}
-\examples{
-Get total population by country, year, and reporting level
-
 Computes total population by group using the output of format_lfst().
-
-# get_total_pop(format_lfst(lfst))
 }
+\keyword{internal}

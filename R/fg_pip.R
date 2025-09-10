@@ -58,10 +58,22 @@ fg_pip <- function(country,
                 data_in_cache = data_present_in_master))
   }
 
+  dict <- build_pair_dict(lkup = lkup, fill_gaps = TRUE)
+
+
   full_list <- create_full_list(metadata = metadata)
 
   lfst <-
     load_list_refy(input_list = full_list)
+
+  LDTg <- format_lfst(lfst = lfst,
+                      dict = dict)
+  tpop <- get_total_pop(LDTg = LDTg,
+                        dict = dict)
+  fgt <-  fgt_cumsum(LDTg   = LDTg,
+                     tpop   = tpop,
+                     povline = povline) |>
+    decode_pairs(dict = dict)
 
   # lt <- lapply(lt, \(x) {
   #                  add_attributes_as_columns_vectorized(x)

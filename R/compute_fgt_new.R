@@ -78,7 +78,7 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines, mean_and_med = FALSE) 
 
 
 
-# Efficient FGT calculation for vectors (No data.table)
+#' Efficient FGT calculation for vectors (No data.table)
 #'
 #' @param w character: welfare variable name
 #' @param wt character: weight variable name
@@ -87,7 +87,6 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines, mean_and_med = FALSE) 
 #' @return data.table with estimates poverty estimates
 #' @keywords internal
 compute_fgt <- function(w, wt, povlines) {
-  n   <- length(w)
   m   <- length(povlines)
 
   # Pre-allocate result matrix

@@ -4,7 +4,7 @@
 \alias{format_lfst}
 \title{format the lfst list to usable data to estimate poverty}
 \usage{
-format_lfst(lfst)
+format_lfst(lfst, dict)
 }
 \arguments{
 \item{lfst}{List from load_list_refy().}
