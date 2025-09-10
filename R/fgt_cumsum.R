@@ -248,17 +248,25 @@ encode_pairs <- function(DT, dict,
 #' @keywords internal
 decode_pairs <- function(DT, dict,
                          code_col = "id_rl",
-                         id_col = "id", level_col = "reporting_level",
+                         id_col = "id",
+                         level_col = "reporting_level",
                          keep_code = TRUE,
                          verbose = 0L) {
-  stopifnot(is.data.table(DT), is.data.table(dict))
-  stopifnot(code_col %in% names(DT), all(c("code", id_col, level_col) %in% names(dict)))
+  stopifnot(exprs = {
+    is.data.table(DT)
+    is.data.table(dict)
+    })
+  stopifnot(exprs = {
+    code_col %in% names(DT)
+    all(c("code", id_col, level_col) %in% names(dict))
+    })
 
-  dict_min <- dict[, .(code, ..id_col = get(id_col), ..level_col = get(level_col))]
-  setnames(dict_min, c("code", id_col, level_col))
+  # dict_min <- dict[, .(code, ..id_col = get(id_col), ..level_col = get(level_col))]
+  # setnames(dict_min, c("code", id_col, level_col))
 
-  out <- collapse::join(
-    x = DT, y = dict_min,
+  out <- join(
+    x = DT,
+    y = dict,
     on = setNames("code", code_col),   # map DT[code_col] to dict$code
     how = "left",
     drop.dup.cols = "y",
@@ -267,7 +275,7 @@ decode_pairs <- function(DT, dict,
   )
   if (!is.data.table(out)) setDT(out)
   if (!keep_code) out[, (code_col) := NULL]
-  out[]
+  out
 }
 
 # ----------------------------------------------------- #
@@ -298,5 +306,5 @@ update_pair_dict <- function(dict, DT,
     setkeyv(dict, cols)
     setindexv(dict, "code")
   }
-  dict[]
+  dict
 }
