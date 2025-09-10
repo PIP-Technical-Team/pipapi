@@ -7,7 +7,7 @@
 transform_input(input_list)
 }
 \arguments{
-\item{input_list}{list. output from \link{create_full_list}}
+\item{input_list}{Character vector of file paths (output from create_full_list).}
 }
 \value{
 formated list

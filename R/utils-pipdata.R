@@ -1,36 +1,3 @@
-#' load refy list
-#'
-#' @param input_list list. output from [create_full_list]
-#' @param path character: directory path
-#'
-#' @return character vector
-#' @keywords internal
-load_list_refy <- \(input_list){
-
-  id_names <- input_list |>
-    fs::path_file() |>
-    fs::path_ext_remove()
-
-    seq_flex <- if (interactive()) {
-      cli::cli_progress_along
-    } else {
-      base::seq_along
-    }
-
-
-  lfst <- lapply(seq_flex(input_list),
-                 \(i) {
-                   x <- lup_files[i]
-                   idn <- fs::path_file(x) |>
-                     fs::path_ext_remove()
-                   fst::read_fst(x, as.data.table = TRUE) |>
-                     _[, id := idn]
-                 }) |>
-    setNames(id_names)
-
-  lfst
-}
-
 
 
 
