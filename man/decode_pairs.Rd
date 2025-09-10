@@ -28,7 +28,8 @@ decode_pairs(
 
 \item{keep_code}{Logical, keep code column if TRUE.}
 
-\item{add_true_vars}{logical, add \code{country_code} and \code{reporting_year}}
+\item{add_true_vars}{logical, add \code{country_code} and \code{reporting_year} and
+removes var \code{id}}
 
 \item{verbose}{Integer, verbosity level.}
 }

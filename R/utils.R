@@ -1488,13 +1488,12 @@ get_mean_median <- \(fgt, lkup, fill_gaps) {
     setnames(dist, "survey_median_ppp", "median")
 
   }
-  joyn::joyn(x = fgt,
-             y = dist,
-             by = c('country_code', "reporting_year", "reporting_level"),
-             match_type = "m:1", # multiple povlines
-             keep = "left",
-             reportvar = FALSE,
-             verbose = FALSE)
+  join(x = fgt,
+      y = dist,
+      on = c('country_code', "reporting_year", "reporting_level"),
+      how = "left",
+      validate = "m:1", # multiple povlines
+      verbose = 0L)
 }
 
 
