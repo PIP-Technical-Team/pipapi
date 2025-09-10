@@ -2,7 +2,7 @@
 % Please edit documentation in R/fgt_cumsum.R
 \name{update_pair_dict}
 \alias{update_pair_dict}
-\title{Update dictionary with new pairs}
+\title{Update dictionary with new (id, reporting_level) pairs}
 \usage{
 update_pair_dict(dict, DT, id_col = "id", level_col = "reporting_level")
 }
@@ -19,6 +19,7 @@ update_pair_dict(dict, DT, id_col = "id", level_col = "reporting_level")
 Updated data.table dictionary.
 }
 \description{
-Appends new (id, reporting_level) pairs to the dictionary if needed.
+Appends new (id, reporting_level) pairs to the dictionary if needed, ensuring all groups are encoded.
+Used to keep the dictionary in sync with new survey data.
 }
 \keyword{internal}

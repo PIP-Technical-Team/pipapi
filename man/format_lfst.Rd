@@ -2,37 +2,20 @@
 % Please edit documentation in R/fgt_cumsum.R
 \name{format_lfst}
 \alias{format_lfst}
-\title{format the lfst list to usable data to estimate poverty}
+\title{Format loaded survey list for grouped poverty analysis}
 \usage{
 format_lfst(lfst, dict)
 }
 \arguments{
-\item{lfst}{List from load_list_refy().}
+\item{lfst}{Named list of data.tables, as returned by load_list_refy().}
+
+\item{dict}{data.table dictionary for id/reporting_level encoding (from build_pair_dict()).}
 }
 \value{
-list with DT and g (GRP object)
-
-List with elements: DT (data.table) and g (GRP object).
+List with elements: DT (data.table of all surveys, with id_rl) and g (GRP object for grouping by id_rl).
 }
 \description{
-format the lfst list to usable data to estimate poverty
+Combines a list of survey data.tables into a single data.table and encodes group identifiers using a dictionary.
+Returns a data.table and a GRP object for efficient grouped operations, used as a preprocessing step for FGT and population calculations.
 }
-\keyword{Format}
-\keyword{GRP}
-\keyword{Takes}
-\keyword{a}
-\keyword{and}
-\keyword{data.table}
-\keyword{estimation}
-\keyword{for}
-\keyword{from}
-\keyword{grouped}
 \keyword{internal}
-\keyword{lfst}
-\keyword{list}
-\keyword{load_list_refy()}
-\keyword{object}
-\keyword{operations.}
-\keyword{poverty}
-\keyword{returns}
-\keyword{with}

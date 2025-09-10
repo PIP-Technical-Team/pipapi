@@ -2,7 +2,7 @@
 % Please edit documentation in R/fgt_cumsum.R
 \name{build_pair_dict}
 \alias{build_pair_dict}
-\title{Dictionary for fast joins}
+\title{Build dictionary for id/reporting_level encoding}
 \usage{
 build_pair_dict(lkup, fill_gaps = TRUE)
 }
@@ -12,24 +12,10 @@ build_pair_dict(lkup, fill_gaps = TRUE)
 \item{fill_gaps}{Logical, TRUE for lineup years, FALSE for survey years.}
 }
 \value{
-data.table with dictionary for merges.
-
 data.table with columns id, reporting_level, and code.
 }
 \description{
-Dictionary for fast joins
+Creates a data.table dictionary for mapping (id, reporting_level) pairs to integer codes for fast joins and decoding.
+Used for efficient merging and decoding in the FGT pipeline.
 }
-\keyword{Build}
-\keyword{Creates}
-\keyword{a}
-\keyword{and}
-\keyword{by}
-\keyword{data.table}
-\keyword{dictionary}
-\keyword{fast}
-\keyword{for}
-\keyword{id}
 \keyword{internal}
-\keyword{joins}
-\keyword{merging}
-\keyword{reporting_level.}

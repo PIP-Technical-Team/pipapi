@@ -2,7 +2,7 @@
 % Please edit documentation in R/fgt_cumsum.R
 \name{decode_pairs}
 \alias{decode_pairs}
-\title{Decode integer code to id and reporting level}
+\title{Decode integer code to (id, reporting_level) labels}
 \usage{
 decode_pairs(
   DT,
@@ -28,8 +28,7 @@ decode_pairs(
 
 \item{keep_code}{Logical, keep code column if TRUE.}
 
-\item{add_true_vars}{logical, add \code{country_code} and \code{reporting_year} and
-removes var \code{id}}
+\item{add_true_vars}{Logical, add country_code and reporting_year columns and remove id.}
 
 \item{verbose}{Integer, verbosity level.}
 }
@@ -37,6 +36,7 @@ removes var \code{id}}
 data.table with id and reporting_level columns added.
 }
 \description{
-Joins labels by code using a dictionary.
+Joins a data.table with a dictionary to recover id and reporting_level columns from integer codes.
+Used after FGT calculations to restore human-readable labels.
 }
 \keyword{internal}

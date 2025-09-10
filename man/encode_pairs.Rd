@@ -2,7 +2,7 @@
 % Please edit documentation in R/fgt_cumsum.R
 \name{encode_pairs}
 \alias{encode_pairs}
-\title{Encode pairs with integer code}
+\title{Encode (id, reporting_level) pairs as integer codes}
 \usage{
 encode_pairs(
   DT,
@@ -36,6 +36,7 @@ encode_pairs(
 data.table with code column added.
 }
 \description{
-Adds an integer code column to a data.table by joining with a dictionary.
+Joins a data.table with a dictionary to add an integer code column for each (id, reporting_level) pair.
+Used for efficient grouping and decoding in the FGT pipeline.
 }
 \keyword{internal}

@@ -1,17 +1,13 @@
 # MAIN -------------------------------
 
-#' format the lfst list to usable data to estimate poverty
+#' Format loaded survey list for grouped poverty analysis
 #'
-#' @param lfst list from load_list_refy()
+#' Combines a list of survey data.tables into a single data.table and encodes group identifiers using a dictionary.
+#' Returns a data.table and a GRP object for efficient grouped operations, used as a preprocessing step for FGT and population calculations.
 #'
-#' @return list with DT and g (GRP object)
-#' @keywords internal
-#' Format lfst list for poverty estimation
-#'
-#' Takes a list from load_list_refy() and returns a list with a data.table and a GRP object for grouped operations.
-#'
-#' @param lfst List from load_list_refy().
-#' @return List with elements: DT (data.table) and g (GRP object).
+#' @param lfst Named list of data.tables, as returned by load_list_refy().
+#' @param dict data.table dictionary for id/reporting_level encoding (from build_pair_dict()).
+#' @return List with elements: DT (data.table of all surveys, with id_rl) and g (GRP object for grouping by id_rl).
 #' @keywords internal
 format_lfst <- \(lfst, dict) {
 
@@ -36,12 +32,14 @@ format_lfst <- \(lfst, dict) {
 
 
 
-#' Computes total population by group using the output of format_lfst().
+#' Compute total population by survey and reporting level
+#'
+#' Sums the weights for each (id, reporting_level) group in the combined survey data.
+#' Used as a denominator for FGT and Watts index calculations.
 #'
 #' @param LDTg List from format_lfst() with DT and g objects.
-#' @param dict data dictionary from build_pair_dict()
-#'
-#' @return data.table with total population by group.
+#' @param dict data.table dictionary for id/reporting_level encoding (from build_pair_dict()).
+#' @return data.table with total population by group (columns: id_rl, W).
 #' @keywords internal
 get_total_pop <- \(LDTg, dict) {
   list2env(LDTg, envir = environment())
@@ -54,7 +52,16 @@ get_total_pop <- \(LDTg, dict) {
     encode_pairs(dict, drop_labels = TRUE)
 }
 
-
+#' Compute FGT and Watts indices for all groups and poverty lines
+#'
+#' Calculates headcount, poverty gap, poverty severity, and Watts index for each group and poverty line using cumulative sums.
+#'
+#' @param LDTg List from format_lfst() with DT and g objects.
+#' @param tpop data.table with total population by group (from get_total_pop()).
+#' @param povline Numeric vector of poverty lines.
+#' @param drop_vars Logical, if TRUE returns only summary columns.
+#' @return data.table with FGT and Watts measures by group and poverty line.
+#' @keywords internal
 fgt_cumsum <- \(LDTg, tpop, povline,
                 drop_vars = TRUE) {
   list2env(LDTg, envir = environment())
@@ -122,16 +129,10 @@ fgt_cumsum <- \(LDTg, tpop, povline,
 # 1) Build pair dictionary (DT)   #
 # ------------------------------- #
 
-#' Dictionary for fast joins
+#' Build dictionary for id/reporting_level encoding
 #'
-#' @param lkup lkup object
-#' @param fill_gaps TRUE for lineup years, FALSE for survey years
-#'
-#' @return data.table with dictionary for merges.
-#' @keywords internal
-#' Build dictionary for fast joins
-#'
-#' Creates a data.table dictionary for merging by id and reporting_level.
+#' Creates a data.table dictionary for mapping (id, reporting_level) pairs to integer codes for fast joins and decoding.
+#' Used for efficient merging and decoding in the FGT pipeline.
 #'
 #' @param lkup Lookup object containing refy_lkup and svy_lkup.
 #' @param fill_gaps Logical, TRUE for lineup years, FALSE for survey years.
@@ -164,12 +165,10 @@ build_pair_dict <- function(lkup, fill_gaps = TRUE) {
 # -------------------------------------------- #
 # 2) Encode: add integer code via collapse::join
 # -------------------------------------------- #
-# DT: data.table to encode (by reference not guaranteed since join copies x->result)
-# dict: data.table from build_pair_dict()
-# code_col: name of code column to write
-#' Encode pairs with integer code
+#' Encode (id, reporting_level) pairs as integer codes
 #'
-#' Adds an integer code column to a data.table by joining with a dictionary.
+#' Joins a data.table with a dictionary to add an integer code column for each (id, reporting_level) pair.
+#' Used for efficient grouping and decoding in the FGT pipeline.
 #'
 #' @param DT data.table to encode.
 #' @param dict data.table from build_pair_dict().
@@ -230,9 +229,10 @@ encode_pairs <- function(DT, dict,
 # ------------------------------------------------ #
 # 3) Decode: join labels by code via collapse::join #
 # ------------------------------------------------ #
-#' Decode integer code to id and reporting level
+#' Decode integer code to (id, reporting_level) labels
 #'
-#' Joins labels by code using a dictionary.
+#' Joins a data.table with a dictionary to recover id and reporting_level columns from integer codes.
+#' Used after FGT calculations to restore human-readable labels.
 #'
 #' @param DT data.table to decode.
 #' @param dict data.table from build_pair_dict().
@@ -240,10 +240,8 @@ encode_pairs <- function(DT, dict,
 #' @param id_col Name of id column in dict.
 #' @param level_col Name of reporting level column in dict.
 #' @param keep_code Logical, keep code column if TRUE.
-#' @param add_true_vars logical, add `country_code` and `reporting_year` and
-#' removes var `id`
+#' @param add_true_vars Logical, add country_code and reporting_year columns and remove id.
 #' @param verbose Integer, verbosity level.
-#'
 #' @return data.table with id and reporting_level columns added.
 #' @keywords internal
 decode_pairs <- function(DT, dict,
@@ -288,9 +286,10 @@ decode_pairs <- function(DT, dict,
 # ----------------------------------------------------- #
 # 4) Update dict with new pairs (append-only, fast DT)  #
 # ----------------------------------------------------- #
-#' Update dictionary with new pairs
+#' Update dictionary with new (id, reporting_level) pairs
 #'
-#' Appends new (id, reporting_level) pairs to the dictionary if needed.
+#' Appends new (id, reporting_level) pairs to the dictionary if needed, ensuring all groups are encoded.
+#' Used to keep the dictionary in sync with new survey data.
 #'
 #' @param dict data.table dictionary from build_pair_dict().
 #' @param DT data.table with id and reporting_level columns.
@@ -318,18 +317,12 @@ update_pair_dict <- function(dict, DT,
 
 
 
-#' load refy list
+#' Load survey data from file list
 #'
-#' @param input_list list. output from [create_full_list]
-#' @param path character: directory path
+#' Reads a list of survey files (e.g., .fst) and returns a named list of data.tables, each with an id column.
+#' Used as the first step in the pipeline after creating the file list.
 #'
-#' @return character vector
-#' @keywords internal
-#' Load refy list
-#'
-#' Loads a list of files and returns a named list of data.tables, each with an id column.
-#'
-#' @param input_list Character vector of file paths (output from create_full_list).
+#' @param input_list Character vector of file paths (from create_full_list()).
 #' @return Named list of data.tables, each with an id column.
 #' @keywords internal
 load_list_refy <- \(input_list){

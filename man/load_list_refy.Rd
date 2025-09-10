@@ -2,37 +2,18 @@
 % Please edit documentation in R/fgt_cumsum.R
 \name{load_list_refy}
 \alias{load_list_refy}
-\title{load refy list}
+\title{Load survey data from file list}
 \usage{
 load_list_refy(input_list)
 }
 \arguments{
-\item{input_list}{Character vector of file paths (output from create_full_list).}
-
-\item{path}{character: directory path}
+\item{input_list}{Character vector of file paths (from create_full_list()).}
 }
 \value{
-character vector
-
 Named list of data.tables, each with an id column.
 }
 \description{
-load refy list
+Reads a list of survey files (e.g., .fst) and returns a named list of data.tables, each with an id column.
+Used as the first step in the pipeline after creating the file list.
 }
-\keyword{Load}
-\keyword{Loads}
-\keyword{a}
-\keyword{an}
-\keyword{and}
-\keyword{column.}
-\keyword{data.tables,}
-\keyword{each}
-\keyword{files}
-\keyword{id}
 \keyword{internal}
-\keyword{list}
-\keyword{named}
-\keyword{of}
-\keyword{refy}
-\keyword{returns}
-\keyword{with}

@@ -2,19 +2,20 @@
 % Please edit documentation in R/fgt_cumsum.R
 \name{get_total_pop}
 \alias{get_total_pop}
-\title{Computes total population by group using the output of format_lfst().}
+\title{Compute total population by survey and reporting level}
 \usage{
 get_total_pop(LDTg, dict)
 }
 \arguments{
 \item{LDTg}{List from format_lfst() with DT and g objects.}
 
-\item{dict}{data dictionary from build_pair_dict()}
+\item{dict}{data.table dictionary for id/reporting_level encoding (from build_pair_dict()).}
 }
 \value{
-data.table with total population by group.
+data.table with total population by group (columns: id_rl, W).
 }
 \description{
-Computes total population by group using the output of format_lfst().
+Sums the weights for each (id, reporting_level) group in the combined survey data.
+Used as a denominator for FGT and Watts index calculations.
 }
 \keyword{internal}
