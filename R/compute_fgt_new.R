@@ -357,57 +357,65 @@ pov_from_DT <- function(DT, povline, g, cores = 1) {
 #'
 #' @return Returns a data.table with columns: line, fgt0,fgt1,fgt2,watts
 #' @export
-fgt_watts_cumsum <- function(y, w, lines) {
-  # types
+fgt_watts_cumsum <- function(y, w, lines,
+                             check_sorted = FALSE) {
+  # 1) (Optional) type normalization: only coerce if needed
+  if (!is.double(y))     y     <- as.double(y)
+  if (!is.double(w))     w     <- as.double(w)
+  if (!is.double(lines)) lines <- as.double(lines)
 
-  y     <- as.double(y)
-  w     <- as.double(w)
-  lines <- as.double(lines)
+  # 2) Optional sort check (fail fast during validation)
+  if (check_sorted) {
+    if (is.unsorted(y, strictly = FALSE)) {
+      cli::cli_abort("{.code y} must be sorted ascending within the subgroup.
+                     Set {.code check_sorted=FALSE} to skip.")
+      }
+  }
+
+  # 3) Handle empty group quickly
   n <- length(y)
-
   if (n == 0L) {
     return(data.table(line = lines,
                       fgt0 = 0, fgt1 = 0, fgt2 = 0, watts = 0))
   }
 
-  # total weight (collapse: fsum is very fast)
-  W <- fsum(w)
+  # 4) Group totals and prefix sums (collapse is very fast)
+  W     <- fsum(w)             # total weight
+  cw    <- fcumsum(w)          # cum pop
+  cwy   <- fcumsum(w * y)      # cum welfare
+  cwy2  <- fcumsum(w * (y*y))  # cum  pop by welfare sqr
 
-  # cumulative sums (collapse: fcumsum is multithreaded-aware, very fast)
-  cw    <- fcumsum(w)
-  cwy   <- fcumsum(w * y)
-  cwy2  <- fcumsum(w * (y * y))
-
-  # Watts needs log(y) with y>0; clamp tiny positives for safety
+  # Watts: use log(y) (y must be positive; clamp tiny to avoid -Inf)
   y_pos <- pmax(y, 1e-12)
-  cwlog <- fcumsum(w * log(y_pos))
+  cwlog <- fcumsum(w * log(y_pos))  # Σ w log y
 
-  # index of last obs <= line for each z (0..n)
+  # 5) For each z in `lines`, i = number of y's ≤ z (0..n)
+  #    findInterval is C-coded; for increasing y, i = count(y ≤ z)
   i <- findInterval(lines, y)
 
-  take <- function(cs) {
-    out <- cs[pmax.int(i, 0L)]
-    out[i == 0L] <- 0
-    out
-  }
+  # 6) Pull the needed prefixes at indices i; use the "prefix trick" for i=0
+  #    so that when no poor, sum is 0: c(0, cs)[i + 1].
+  take <- function(cs) c(0, cs)[i + 1L]
 
-  cw_i    <- take(cw)
-  cwy_i   <- take(cwy)
-  cwy2_i  <- take(cwy2)
-  cwlog_i <- take(cwlog)
+  cw_i    <- take(cw)     # Σ_{y≤z} w
+  cwy_i   <- take(cwy)    # Σ_{y≤z} w y
+  cwy2_i  <- take(cwy2)   # Σ_{y≤z} w y^2
+  cwlog_i <- take(cwlog)  # Σ_{y≤z} w log y
 
+  # 7) Assemble the indices, with small clamps for numerical safety
   z    <- lines
   z2   <- z * z
-  z_s  <- pmax(z, 1e-12)
-  z2_s <- pmax(z2, 1e-24)
+  z_s  <- pmax(z,  1e-12)   # avoid division by 0 in FGT1, Watts
+  z2_s <- pmax(z2, 1e-24)   # avoid division by 0 in FGT2
 
-  data.table(
-    line  = lines,
-    fgt0  = cw_i / W,
-    fgt1  = (z * cw_i - cwy_i) / (z_s * W),
-    fgt2  = (z2 * cw_i - 2 * z * cwy_i + cwy2_i) / (z2_s * W),
-    watts = (log(z_s) * cw_i - cwlog_i) / W
-  )
+  # 8) Closed-form formulas from the algebra above
+  fgt0  <- cw_i / W
+  fgt1  <- (z * cw_i - cwy_i) / (z_s * W)
+  fgt2  <- (z2 * cw_i - 2 * z * cwy_i + cwy2_i) / (z2_s * W)
+  watts <- (log(z_s) * cw_i - cwlog_i) / W
+
+  # 9) Return tidy result
+  data.table(line = lines, fgt0 = fgt0, fgt1 = fgt1, fgt2 = fgt2, watts = watts)
 }
 
 
