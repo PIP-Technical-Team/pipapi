@@ -1478,14 +1478,14 @@ get_mean_median <- \(fgt, lkup, fill_gaps) {
   if (isFALSE(lkup$use_new_lineup_version)) return(fgt)
 
   if (fill_gaps) {
-    dist <- lkup$lineup_dist_stats[,
-                                   .(country_code, reporting_year,
-                                     reporting_level, mean, median)]
+    dist <- get_vars(lkup$lineup_dist_stats,
+                     c("country_code", "reporting_year",
+                       "reporting_level", "mean", "median"))
   } else {
-    dist <- lkup$dist_stats[,
-                            .(country_code, reporting_year,
-                              reporting_level, mean,
-                              median = survey_median_ppp)]
+    dist <- get_vars(lkup$dist_stats,
+                     c("country_code", "reporting_year",
+                       "reporting_level", "mean", "survey_median_ppp"))
+    setnames(dist, "survey_median_ppp", "median")
 
   }
   joyn::joyn(x = fgt,

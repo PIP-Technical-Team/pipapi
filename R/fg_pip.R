@@ -75,33 +75,6 @@ fg_pip <- function(country,
                      povline = povline) |>
     decode_pairs(dict = dict)
 
-  # lt <- lapply(lt, \(x) {
-  #                  add_attributes_as_columns_vectorized(x)
-  #              })
-
-  # Extract some attributes
-  # lt_att <- get_lt_attr(lt)
-
-  # get rows indices
-  # l_rl_rows <- get_rl_rows(lt_att)
-
-
-  # DT <- map_lt_to_dt(lt, l_rl_rows)
-  # setorder(DT, country_code, reporting_year, reporting_level, welfare)
-  # g  <- GRP(DT,
-  #           ~ country_code + reporting_year + reporting_level,
-  #           sort = TRUE)
-
-
-
-
-  # ZP Add: do fgt estimations using `res <- lapply(lt, process_dt, povline = povline)`
-  #-------------------------
-  fgt <- map_fgt(lt, l_rl_rows, povline) |>
-    funique() # TO REMOVE
-
-  # convert reporting year to numeric
-  fgt[, reporting_year := as.numeric(reporting_year)]
 
   # Add just mean and median
   res <- get_mean_median(fgt, lkup, fill_gaps = TRUE)

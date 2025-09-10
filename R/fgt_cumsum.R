@@ -240,7 +240,8 @@ encode_pairs <- function(DT, dict,
 #' @param id_col Name of id column in dict.
 #' @param level_col Name of reporting level column in dict.
 #' @param keep_code Logical, keep code column if TRUE.
-#' @param add_true_vars logical, add `country_code` and `reporting_year`
+#' @param add_true_vars logical, add `country_code` and `reporting_year` and
+#' removes var `id`
 #' @param verbose Integer, verbosity level.
 #'
 #' @return data.table with id and reporting_level columns added.
@@ -276,7 +277,8 @@ decode_pairs <- function(DT, dict,
     out[, `:=`(
         country_code   = gsub("(.+)(_.+)", "\\1", id),
         reporting_year = as.integer(gsub("(.+_)(.+)", "\\2", id))
-      )]
+      )][,
+         id := NULL]
   }
 
   if (!keep_code) out[, (code_col) := NULL]
