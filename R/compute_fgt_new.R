@@ -345,7 +345,3 @@ pov_from_DT <- function(DT, povline, g, cores = 1) {
 # }
 
 
-
-
-# NEW ARPPOACH USING CUMSUM ------------------
-

@@ -60,7 +60,7 @@ fg_pip <- function(country,
 
   full_list <- create_full_list(metadata = metadata)
 
-  lt <-
+  lfst <-
     load_list_refy(input_list = full_list)
 
   # lt <- lapply(lt, \(x) {
