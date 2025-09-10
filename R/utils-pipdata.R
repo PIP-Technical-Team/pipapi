@@ -7,25 +7,28 @@
 #' @keywords internal
 load_list_refy <- \(input_list){
 
-  cores <- get_from_pipapienv("cores_to_use")
-  inames <- fs::path_file(input_list) |>
+  id_names <- input_list |>
+    fs::path_file() |>
     fs::path_ext_remove()
 
-  seq_flex <- if (interactive()) {
-    cli::cli_progress_along
-  } else {
-    base::seq_along
-  }
+    seq_flex <- if (interactive()) {
+      cli::cli_progress_along
+    } else {
+      base::seq_along
+    }
 
-  dl <- lapply(seq_flex(input_list), \(x) {
-    qfile <- input_list[x]
-    qname <- inames[x]
-    qs::qread(file = qfile, nthreads = cores) |>
-      _[, id := qname]
-    }) |>
-    setNames(inames)
 
-  dl
+  lfst <- lapply(seq_flex(input_list),
+                 \(i) {
+                   x <- lup_files[i]
+                   idn <- fs::path_file(x) |>
+                     fs::path_ext_remove()
+                   fst::read_fst(x, as.data.table = TRUE) |>
+                     _[, id := idn]
+                 }) |>
+    setNames(id_names)
+
+  lfst
 }
 
 
