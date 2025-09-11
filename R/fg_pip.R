@@ -58,23 +58,31 @@ fg_pip <- function(country,
                 data_in_cache = data_present_in_master))
   }
 
-  dict <- build_pair_dict(lkup = lkup, fill_gaps = TRUE)
+  # Build a dictionary for encoding (id, reporting_level) pairs as integer codes.
+  dict <- build_pair_dict(lkup = lkup,
+                          fill_gaps = TRUE)
 
-
+  # Create a list of file paths for all surveys to be loaded, based on the filtered metadata.
   full_list <- create_full_list(metadata = metadata)
 
-  lfst <-
-    load_list_refy(input_list = full_list)
+  # Load all survey data files into a named list of data.tables, each with an id column.
+  lfst <- load_list_refy(input_list = full_list)
 
+  # Combine all loaded surveys into a single data.table, encode group identifiers,
+  # and create a GRP object for efficient grouping.
   LDTg <- format_lfst(lfst = lfst,
                       dict = dict)
-  tpop <- get_total_pop(LDTg = LDTg,
-                        dict = dict)
-  fgt <-  fgt_cumsum(LDTg   = LDTg,
-                     tpop   = tpop,
-                     povline = povline) |>
-    decode_pairs(dict = dict)
 
+  # Compute the total population (sum of weights) for each group (id_rl) in
+  # the combined survey data.
+  tpop <- get_total_pop(LDTg = LDTg)
+
+  # Compute FGT and Watts indices for all groups and poverty lines, then decode
+  # integer codes back to (country_code, reporting_year, reporting_level).
+  fgt <- fgt_cumsum(LDTg = LDTg,
+                    tpop = tpop,
+                    povline = povline) |>
+    decode_pairs(dict = dict)
 
   # Add just mean and median
   res <- get_mean_median(fgt, lkup, fill_gaps = TRUE)

@@ -38,18 +38,16 @@ format_lfst <- \(lfst, dict) {
 #' Used as a denominator for FGT and Watts index calculations.
 #'
 #' @param LDTg List from format_lfst() with DT and g objects.
-#' @param dict data.table dictionary for id/reporting_level encoding (from build_pair_dict()).
 #' @return data.table with total population by group (columns: id_rl, W).
 #' @keywords internal
-get_total_pop <- \(LDTg, dict) {
+get_total_pop <- \(LDTg) {
   list2env(LDTg, envir = environment())
   rm(LDTg)
   add_vars(g[["groups"]],
            get_vars(DT, c("weight")) |>
            fsum(g)) |>
     setnames(old = "weight",
-             new =  "W") |>
-    encode_pairs(dict, drop_labels = TRUE)
+             new =  "W")
 }
 
 #' Compute FGT and Watts indices for all groups and poverty lines
@@ -110,8 +108,8 @@ fgt_cumsum <- \(LDTg, tpop, povline,
   # 6) Compute measures (vectorized). Small clamps for numerical safety.
   CS[, `:=`(
     headcount        = cw / W,
-    poverty_gap      = (z * cw - cwy) / (z_s * W),
-    poverty_severity = (z2 * cw - 2 * z * cwy + cwy2) / (z2_s * W),
+    poverty_gap      = (z * cw - cwy) / (z * W),
+    poverty_severity = (z2 * cw - 2 * z * cwy + cwy2) / (z2 * W),
     watts            = (logz * cw - cwylog) / W
   )]
 
@@ -340,7 +338,7 @@ load_list_refy <- \(input_list){
 
   lfst <- lapply(seq_flex(input_list),
                  \(i) {
-                   x <- lup_files[i]
+                   x <- input_list[i]
                    idn <- fs::path_file(x) |>
                      fs::path_ext_remove()
                    fst::read_fst(x, as.data.table = TRUE) |>

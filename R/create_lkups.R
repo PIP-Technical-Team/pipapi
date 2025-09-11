@@ -186,6 +186,8 @@ create_lkups <- function(data_dir, versions) {
 
 
   # ZP ADD - CREATE OBJECT: refy_lkup
+
+  # CREATE OBJECT: refy_lkup -------------
   #___________________________________________________________________________
   if (use_new_lineup_version) {
       refy_lkup_path <- fs::path(data_dir,
@@ -279,7 +281,7 @@ create_lkups <- function(data_dir, versions) {
                             paste0(country_code,
                                    "_",
                                    reporting_year),
-                            ext = "qs") |>
+                            ext = "fst") |>
                      as.character()
                  }
       ]
