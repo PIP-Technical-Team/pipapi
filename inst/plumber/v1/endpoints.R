@@ -281,7 +281,6 @@ function(req, res) {
   res$serializer <- pipapi::assign_serializer(format = params$format)
   params$format  <- NULL
   params$version <- NULL
-  params$censor  <- TRUE
 
   out <- do.call(pipapi::pip_agg, params)
   out
@@ -676,6 +675,7 @@ function(req) {
   params <- req$argsQuery
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
+  params$censor  <- TRUE
 
   out <- do.call(pipapi::ui_pc_charts, params)
   return(out)
@@ -700,6 +700,7 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$pop_units <- 1
   params$version <- NULL
+  params$censor  <- TRUE
 
   do.call(pipapi::ui_pc_charts, params)
 
