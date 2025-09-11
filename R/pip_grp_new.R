@@ -82,7 +82,7 @@ pip_grp_new <- \(country         = "ALL",
       out <- censor_rows(out, lkup[["censored"]], type = "regions")
     }
 
-
+    out
 }
 
 #' Subset country_code values based on matches in *_code columns and country_code
