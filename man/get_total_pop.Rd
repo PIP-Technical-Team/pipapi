@@ -4,12 +4,10 @@
 \alias{get_total_pop}
 \title{Compute total population by survey and reporting level}
 \usage{
-get_total_pop(LDTg, dict)
+get_total_pop(LDTg)
 }
 \arguments{
 \item{LDTg}{List from format_lfst() with DT and g objects.}
-
-\item{dict}{data.table dictionary for id/reporting_level encoding (from build_pair_dict()).}
 }
 \value{
 data.table with total population by group (columns: id_rl, W).

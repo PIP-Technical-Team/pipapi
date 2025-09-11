@@ -127,9 +127,7 @@ fg_pip <- function(country,
               verbose       = 0,
               overid        = 2)
 
-  setnames(out,
-           "povline",
-           "poverty_line")
+  setnames(out, "povline", "poverty_line")
 
   # Ensure that out does not have duplicates
   out <- fg_remove_duplicates(out,

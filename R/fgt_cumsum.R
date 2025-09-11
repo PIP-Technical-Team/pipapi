@@ -113,10 +113,12 @@ fgt_cumsum <- \(LDTg, tpop, povline,
     watts            = (logz * cw - cwylog) / W
   )]
 
+  setnames(CS, "z", "povline")
   if (!drop_vars) {
     return(CS)
   }
-  get_vars(CS, c("id_rl", "headcount", "poverty_gap", "poverty_severity", "watts"))
+  get_vars(CS, c("id_rl", "povline", "headcount",
+                 "poverty_gap", "poverty_severity", "watts"))
 
 }
 
