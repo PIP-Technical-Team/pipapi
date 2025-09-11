@@ -16,7 +16,7 @@ pip_grp_new <- \(country         = "ALL",
   # subgroups aggregations only supported for "all" countries
   country <- toupper(country)
   year    <- toupper(year)
-  reporting_level <- "all"
+
   if (!all(country %in% c("ALL", lkup$query_controls$region$values))) {
     country <- "ALL"
   }
