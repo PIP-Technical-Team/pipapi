@@ -80,13 +80,16 @@ ui_hp_countries <- function(country = c("IDN", "CIV"),
   )
 
   # Add pop_in_poverty and scale according to pop_units
-  out$pop_in_poverty <- out$reporting_pop * out$headcount / pop_units
-  out$reporting_pop <- out$reporting_pop / pop_units
+  out[,
+      `:=`(
+        pop_in_poverty = reporting_pop * headcount / pop_units,
+        reporting_pop  = reporting_pop / pop_units
+        )]
 
-  out <- out[, c(
+  out <- get_vars(out, c(
     "region_code", "country_code", "reporting_year",
     "poverty_line", "reporting_pop", "pop_in_poverty"
-  )]
+  ))
 
   return(out)
 }
