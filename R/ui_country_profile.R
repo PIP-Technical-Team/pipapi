@@ -52,14 +52,6 @@ ui_cp_ki_headcount <- function(country,
                  reporting_level = "all",
                  lkup            = lkup)
 
-  # Select max year and country
-  # res <-
-  #   res_all[res_all[,
-  #                 .I[which.max(reporting_year)],
-  #                 by = country_code]$V1
-  #         ][
-  #           country_code == country
-  #           ]
   res <-
     res_all[country_code == country
             ][,
@@ -83,8 +75,10 @@ ui_cp_ki_headcount <- function(country,
   ### TEMP FIX END
 
   out <- data.table::data.table(
-    country_code = country, reporting_year = res$reporting_year,
-    poverty_line = povline, headcount = res$headcount
+    country_code   = country,
+    reporting_year = res$reporting_year,
+    poverty_line   = povline,
+    headcount      = res$headcount
   )
   return(out)
 }

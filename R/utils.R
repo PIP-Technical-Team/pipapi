@@ -1481,16 +1481,22 @@ get_mean_median <- \(fgt, lkup, fill_gaps) {
     dist <- get_vars(lkup$lineup_dist_stats,
                      c("country_code", "reporting_year",
                        "reporting_level", "mean", "median"))
+    by_var <- c('country_code', "reporting_year", "reporting_level")
   } else {
     dist <- get_vars(lkup$dist_stats,
                      c("country_code", "reporting_year",
-                       "reporting_level", "mean", "survey_median_ppp"))
+                       "reporting_level", "mean",
+                       "survey_median_ppp", "welfare_type"))
     setnames(dist, "survey_median_ppp", "median")
 
+    by_var <- c('country_code',
+                "reporting_year",
+                "reporting_level",
+                "welfare_type")
   }
   join(x = fgt,
       y = dist,
-      on = c('country_code', "reporting_year", "reporting_level"),
+      on = by_var,
       how = "left",
       validate = "m:1", # multiple povlines
       verbose = 0L)
