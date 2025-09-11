@@ -281,6 +281,7 @@ function(req, res) {
   res$serializer <- pipapi::assign_serializer(format = params$format)
   params$format  <- NULL
   params$version <- NULL
+  params$censor  <- TRUE
 
   out <- do.call(pipapi::pip_agg, params)
   out
