@@ -311,7 +311,7 @@ ui_cp_download <- function(country   = "AGO",
   hc <- lapply(country, \(.) {
     ui_cp_ki_headcount(., year, povline, lkup)
   }) |>
-    data.table::rbindlist(use.names = TRUE)
+    rbindlist(use.names = TRUE)
 
   df <- lkup[["cp_lkups"]]$flat$flat_cp
   df <- df[country_code %chin% country]
