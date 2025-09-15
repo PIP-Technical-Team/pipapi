@@ -30,7 +30,8 @@ rg_pip <- function(country,
     data_dir        = data_dir,
     povline         = povline,
     cache_file_path = cache_file_path,
-    fill_gaps       = FALSE
+    fill_gaps       = FALSE,
+    popshare        = popshare
   )
 
   data_present_in_master <- metadata$data_present_in_master

@@ -16,8 +16,15 @@ subset_lkup <- function(country,
                         data_dir = NULL,
                         povline,
                         cache_file_path,
-                        fill_gaps
+                        fill_gaps,
+                        popshare = NULL
                         ) {
+
+  if (!is.null(popshare)) {
+    return(list(data_present_in_master = NULL,
+                lkup                   = lkup,
+                povline                = povline))
+  }
 
   # STEP 1 - Keep every row by default
   keep <- rep(TRUE, nrow(lkup))
