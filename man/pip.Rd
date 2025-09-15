@@ -15,7 +15,7 @@ pip(
   reporting_level = c("all", "national", "rural", "urban"),
   ppp = NULL,
   lkup,
-  censor = TRUE,
+  censor = FALSE,
   lkup_hash = lkup$cache_data_id$hash_pip,
   additional_ind = FALSE
 )

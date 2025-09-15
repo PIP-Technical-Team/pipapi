@@ -13,6 +13,7 @@ ui_pc_charts(
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
   pop_units = 1e+06,
+  censor = TRUE,
   lkup
 )
 }
@@ -35,6 +36,8 @@ sub-groups}
 
 \item{pop_units}{numeric: Units used to express population numbers (default
 to million)}
+
+\item{censor}{logical: Triggers censoring of country/year statistics}
 
 \item{lkup}{list: A list of lkup tables}
 }

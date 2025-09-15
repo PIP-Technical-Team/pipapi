@@ -14,7 +14,8 @@ subset_lkup(
   data_dir = NULL,
   povline,
   cache_file_path,
-  fill_gaps
+  fill_gaps,
+  popshare = NULL
 )
 }
 \arguments{
@@ -39,6 +40,9 @@ for region selection}
 
 \item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
 values for missing years}
+
+\item{popshare}{numeric: Proportion of the population living below the
+poverty line}
 }
 \value{
 data.frame

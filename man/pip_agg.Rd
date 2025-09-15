@@ -14,7 +14,7 @@ pip_agg(
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national"),
   lkup,
-  censor = TRUE,
+  censor = FALSE,
   lkup_hash = lkup$cache_data_id$hash_pip_grp,
   additional_ind = FALSE
 )
