@@ -265,6 +265,7 @@ update_master_file <- function(dat,
   "))
 
   duckdb::dbDisconnect(write_con)
+  invisible(gc())
   if (nr > 0 && verbose)  message(glue("{target_file} is updated."))
 
   return(nr)
@@ -335,6 +336,7 @@ reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'),
     DBI::dbExecute(write_con, "DELETE from fg_master_file")
   }
   duckdb::dbDisconnect(write_con)
+  invisible(gc())
 }
 
 create_duckdb_file <- function(cache_file_path) {
@@ -360,6 +362,7 @@ create_duckdb_file <- function(cache_file_path) {
                  watts     DOUBLE
   )")
   DBI::dbDisconnect(con)
+  invisible(gc())
 }
 
 
@@ -394,6 +397,7 @@ load_inter_cache <- function(lkup = NULL,
   # connection object if it is not closed More details here
   # https://app.clickup.com/t/868cdpe3q
   duckdb::dbDisconnect(con)
+  invisible(gc())
 
   setDT(master_file)
 }
