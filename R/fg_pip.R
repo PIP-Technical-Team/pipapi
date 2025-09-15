@@ -19,6 +19,7 @@ fg_pip <- function(country,
   interpolation_list  <- lkup$interpolation_list
   data_dir            <- lkup$data_root
   refy_lkup           <- lkup$refy_lkup # cleaned refy table, unique by country-years but some columns removed in order to do that
+  if (!is.null(popshare)) povline <- NULL
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   # fg_pip is called from multiple places like pip, pip_grp_logic. We have connection object created
