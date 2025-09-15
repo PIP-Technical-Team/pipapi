@@ -145,7 +145,17 @@ pip_old_lineups <- function(country         = "ALL",
     out <- main_data |>
       rowbind(cached_data)
 
-    update_master_file(main_data, cache_file_path, fill_gaps)
+
+    pl <- c(seq(from = 0.01, to = 5, by = 0.01),
+            seq(from = 5.1, to = 20, by = 0.1),
+            seq(from = 21, to = 100, by = 1),
+            seq(from = 105, to = 900, by = 5))
+    # Only update master file if poverty line is part of this pl list
+    # Using round to avoid precision error with decimals
+    if (all(round(povline, 2) %in% round(pl, 2))) {
+      update_master_file(main_data, cache_file_path, fill_gaps)
+    }
+
 
   } else {
     out <- cached_data
