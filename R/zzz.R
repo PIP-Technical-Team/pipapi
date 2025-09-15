@@ -43,6 +43,14 @@ pipapi_default_options <- list(
     min(8)
   set_in_pipapienv("cores_to_use", cores_to_use)
 
+
+  # pov lines to store
+  pl <- c(seq(from = 0.01, to = 5, by = 0.01),
+          seq(from = 5.1, to = 20, by = 0.1),
+          seq(from = 21, to = 100, by = 1),
+          seq(from = 105, to = 900, by = 5))
+  set_in_pipapienv("pl_to_store", pl)
+
   invisible()
 
 }

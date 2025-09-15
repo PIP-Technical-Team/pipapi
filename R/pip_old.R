@@ -147,10 +147,7 @@ pip_old <- function(country         = "ALL",
     # This will be used only for development purpose and we don't have any intention to use it in production.
     if(!is.null(cached_data)) {
       # Update cache with data
-      pl <- c(seq(from = 0.01, to = 5, by = 0.01),
-              seq(from = 5.1, to = 20, by = 0.1),
-              seq(from = 21, to = 100, by = 1),
-              seq(from = 105, to = 900, by = 5))
+      pl <- get_from_pipapienv("pl_to_store")
       # Only update master file if poverty line is part of this pl list
       # Using round to avoid precision error with decimals
       if (all(round(povline, 2) %in% round(pl, 2))) {
