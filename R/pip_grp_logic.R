@@ -73,7 +73,7 @@ pip_grp_logic <- function(country         = "ALL",
     ## This will then be re-used in various part of the function
     ## This is to avoid re-computing and re-loading the same data over and over
     fg_pip_master <- fg_pip_old(
-      country         = c(lcv$md_off_reg, lcv$user_off_reg),
+      country         = c(lcv$md_off_reg, lcv$user_alt_agg, lcv$user_off_reg),
       year            = year,
       povline         = povline,
       popshare        = NULL,
