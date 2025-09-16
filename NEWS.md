@@ -1,5 +1,28 @@
 # pipapi (development version)
 
+# pipapi 1.3.24
+* Incorporate Lineup distribution and Countries with Missing Data (CMD) distributions
+* New way to estimate poverty using cumulative sums
+* allow multiple `popshare`
+
+
+# pipapi 1.3.23
+* Add Venn diagram information to Country profiles
+* Add prosperity gap to country profiles chart.
+
+
+# pipapi 1.3.22
+
+* Fix issue with popshare in fill gaps calls.
+
+# pipapi 1.3.21
+* Fix issue with popshare in survey year calls
+* Fix problem with alternative aggregates like AFW and AFE
+* Make sure all tests pass
+* add logs in docker container
+
+# pipapi 1.3.20
+
 # pipapi 1.3.19
 * fix issue with comparability
 
