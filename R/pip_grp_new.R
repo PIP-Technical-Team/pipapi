@@ -23,7 +23,7 @@ pip_grp_new <- \(country         = "ALL",
 
   # Select countries to estimate poverty
   cts <- copy(lkup$aux_files$country_list)
-  country_code  <-  if (country != "ALL") {
+  country_code  <-  if (!"ALL" %in% country) {
     get_country_code_subset(dt = cts, country = country)
   } else {
     "ALL"
