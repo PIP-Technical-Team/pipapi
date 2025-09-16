@@ -118,8 +118,16 @@ ui_cp_charts <- function(country   = "AGO",
     x[country_code == country]
   })
 
-  dl <- list(append(dl, dl2))
-  names(dl) <- country
+  # Add prosperity gap
+  pg <- get_aux_table(data_dir = lkup$data_root,
+                      "pg_svy")
+
+  pg <- pg[country_code == country]
+  dl2[["pg"]] <- pg
+
+
+  dl <- list(append(dl, dl2)) |>
+    setNames(country)
 
   return(dl)
 }
