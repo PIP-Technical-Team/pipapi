@@ -18,16 +18,13 @@ fg_pip <- function(country,
   valid_regions       <- lkup$query_controls$region$values
   interpolation_list  <- lkup$interpolation_list
   data_dir            <- lkup$data_root
-  refy_lkup           <- lkup$refy_lkup # cleaned refy table, unique by country-years but some columns removed in order to do that
+  refy_lkup           <- lkup$refy_lkup # cleaned refy table, unique by country-
+
+  #povline is set to NULL if popshare is given
   if (!is.null(popshare)) povline <- NULL
+  if (is.list(povline))   povline <- unlist(povline)
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
-  # fg_pip is called from multiple places like pip, pip_grp_logic. We have connection object created
-  # when calling from `pip`. For other functions we create it here.
-  # if (is.null(con)) {
-  #   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
-  #   con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
-  # }
 
   # Handle interpolation
   metadata <- subset_lkup(
@@ -46,10 +43,7 @@ fg_pip <- function(country,
   data_present_in_master <- metadata$data_present_in_master
   povline  <- metadata$povline
   metadata <- metadata$lkup
-  # Remove aggregate distribution if popshare is specified
-  # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
-  metadata <- filter_lkup(metadata = metadata,
-                          popshare = popshare)
+
   setDT(metadata)
 
   # Return empty dataframe if no metadata is found (i.e. all in cache)
