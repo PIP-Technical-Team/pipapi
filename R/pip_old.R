@@ -307,6 +307,9 @@ rg_pip_old <- function(country,
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
   data_dir      <- lkup$data_root
+  # povline is set to NULL if popshare is given
+  if (!is.null(popshare)) povline <- NULL
+
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
 

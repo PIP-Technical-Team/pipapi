@@ -17,6 +17,8 @@ rg_pip <- function(country,
   valid_regions <- lkup$query_controls$region$values
   svy_lkup      <- lkup$svy_lkup
   data_dir      <- lkup$data_root
+  # povline is set to NULL if popshare is given
+  if (!is.null(popshare)) povline <- NULL
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
 
@@ -52,6 +54,12 @@ rg_pip <- function(country,
 
   # load data
   lt <- load_data_list(metadata)
+  # Calculate and update poverty line if popshare is passed
+  if (!is.null(popshare)) {
+    povline <- lapply(lt, \(x) {
+      wbpip:::md_infer_poverty_line(x$welfare, x$weight, popshare)
+      })
+  }
 
   # parallelization
   # res <- get_pov_estimates(lt, povline = povline)
