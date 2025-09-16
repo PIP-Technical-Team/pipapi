@@ -19,6 +19,7 @@ rg_pip <- function(country,
   data_dir      <- lkup$data_root
   # povline is set to NULL if popshare is given
   if (!is.null(popshare)) povline <- NULL
+  if (is.list(povline))   povline <- unlist(povline)
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
 
@@ -57,18 +58,27 @@ rg_pip <- function(country,
   # Calculate and update poverty line if popshare is passed
   if (!is.null(popshare)) {
     povline <- lapply(lt, \(x) {
-      wbpip:::md_infer_poverty_line(x$welfare, x$weight, popshare)
+      # wbpip:::md_infer_poverty_line(x$welfare, x$weight, popshare)
+      infer_poverty_line(welfare = x$welfare,
+                         weight = x$weight,
+                         popshare = popshare,
+                         include = FALSE,
+                         method = "nearest",
+                         assume_sorted = TRUE)
       })
   }
 
-  # parallelization
-  # res <- get_pov_estimates(lt, povline = povline)
-
-  # Regular lapply
-  res <- lapply(lt, process_dt, povline = povline)
+  # if popshare is not null, povline will be list
+  if (is.list(povline)) {
+    # If povline is list, it comes from infer_poverty_line when popshare
+    # is not null. Then, we have one set of lines per survey.
+    res <- Map(process_dt, lt, povline)
+  } else {
+    # if povline is vector, it should be applied to all surveys in lt
+    res <- lapply(lt, process_dt, povline = povline)
+  }
 
   res <- rbindlist(res, fill = TRUE)
-
 
   # clean data
   metadata[, file := basename(path)]

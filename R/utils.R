@@ -20,12 +20,6 @@ subset_lkup <- function(country,
                         popshare = NULL
                         ) {
 
-  if (!is.null(popshare)) {
-    return(list(data_present_in_master = NULL,
-                lkup                   = lkup,
-                povline                = povline))
-  }
-
   # STEP 1 - Keep every row by default
   keep <- rep(TRUE, nrow(lkup))
   # STEP 2 - Select countries
@@ -52,6 +46,12 @@ subset_lkup <- function(country,
 
 
   lkup <- lkup[keep, ]
+
+  if (!is.null(popshare)) {
+    return(list(data_present_in_master = NULL,
+                lkup                   = lkup,
+                povline                = NULL))
+  }
 
   # Return with grace
   return_if_exists(slkup           = lkup,
