@@ -315,7 +315,9 @@ treat_cache_and_main <- \(out, cache_file_path,
         rowbind(cached_data)
     }
 
-    pl <- get_from_pipapienv("pl_to_store")
+    pl      <- get_from_pipapienv("pl_to_store")
+    povline <- main_data[, poverty_line] |>
+      unique()
     # Only update master file if poverty line is part of this pl list
     # Using round to avoid precision error with decimals
     if (all(round(povline, 2) %in% round(pl, 2))) {
