@@ -42,9 +42,8 @@ fg_pip <- function(country,
 
   data_present_in_master <- metadata$data_present_in_master
   povline  <- metadata$povline
-  metadata <- metadata$lkup
-
-  setDT(metadata)
+  metadata <- metadata$lkup |>
+    setDT()
 
   # Return empty dataframe if no metadata is found (i.e. all in cache)
   if (nrow(metadata) == 0) {
@@ -62,22 +61,49 @@ fg_pip <- function(country,
 
   # Load all survey data files into a named list of data.tables, each with an id column.
   lfst <- load_list_refy(input_list = full_list)
+  # Calculate and update poverty line if popshare is passed
+  # YES. this is INEFFICIENT because welfare cumsum is already created in
+  # the data, but we don't have time... FIX for the next release
+  if (!is.null(popshare)) {
+    povline <- lapply(lfst, \(x) {
+      # wbpip:::md_infer_poverty_line(x$welfare, x$weight, popshare)
+      infer_poverty_line(welfare = x$welfare,
+                         weight = x$weight,
+                         popshare = popshare,
+                         include = FALSE,
+                         method = "nearest",
+                         assume_sorted = TRUE)
+    })
 
-  # Combine all loaded surveys into a single data.table, encode group identifiers,
-  # and create a GRP object for efficient grouping.
-  LDTg <- format_lfst(lfst = lfst,
-                      dict = dict)
+    fgt <- Map(process_dt, lfst, povline, id_var = "id") |>
+      rbindlist(fill = TRUE)
 
-  # Compute the total population (sum of weights) for each group (id_rl) in
-  # the combined survey data.
-  tpop <- get_total_pop(LDTg = LDTg)
+    fgt[, `:=`(
+      country_code   = gsub("(.+)(_.+)", "\\1", id),
+      reporting_year = as.integer(gsub("(.+_)(.+)", "\\2", id))
+    )][,
+       id := NULL]
 
-  # Compute FGT and Watts indices for all groups and poverty lines, then decode
-  # integer codes back to (country_code, reporting_year, reporting_level).
-  fgt <- fgt_cumsum(LDTg = LDTg,
-                    tpop = tpop,
-                    povline = povline) |>
-    decode_pairs(dict = dict)
+
+  } else {
+    # Combine all loaded surveys into a single data.table, encode group identifiers,
+    # and create a GRP object for efficient grouping.
+    LDTg <- format_lfst(lfst = lfst,
+                        dict = dict)
+
+    # Compute the total population (sum of weights) for each group (id_rl) in
+    # the combined survey data.
+    tpop <- get_total_pop(LDTg = LDTg)
+
+    # Compute FGT and Watts indices for all groups and poverty lines, then decode
+    # integer codes back to (country_code, reporting_year, reporting_level).
+    fgt <- fgt_cumsum(LDTg = LDTg,
+                      tpop = tpop,
+                      povline = povline) |>
+      decode_pairs(dict = dict)
+
+  }
+
 
   # Add just mean and median
   res <- get_mean_median(fgt, lkup, fill_gaps = TRUE)

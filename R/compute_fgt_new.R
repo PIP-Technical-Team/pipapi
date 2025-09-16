@@ -210,9 +210,12 @@ map_fgt <- \(lt, l_rl_rows, povline) {
     rbindlist(fill = TRUE)
 }
 
-process_dt <- function(dt, povline, mean_and_med = FALSE) {
+process_dt <- function(dt, povline,
+                       mean_and_med = FALSE,
+                       id_var = "file") {
+  byvars <- c(id_var, "reporting_level")
   dt[, compute_fgt_dt(.SD, "welfare", "weight", povline, mean_and_med),
-     by = .(file, reporting_level)]
+     by = byvars]
 }
 
 #' load survey year files and store them in a list
