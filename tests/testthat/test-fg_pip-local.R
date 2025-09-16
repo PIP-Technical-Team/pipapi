@@ -30,8 +30,7 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
     welfare_type    = "all",
     reporting_level = "all",
     ppp             = NULL,
-    lkup            = lkup,
-    con = con
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
@@ -44,8 +43,7 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
     welfare_type    = "all",
     reporting_level = "national",
     ppp             = NULL,
-    lkup            = lkup,
-    con             = con
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
@@ -61,8 +59,7 @@ test_that("Imputation is working for interpolated mixed distribution", {
     welfare_type    = "all",
     reporting_level = "all",
     ppp             = NULL,
-    lkup            = lkup,
-    con             = con
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
@@ -75,8 +72,7 @@ test_that("Imputation is working for interpolated mixed distribution", {
     welfare_type    = "all",
     reporting_level = "national",
     ppp             = NULL,
-    lkup            = lkup,
-    con             = con
+    lkup            = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
@@ -91,11 +87,11 @@ test_that("Imputation is working for interpolated aggregate distribution", {
     welfare_type    = "all",
     reporting_level = "all",
     ppp             = NULL,
-    lkup            = lkup,
-    con             = con
+    lkup            = lkup
   )
 
-  expect_equal(nrow(tmp$main_data), 2)
+  expect_equal(nrow(tmp$main_data), 0)
+  expect_equal(nrow(tmp$data_in_cache), 2)
 
   tmp <- fg_pip(
     country         = "CHN",
@@ -105,11 +101,11 @@ test_that("Imputation is working for interpolated aggregate distribution", {
     welfare_type    = "all",
     reporting_level = "national",
     ppp             = NULL,
-    lkup            = lkup,
-    con             = con
+    lkup            = lkup
   )
 
-  expect_equal(nrow(tmp$main_data), 2)
+  expect_equal(nrow(tmp$main_data), 0)
+  expect_equal(nrow(tmp$data_in_cache), 2)
 })
 
 
@@ -158,8 +154,7 @@ tmp <- fg_pip(
   welfare_type    = "all",
   reporting_level = "all",
   ppp             = NULL,
-  lkup            = lkup,
-  con             = con
+  lkup            = lkup
 )
 tmp <- tmp$data_in_cache |> as.data.table()
 # dt <- pip(country =  "ALL",

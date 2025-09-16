@@ -66,7 +66,8 @@ test_that("subset_lkup correctly selects all countries", {
                      reporting_level = "all",
                      lkup            = ref_lkup,
                      valid_regions = valid_regions,
-                     data_dir      = data_dir)
+                     data_dir      = data_dir,
+                     povline = NULL)
 
   expect_equal(nrow(tmp$lkup), nrow(ref_lkup))
 })
@@ -79,7 +80,8 @@ test_that("subset_lkup correctly selects countries", {
                      reporting_level = "all",
                      lkup            = ref_lkup,
                      valid_regions = valid_regions,
-                     data_dir      = data_dir)
+                     data_dir      = data_dir,
+                     povline = NULL)
 
   expect_equal(sort(unique(tmp$lkup$country_code)), sort(selection))
 })
@@ -92,7 +94,8 @@ test_that("subset_lkup correctly selects single regions", {
                      reporting_level = "all",
                      lkup            = ref_lkup,
                      valid_regions = valid_regions,
-                     data_dir      = data_dir)
+                     data_dir      = data_dir,
+                     povline = NULL)
 
   expect_equal(sort(unique(tmp$lkup$region_code)), sort(selection))
 })
@@ -105,7 +108,8 @@ test_that("subset_lkup correctly selects multiple regions", {
                      reporting_level = "all",
                      lkup            = ref_lkup,
                      valid_regions = valid_regions,
-                     data_dir      = data_dir)
+                     data_dir      = data_dir,
+                     povline = NULL)
 
   expect_equal(sort(unique(tmp$lkup$region_code)), sort(selection))
 })
@@ -122,7 +126,8 @@ test_that("subset_lkup correctly selects countries and regions", {
                      reporting_level = "all",
                      lkup            = ref_lkup,
                      valid_regions = valid_regions,
-                     data_dir      = data_dir)
+                     data_dir      = data_dir,
+                     povline = NULL)
 
   # Regions are selected
   expect_true(all(region_selection %in% (unique(tmp$lkup$region_code))))
