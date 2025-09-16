@@ -1,4 +1,6 @@
 # pipapi (development version)
+* add new way to infer poverty lines
+
 
 # pipapi 1.3.24
 * Incorporate Lineup distribution and Countries with Missing Data (CMD) distributions
