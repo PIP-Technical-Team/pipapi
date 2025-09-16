@@ -10,28 +10,37 @@ infer_poverty_line(
   popshare = 0.5,
   include = FALSE,
   method = c("nearest", "interp"),
-  assume_sorted = FALSE
+  assume_sorted = TRUE
 )
 }
 \arguments{
-\item{welfare}{Numeric vector of welfare values (e.g., income or consumption).}
+\item{welfare}{Numeric vector of welfare values (e.g., income or
+consumption).}
 
-\item{weight}{Numeric vector of sampling weights (must be non-negative, same length as welfare).}
+\item{weight}{Numeric vector of sampling weights (must be non-negative, same
+length as welfare).}
 
-\item{popshare}{Numeric vector of population shares (probabilities in \link{0,1}); default is 0.5 (median).}
+\item{popshare}{Numeric vector of population shares (probabilities in \link{0,1});
+default is 0.5 (median).}
 
-\item{include}{Logical; if TRUE, averages neighbors for ties (only for method = "nearest").}
+\item{include}{Logical; if TRUE, averages neighbors for ties (only for method
+= "nearest").}
 
-\item{method}{Character; either "nearest" (default, discrete quantile) or "interp" (weighted linear interpolation).}
+\item{method}{Character; either "nearest" (default, discrete quantile) or
+"interp" (weighted linear interpolation).}
 
-\item{assume_sorted}{Logical; if TRUE, assumes welfare and weight are already sorted by welfare.}
+\item{assume_sorted}{Logical; if TRUE, assumes welfare and weight are already
+sorted by welfare.}
 }
 \value{
-Numeric vector of poverty line(s) corresponding to the requested population share(s).
+Numeric vector of poverty line(s) corresponding to the requested
+population share(s).
 }
 \description{
-Computes the welfare value (poverty line) corresponding to a given population share, using either nearest or interpolated weighted quantile methods.
-Supports both discrete (nearest) and linear interpolation approaches, and can optionally average neighbors for ties.
+Computes the welfare value (poverty line) corresponding to a given population
+share, using either nearest or interpolated weighted quantile methods.
+Supports both discrete (nearest) and linear interpolation approaches, and can
+optionally average neighbors for ties.
 }
 \details{
 \itemize{
