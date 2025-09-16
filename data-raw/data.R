@@ -44,7 +44,7 @@ fg <- fg_pip(
   popshare = NULL,
   lkup = lkup
 ) |>
-  rbindlist()
+  rbindlist(fill = TRUE)
 empty_response_fg <- fg[-1]
 
 
