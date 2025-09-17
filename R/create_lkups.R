@@ -214,42 +214,19 @@ create_lkups <- function(data_dir, versions) {
       ncountries <- nrow(country_list)
       ly <- lineup_years$lineup_years
 
+      cmd <- fs::path(data_dir,
+                     "_aux/missing_data.fst") |>
+        fst::read_fst(as.data.table = TRUE) |>
+        fselect(country_code,
+                reporting_year = year,
+                welfare_type)
 
-      # Add reporting year
-      cmd <- CJ(country_list$country_code,
-                 ly, c("national", "urban", "rural"))
-
-      setnames(cmd, new = c('country_code',
-                            'reporting_year',
-                            'reporting_level'))
-
-      cmd <- joyn::joyn(x          = cmd,
-                         y          = refy_lkup,
-                         by         = c('country_code',
-                                        'reporting_year',
-                                        'reporting_level'),
-                         keep       = "anti",
-                         # reportvar  = FALSE,
-                         match_type = "1:1") |>
-        setDT()
-
-      # get number or reporing levels left after anti join
-      # if less than three, it should NOT be CMD (e.g., ARG or CHN)
-      cmd[, n := .N,
-          by = c("country_code", "reporting_year")]
-
-      # Delete unnecessary reporting levels
-      cmd <- cmd[(reporting_level == "national" &
-                     .joyn == "x" & n == 3)
-                 ]
 
       # build some variables
       cmd[,
            `:=`(
-               cache_id = paste(country_code, reporting_year,"NOSVY_D1_CON_CMD",
-                                sep = "_"),
                survey_coverage = "national",
-               welfare_type = "consumption",
+               reporting_level = "national",
                distribution_type = "CMD distribution",
                is_interpolated = FALSE,
                is_used_for_line_up = TRUE,
@@ -261,10 +238,13 @@ create_lkups <- function(data_dir, versions) {
                relative_distance = 1,
                lineup_approach = "CMD",
                mult_factor = 1,
-               .joyn = NULL,
-               n     = NULL
-
-             )]
+               wt_code  = toupper(substr(welfare_type, 1, 3))
+             )][,
+                cache_id := paste(country_code,
+                                  reporting_year,
+                                  paste0("NOSVY_D1_", wt_code,"_CMD"),
+                                 sep = "_")
+                ][, wt_code := NULL]
 
       # Append lineup and CMD info
 
