@@ -67,12 +67,18 @@ fg_pip <- function(country,
   if (!is.null(popshare)) {
     povline <- lapply(lfst, \(x) {
       # wbpip:::md_infer_poverty_line(x$welfare, x$weight, popshare)
+      uni_rl <- funique(x$reporting_level)
+      if (length(uni_rl) > 1) {
+        assume_sorted <- FALSE
+      } else {
+        assume_sorted <- TRUE
+      }
       infer_poverty_line(welfare = x$welfare,
                          weight = x$weight,
                          popshare = popshare,
                          include = FALSE,
                          method = "nearest",
-                         assume_sorted = TRUE)
+                         assume_sorted = assume_sorted)
     })
 
     fgt <- Map(process_dt, lfst, povline, id_var = "id") |>
