@@ -101,7 +101,8 @@ fgt_cumsum <- \(LDTg, tpop, povline,
          on = "id_rl",
          how = "left",
          validate = "m:1",
-         drop.dup.cols = "y") |>
+         drop.dup.cols = "y",
+         verbose = 0) |>
     setorder(id_rl, index)
 
 
