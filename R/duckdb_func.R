@@ -206,8 +206,34 @@ return_if_exists <- function(slkup,
 update_master_file <- function(dat,
                                cache_file_path,
                                fill_gaps,
-                               verbose = getOption("pipapi.verbose")
+                               verbose = getOption("pipapi.verbose"),
+                               decimal = 2
                                ) {
+
+  # select the right lines
+  pl      <- get_from_pipapienv("pl_to_store")
+
+
+  # Keep only rows with <= 2 decimal places
+  to_keep <- get_vars(dat, "poverty_line") |>
+    reg_elem() |> # extract vectos
+    as.character() |>
+    sub("^[^.]*\\.?","", x = _) |> # get only the decimal part
+    (\(x) which(nchar(x) <= decimal))()
+
+  dat <- dat[to_keep]
+
+  povline <- dat[, poverty_line] |>
+    unique()
+
+  # Keep only those that belong to the list
+  wpl <- povline[povline %in% round(pl, decimal)]
+
+  if (length(wpl) == 0) return(invisible(FALSE))
+
+  dat <- dat[poverty_line %in% wpl]
+
+  if (nrow(dat) == 0) return(invisible(FALSE))
 
   write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
 
