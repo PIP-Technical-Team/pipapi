@@ -77,6 +77,8 @@ rg_pip <- function(country,
     # if povline is vector, it should be applied to all surveys in lt
     res <- lapply(lt, process_dt, povline = povline)
   }
+  rm(lt)
+  invisible(gc())
 
   res <- rbindlist(res, fill = TRUE)
 

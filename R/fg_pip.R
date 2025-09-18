@@ -108,7 +108,10 @@ fg_pip <- function(country,
                       povline = povline) |>
       decode_pairs(dict = dict)
 
+  rm(LDTg)
   }
+  rm(lfst)
+  invisible(gc())
 
 
   # Add just mean and median

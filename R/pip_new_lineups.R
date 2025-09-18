@@ -309,7 +309,7 @@ treat_cache_and_main <- \(out, cache_file_path,
 
   if (nrow(main_data) > 0) {
     if (is.null(cached_data)) {
-      out <- main_data
+      out <- copy(main_data)
     } else {
       out <- main_data |>
         rowbind(cached_data)
@@ -323,6 +323,7 @@ treat_cache_and_main <- \(out, cache_file_path,
     if (all(round(povline, 2) %in% round(pl, 2))) {
       update_master_file(main_data, cache_file_path, fill_gaps)
     }
+    rm(main_data)
 
   } else {
     out <- cached_data
