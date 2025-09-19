@@ -111,7 +111,7 @@ fg_pip <- function(country,
   rm(LDTg)
   }
   rm(lfst)
-  invisible(gc())
+  
 
 
   # Add just mean and median
