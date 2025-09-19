@@ -20,27 +20,6 @@ api_spec_path  <- system.file("plumber/v1/openapi.yaml", package = "pipapi")
 
 pr <- plumber::pr(endpoints_path) |>
 
-  # ---- Pre-route: attach request id + start time ----
-plumber::pr_hook("preroute", function(req, res) {
-  rid <- .req_id()
-
-  # store a STRING in req$.id and in header
-  req$.id       <- rid$id_raw
-  req$.id_time  <- rid$timestamp   # optional metadata
-  req$.id_rand  <- rid$random      # optional metadata
-  res$setHeader("X-Request-ID", req$.id)
-
-  # basic context
-  req$.start <- .now()
-  req$.path  <- req$PATH_INFO %||% ""
-  req$.meth  <- req$REQUEST_METHOD %||% ""
-
-  # mark serialization time start
-  req$.ser0 <- NA_real_
-
-  forward()
-}) |>
-
   # ---- Post-route: log route duration (handler time) ----
 plumber::pr_hook("postroute", function(req, res) {
   if (!is.null(req$.start)) {
