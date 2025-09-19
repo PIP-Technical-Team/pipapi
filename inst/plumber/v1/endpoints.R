@@ -299,7 +299,7 @@ function(req, res) {
   params <- req$argsQuery
   res$serializer <- pipapi::assign_serializer(format = params$format)
 
-  if (is.null(req$args$table)) {
+  if (is.null(req$argsQuery$table)) {
     # return all available tables if none selected
     list_of_tables <- lkups$versions_paths[[params$version]]$aux_tables
     out <- data.frame(tables = list_of_tables)
@@ -796,7 +796,7 @@ function(req, res) {
   params <- req$argsQuery
   exclude <- req$argsQuery$exclude
   res$serializer <- pipapi::assign_serializer(format = params$format)
-  if (is.null(req$args$table)) {
+  if (is.null(req$argsQuery$table)) {
     # return all available tables if none selected
     list_of_tables <- lkups$versions_paths[[params$version]]$aux_tables
     out <- data.frame(tables = list_of_tables)
@@ -808,7 +808,7 @@ function(req, res) {
     params$exclude <- NULL
     out <- do.call(pipapi::get_aux_table_ui, params)
 
-    if (req$args$table == "countries" && exclude == TRUE) {
+    if (req$argsQuery$table == "countries" && exclude == TRUE) {
       # hardcoded
       to_remove <- c("MDG", "UKR")
       out <- out[!(country_code %in% to_remove)]
