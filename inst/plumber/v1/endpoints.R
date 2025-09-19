@@ -248,15 +248,20 @@ function(req, res) {
 #* Default is FALSE
 
 function(req, res) {
-  # Process request
-  params         <- req$argsQuery
-  params$lkup    <- lkups$versions_paths[[params$version]]
-  res$serializer <- pipapi::assign_serializer(format = params$format)
-  params$format  <- NULL
-  params$version <- NULL
+  # Defensive error handling for pip endpoint
+  tryCatch({
+    params         <- req$argsQuery
+    params$lkup    <- lkups$versions_paths[[params$version]]
+    res$serializer <- pipapi::assign_serializer(format = params$format)
+    params$format  <- NULL
+    params$version <- NULL
 
-  out <- do.call(pipapi::pip, params)
-  out
+    out <- do.call(pipapi::pip, params)
+    out
+  }, error = function(e) {
+    res$status <- 500
+    list(error = "Error in /api/v1/pip", message = e$message)
+  })
 }
 
 ### pip-grp ----------
@@ -275,15 +280,20 @@ function(req, res) {
 #* @param additional_ind:[bool] Additional indicators based on standard PIP output.
 #* Default is FALSE
 function(req, res) {
-  # Process request
-  params         <- req$argsQuery
-  params$lkup    <- lkups$versions_paths[[params$version]]
-  res$serializer <- pipapi::assign_serializer(format = params$format)
-  params$format  <- NULL
-  params$version <- NULL
+  # Defensive error handling for pip-grp endpoint
+  tryCatch({
+    params         <- req$argsQuery
+    params$lkup    <- lkups$versions_paths[[params$version]]
+    res$serializer <- pipapi::assign_serializer(format = params$format)
+    params$format  <- NULL
+    params$version <- NULL
 
-  out <- do.call(pipapi::pip_agg, params)
-  out
+    out <- do.call(pipapi::pip_agg, params)
+    out
+  }, error = function(e) {
+    res$status <- 500
+    list(error = "Error in /api/v1/pip-grp", message = e$message)
+  })
 }
 
 ###  aux ------------------
