@@ -2,7 +2,6 @@
 
 devtools::load_all(".")
 library(fastverse)
-force <- FALSE
 
 root_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
   fs::path()
@@ -13,10 +12,10 @@ latest_version <-
   available_versions(root_dir) |>
   max()
 
-# lkups <- create_versioned_lkups(root_dir,
-#                                 vintage_pattern = "^202509.+2017.+(PROD)$")
 lkups <- create_versioned_lkups(root_dir,
-                                vintage_pattern = latest_version)
+                                vintage_pattern = "^202509.+2017.+(PROD)$")
+# lkups <- create_versioned_lkups(root_dir,
+#                                 vintage_pattern = latest_version)
 
 # lkup <- lkups$versions_paths[[lkups$versions[[2]]]]
 ver_to_use <- lkups$latest_release # this is important. You need this object below

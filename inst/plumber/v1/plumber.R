@@ -29,10 +29,20 @@ plumber::pr(endpoints_path) |>
     # log_info('Bye bye: {proc.time()[["elapsed"]]}')
   }) |>
   plumber::pr_set_error(function(req, res, err) {
-    # In case of error, make sure you log the endpoint for #432
+    # Log error with request info
     method <- req$REQUEST_METHOD
     path <- req$PATH_INFO
-    cat(sprintf("ERROR at %s %s: %s\n", method, path, err$message))
+    msg <- sprintf("ERROR at %s %s: %s\n", method, path, err$message)
+    cat(msg)
+    # Always return a JSON error response
+    res$status <- 500
+    res$body <- jsonlite::toJSON(list(
+      error = "Internal Server Error",
+      message = err$message,
+      path = path,
+      method = method
+    ), auto_unbox = TRUE)
+    res
   }) |>
   # Set API spec
   plumber::pr_set_api_spec(api = function(spec) {
