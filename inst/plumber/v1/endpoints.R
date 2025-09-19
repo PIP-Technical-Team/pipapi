@@ -4,84 +4,89 @@
 
 library(pipapi)
 # ---- tiny telemetry (ID + timings) --------------------------------------
-`%||%` <- function(a, b) {
-  if (is.null(a))
-    b
-  else
-    a
-}
-
-# Generate a unique request ID
-.req_id <- function() {
-  # current time in milliseconds as a character string
-  ts_ms <- format(as.numeric(Sys.time()) * 1000, scientific = FALSE)
-
-  # add random component
-  rnd <- sample.int(1e9, 1)
-
-  # combine
-  id <- paste0(ts_ms, "-", rnd)
-
-  return(id)
-}
-
-# Capture current elapsed CPU time (since R started)
+# Monotonic wall time for durations (in seconds)
 .now <- function() {
   pt <- proc.time()
-
-  # Extract elapsed time (in seconds)
   elapsed <- pt[["elapsed"]]
-
   return(elapsed)
 }
 
+# Generate a request id AND return a decoded structure
+# - id_raw: "milliseconds-since-epoch-random"
+# - timestamp: POSIXct in UTC
+# - random: integer
+.req_id <- function() {
+  # 1) milliseconds since epoch (as numeric -> character; avoid 32-bit overflow)
+  ts_ms_num <- as.numeric(Sys.time()) * 1000
+  ts_ms_chr <- format(ts_ms_num, scientific = FALSE, trim = TRUE)
 
+  # 2) random component
+  rnd <- sample.int(1e9, 1)
 
+  # 3) build id string
+  id_raw <- paste0(ts_ms_chr, "-", rnd)
 
-#* Always-on request context (one access line per request)
+  # 4) decoded timestamp (POSIXct, UTC)
+  ts_posix <- as.POSIXct(as.numeric(ts_ms_chr) / 1000,
+                         origin = "1970-01-01", tz = "UTC")
+
+  out <- list(
+    id_raw    = id_raw,
+    timestamp = ts_posix,
+    random    = rnd
+  )
+  return(out)
+}
+
+`%||%` <- function(a, b) if (!is.null(a)) a else b
+
+# ---- Always-on request context (one log line per request) ----
 #* @filter ctx
 function(req, res) {
-  req$.id    <- .req_id()
+  rid <- .req_id()  # <- returns list(id_raw, timestamp, random)
+
+  # put a STRING into places that need strings
+  req$.id      <- rid$id_raw            # string token for logs & error bodies
+  res$setHeader("X-Request-ID", req$.id)
+
+  # keep the decoded pieces if you want (optional)
+  req$.id_time <- rid$timestamp         # POSIXct (UTC)
+  req$.id_rand <- rid$random            # integer
+
   req$.start <- .now()
   req$.path  <- req$PATH_INFO %||% ""
   req$.meth  <- req$REQUEST_METHOD %||% ""
-  res$setHeader("X-Request-ID", req$.id)
 
-  # mark serialization time
-  req$.ser0 <- NA_real_
   on.exit({
     total <- .now() - req$.start
-    cat(
-      sprintf(
-        '{"type":"access","id":"%s","method":"%s","path":"%s","status":%s,"dur_s":%.6f}\n',
-        req$.id,
-        req$.meth,
-        req$.path,
-        as.character(res$status %||% NA_integer_),
-        total
-      ),
-      file = stderr()
-    )
+    cat(sprintf(
+      '{"type":"access","id":"%s","method":"%s","path":"%s","status":%s,"dur_s":%.6f}\n',
+      req$.id, req$.meth, req$.path, as.character(res$status %||% NA_integer_), total
+    ), file = stderr())
   }, add = TRUE)
 
   forward()
 }
 
-# plumber-wide preserialize/postserialize hooks (stay in this file)
+
+# ---- Serialization timing hooks (stay with the filter for coherence) ----
 #* @plumber
 function(pr) {
   pr |>
-    pr_hook("preserialize", function(req, res) req$.ser0 <- .now()) |>
+    pr_hook("preserialize", function(req, res) {
+      req$.ser0 <- .now()
+    }) |>
     pr_hook("postserialize", function(req, res) {
-      if (!is.na(req$.ser0)) {
+      if (!is.null(req$.ser0) && !is.na(req$.ser0)) {
         ser <- .now() - req$.ser0
         cat(sprintf(
           '{"type":"serialize","id":"%s","path":"%s","dur_s":%.6f}\n',
-          req$.id, req$PATH_INFO, ser
+          req$.id %||% "", req$.path %||% "", ser
         ), file = stderr())
       }
     })
 }
+
 
 
 # ---- kill runaway requests ----------------------------------------------
