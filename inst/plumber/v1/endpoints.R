@@ -4,9 +4,39 @@
 
 library(pipapi)
 # ---- tiny telemetry (ID + timings) --------------------------------------
-`%||%` <- function(a, b) if (is.null(a)) b else a
-.req_id <- function() paste0(as.integer((Sys.time() |> as.POSIXct()) * 1e3), "-", sample.int(1e9,1))
-.now <- function() proc.time()[["elapsed"]]
+`%||%` <- function(a, b) {
+  if (is.null(a))
+    b
+  else
+    a
+}
+
+# Generate a unique request ID
+.req_id <- function() {
+  # current time in milliseconds as a character string
+  ts_ms <- format(as.numeric(Sys.time()) * 1000, scientific = FALSE)
+
+  # add random component
+  rnd <- sample.int(1e9, 1)
+
+  # combine
+  id <- paste0(ts_ms, "-", rnd)
+
+  return(id)
+}
+
+# Capture current elapsed CPU time (since R started)
+.now <- function() {
+  pt <- proc.time()
+
+  # Extract elapsed time (in seconds)
+  elapsed <- pt[["elapsed"]]
+
+  return(elapsed)
+}
+
+
+
 
 #* Always-on request context (one access line per request)
 #* @filter ctx
@@ -55,10 +85,18 @@ function(pr) {
 
 
 # ---- kill runaway requests ----------------------------------------------
-with_req_timeout <- function(expr,
-                             secs = as.numeric(Sys.getenv("PLUMBER_REQ_TIMEOUT","30"))) {
-  if (!is.finite(secs) || secs <= 0) return(force(expr))
-  R.utils::withTimeout(force(expr), timeout = secs, onTimeout = "silent")  # uses setTimeLimit()
+with_req_timeout <-
+  function(expr,
+           secs = Sys.getenv("PLUMBER_REQ_TIMEOUT", "150") |>
+             as.numeric()
+           ){
+
+  if (!is.finite(secs) || secs <= 0)
+    return(force(expr))
+
+  R.utils::withTimeout(force(expr),
+                       timeout = secs,
+                       onTimeout = "silent")  # uses setTimeLimit()
 }
 
 
@@ -731,7 +769,7 @@ function(req, res) {
     params <- req$argsQuery
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
-    out <- do.call(pipapi::ui_hp_stacked, params) |> 
+    out <- do.call(pipapi::ui_hp_stacked, params) |>
     with_req_timeout()
     if (is.null(out)) {
       res$status <- 503
@@ -763,7 +801,7 @@ function(req, res) {
     params <- req$argsQuery
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
-    out <- do.call(pipapi::ui_hp_countries, params) |> 
+    out <- do.call(pipapi::ui_hp_countries, params) |>
     with_req_timeout()
     if (is.null(out)) {
       res$status <- 503
@@ -864,7 +902,7 @@ function(req, res) {
     params <- req$argsQuery
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
-    out <- do.call(pipapi::ui_pc_regional, params) |> 
+    out <- do.call(pipapi::ui_pc_regional, params) |>
     with_req_timeout()
     if (is.null(out)) {
       res$status <- 503
@@ -900,7 +938,7 @@ function(req, res) {
     params <- req$argsQuery
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
-    out <- do.call(pipapi::ui_cp_key_indicators, params) |> 
+    out <- do.call(pipapi::ui_cp_key_indicators, params) |>
     with_req_timeout()
     if (is.null(out)) {
       res$status <- 503
@@ -934,7 +972,7 @@ function(req, res) {
     params <- req$argsQuery
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
-    out <- do.call(pipapi::ui_cp_charts, params) |> 
+    out <- do.call(pipapi::ui_cp_charts, params) |>
     with_req_timeout()
     if (is.null(out)) {
       res$status <- 503
