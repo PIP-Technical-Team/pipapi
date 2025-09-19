@@ -21,10 +21,17 @@ function(req, res) {
   req$.ser0 <- NA_real_
   on.exit({
     total <- .now() - req$.start
-    cat(sprintf(
-      '{"type":"access","id":"%s","method":"%s","path":"%s","status":%s,"dur_s":%.6f}\n',
-      req$.id, req$.meth, req$.path, as.character(res$status %||% NA_integer_), total
-    ), file = stderr())
+    cat(
+      sprintf(
+        '{"type":"access","id":"%s","method":"%s","path":"%s","status":%s,"dur_s":%.6f}\n',
+        req$.id,
+        req$.meth,
+        req$.path,
+        as.character(res$status %||% NA_integer_),
+        total
+      ),
+      file = stderr()
+    )
   }, add = TRUE)
 
   forward()
@@ -45,6 +52,17 @@ function(pr) {
       }
     })
 }
+
+
+# ---- kill runaway requests ----------------------------------------------
+with_req_timeout <- function(expr,
+                             secs = as.numeric(Sys.getenv("PLUMBER_REQ_TIMEOUT","30"))) {
+  if (!is.finite(secs) || secs <= 0) return(force(expr))
+  R.utils::withTimeout(force(expr), timeout = secs, onTimeout = "silent")  # uses setTimeLimit()
+}
+
+
+
 
 # API filters -------------------------------------------------------------
 ## Validate version parameter ----
@@ -298,11 +316,24 @@ function(req, res) {
     params$format  <- NULL
     params$version <- NULL
 
-    out <- do.call(pipapi::pip, params)
+    out <- do.call(pipapi::pip, params) |>
+      with_req_timeout()
+    if (is.null(out)) {
+      res$status <- 503
+      return(list(
+        error       = "Request timed out",
+        request_id  = req$.id,   # added in the ctx filter
+        endpoint    = "/api/v1/pip"
+      ))
+    }
+
     out
   }, error = function(e) {
     res$status <- 500
-    list(error = "Error in /api/v1/pip", message = e$message)
+    list(error = "Error in /api/v1/pip",
+         message = e$message,
+         request_id = tryCatch(req$.id, error = function(.) NA)
+         )
   })
 }
 
@@ -330,11 +361,24 @@ function(req, res) {
     params$format  <- NULL
     params$version <- NULL
 
-    out <- do.call(pipapi::pip_agg, params)
+    out <- do.call(pipapi::pip_agg, params) |>
+      with_req_timeout()
+    if (is.null(out)) {
+      res$status <- 503
+      return(list(
+        error       = "Request timed out",
+        request_id  = req$.id,   # added in the ctx filter
+        endpoint    = "/api/v1/pip-grp"
+      ))
+    }
+
     out
   }, error = function(e) {
     res$status <- 500
-    list(error = "Error in /api/v1/pip-grp", message = e$message)
+    list(error = "Error in /api/v1/pip-grp",
+         message = e$message,
+         request_id = tryCatch(req$.id, error = function(.) NA)
+    )
   })
 }
 
