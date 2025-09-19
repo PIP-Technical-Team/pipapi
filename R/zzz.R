@@ -41,7 +41,7 @@ pipapi_default_options <- list(
   #
   # cores_to_use <- max(available_cores, 1) |>
   #   min(8)
-  set_in_pipapienv("cores_to_use", cores_to_use)
+  # set_in_pipapienv("cores_to_use", cores_to_use)
 
 
   # pov lines to store

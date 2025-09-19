@@ -8,7 +8,8 @@ update_master_file(
   dat,
   cache_file_path,
   fill_gaps,
-  verbose = getOption("pipapi.verbose")
+  verbose = getOption("pipapi.verbose"),
+  decimal = 2
 )
 }
 \arguments{

@@ -3,6 +3,48 @@
 #* pip.worldbank.org
 
 library(pipapi)
+# ---- tiny telemetry (ID + timings) --------------------------------------
+`%||%` <- function(a, b) if (is.null(a)) b else a
+.req_id <- function() paste0(as.integer((Sys.time() |> as.POSIXct()) * 1e3), "-", sample.int(1e9,1))
+.now <- function() proc.time()[["elapsed"]]
+
+#* Always-on request context (one access line per request)
+#* @filter ctx
+function(req, res) {
+  req$.id    <- .req_id()
+  req$.start <- .now()
+  req$.path  <- req$PATH_INFO %||% ""
+  req$.meth  <- req$REQUEST_METHOD %||% ""
+  res$setHeader("X-Request-ID", req$.id)
+
+  # mark serialization time
+  req$.ser0 <- NA_real_
+  on.exit({
+    total <- .now() - req$.start
+    cat(sprintf(
+      '{"type":"access","id":"%s","method":"%s","path":"%s","status":%s,"dur_s":%.6f}\n',
+      req$.id, req$.meth, req$.path, as.character(res$status %||% NA_integer_), total
+    ), file = stderr())
+  }, add = TRUE)
+
+  forward()
+}
+
+# plumber-wide preserialize/postserialize hooks (stay in this file)
+#* @plumber
+function(pr) {
+  pr |>
+    pr_hook("preserialize", function(req, res) req$.ser0 <- .now()) |>
+    pr_hook("postserialize", function(req, res) {
+      if (!is.na(req$.ser0)) {
+        ser <- .now() - req$.ser0
+        cat(sprintf(
+          '{"type":"serialize","id":"%s","path":"%s","dur_s":%.6f}\n',
+          req$.id, req$PATH_INFO, ser
+        ), file = stderr())
+      }
+    })
+}
 
 # API filters -------------------------------------------------------------
 ## Validate version parameter ----
