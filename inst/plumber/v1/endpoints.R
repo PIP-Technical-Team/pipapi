@@ -3,12 +3,12 @@
 #* pip.worldbank.org
 
 library(pipapi)
+
 # ---- tiny telemetry (ID + timings) --------------------------------------
+
 # Monotonic wall time for durations (in seconds)
 .now <- function() {
-  pt <- proc.time()
-  elapsed <- pt[["elapsed"]]
-  return(elapsed)
+  proc.time()[["elapsed"]]
 }
 
 # Generate a request id AND return a decoded structure
@@ -16,26 +16,17 @@ library(pipapi)
 # - timestamp: POSIXct in UTC
 # - random: integer
 .req_id <- function() {
-  # 1) milliseconds since epoch (as numeric -> character; avoid 32-bit overflow)
   ts_ms_num <- as.numeric(Sys.time()) * 1000
   ts_ms_chr <- format(ts_ms_num, scientific = FALSE, trim = TRUE)
+  rnd       <- sample.int(1e9, 1)
+  id_raw    <- paste0(ts_ms_chr, "-", rnd)
 
-  # 2) random component
-  rnd <- sample.int(1e9, 1)
-
-  # 3) build id string
-  id_raw <- paste0(ts_ms_chr, "-", rnd)
-
-  # 4) decoded timestamp (POSIXct, UTC)
-  ts_posix <- as.POSIXct(as.numeric(ts_ms_chr) / 1000,
-                         origin = "1970-01-01", tz = "UTC")
-
-  out <- list(
+  list(
     id_raw    = id_raw,
-    timestamp = ts_posix,
+    timestamp = as.POSIXct(as.numeric(ts_ms_chr) / 1000,
+                           origin = "1970-01-01", tz = "UTC"),
     random    = rnd
   )
-  return(out)
 }
 
 `%||%` <- function(a, b) if (!is.null(a)) a else b
@@ -43,15 +34,14 @@ library(pipapi)
 # ---- Always-on request context (one log line per request) ----
 #* @filter ctx
 function(req, res) {
-  rid <- .req_id()  # <- returns list(id_raw, timestamp, random)
+  rid <- .req_id()  # list(id_raw, timestamp, random)
 
-  # put a STRING into places that need strings
-  req$.id      <- rid$id_raw            # string token for logs & error bodies
+  req$.id      <- rid$id_raw
   res$setHeader("X-Request-ID", req$.id)
 
-  # keep the decoded pieces if you want (optional)
-  req$.id_time <- rid$timestamp         # POSIXct (UTC)
-  req$.id_rand <- rid$random            # integer
+  # keep decoded pieces if helpful
+  req$.id_time <- rid$timestamp
+  req$.id_rand <- rid$random
 
   req$.start <- .now()
   req$.path  <- req$PATH_INFO %||% ""
@@ -68,8 +58,7 @@ function(req, res) {
   forward()
 }
 
-
-# ---- Serialization timing hooks (stay with the filter for coherence) ----
+# ---- Serialization timing hooks (kept here to avoid duplication) ----
 #* @plumber
 function(pr) {
   pr |>
@@ -87,28 +76,24 @@ function(pr) {
     })
 }
 
-
-
-# ---- kill runaway requests ----------------------------------------------
+# ---- bounded execution helper -------------------------------------------
 with_req_timeout <-
   function(expr,
-           secs = Sys.getenv("PLUMBER_REQ_TIMEOUT", "150") |>
-             as.numeric()
-           ){
+           secs = as.numeric(Sys.getenv("PLUMBER_REQ_TIMEOUT", "150"))) {
 
-  if (!is.finite(secs) || secs <= 0)
-    return(force(expr))
+    if (!is.finite(secs) || secs <= 0) return(force(expr))
 
-  R.utils::withTimeout(force(expr),
-                       timeout = secs,
-                       onTimeout = "silent")  # uses setTimeLimit()
-}
+    R.utils::withTimeout(
+      expr     = force(expr),
+      timeout  = secs,
+      onTimeout = "silent"   # uses setTimeLimit()
+    )
+  }
 
-
-
-
+# ========================================================================
 # API filters -------------------------------------------------------------
-## Validate version parameter ----
+# ========================================================================
+
 
 #* Ensure that version parameter is correct
 #* @filter validate_version

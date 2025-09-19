@@ -1,5 +1,5 @@
-# ---- process-level thread caps (Step 3) -----------------------------
-# Avoid oversubscribing on multi-core servers (common cause of hangs under load)
+# ---- process-level thread caps ------------------------------------------
+# (Avoid oversubscription; helps with stability under load)
 Sys.setenv(
   OPENBLAS_NUM_THREADS = "1",
   MKL_NUM_THREADS      = "1",
@@ -7,10 +7,13 @@ Sys.setenv(
 )
 
 ncores <- parallel::detectCores(logical = FALSE)
-
 data.table::setDTthreads(max(1L, ncores))
-collapse::set_collapse(nthreads	= max(1L, ncores))
+collapse::set_collapse(nthreads = max(1L, ncores))
 fst::threads_fst(max(1L, ncores))
+
+# local fallbacks used only in this file (do not depend on endpoints.R)
+`%||%` <- function(a, b) if (!is.null(a)) a else b
+.now_p  <- function() proc.time()[["elapsed"]]
 
 # ---- build router --------------------------------------------------------
 library(plumber)
@@ -20,10 +23,10 @@ api_spec_path  <- system.file("plumber/v1/openapi.yaml", package = "pipapi")
 
 pr <- plumber::pr(endpoints_path) |>
 
-  # ---- Post-route: log route duration (handler time) ----
+  # ---- Post-route: log handler duration (separate from total access time) ----
 plumber::pr_hook("postroute", function(req, res) {
   if (!is.null(req$.start)) {
-    dur <- .now() - req$.start
+    dur <- .now_p() - req$.start
     cat(
       sprintf(
         '{"type":"route","id":"%s","method":"%s","path":"%s","status":%s,"dur_s":%.6f}\n',
@@ -32,27 +35,6 @@ plumber::pr_hook("postroute", function(req, res) {
         req$.path %||% "",
         as.character(res$status %||% NA_integer_),
         dur
-      ),
-      file = stderr()
-    )
-  }
-}) |>
-
-  # ---- Pre-serialization: mark when we start serializing ----
-plumber::pr_hook("preserialize", function(req, res) {
-  req$.ser0 <- .now()
-}) |>
-
-  # ---- Post-serialization: log serialization duration ----
-plumber::pr_hook("postserialize", function(req, res) {
-  if (!is.null(req$.ser0) && !is.na(req$.ser0)) {
-    ser_dur <- .now() - req$.ser0
-    cat(
-      sprintf(
-        '{"type":"serialize","id":"%s","path":"%s","dur_s":%.6f}\n',
-        req$.id %||% "",
-        req$.path %||% "",
-        ser_dur
       ),
       file = stderr()
     )
@@ -70,7 +52,7 @@ plumber::pr_hook("exit", function() {
   )
 }) |>
 
-  # ---- Global error handler ----
+  # ---- Global error handler (must return a serializable object) ----
 plumber::pr_set_error(function(req, res, err) {
   method <- req$REQUEST_METHOD %||% ""
   path   <- req$PATH_INFO %||% ""
@@ -85,15 +67,13 @@ plumber::pr_set_error(function(req, res, err) {
   )
 
   res$status <- 500
-  res$body <- jsonlite::toJSON(list(
+  list(
     error      = "Internal Server Error",
     message    = err$message,
     path       = path,
     method     = method,
     request_id = rid
-  ), auto_unbox = TRUE)
-
-  res
+  )
 }) |>
 
   # ---- API Spec (with dynamic version injection) ----
