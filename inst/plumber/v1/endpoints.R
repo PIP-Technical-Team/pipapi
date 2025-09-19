@@ -726,13 +726,28 @@ function(req) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
-function(req) {
-  params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-  params$version <- NULL
-
-  do.call(pipapi::ui_hp_stacked, params)
-
+function(req, res) {
+  tryCatch({
+    params <- req$argsQuery
+    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+    params$version <- NULL
+    out <- do.call(pipapi::ui_hp_stacked, params) |> 
+    with_req_timeout()
+    if (is.null(out)) {
+      res$status <- 503
+      return(list(
+        error = "Request timed out",
+        request_id = req$.id,
+        endpoint = "/api/v1/hp-stacked"
+      ))
+    }
+    out
+  }, error = function(e) {
+    res$status <- 500
+    list(error = "Error in /api/v1/hp-stacked",
+         message = e$message,
+         request_id = tryCatch(req$.id, error = function(.) NA))
+  })
 }
 
 ### hp-countries -------------
@@ -743,11 +758,28 @@ function(req) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
-function(req) {
-  params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-  params$version <- NULL
-  do.call(pipapi::ui_hp_countries, params)
+function(req, res) {
+  tryCatch({
+    params <- req$argsQuery
+    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+    params$version <- NULL
+    out <- do.call(pipapi::ui_hp_countries, params) |> 
+    with_req_timeout()
+    if (is.null(out)) {
+      res$status <- 503
+      return(list(
+        error = "Request timed out",
+        request_id = req$.id,
+        endpoint = "/api/v1/hp-countries"
+      ))
+    }
+    out
+  }, error = function(e) {
+    res$status <- 500
+    list(error = "Error in /api/v1/hp-countries",
+         message = e$message,
+         request_id = tryCatch(req$.id, error = function(.) NA))
+  })
 }
 
 
@@ -767,14 +799,29 @@ function(req) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na = "null")
-function(req) {
-  params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-  params$version <- NULL
-  params$censor  <- TRUE
-
-  out <- do.call(pipapi::ui_pc_charts, params)
-  return(out)
+function(req, res) {
+  tryCatch({
+    params <- req$argsQuery
+    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+    params$version <- NULL
+    params$censor  <- TRUE
+    out <- do.call(pipapi::ui_pc_charts, params) |>
+     with_req_timeout()
+    if (is.null(out)) {
+      res$status <- 503
+      return(list(
+        error = "Request timed out",
+        request_id = req$.id,
+        endpoint = "/api/v1/pc-charts"
+      ))
+    }
+    out
+  }, error = function(e) {
+    res$status <- 500
+    list(error = "Error in /api/v1/pc-charts",
+         message = e$message,
+         request_id = tryCatch(req$.id, error = function(.) NA))
+  })
 }
 
 ### pc-download -----------
@@ -812,13 +859,28 @@ function(req) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
-function(req) {
-  params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-  params$version <- NULL
-
-  do.call(pipapi::ui_pc_regional, params)
-
+function(req, res) {
+  tryCatch({
+    params <- req$argsQuery
+    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+    params$version <- NULL
+    out <- do.call(pipapi::ui_pc_regional, params) |> 
+    with_req_timeout()
+    if (is.null(out)) {
+      res$status <- 503
+      return(list(
+        error = "Request timed out",
+        request_id = req$.id,
+        endpoint = "/api/v1/pc-regional-aggregates"
+      ))
+    }
+    out
+  }, error = function(e) {
+    res$status <- 500
+    list(error = "Error in /api/v1/pc-regional-aggregates",
+         message = e$message,
+         request_id = tryCatch(req$.id, error = function(.) NA))
+  })
 }
 
 
@@ -833,11 +895,28 @@ function(req) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
-function(req) {
-  params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-  params$version <- NULL
-  do.call(pipapi::ui_cp_key_indicators, params)
+function(req, res) {
+  tryCatch({
+    params <- req$argsQuery
+    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+    params$version <- NULL
+    out <- do.call(pipapi::ui_cp_key_indicators, params) |> 
+    with_req_timeout()
+    if (is.null(out)) {
+      res$status <- 503
+      return(list(
+        error = "Request timed out",
+        request_id = req$.id,
+        endpoint = "/api/v1/cp-key-indicators"
+      ))
+    }
+    out
+  }, error = function(e) {
+    res$status <- 500
+    list(error = "Error in /api/v1/cp-key-indicators",
+         message = e$message,
+         request_id = tryCatch(req$.id, error = function(.) NA))
+  })
 }
 
 
@@ -850,12 +929,28 @@ function(req) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
-function(req) {
-  params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-
-  params$version <- NULL
-    do.call(pipapi::ui_cp_charts, params)
+function(req, res) {
+  tryCatch({
+    params <- req$argsQuery
+    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+    params$version <- NULL
+    out <- do.call(pipapi::ui_cp_charts, params) |> 
+    with_req_timeout()
+    if (is.null(out)) {
+      res$status <- 503
+      return(list(
+        error = "Request timed out",
+        request_id = req$.id,
+        endpoint = "/api/v1/cp-charts"
+      ))
+    }
+    out
+  }, error = function(e) {
+    res$status <- 500
+    list(error = "Error in /api/v1/cp-charts",
+         message = e$message,
+         request_id = tryCatch(req$.id, error = function(.) NA))
+  })
 }
 
 ### cp-download -----------
