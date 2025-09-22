@@ -977,7 +977,7 @@ function(req, res) {
     res$status <- 500
     list(error = "Error in /api/v1/cp-charts",
          message = e$message,
-         request_id = tryCatch(req$.id, error = function(.) NA))
+         request_id = tryCatch(req$.id, error = \(.) NA))
   })
 }
 

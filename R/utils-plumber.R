@@ -565,3 +565,94 @@ change_grouped_stats_to_csv <- function(out) {
   out$deciles <- NULL
   data.frame(out)
 }
+
+
+
+
+
+#' Wrap a Plumber endpoint with standardized error handling
+#'
+#' `safe_endpoint()` wraps an endpoint handler in a `tryCatch`, ensuring
+#' consistent error handling across the API. On success, the original
+#' handler's result is returned. On error, a structured JSON object is
+#' returned with useful metadata (status, message, request ID, endpoint),
+#' and optionally additional debug details.
+#'
+#' Debug mode can be enabled by either:
+#' \itemize{
+#'   \item Passing `debug = TRUE` explicitly, or
+#'   \item Setting the environment variable `PIPAPI_DEBUG=TRUE`.
+#' }
+#' When debug mode is active, the error payload also includes the error
+#' class, call, query parameters, and a truncated traceback.
+#'
+#' @param fun A function `(req, res)` containing the endpoint logic.
+#'   This is where you parse request arguments and call the relevant
+#'   internal functions.
+#' @param endpoint Character string giving the endpoint path
+#'   (e.g., `"/api/v1/pip"`). Used in error payloads so clients know
+#'   which endpoint failed.
+#' @param debug Logical; if `NULL` (default), inherits from the
+#'   environment variable `PIPAPI_DEBUG`. When `TRUE`, include extended
+#'   diagnostic details in the error response.
+#'
+#' @return A function `(req, res)` suitable for use in Plumber routes.
+#'   On error, sets `res$status <- 500` and returns a JSON object with:
+#'   \describe{
+#'     \item{error}{A short description ("Error in /api/v1/...")}
+#'     \item{message}{Either the actual error message (debug mode) or
+#'       `"Internal Server Error"`}
+#'     \item{request_id}{The Plumber request ID, if available}
+#'     \item{endpoint}{The endpoint string supplied}
+#'     \item{class}{Error class (debug mode only)}
+#'     \item{call}{The call that generated the error (debug mode only)}
+#'     \item{query}{The query parameters (debug mode only)}
+#'     \item{trace}{Traceback captured by `rlang::trace_back()` (debug mode only)}
+#'   }
+#'
+#' @examples
+#' \dontrun{
+#' # Example: wrap a handler for /api/v1/pip
+#' #* @get /api/v1/pip
+#' function(req, res) {
+#'   safe_endpoint(function(req, res) {
+#'     params <- req$argsQuery
+#'     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+#'     params$version <- NULL
+#'     do.call(pipapi::ui_pip, params)
+#'   }, endpoint = "/api/v1/pip")(req, res)
+#' }
+#' }
+#'
+#' @export
+safe_endpoint <- function(fun, endpoint, debug = NULL) {
+  if (is.null(debug)) {
+    debug <- identical(Sys.getenv("PIPAPI_DEBUG"), "TRUE")
+  }
+
+  function(req, res) {
+    tryCatch(
+      {
+        fun(req, res)
+      },
+      error = function(e) {
+        res$status <- 500L
+        out <- list(
+          error      = paste("Error in", endpoint),
+          message    = if (debug) conditionMessage(e) else "Internal Server Error",
+          request_id = tryCatch(req$.id, error = \(.) NA),
+          endpoint   = endpoint
+        )
+        if (debug) {
+          out$class <- class(e)[[1]]
+          out$call  <- as.character(conditionCall(e))
+          out$query <- req$argsQuery
+          out$trace <- utils::capture.output(
+            rlang::trace_back(bottom = 10, simplify = "branch")
+          )
+        }
+        out
+      }
+    )
+  }
+}

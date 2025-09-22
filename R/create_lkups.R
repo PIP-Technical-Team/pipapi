@@ -298,14 +298,34 @@ create_lkups <- function(data_dir, versions) {
                               update_values = TRUE)
 
 
-      # merge population
-      popl <- pivot(pop,
+      # TEMP: fix ARG population --- START
+      pw <- pivot(pop,
             ids = c("country_code", "data_level"),
             names = list(variable = "reporting_year",
                          value = "reporting_pop"),
             how = "longer") |>
-        ftransform(reporting_year = as_integer_factor(reporting_year)) |>
-        frename(data_level = reporting_level)
+        pivot(how = "wider",
+              ids = c("country_code", "reporting_year"),
+              values = "reporting_pop",
+              names = "data_level") |>
+        setorder(country_code, reporting_year)
+
+      pw[country_code != "CHN", `:=`(
+        urban = national,
+        rural = national
+        )]
+
+      # TEMP: fix ARG population --- END
+
+      popl <- pivot(pw,
+                    ids = c("country_code", "reporting_year"),
+                    names = list(variable = "reporting_level",
+                                 value = "reporting_pop"),
+                    how = "longer") |>
+        ftransform(reporting_year = as_integer_factor(reporting_year),
+                   reporting_level = as_character_factor(reporting_level)) |>
+        setkey(NULL)
+
 
       refy_lkup <- joyn::joyn(refy_lkup, popl,
                               by         = c('country_code',
