@@ -71,7 +71,8 @@ Imports:
     duckdb,
     jsonlite,
     digest,
-    parallel
+    parallel,
+    R.utils
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 
