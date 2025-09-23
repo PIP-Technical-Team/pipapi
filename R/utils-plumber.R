@@ -656,3 +656,43 @@ safe_endpoint <- function(fun, endpoint, debug = NULL) {
     )
   }
 }
+
+# ---- bounded execution helper -------------------------------------------
+#' Evaluate an expression with a timeout
+#'
+#' Wraps [R.utils::withTimeout()] but returns a structured failure
+#' object instead of stopping the whole process. This allows
+#' `safe_endpoint()` to handle timeouts like normal errors without
+#' killing the API process.
+#'
+#' @param expr Expression to evaluate.
+#' @param secs Timeout in seconds (default: from env var `PLUMBER_REQ_TIMEOUT`,
+#'   or 150 if unset).
+#'
+#' @return Result of `expr` if it finishes in time; otherwise a list
+#'   with `ok = FALSE`, `error = "timeout"`, and `elapsed` seconds.
+#' @export
+with_req_timeout <- function(expr,
+                             secs = as.numeric(Sys.getenv("PLUMBER_REQ_TIMEOUT", "150"))) {
+  if (!is.finite(secs) || secs <= 0) return(force(expr))
+
+  start <- proc.time()[["elapsed"]]
+  tryCatch(
+    {
+      R.utils::withTimeout(
+        expr     = force(expr),
+        timeout  = secs,
+        onTimeout = "error"
+      )
+
+    },
+    TimeoutException = \(e) {
+      elapsed <- proc.time()[["elapsed"]] - start
+      list(
+        ok     = FALSE,
+        error  = sprintf("Request exceeded timeout of %s seconds", secs),
+        elapsed = elapsed
+      )
+    }
+  )
+}

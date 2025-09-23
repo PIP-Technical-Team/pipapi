@@ -76,19 +76,7 @@ function(pr) {
     })
 }
 
-# ---- bounded execution helper -------------------------------------------
-with_req_timeout <-
-  function(expr,
-           secs = as.numeric(Sys.getenv("PLUMBER_REQ_TIMEOUT", "150"))) {
 
-    if (!is.finite(secs) || secs <= 0) return(force(expr))
-
-    R.utils::withTimeout(
-      expr     = force(expr),
-      timeout  = secs,
-      onTimeout = "silent"   # uses setTimeLimit()
-    )
-  }
 
 # ========================================================================
 # API filters -------------------------------------------------------------
@@ -760,7 +748,7 @@ function(req, res) {
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
     out <- do.call(pipapi::ui_hp_stacked, params) |>
-    with_req_timeout()
+      with_req_timeout()
     if (is.null(out)) {
       res$status <- 503
       return(list(
