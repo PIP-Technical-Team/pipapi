@@ -945,29 +945,17 @@ function(req, res) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
-function(req, res) {
-  tryCatch({
-    params <- req$argsQuery
-    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-    params$version <- NULL
-    out <- do.call(pipapi::ui_cp_charts, params) |>
+cp_charts <- safe_endpoint(function(req, res) {
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+  params$version <- NULL
+
+  # wrap the heavy work in with_req_timeout
+  do.call(pipapi::ui_cp_charts, params) |>
     with_req_timeout()
-    if (is.null(out)) {
-      res$status <- 503
-      return(list(
-        error = "Request timed out",
-        request_id = req$.id,
-        endpoint = "/api/v1/cp-charts"
-      ))
-    }
-    out
-  }, error = function(e) {
-    res$status <- 500
-    list(error = "Error in /api/v1/cp-charts",
-         message = e$message,
-         request_id = tryCatch(req$.id, error = \(.) NA))
-  })
-}
+
+  },
+  endpoint = "/api/v1/cp-charts")
 
 ### cp-download -----------
 #* Return Country Profile - Downloads
