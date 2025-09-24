@@ -1,5 +1,29 @@
 # pipapi (development version)
-* add new way to infer poverty lines
+* add function safe_endpoint
+* remove the preroute as it is in endpoints.R
+* new plumber setup.
+* revamp plumber
+* implement timeout wrapper to more endpoint
+* add Request timed out to pip and pip-grp endpoints
+* Add a tiny request-ID + timings filter
+* add some tryCatch in some endpoints
+* handle errors
+* fix bug req$args to req$argsQuery
+* remove gc()
+* filter properly proverty lines to update master (inter cache) file
+* make use of missing data file instead of recreate i
+* remove verbose in join
+* sort for surveys with more than 1 reporting_level
+* update empty data
+* add multiple popshare for fillgaps
+* remove filter_Lkup from fg_pip()
+* allow to select regions from any variable. this must be changed once we allow many other aggregations
+* add prosperity gap to ui_cp_charts
+* multiple popshare for svy years.
+* improved version of  infer_poverty_line()
+* update data documentation
+* store vars in env defined in zzz
+* Fix several bugs
 
 
 # pipapi 1.3.24
