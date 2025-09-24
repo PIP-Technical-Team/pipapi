@@ -1,31 +1,32 @@
 # pipapi (development version)
+* Removed old regions ggregate from `pc_chart`.
 
 # pipapi 1.4.0
-* add function safe_endpoint
-* remove the preroute as it is in endpoints.R
-* new plumber setup.
-* revamp plumber
-* implement timeout wrapper to more endpoint
-* add Request timed out to pip and pip-grp endpoints
-* Add a tiny request-ID + timings filter
-* add some tryCatch in some endpoints
-* handle errors
-* fix bug req$args to req$argsQuery
-* remove gc()
-* filter properly proverty lines to update master (inter cache) file
-* make use of missing data file instead of recreate i
-* remove verbose in join
-* sort for surveys with more than 1 reporting_level
-* update empty data
-* add multiple popshare for fillgaps
-* remove filter_Lkup from fg_pip()
-* allow to select regions from any variable. this must be changed once we allow many other aggregations
-* add prosperity gap to ui_cp_charts
-* multiple popshare for svy years.
-* improved version of  infer_poverty_line()
-* update data documentation
-* store vars in env defined in zzz
-* Fix several bugs
+* Added `safe_endpoint` function for safer endpoint handling.
+* Removed `preroute` as it is now managed in `endpoints.R`.
+* Introduced a new and improved Plumber setup.
+* Refactored Plumber configuration for better maintainability.
+* Implemented a timeout wrapper for more endpoints.
+* Added "Request timed out" responses to `pip` and `pip-grp` endpoints.
+* Introduced a lightweight request ID and timing filter for better request tracking.
+* Added `tryCatch` blocks to improve error handling in several endpoints.
+* Enhanced error handling throughout the API.
+* Fixed bug by changing `req$args` to `req$argsQuery`.
+* Removed unnecessary calls to `gc()`.
+* Improved filtering of poverty lines when updating the master (intermediate cache) file.
+* Utilized the missing data file instead of recreating it.
+* Removed verbose output in join operations.
+* Ensured correct sorting for surveys with multiple `reporting_level` values.
+* Updated handling of empty data responses.
+* Enabled support for multiple `popshare` values in fill gaps operations.
+* Removed `filter_Lkup` from `fg_pip()`.
+* Allowed region selection from any variable (to be revised when supporting more aggregations).
+* Added prosperity gap metric to `ui_cp_charts`.
+* Enabled multiple `popshare` values for survey years.
+* Improved the `infer_poverty_line()` function.
+* Updated data documentation for clarity and completeness.
+* Stored variables in the environment defined in `zzz`.
+* Fixed several bugs across the codebase.
 
 
 # pipapi 1.3.24
