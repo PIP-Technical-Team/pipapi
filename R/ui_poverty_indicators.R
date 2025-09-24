@@ -96,7 +96,18 @@ ui_pc_regional <- function(country   = "ALL",
         reporting_pop  = reporting_pop / pop_units
       )]
 
-  out <- out[estimate_type == "actual"]
+  # TEMP START: remove old aggregations --------------
+  cl <- lkup$aux_files$country_list
+
+  regs <- cl[, .(region_code, africa_split_code)] |>
+    unlist()  |>  # convert to vector
+    na_omit() |>
+    unique()  |>
+    unname()  |>
+    c("WLD")  # add the world
+  # TEMP END: remove old aggregations --------------
+
+  out <- out[estimate_type == "actual" & region_code %in% regs]
 
   return(out)
 }
