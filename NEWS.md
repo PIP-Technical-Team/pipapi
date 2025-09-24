@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.4.0
 * add function safe_endpoint
 * remove the preroute as it is in endpoints.R
 * new plumber setup.
