@@ -2,6 +2,7 @@
 * Removed old regions aggregate from `pc_chart`.
 * Removed old regions aggregate from `get_aux_table_ui`.
 * Bring back MDG.
+* Add hash to all UI enpdoints
 
 # pipapi 1.4.0
 * Added `safe_endpoint` function for safer endpoint handling.

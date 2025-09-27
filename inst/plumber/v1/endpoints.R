@@ -718,8 +718,12 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req) {
-  pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
+  out <- pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
                         table = "indicators")
+
+  # TEMP patch
+  out |>
+    collapse::funique(cols = "indicator_code")
 }
 
 ### decomposition-vars --------------
