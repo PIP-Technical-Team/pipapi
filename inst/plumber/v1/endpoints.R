@@ -1005,7 +1005,7 @@ function(req, res) {
 
     if (req$argsQuery$table == "countries" && exclude == TRUE) {
       # hardcoded
-      to_remove <- c("MDG", "UKR")
+      to_remove <- c("UKR")
       out <- out[!(country_code %in% to_remove)]
     }
   }
