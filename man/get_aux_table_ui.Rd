@@ -5,12 +5,14 @@
 \title{Return specified auxiliary data in wide format
 Helper function to the UI}
 \usage{
-get_aux_table_ui(data_dir, table)
+get_aux_table_ui(data_dir, table, exclude = TRUE)
 }
 \arguments{
 \item{data_dir}{character: Data directory}
 
 \item{table}{character: Name of auxiliary table}
+
+\item{esclude}{logical: whether or not to exclude some countries or regions...}
 }
 \value{
 data.frame
