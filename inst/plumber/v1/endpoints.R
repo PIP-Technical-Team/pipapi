@@ -881,7 +881,8 @@ function(req, res) {
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
     out <- do.call(pipapi::ui_pc_regional, params) |>
-    with_req_timeout()
+      with_req_timeout()
+
     if (is.null(out)) {
       res$status <- 503
       return(list(

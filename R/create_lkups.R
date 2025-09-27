@@ -654,11 +654,16 @@ create_lkups <- function(data_dir, versions) {
   ## `pipapi` runs onto, such as path to data files, which will not be the same
   ## on my laptop, and on the PROD VM. These variables therefore need to be removed
   ## prior to the creation of the cache_data_id
-  hash_svy_lkup <- svy_lkup
+  hash_svy_lkup <- data.table::copy(svy_lkup)
   hash_svy_lkup$path <- NULL
 
-  hash_ref_lkup <- ref_lkup
+  if (use_new_lineup_version) {
+    hash_ref_lkup <- data.table::copy(refy_lkup)
+  } else {
+    hash_ref_lkup <- data.table::copy(ref_lkup)
+  }
   hash_ref_lkup$path <- NULL
+
 
   query_controls_hash <- query_controls
   query_controls_hash$version <- NULL

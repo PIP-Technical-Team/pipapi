@@ -68,7 +68,9 @@ ui_hp_stacked <- function(povline = 1.9,
 ui_hp_countries <- function(country = c("IDN", "CIV"),
                             povline = 1.9,
                             pop_units = 1e6,
-                            lkup) {
+                            lkup,
+                            lkup_hash       = lkup$cache_data_id$hash_pip
+                            ) {
   out <- pip(
     country = country,
     year = "all",

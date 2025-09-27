@@ -15,7 +15,9 @@ ui_pc_charts <- function(country = c("AGO"),
                          reporting_level = c("all", "national", "rural", "urban"),
                          pop_units = 1e6,
                          censor  = TRUE,
-                         lkup) {
+                         lkup,
+                         lkup_hash       = lkup$cache_data_id$hash_pip_grp
+                         ) {
   # Set returned columns
   return_cols           <- lkup$return_cols$ui_pc_charts$cols
   inequality_indicators <- lkup$return_cols$ui_pc_charts$inequality_indicators
@@ -73,7 +75,9 @@ ui_pc_regional <- function(country   = "ALL",
                            year      = "ALL",
                            povline   = 1.9,
                            pop_units = 1e6,
-                           lkup) {
+                           lkup,
+                           lkup_hash  = lkup$cache_data_id$hash_pip_grp
+                           ) {
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
