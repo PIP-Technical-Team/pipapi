@@ -989,7 +989,6 @@ function(req, res) {
 #* @param exclude:[bool] exclude countries. only applies for "countries" table
 function(req, res) {
   params <- req$argsQuery
-  exclude <- req$argsQuery$exclude
   res$serializer <- pipapi::assign_serializer(format = params$format)
   if (is.null(req$argsQuery$table)) {
     # return all available tables if none selected
@@ -1000,14 +999,7 @@ function(req, res) {
     params$data_dir <- lkups$versions_paths[[params$version]]$data_root
     params$format <- NULL
     params$version <- NULL
-    params$exclude <- NULL
     out <- do.call(pipapi::get_aux_table_ui, params)
-
-    if (req$argsQuery$table == "countries" && exclude == TRUE) {
-      # hardcoded
-      to_remove <- c("UKR")
-      out <- out[!(country_code %in% to_remove)]
-    }
   }
   out
 }

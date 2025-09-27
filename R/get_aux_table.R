@@ -45,15 +45,39 @@ get_aux_table <- function(data_dir = NULL,
 #' Helper function to the UI
 #' @param data_dir character: Data directory
 #' @param table character: Name of auxiliary table
+#' @param esclude logical: whether or not to exclude some countries or regions...
 #'
 #' @return data.frame
 #' @export
 #'
-get_aux_table_ui <- function(data_dir, table) {
+get_aux_table_ui <- function(data_dir,
+                             table,
+                             exclude = TRUE) {
 
   out <- get_aux_table(data_dir    = data_dir,
                        table       = table,
                        long_format = FALSE)
+
+  if (table == "regions") {
+    # TEMP START: remove old aggregations --------------
+    cl <- lkup$aux_files$country_list
+
+    regs <- cl[, .(region_code, africa_split_code)] |>
+      unlist()  |>  # convert to vector
+      na_omit() |>
+      unique()  |>
+      unname()  |>
+      c("WLD")  # add the world
+    # TEMP END: remove old aggregations --------------
+
+    out <- out[region_code %in% regs]
+
+  } else if (table == "countries" && exclude == TRUE) {
+      # hardcoded
+      to_remove <- c("UKR")
+      out <- out[!(country_code %in% to_remove)]
+  }
+
 
   return(out)
 }
