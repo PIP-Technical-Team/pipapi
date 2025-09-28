@@ -111,7 +111,7 @@ fg_pip <- function(country,
   rm(LDTg)
   }
   rm(lfst)
-  
+
 
 
   # Add just mean and median
@@ -121,9 +121,20 @@ fg_pip <- function(country,
   # try metadata unique code
   tmp_metadata <- copy(metadata) # I think we can avoid this inefficiency.
   # Handle multiple distribution types (for aggregated distributions)
-  if (length(unique(tmp_metadata$distribution_type)) > 1) {
-    tmp_metadata[, distribution_type := "mixed"]
-  }
+
+  tmp_metadata[,
+     y := as.integer(length(unique(distribution_type)) == 1),
+     by = .(country_code,
+            reporting_year,
+            welfare_type,
+            reporting_level)
+  ]
+
+  tmp_metadata[y == 0,
+     distribution_type := "mixed"
+     ][,
+       y := NULL]
+
   # convert survey_comparability to NA
   # NOTE: This should not be necessary. for the new lineup distribution
   # metadata should come without this variable.

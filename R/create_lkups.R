@@ -198,9 +198,43 @@ create_lkups <- function(data_dir, versions) {
       refy_lkup      <- fst::read_fst(refy_lkup_path,
                                       as.data.table = TRUE)
 
+      ## TEMP START: add distribution type -----------
+      dt <- ref_lkup[, .(country_code,
+                   reporting_year,
+                   welfare_type,
+                   reporting_level,
+                   distribution_type)]
+
+
+      dt[,
+         y := as.integer(length(unique(distribution_type)) == 1),
+         by = .(country_code,
+                reporting_year,
+                welfare_type,
+                reporting_level)
+         ]
+      dt[y == 0,
+         distribution_type := "mixed"
+         ][, y := NULL]
+
+      dt <- funique(dt)
+      refy_lkup <- joyn::joyn(refy_lkup, dt,
+                              by = c("country_code",
+                                     "reporting_year",
+                                     "welfare_type",
+                                     "reporting_level"),
+                              match_type = "1:1",
+                              keep = "left",
+                              update_values = TRUE,
+                              reportvar = FALSE)
+
+
+      ## TEMP END: add distribution type -----------
+
+
 
       # ZP ADD - CREATE OBJECT: lineup years
-      #___________________________________________________________________________
+      #______________________________________________________________
       lineup_years_path <-
         fs::path(data_dir,
                  "estimations/lineup_years.fst")
@@ -298,7 +332,7 @@ create_lkups <- function(data_dir, versions) {
                               update_values = TRUE)
 
 
-      # TEMP: fix ARG population --- START
+      ## TEMP START: fix ARG population ----
       pw <- pivot(pop,
             ids = c("country_code", "data_level"),
             names = list(variable = "reporting_year",
@@ -315,7 +349,7 @@ create_lkups <- function(data_dir, versions) {
         rural = national
         )]
 
-      # TEMP: fix ARG population --- END
+      ## TEMP END: fix ARG population ------
 
       popl <- pivot(pw,
                     ids = c("country_code", "reporting_year"),
@@ -335,9 +369,6 @@ create_lkups <- function(data_dir, versions) {
                               reportvar  = FALSE,
                               match_type = "1:1",
                               update_values = TRUE)
-
-
-
 
 
       # --- END inclussion of CMD data.
