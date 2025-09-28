@@ -142,14 +142,18 @@ fg_pip <- function(country,
   # get all vars
   meta_vars <- setdiff(names(tmp_metadata), "reporting_year")
   # transform to NA when necessary - i.e. when interpolated (two rows per reporting_year)
-  tmp_metadata[, (meta_vars) := lapply(.SD, \(x) {
-    if (uniqueN(x) == 1) {
-      x
-    } else {
-      NA
-    }}),
-    by      = c("reporting_year", "country_code", "reporting_level", "welfare_type"),
-    .SDcols = meta_vars]
+  tmp_metadata[,
+               (meta_vars) := lapply(.SD, \(x) {
+                 if (uniqueN(x) == 1) {
+                   x
+                 } else {
+                   NA
+                 }}),
+               by = c("reporting_year",
+                      "country_code",
+                      "reporting_level",
+                      "welfare_type"),
+               .SDcols = meta_vars]
 
   # Remove duplicate rows by reporting_year (keep only one row per
   # reporting_year)
@@ -158,11 +162,12 @@ fg_pip <- function(country,
 
   out <- join(res,
               tmp_metadata_unique,
-              on            = c("country_code", "reporting_year",
-                                "reporting_level"),
-              how           = "left", # ZP: change from full to left,
-                                      #  this rm nowcast years - i.e. years not included
-                                      #  as lineup years
+              on = c("country_code",
+                     "reporting_year",
+                     "reporting_level"),
+              how = "left", # ZP: change from full to left,
+                            #  this rm nowcast years - i.e. years not included
+                            #  as lineup years
               validate      = "m:1",
               drop.dup.cols = TRUE,
               verbose       = 0,
