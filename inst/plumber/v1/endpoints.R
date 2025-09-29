@@ -999,9 +999,9 @@ function(req, res) {
   } else {
     # Return only requested table
     params$data_dir <- lkups$versions_paths[[params$version]]$data_root
+    params$lkup <- lkups$versions_paths[[params$version]]
     params$format <- NULL
     params$version <- NULL
-    params$lkup <- lkups$versions_paths[[params$version]]
     out <- do.call(pipapi::get_aux_table_ui, params)
   }
   out

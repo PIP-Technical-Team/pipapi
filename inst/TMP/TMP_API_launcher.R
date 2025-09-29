@@ -4,12 +4,9 @@
 library(pipapi)
 # devtools::load_all(".")
 if (Sys.info()[["user"]] == "wb384996") {
-  force <- FALSE
-  if (!"lkups" %in% ls() || isTRUE(force)) {
-    data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
-      fs::path()
-    fs::dir_ls(data_dir, recurse = FALSE)
-  }
+  data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
+    fs::path()
+  fs::dir_ls(data_dir, recurse = FALSE)
 
 
   latest_version <-
