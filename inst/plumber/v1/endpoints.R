@@ -720,10 +720,7 @@ function(req) {
 function(req) {
   out <- pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
                         table = "indicators")
-
-  # TEMP patch
-  out |>
-    collapse::funique(cols = "indicator_code")
+  out
 }
 
 ### decomposition-vars --------------
