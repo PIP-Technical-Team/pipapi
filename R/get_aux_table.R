@@ -52,7 +52,8 @@ get_aux_table <- function(data_dir = NULL,
 #'
 get_aux_table_ui <- function(data_dir,
                              table,
-                             exclude = TRUE) {
+                             exclude = TRUE,
+                             lkup) {
 
   out <- get_aux_table(data_dir    = data_dir,
                        table       = table,
