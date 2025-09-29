@@ -2,39 +2,10 @@
 #* @apiDescription This API powers computations of statistics available at
 #* pip.worldbank.org
 
-library(pipapi)
-
-# ---- tiny telemetry (ID + timings) --------------------------------------
-
-# Monotonic wall time for durations (in seconds)
-.now <- function() {
-  proc.time()[["elapsed"]]
-}
-
-# Generate a request id AND return a decoded structure
-# - id_raw: "milliseconds-since-epoch-random"
-# - timestamp: POSIXct in UTC
-# - random: integer
-.req_id <- function() {
-  ts_ms_num <- as.numeric(Sys.time()) * 1000
-  ts_ms_chr <- format(ts_ms_num, scientific = FALSE, trim = TRUE)
-  rnd       <- sample.int(1e9, 1)
-  id_raw    <- paste0(ts_ms_chr, "-", rnd)
-
-  list(
-    id_raw    = id_raw,
-    timestamp = as.POSIXct(as.numeric(ts_ms_chr) / 1000,
-                           origin = "1970-01-01", tz = "UTC"),
-    random    = rnd
-  )
-}
-
-`%||%` <- function(a, b) if (!is.null(a)) a else b
-
 # ---- Always-on request context (one log line per request) ----
 #* @filter ctx
 function(req, res) {
-  rid <- .req_id()  # list(id_raw, timestamp, random)
+  rid <- pipapi:::.req_id()  # list(id_raw, timestamp, random)
 
   req$.id      <- rid$id_raw
   res$setHeader("X-Request-ID", req$.id)
@@ -43,12 +14,12 @@ function(req, res) {
   req$.id_time <- rid$timestamp
   req$.id_rand <- rid$random
 
-  req$.start <- .now()
-  req$.path  <- req$PATH_INFO %||% ""
-  req$.meth  <- req$REQUEST_METHOD %||% ""
+  req$.start <- pipapi:::.now()
+  req$.path  <- rlang::`%||%`(req$PATH_INFO , "")
+  req$.meth  <- rlang::`%||%`(req$REQUEST_METHOD , "")
 
   on.exit({
-    total <- .now() - req$.start
+    total <- pipapi:::.now() - req$.start
     cat(sprintf(
       '{"type":"access","id":"%s","method":"%s","path":"%s","status":%s,"dur_s":%.6f}\n',
       req$.id, req$.meth, req$.path, as.character(res$status %||% NA_integer_), total
@@ -63,11 +34,11 @@ function(req, res) {
 function(pr) {
   pr |>
     pr_hook("preserialize", function(req, res) {
-      req$.ser0 <- .now()
+      req$.ser0 <- pipapi:::.now()
     }) |>
     pr_hook("postserialize", function(req, res) {
       if (!is.null(req$.ser0) && !is.na(req$.ser0)) {
-        ser <- .now() - req$.ser0
+        ser <- pipapi:::.now() - req$.ser0
         cat(sprintf(
           '{"type":"serialize","id":"%s","path":"%s","dur_s":%.6f}\n',
           req$.id %||% "", req$.path %||% "", ser
