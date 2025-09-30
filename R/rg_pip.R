@@ -3,7 +3,7 @@
 #' Compute the main PIP poverty and inequality statistics for survey years.
 #'
 #' @inheritParams pip
-#' @return data.frame
+#' @return list of 2 data.frames, main_data and data_in_cache
 #' @keywords internal
 rg_pip <- function(country,
                    year,
@@ -78,7 +78,7 @@ rg_pip <- function(country,
     res <- lapply(lt, process_dt, povline = povline)
   }
   rm(lt)
-  
+
 
   res <- rbindlist(res, fill = TRUE)
 
@@ -100,9 +100,5 @@ rg_pip <- function(country,
 
   setnames(out, "povline", "poverty_line")
 
-
   return(list(main_data = out, data_in_cache = data_present_in_master))
 }
-
-
-

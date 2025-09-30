@@ -13,7 +13,7 @@ load_inter_cache(lkup = NULL, cache_file_path = NULL, fill_gaps = FALSE)
 values for missing years}
 }
 \value{
-data frame
+cached data frame
 }
 \description{
 Load Intermediate cache data

@@ -7,7 +7,7 @@
 is_empty(x)
 }
 \arguments{
-\item{x}{Value to be passed}
+\item{x}{Vector to be passed}
 }
 \value{
 logical. TRUE if x is empty but it is not NULL

@@ -192,7 +192,6 @@ fg_pip <- function(country,
 
 }
 
-
 #' Remove duplicated rows created during the interpolation process
 #'
 #' @param df data.table: Table of results created in `fg_pip()`
@@ -239,8 +238,6 @@ fg_remove_duplicates <- function(df,
     # Ensure that out does not have duplicates
     df <- unique(df)
   }
-
-
   return(df)
 }
 
@@ -277,11 +274,6 @@ fg_assign_nas_values_to_dup_cols <- function(df,
   return(df)
 }
 
-
-
-
-
-
 #' Create full list for fg data load, not including country-years in cache
 #'
 #' @param metadata data table from subset_lkup()$lkup
@@ -292,6 +284,3 @@ create_full_list <- function(metadata) {
     funique()
 
 }
-
-
-

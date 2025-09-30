@@ -2,7 +2,7 @@
 % Please edit documentation in R/compute_fgt_new.R
 \name{compute_fgt_dt}
 \alias{compute_fgt_dt}
-\title{Title}
+\title{Efficient FGT calculation for a data.table and vector of poverty lines}
 \usage{
 compute_fgt_dt(dt, welfare, weight, povlines, mean_and_med = FALSE)
 }
@@ -19,6 +19,6 @@ compute_fgt_dt(dt, welfare, weight, povlines, mean_and_med = FALSE)
 data.table with estimates poverty estimates
 }
 \description{
-Title
+Efficient FGT calculation for a data.table and vector of poverty lines
 }
 \keyword{internal}
