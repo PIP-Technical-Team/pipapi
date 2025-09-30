@@ -24,7 +24,7 @@ ui_hp_stacked <- function(povline = 1.9,
                 year            = ref_years,
                 povline         = povline,
                 welfare_type    = "all",
-                reporting_level = "national",
+                reporting_level = "all",
                 lkup            = lkup,
                 censor          = FALSE)
 
