@@ -84,6 +84,6 @@ plumber::pr_set_api_spec(api = function(spec) {
 }) |>
   plumber::pr_set_api_spec(yaml::read_yaml(api_spec_path))
 
-if (!inherits(pr, "plumber")) stop("Router not built correctly. check plumber.R file")
+if (!inherits(pr, "Plumber")) stop("Router not built correctly. check plumber.R file")
 
 pr
