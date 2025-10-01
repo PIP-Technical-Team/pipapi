@@ -1,4 +1,7 @@
 # pipapi (development version)
+* fix bugs
+* add more safeties to plumber and better documentation of errors
+* add `safe_endpoint()` to critical endpoints.
 
 # pipapi 1.4.1
 * Removed old regions aggregate from `pc_chart`.
