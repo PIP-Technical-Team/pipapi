@@ -327,36 +327,18 @@ function(req, res) {
 #* @param format:[chr] Response format. Options are "json", "csv", "rds", or "arrow".
 #* @param additional_ind:[bool] Additional indicators based on standard PIP output.
 #* Default is FALSE
-
 function(req, res) {
-  # Defensive error handling for pip endpoint
-  tryCatch({
+  safe_endpoint(function(req, res) {
     params         <- req$argsQuery
     params$lkup    <- lkups$versions_paths[[params$version]]
     res$serializer <- pipapi::assign_serializer(format = params$format)
     params$format  <- NULL
     params$version <- NULL
 
-    out <- do.call(pipapi::pip, params) |>
-      with_req_timeout()
-    if (is.null(out)) {
-      res$status <- 503
-      return(list(
-        error       = "Request timed out",
-        request_id  = req$.id,   # added in the ctx filter
-        endpoint    = "/api/v1/pip"
-      ))
-    }
-
-    out
-  }, error = function(e) {
-    res$status <- 500
-    list(error = "Error in /api/v1/pip",
-         message = e$message,
-         request_id = tryCatch(req$.id, error = function(.) NA)
-         )
-  })
+    do.call(pipapi::pip, params) |> with_req_timeout()
+  }, endpoint = "/api/v1/pip")(req, res)
 }
+
 
 ### pip-grp ----------
 #* Return aggregated poverty and inequality statistics
@@ -374,34 +356,17 @@ function(req, res) {
 #* @param additional_ind:[bool] Additional indicators based on standard PIP output.
 #* Default is FALSE
 function(req, res) {
-  # Defensive error handling for pip-grp endpoint
-  tryCatch({
+  safe_endpoint(function(req, res) {
     params         <- req$argsQuery
     params$lkup    <- lkups$versions_paths[[params$version]]
     res$serializer <- pipapi::assign_serializer(format = params$format)
     params$format  <- NULL
     params$version <- NULL
 
-    out <- do.call(pipapi::pip_agg, params) |>
-      with_req_timeout()
-    if (is.null(out)) {
-      res$status <- 503
-      return(list(
-        error       = "Request timed out",
-        request_id  = req$.id,   # added in the ctx filter
-        endpoint    = "/api/v1/pip-grp"
-      ))
-    }
-
-    out
-  }, error = function(e) {
-    res$status <- 500
-    list(error = "Error in /api/v1/pip-grp",
-         message = e$message,
-         request_id = tryCatch(req$.id, error = function(.) NA)
-    )
-  })
+    do.call(pipapi::pip_agg, params) |> with_req_timeout()
+  }, endpoint = "/api/v1/pip-grp")(req, res)
 }
+
 
 ###  aux ------------------
 #* Return auxiliary data table
@@ -749,28 +714,15 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req, res) {
-  tryCatch({
+  safe_endpoint(function(req, res) {
     params <- req$argsQuery
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
-    out <- do.call(pipapi::ui_hp_stacked, params) |>
-      with_req_timeout()
-    if (is.null(out)) {
-      res$status <- 503
-      return(list(
-        error = "Request timed out",
-        request_id = req$.id,
-        endpoint = "/api/v1/hp-stacked"
-      ))
-    }
-    out
-  }, error = function(e) {
-    res$status <- 500
-    list(error = "Error in /api/v1/hp-stacked",
-         message = e$message,
-         request_id = tryCatch(req$.id, error = function(.) NA))
-  })
+
+    do.call(pipapi::ui_hp_stacked, params) |> with_req_timeout()
+  }, endpoint = "/api/v1/hp-stacked")(req, res)
 }
+
 
 ### hp-countries -------------
 #* Return data for home page country charts
@@ -821,29 +773,16 @@ function(req, res) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na = "null")
+#* @get /api/v1/hp-stacked
 function(req, res) {
-  tryCatch({
+  safe_endpoint(function(req, res) {
     params <- req$argsQuery
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
     params$censor  <- TRUE
-    out <- do.call(pipapi::ui_pc_charts, params) |>
-     with_req_timeout()
-    if (is.null(out)) {
-      res$status <- 503
-      return(list(
-        error = "Request timed out",
-        request_id = req$.id,
-        endpoint = "/api/v1/pc-charts"
-      ))
-    }
-    out
-  }, error = function(e) {
-    res$status <- 500
-    list(error = "Error in /api/v1/pc-charts",
-         message = e$message,
-         request_id = tryCatch(req$.id, error = function(.) NA))
-  })
+
+    do.call(pipapi::ui_pc_charts, params) |> with_req_timeout()
+  }, endpoint = "/api/v1/pc-charts")(req, res)
 }
 
 ### pc-download -----------
@@ -882,30 +821,14 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req, res) {
-  tryCatch({
+  safe_endpoint(function(req, res) {
     params <- req$argsQuery
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
-    out <- do.call(pipapi::ui_pc_regional, params) |>
-      with_req_timeout()
 
-    if (is.null(out)) {
-      res$status <- 503
-      return(list(
-        error = "Request timed out",
-        request_id = req$.id,
-        endpoint = "/api/v1/pc-regional-aggregates"
-      ))
-    }
-    out
-  }, error = function(e) {
-    res$status <- 500
-    list(error = "Error in /api/v1/pc-regional-aggregates",
-         message = e$message,
-         request_id = tryCatch(req$.id, error = function(.) NA))
-  })
+    do.call(pipapi::ui_pc_regional, params) |> with_req_timeout()
+  }, endpoint = "/api/v1/pc-regional-aggregates")(req, res)
 }
-
 
 ## UI Endpoints: Country Profiles ----------------------------------------
 
@@ -919,27 +842,13 @@ function(req, res) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req, res) {
-  tryCatch({
+  safe_endpoint(function(req, res) {
     params <- req$argsQuery
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
-    out <- do.call(pipapi::ui_cp_key_indicators, params) |>
-    with_req_timeout()
-    if (is.null(out)) {
-      res$status <- 503
-      return(list(
-        error = "Request timed out",
-        request_id = req$.id,
-        endpoint = "/api/v1/cp-key-indicators"
-      ))
-    }
-    out
-  }, error = function(e) {
-    res$status <- 500
-    list(error = "Error in /api/v1/cp-key-indicators",
-         message = e$message,
-         request_id = tryCatch(req$.id, error = function(.) NA))
-  })
+
+    do.call(pipapi::ui_cp_key_indicators, params) |> with_req_timeout()
+  }, endpoint = "/api/v1/cp-key-indicators")(req, res)
 }
 
 
