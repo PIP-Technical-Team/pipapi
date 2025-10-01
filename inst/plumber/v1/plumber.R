@@ -61,7 +61,8 @@ plumber::pr_set_error(function(req, res, err) {
   cat(
     sprintf(
       '{"type":"error","id":"%s","method":"%s","path":"%s","msg":%s}\n',
-      rid, method, path, jsonlite::toJSON(err$message, auto_unbox = TRUE)
+      rid, method, path, jsonlite::toJSON(conditionMessage(err),
+                                          auto_unbox = TRUE)
     ),
     file = stderr()
   )
@@ -69,7 +70,7 @@ plumber::pr_set_error(function(req, res, err) {
   res$status <- 500
   list(
     error      = "Internal Server Error",
-    message    = err$message,
+    message    = conditionMessage(err),
     path       = path,
     method     = method,
     request_id = rid
@@ -82,5 +83,7 @@ plumber::pr_set_api_spec(api = function(spec) {
   spec
 }) |>
   plumber::pr_set_api_spec(yaml::read_yaml(api_spec_path))
+
+if (!inherits(pr, "plumber")) stop("Router not built correctly. check plumber.R file")
 
 pr

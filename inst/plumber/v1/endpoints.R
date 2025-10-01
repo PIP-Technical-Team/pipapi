@@ -2,6 +2,11 @@
 #* @apiDescription This API powers computations of statistics available at
 #* pip.worldbank.org
 
+if (!exists("lkups")) {
+  stop("Fatal: lkups not initialized. Ensure main.R created versioned lkups.")
+}
+
+
 library(pipapi)
 
 # ---- tiny telemetry (ID + timings) --------------------------------------
