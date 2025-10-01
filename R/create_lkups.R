@@ -226,7 +226,8 @@ create_lkups <- function(data_dir, versions) {
                               match_type = "1:1",
                               keep = "left",
                               update_values = TRUE,
-                              reportvar = FALSE)
+                              reportvar = FALSE,
+                              verbose = FALSE)
 
 
       ## TEMP END: add distribution type -----------
@@ -329,7 +330,8 @@ create_lkups <- function(data_dir, versions) {
                               keep       = "left",
                               reportvar  = FALSE,
                               match_type = "m:1",
-                              update_values = TRUE)
+                              update_values = TRUE,
+                              verbose = FALSE)
 
 
       ## TEMP START: fix ARG population ----
@@ -368,7 +370,8 @@ create_lkups <- function(data_dir, versions) {
                               keep       = "left",
                               reportvar  = FALSE,
                               match_type = "1:1",
-                              update_values = TRUE)
+                              update_values = TRUE,
+                              verbose = FALSE)
 
 
       # --- END inclussion of CMD data.
