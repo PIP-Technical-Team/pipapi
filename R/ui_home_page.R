@@ -15,38 +15,22 @@ ui_hp_stacked <- function(povline = 1.9,
   ref_years <- sort(unique(lkup$ref_lkup$reporting_year))
   ref_years <- ref_years[!ref_years %in% c(1981:1989)]
 
-  use_new <- lkup$use_new_lineup_version
 
-  # Run correct function
-  #-------------------------------------
-  out <- if (use_new) {
-   x <-  pip_grp_new(country         = "ALL",
-                year            = ref_years,
-                povline         = povline,
-                welfare_type    = "all",
-                reporting_level = "all",
-                lkup            = lkup,
-                censor          = FALSE)
+  out <- pip_agg(country         = "ALL",
+          year            = ref_years,
+          povline         = povline,
+          welfare_type    = "all",
+          reporting_level = "all",
+          lkup            = lkup,
+          censor          = FALSE,
+          lkup_hash       = lkup$cache_data_id$hash_pip_grp,
+          additional_ind  = FALSE)
 
-   regs <- lkup$aux_files$country_list[, region_code] |>
-     funique() |>
-     c("WLD")
+  regs <- lkup$aux_files$country_list[, region_code] |>
+    funique() |>
+    c("WLD")
 
-   x |>
-     fsubset(region_code %in% regs)
-
-  } else {
-    pip_grp(
-      country = "all",
-      year = ref_years,
-      povline = povline,
-      group_by = "wb",
-      reporting_level = "national",
-      censor = FALSE,
-      lkup = lkup
-    )
-
-  }
+  out <- out[region_code %in% regs]
 
   out <- get_vars(out,
                   c("region_code", "reporting_year",

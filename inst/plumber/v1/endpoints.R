@@ -335,7 +335,8 @@ function(req, res) {
     params$format  <- NULL
     params$version <- NULL
 
-    do.call(pip, params) |> with_req_timeout()
+    do.call(pip, params) |>
+      with_req_timeout()
   }, endpoint = "/api/v1/pip")(req, res)
 }
 
@@ -773,7 +774,6 @@ function(req, res) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na = "null")
-#* @get /api/v1/hp-stacked
 function(req, res) {
   safe_endpoint(function(req, res) {
     params <- req$argsQuery
