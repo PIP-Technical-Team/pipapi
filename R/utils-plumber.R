@@ -709,62 +709,76 @@ with_req_timeout <- function(expr,
 #' - Nested lists are normalized recursively
 #'
 #' @param params List of query parameters (typically req$argsQuery)
+#' @param skip character vector of arguments to exclude
 #' @param round_digits Integer, how many digits to round numeric poverty lines
+#'
 #' @return A cleaned and normalized list, safe for memoise/cache keys
-normalize_args <- function(params, round_digits = 2L) {
+normalize_args <- function(params, round_digits = 2L, skip = c("lkup")) {
   if (is.null(params) || length(params) == 0L) return(list())
 
-  # Defensive copy
   out <- as.list(params)
 
-  # Drop NULL or empty args
-  out <- out[!vapply(out, \(x) is.null(x) || length(x) == 0L, logical(1))]
+  # Drop NULL / empty
+  out <- out[!vapply(out, function(x) is.null(x) || length(x) == 0L, logical(1))]
 
-  #  Skip normalization for `lkup`
-  if (!is.null(out$lkup)) {
-    lkup_val <- out$lkup
-    out$lkup <- NULL
-  } else {
-    lkup_val <- NULL
-  }
-
-  # Round poverty line safely
+  # Round poverty line (if present)
   if (!is.null(out$povline)) {
     suppressWarnings({
       out$povline <- round(as.numeric(out$povline), round_digits)
     })
   }
 
-  # Normalize each argument
-  out <- lapply(out, function(x) {
-    # Logical coercion from common string/num forms
-    if (length(x) == 1L && is.character(x) && tolower(x) %in% c("true", "false")) {
-      return(tolower(x) == "true")
+  # Normalize each arg, but *not* the ones we skip (e.g. lkup)
+  nms <- names(out)
+  for (i in seq_along(out)) {
+    nm <- nms[[i]]
+    x  <- out[[i]]
+
+    if (nm %in% skip) next
+
+    # coerce common logical forms
+    if (length(x) == 1L && is.character(x)) {
+      lx <- tolower(x)
+      if (lx %in% c("true","false")) { out[[i]] <- (lx == "true"); next }
     }
-    if (length(x) == 1L && is.numeric(x) && x %in% c(0, 1)) {
-      return(as.logical(x))
+    if (length(x) == 1L && is.numeric(x) && x %in% c(0,1)) {
+      out[[i]] <- as.logical(x)
+      next
     }
 
-    # Character vectors: dedup & sort, but preserve case
+    # character vectors: dedup + sort (preserve case)
     if (is.character(x) && length(x) > 1L) {
-      return(unique(sort(x)))
+      out[[i]] <- unique(sort(x))
+      next
     }
 
-    # Lists: recurse
+    # nested lists: normalize recursively (still skipping keys named in `skip`)
     if (is.list(x)) {
-      return(normalize_args(x, round_digits = round_digits))
+      out[[i]] <- normalize_args(x, round_digits = round_digits, skip = skip)
     }
-
-    x
-  })
-
-  # Sort keys alphabetically for determinism
-  out <- out[sort(names(out))]
-
-  # Reattach lkup untouched (always last)
-  if (!is.null(lkup_val)) {
-    out$lkup <- lkup_val
   }
 
-  out
+  # Deterministic key order
+  out[sort(names(out))]
+}
+
+# ---- memoization wrapper (idempotent) ------------------------------------
+#' momiose and normalize
+#'
+#' @param f function to normalize
+#' @param cache object from [cachem::cache_disk]
+#'
+#' @return memoised function
+memo_norm <- function(f, cache) {
+  # If already memoised, leave it alone
+  if (memoise::is.memoised(f)) return(f)
+
+  memoise::memoise(
+    function(...) {
+      args <- normalize_args(list(...))
+      do.call(f, args)
+    },
+    cache = cache,
+    omit_args = "lkup"
+  )
 }

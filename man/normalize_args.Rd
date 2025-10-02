@@ -4,12 +4,14 @@
 \alias{normalize_args}
 \title{Normalize API query arguments for caching}
 \usage{
-normalize_args(params, round_digits = 2L)
+normalize_args(params, round_digits = 2L, skip = c("lkup"))
 }
 \arguments{
 \item{params}{List of query parameters (typically req$argsQuery)}
 
 \item{round_digits}{Integer, how many digits to round numeric poverty lines}
+
+\item{skip}{character vector of arguments to exclude}
 }
 \value{
 A cleaned and normalized list, safe for memoise/cache keys

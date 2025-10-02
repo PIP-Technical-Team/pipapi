@@ -17,38 +17,6 @@ pipapi_default_options <- list(
                              max_size = as.numeric(Sys.getenv("PIPAPI_CACHE_MAX_SIZE")),
                              prune_rate = 50)
 
-    # Small wrapper around memoised functions:
-    # Wrapper for memoising with normalized args + correct HIT/MISS logging
-    memo_norm <- function(f, cache, fname = deparse(substitute(f))) {
-      # 1) Memoised worker: normalize before calling the real function
-      f_memo <- memoise::memoise(
-        function(...) {
-          args <- normalize_args(list(...))
-          do.call(f, args)
-        },
-        cache = cache,
-        omit_args = "lkup"
-      )
-
-      # 2) Public wrapper: check memoise cache and log, then dispatch
-      function(...) {
-        args_norm <- normalize_args(list(...))
-        # Ask memoise if it has a cached value for THESE args
-        has <- memoise::has_cache(f_memo)
-        hit <- FALSE
-        try(hit <-  do.call(has, args_norm),
-            silent = TRUE)
-
-        if (isTRUE(hit)) {
-          cli::cli_alert_info("CACHE HIT for {fname}")
-        } else {
-          cli::cli_alert_warning("CACHE MISS for {fname}")
-        }
-
-        do.call(f_memo, args_norm)
-      }
-    }
-
     # Memoise your core functions with normalization
     pip                  <<- memo_norm(pip, cache = cd)
     ui_hp_stacked        <<- memo_norm(ui_hp_stacked, cache = cd)
