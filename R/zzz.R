@@ -47,8 +47,9 @@ pipapi_default_options <- list(
     ui_cp_download       <<- memo_norm(ui_cp_download, cache = cd)
     ui_cp_key_indicators <<- memo_norm(ui_cp_key_indicators, cache = cd)
 
-    pos = 1L
-    assign("cd", cd, envir = as.environment(pos))
+    # pos = 1L
+    # assign("cd", cd, envir = as.environment(pos))
+    assign("cd", cd, envir = .GlobalEnv)
     packageStartupMessage("Info: Disk based caching is enabled.")
   }
 
