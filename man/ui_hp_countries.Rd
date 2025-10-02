@@ -8,7 +8,8 @@ ui_hp_countries(
   country = c("IDN", "CIV"),
   povline = 1.9,
   pop_units = 1e+06,
-  lkup
+  lkup,
+  lkup_hash = lkup$cache_data_id$hash_pip
 )
 }
 \arguments{
@@ -20,6 +21,8 @@ ui_hp_countries(
 to million)}
 
 \item{lkup}{list: A list of lkup tables}
+
+\item{lkup_hash}{character: hash of pip}
 }
 \value{
 data.table

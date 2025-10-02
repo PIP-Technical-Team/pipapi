@@ -14,7 +14,8 @@ ui_pc_charts(
   reporting_level = c("all", "national", "rural", "urban"),
   pop_units = 1e+06,
   censor = TRUE,
-  lkup
+  lkup,
+  lkup_hash = lkup$cache_data_id$hash_pip_grp
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ to million)}
 \item{censor}{logical: Triggers censoring of country/year statistics}
 
 \item{lkup}{list: A list of lkup tables}
+
+\item{lkup_hash}{character: hash of pip}
 }
 \value{
 data.table

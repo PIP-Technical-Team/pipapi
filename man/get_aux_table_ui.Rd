@@ -5,7 +5,7 @@
 \title{Return specified auxiliary data in wide format
 Helper function to the UI}
 \usage{
-get_aux_table_ui(data_dir, table, exclude = TRUE)
+get_aux_table_ui(data_dir, table, exclude = TRUE, lkup)
 }
 \arguments{
 \item{data_dir}{character: Data directory}

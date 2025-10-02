@@ -696,3 +696,51 @@ with_req_timeout <- function(expr,
     }
   )
 }
+
+
+#' Normalize API query arguments for caching
+#'
+#' Ensures that:
+#' - All keys are sorted alphabetically (so order of args never matters)
+#' - NULL or empty arguments are dropped
+#' - Numeric poverty lines are rounded consistently
+#' - Logical arguments are coerced to TRUE/FALSE
+#' - Character vectors are deduplicated and sorted
+#'
+#' @param params List of query parameters (typically req$argsQuery)
+#' @return A cleaned and normalized list, safe for memoise/cache keys
+normalize_args <- function(params) {
+  # Defensive copy
+  out <- as.list(params)
+
+  # Drop NULL or empty args
+  out <- out[!vapply(out, function(x) is.null(x) || length(x) == 0L, logical(1))]
+
+  # Round poverty line safely
+  if (!is.null(out$povline)) {
+    suppressWarnings({
+      out$povline <- round(as.numeric(out$povline), 2)
+    })
+  }
+
+  # Coerce logicals from strings ("true"/"false") or numbers (0/1)
+  out <- lapply(out, function(x) {
+    if (length(x) == 1L && is.character(x) && tolower(x) %in% c("true", "false")) {
+      return(tolower(x) == "true")
+    }
+    if (length(x) == 1L && is.numeric(x) && x %in% c(0, 1)) {
+      return(as.logical(x))
+    }
+    x
+  })
+
+  # Deduplicate and sort character vectors
+  out <- lapply(out, function(x) {
+    if (is.character(x) && length(x) > 1L) unique(sort(x)) else x
+  })
+
+  # Sort keys alphabetically to make cache keys deterministic
+  out <- out[sort(names(out))]
+
+  out
+}

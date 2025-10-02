@@ -40,7 +40,8 @@ pip_grp_new(
   reporting_level = c("all", "national"),
   lkup,
   censor = TRUE,
-  additional_ind = FALSE
+  additional_ind = FALSE,
+  lkup_hash = lkup$cache_data_id$hash_pip_grp
 )
 }
 \arguments{
