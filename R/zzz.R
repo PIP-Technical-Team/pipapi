@@ -23,7 +23,7 @@ pipapi_default_options <- list(
         args <- normalize_args(list(...))
         key  <- digest::digest(args, algo = "xxhash64")
 
-        if (cache$has_key(key)) {
+        if (cache$exists(key)) {
           cli::cli_alert_info("CACHE HIT [{key}] for {substitute(f)}")
         } else {
           cli::cli_alert_warning("CACHE MISS [{key}] for {substitute(f)}")
