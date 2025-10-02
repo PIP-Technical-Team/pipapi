@@ -22,6 +22,41 @@ ver_to_use <- lkups$latest_release # this is important. You need this object bel
 
 lkup <- lkups$versions_paths[[ver_to_use]]
 
+pls <- lkup$pl_lkup$poverty_line |>
+  sort()
+
+# pls <- pl_lkup |>
+#   fselect(poverty_line) |>
+#   reg_elem() |>
+#   sort()
+
+
+ch <- load_inter_cache(lkup = lkup,
+                       fill_gaps = FALSE)
+
+pls2 <- ch[, poverty_line] |>
+  unique() |>
+  sort()
+
+waldo::compare(pls[3], pls2[4])
+
+
+
+
+wpl <- which(!pls %in% pls2)
+pls[wpl]
+
+pl3 <- c(
+  seq(from = 0.01, to = 4, by = 0.01),
+  seq(from = 4.05, to = 20, by = 0.05),
+  seq(from = 21, to = 100, by = 1),
+  seq(from = 110, to = 900, by = 10)) |>
+  round(2) |>
+  unique()
+
+all(pls %in% pl3)
+wpl <- which(!pls %in% pl3)
+pls[wpl]
 
 
 # DEGUB -------------

@@ -472,6 +472,8 @@ create_lkups <- function(data_dir, versions) {
   pl_lkup_path    <- fs::path(data_dir, "_aux/poverty_lines.fst")
   pl_lkup         <- fst::read_fst(pl_lkup_path, as.data.table = TRUE)
 
+  pl_lkup[, poverty_line := round(poverty_line, 2)]
+
   # CREATE OBJECT: censored
   # list with censor tables
   censored_path   <- fs::path(data_dir, "_aux/censored.rds")

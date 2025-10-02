@@ -51,10 +51,13 @@ pipapi_default_options <- list(
 
 
   # pov lines to store
-  pl <- c(seq(from = 0.01, to = 5, by = 0.01),
-          seq(from = 5.1, to = 20, by = 0.1),
-          seq(from = 21, to = 100, by = 1),
-          seq(from = 105, to = 900, by = 5))
+  pl <- c(
+    seq(from = 0.01, to = 4, by = 0.01),
+    seq(from = 4.05, to = 20, by = 0.05),
+    seq(from = 21, to = 100, by = 1),
+    seq(from = 110, to = 900, by = 10)) |>
+    round(2) |>
+    unique()
   set_in_pipapienv("pl_to_store", pl)
 
   invisible()
