@@ -718,7 +718,15 @@ normalize_args <- function(params, round_digits = 2L) {
   out <- as.list(params)
 
   # Drop NULL or empty args
-  out <- out[!vapply(out, function(x) is.null(x) || length(x) == 0L, logical(1))]
+  out <- out[!vapply(out, \(x) is.null(x) || length(x) == 0L, logical(1))]
+
+  #  Skip normalization for `lkup`
+  if (!is.null(out$lkup)) {
+    lkup_val <- out$lkup
+    out$lkup <- NULL
+  } else {
+    lkup_val <- NULL
+  }
 
   # Round poverty line safely
   if (!is.null(out$povline)) {
@@ -752,6 +760,11 @@ normalize_args <- function(params, round_digits = 2L) {
 
   # Sort keys alphabetically for determinism
   out <- out[sort(names(out))]
+
+  # Reattach lkup untouched (always last)
+  if (!is.null(lkup_val)) {
+    out$lkup <- lkup_val
+  }
 
   out
 }
