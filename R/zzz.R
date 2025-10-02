@@ -18,23 +18,35 @@ pipapi_default_options <- list(
                              prune_rate = 50)
 
     # Small wrapper around memoised functions:
-    memo_norm <- \(f, cache) {
-      memoise::memoise(\(...) {
-        args <- normalize_args(list(...))
-        # key  <- digest::digest(args, algo = "xxhash64")
-        key  <- rlang::hash(args)
+    # Wrapper for memoising with normalized args + correct HIT/MISS logging
+    memo_norm <- function(f, cache, fname = deparse(substitute(f))) {
+      # 1) Memoised worker: normalize before calling the real function
+      f_memo <- memoise::memoise(
+        function(...) {
+          args <- normalize_args(list(...))
+          do.call(f, args)
+        },
+        cache = cache,
+        omit_args = "lkup"
+      )
 
-        if (cache$exists(key)) {
-          cli::cli_alert_info("CACHE HIT [{key}] for {substitute(f)}")
+      # 2) Public wrapper: check memoise cache and log, then dispatch
+      function(...) {
+        args_norm <- normalize_args(list(...))
+        # Ask memoise if it has a cached value for THESE args
+        has <- memoise::has_cache(f_memo)
+        hit <- FALSE
+        try(hit <-  do.call(has, args_norm),
+            silent = TRUE)
+
+        if (isTRUE(hit)) {
+          cli::cli_alert_info("CACHE HIT for {fname}")
         } else {
-          cli::cli_alert_warning("CACHE MISS [{key}] for {substitute(f)}")
+          cli::cli_alert_warning("CACHE MISS for {fname}")
         }
 
-        do.call(f, args)
-      },
-      cache = cache,
-      omit_args = "lkup"   # <- important, we don’t want to memoise on version lookup table
-      )
+        do.call(f_memo, args_norm)
+      }
     }
 
     # Memoise your core functions with normalization
