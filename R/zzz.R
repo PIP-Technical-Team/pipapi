@@ -21,7 +21,8 @@ pipapi_default_options <- list(
     memo_norm <- \(f, cache) {
       memoise::memoise(\(...) {
         args <- normalize_args(list(...))
-        key  <- digest::digest(args, algo = "xxhash64")
+        # key  <- digest::digest(args, algo = "xxhash64")
+        key  <- rlang::hash(args)
 
         if (cache$exists(key)) {
           cli::cli_alert_info("CACHE HIT [{key}] for {substitute(f)}")
