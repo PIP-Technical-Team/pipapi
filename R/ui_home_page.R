@@ -16,8 +16,8 @@ ui_hp_stacked <- function(povline = 1.9,
   ref_years <- ref_years[!ref_years %in% c(1981:1989)]
 
 
-  out <- pip_agg(country         = "ALL",
-          year            = ref_years,
+  out <- pip_agg(country  = "ALL",
+          year            = "ALL",
           povline         = povline,
           welfare_type    = "all",
           reporting_level = "all",
@@ -30,7 +30,7 @@ ui_hp_stacked <- function(povline = 1.9,
     funique() |>
     c("WLD")
 
-  out <- out[region_code %in% regs]
+  out <- out[region_code %in% regs & reporting_year %in% ref_years]
 
   out <- get_vars(out,
                   c("region_code", "reporting_year",
@@ -57,11 +57,10 @@ ui_hp_countries <- function(country = c("IDN", "CIV"),
                             ) {
   out <- pip(
     country = country,
-    year = "all",
+    year = "ALL",
     povline = povline,
     lkup = lkup,
     fill_gaps = FALSE,
-    group_by = NULL,
     reporting_level = "national"
   )
 

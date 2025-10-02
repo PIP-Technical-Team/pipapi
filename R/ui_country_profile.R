@@ -44,11 +44,10 @@ ui_cp_ki_headcount <- function(country,
   # Fetch most recent year (for CP-display) Fetch data for all countries for
   # caching purposes Even though this is more inefficient by itself, this call
   # before should be already cached in the pre-caching, making it even faster
-  res_all <- pip(country         = "all",
-                 year            = "all",
+  res_all <- pip(country         = "ALL",
+                 year            = "ALL",
                  povline         = povline,
                  fill_gaps       = FALSE,
-                 group_by        = "none",
                  reporting_level = "all",
                  lkup            = lkup)
 
@@ -156,11 +155,10 @@ ui_cp_poverty_charts <- function(country,
 
   # STEP 2: Compute stats for all countries from the region ----
   # Query for all countries for caching purpose
-  res_pov_all <- pip(country         = "all",
-                     year            = "all",
+  res_pov_all <- pip(country         = "ALL",
+                     year            = "ALL",
                      povline         = povline,
                      fill_gaps       = FALSE,
-                     group_by        = "none",
                      reporting_level = "all",
                      lkup            = lkup)
 

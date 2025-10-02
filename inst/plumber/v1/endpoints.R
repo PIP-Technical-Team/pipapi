@@ -720,7 +720,7 @@ function(req, res) {
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
 
-    do.call(ui_hp_stacked, params) |> with_req_timeout()
+    do.call(pipapi::ui_hp_stacked, params) |> with_req_timeout()
   }, endpoint = "/api/v1/hp-stacked")(req, res)
 }
 
@@ -835,7 +835,8 @@ function(req, res) {
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
 
-    do.call(ui_cp_key_indicators, params) |> with_req_timeout()
+    do.call(ui_cp_key_indicators, params) |>
+      with_req_timeout()
   }, endpoint = "/api/v1/cp-key-indicators")(req, res)
 }
 

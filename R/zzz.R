@@ -18,21 +18,15 @@ pipapi_default_options <- list(
                              prune_rate = 50)
 
     # --- preserve raw versions
-    assign("pip_raw",                  pip,                  envir = parent.env(environment()))
-    assign("pip_agg_raw",              pip_agg,              envir = parent.env(environment()))
-    assign("pip_grp_raw",              pip_grp,              envir = parent.env(environment()))
-    assign("pip_grp_logic_raw",        pip_grp_logic,        envir = parent.env(environment()))
-    assign("pip_grp_new_raw",          pip_grp_new,          envir = parent.env(environment()))
-    assign("ui_cp_charts_raw",         ui_cp_charts,         envir = parent.env(environment()))
-    assign("ui_cp_download_raw",       ui_cp_download,       envir = parent.env(environment()))
+    assign("pip_raw",                  pip, envir                  = parent.env(environment()))
+    assign("pip_agg_raw",              pip_agg, envir              = parent.env(environment()))
+    assign("ui_cp_charts_raw",         ui_cp_charts, envir         = parent.env(environment()))
+    assign("ui_cp_download_raw",       ui_cp_download, envir       = parent.env(environment()))
     assign("ui_cp_key_indicators_raw", ui_cp_key_indicators, envir = parent.env(environment()))
 
     # then memoise the memoised versions for external use
     pip                  <<- memo_norm(pip_raw, cache = cd)
     pip_agg              <<- memo_norm(pip_agg_raw, cache = cd)
-    pip_grp              <<- memo_norm(pip_grp_raw, cache = cd)
-    pip_grp_logic        <<- memo_norm(pip_grp_logic_raw, cache = cd)
-    pip_grp_new          <<- memo_norm(pip_grp_new_raw, cache = cd)
     ui_cp_charts         <<- memo_norm(ui_cp_charts_raw, cache = cd)
     ui_cp_download       <<- memo_norm(ui_cp_download_raw, cache = cd)
     ui_cp_key_indicators <<- memo_norm(ui_cp_key_indicators_raw, cache = cd)
