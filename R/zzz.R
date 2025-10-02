@@ -17,16 +17,25 @@ pipapi_default_options <- list(
                              max_size = as.numeric(Sys.getenv("PIPAPI_CACHE_MAX_SIZE")),
                              prune_rate = 50)
 
-    # Memoise your core functions with normalization
-    pip                  <<- memo_norm(pip, cache = cd)
-    ui_hp_stacked        <<- memo_norm(ui_hp_stacked, cache = cd)
-    pip_agg              <<- memo_norm(pip_agg, cache = cd)
-    pip_grp_new          <<- memo_norm(pip_grp_new, cache = cd)
-    pip_grp_logic        <<- memo_norm(pip_grp_logic, cache = cd)
-    pip_grp              <<- memo_norm(pip_grp, cache = cd)
-    ui_cp_charts         <<- memo_norm(ui_cp_charts, cache = cd)
-    ui_cp_download       <<- memo_norm(ui_cp_download, cache = cd)
-    ui_cp_key_indicators <<- memo_norm(ui_cp_key_indicators, cache = cd)
+    # keep originals under another name
+    pip_raw                  <- pip
+    pip_agg_raw              <- pip_agg
+    pip_grp_raw              <- pip_grp
+    pip_grp_logic_raw        <- pip_grp_logic
+    pip_grp_new_raw          <- pip_grp_new
+    ui_cp_charts_raw         <- ui_cp_charts
+    ui_cp_download_raw       <- ui_cp_download
+    ui_cp_key_indicators_raw <- ui_cp_key_indicators
+
+    # then memoise the memoised versions for external use
+    pip                  <<- memo_norm(pip_raw, cache = cd)
+    pip_agg              <<- memo_norm(pip_agg_raw, cache = cd)
+    pip_grp              <<- memo_norm(pip_grp_raw, cache = cd)
+    pip_grp_logic        <<- memo_norm(pip_grp_logic_raw, cache = cd)
+    pip_grp_new          <<- memo_norm(pip_grp_new_raw, cache = cd)
+    ui_cp_charts         <<- memo_norm(ui_cp_charts_raw, cache = cd)
+    ui_cp_download       <<- memo_norm(ui_cp_download_raw, cache = cd)
+    ui_cp_key_indicators <<- memo_norm(ui_cp_key_indicators_raw, cache = cd)
 
     # pos = 1L
     # assign("cd", cd, envir = as.environment(pos))
