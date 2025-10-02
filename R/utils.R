@@ -953,7 +953,7 @@ fillin_list <- function(l,
   #   Defenses                                    ####
   stopifnot( exprs = {
     is.list(l)
-    !is.data.frame(l)
+    is.data.frame(l) == FALSE
   }
   )
 
