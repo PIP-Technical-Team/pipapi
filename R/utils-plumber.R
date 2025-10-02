@@ -705,11 +705,15 @@ with_req_timeout <- function(expr,
 #' - NULL or empty arguments are dropped
 #' - Numeric poverty lines are rounded consistently
 #' - Logical arguments are coerced to TRUE/FALSE
-#' - Character vectors are deduplicated and sorted
+#' - Character vectors are deduplicated and sorted (case preserved)
+#' - Nested lists are normalized recursively
 #'
 #' @param params List of query parameters (typically req$argsQuery)
+#' @param round_digits Integer, how many digits to round numeric poverty lines
 #' @return A cleaned and normalized list, safe for memoise/cache keys
-normalize_args <- function(params) {
+normalize_args <- function(params, round_digits = 2L) {
+  if (is.null(params) || length(params) == 0L) return(list())
+
   # Defensive copy
   out <- as.list(params)
 
@@ -719,27 +723,34 @@ normalize_args <- function(params) {
   # Round poverty line safely
   if (!is.null(out$povline)) {
     suppressWarnings({
-      out$povline <- round(as.numeric(out$povline), 2)
+      out$povline <- round(as.numeric(out$povline), round_digits)
     })
   }
 
-  # Coerce logicals from strings ("true"/"false") or numbers (0/1)
+  # Normalize each argument
   out <- lapply(out, function(x) {
+    # Logical coercion from common string/num forms
     if (length(x) == 1L && is.character(x) && tolower(x) %in% c("true", "false")) {
       return(tolower(x) == "true")
     }
     if (length(x) == 1L && is.numeric(x) && x %in% c(0, 1)) {
       return(as.logical(x))
     }
+
+    # Character vectors: dedup & sort, but preserve case
+    if (is.character(x) && length(x) > 1L) {
+      return(unique(sort(x)))
+    }
+
+    # Lists: recurse
+    if (is.list(x)) {
+      return(normalize_args(x, round_digits = round_digits))
+    }
+
     x
   })
 
-  # Deduplicate and sort character vectors
-  out <- lapply(out, function(x) {
-    if (is.character(x) && length(x) > 1L) unique(sort(x)) else x
-  })
-
-  # Sort keys alphabetically to make cache keys deterministic
+  # Sort keys alphabetically for determinism
   out <- out[sort(names(out))]
 
   out

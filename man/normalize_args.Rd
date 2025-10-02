@@ -4,10 +4,12 @@
 \alias{normalize_args}
 \title{Normalize API query arguments for caching}
 \usage{
-normalize_args(params)
+normalize_args(params, round_digits = 2L)
 }
 \arguments{
 \item{params}{List of query parameters (typically req$argsQuery)}
+
+\item{round_digits}{Integer, how many digits to round numeric poverty lines}
 }
 \value{
 A cleaned and normalized list, safe for memoise/cache keys
@@ -19,6 +21,7 @@ Ensures that:
 \item NULL or empty arguments are dropped
 \item Numeric poverty lines are rounded consistently
 \item Logical arguments are coerced to TRUE/FALSE
-\item Character vectors are deduplicated and sorted
+\item Character vectors are deduplicated and sorted (case preserved)
+\item Nested lists are normalized recursively
 }
 }
