@@ -18,25 +18,34 @@ pipapi_default_options <- list(
                              prune_rate = 50)
 
     # Small wrapper around memoised functions:
-    memo_norm <- \(f) {
+    memo_norm <- \(f, cache) {
       memoise::memoise(\(...) {
         args <- normalize_args(list(...))
+        key  <- digest::digest(args, algo = "xxhash64")
+
+        if (cache$has_key(key)) {
+          cli::cli_alert_info("CACHE HIT [{key}] for {substitute(f)}")
+        } else {
+          cli::cli_alert_warning("CACHE MISS [{key}] for {substitute(f)}")
+        }
+
         do.call(f, args)
       },
-      cache = cd,
-      omit_args = "lkup")
+      cache = cache,
+      omit_args = "lkup"   # <- important, we don’t want to memoise on version lookup table
+      )
     }
 
     # Memoise your core functions with normalization
-    pip                  <<- memo_norm(pip)
-    ui_hp_stacked        <<- memo_norm(ui_hp_stacked)
-    pip_agg              <<- memo_norm(pip_agg)
-    pip_grp_new          <<- memo_norm(pip_grp_new)
-    pip_grp_logic        <<- memo_norm(pip_grp_logic)
-    pip_grp              <<- memo_norm(pip_grp)
-    ui_cp_charts         <<- memo_norm(ui_cp_charts)
-    ui_cp_download       <<- memo_norm(ui_cp_download)
-    ui_cp_key_indicators <<- memo_norm(ui_cp_key_indicators)
+    pip                  <<- memo_norm(pip, cache = cd)
+    ui_hp_stacked        <<- memo_norm(ui_hp_stacked, cache = cd)
+    pip_agg              <<- memo_norm(pip_agg, cache = cd)
+    pip_grp_new          <<- memo_norm(pip_grp_new, cache = cd)
+    pip_grp_logic        <<- memo_norm(pip_grp_logic, cache = cd)
+    pip_grp              <<- memo_norm(pip_grp, cache = cd)
+    ui_cp_charts         <<- memo_norm(ui_cp_charts, cache = cd)
+    ui_cp_download       <<- memo_norm(ui_cp_download, cache = cd)
+    ui_cp_key_indicators <<- memo_norm(ui_cp_key_indicators, cache = cd)
 
     pos = 1L
     assign("cd", cd, envir = as.environment(pos))

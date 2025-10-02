@@ -826,7 +826,8 @@ function(req, res) {
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
 
-    do.call(pipapi::ui_pc_regional, params) |> with_req_timeout()
+    do.call(pipapi::ui_pc_regional, params) |>
+      with_req_timeout()
   }, endpoint = "/api/v1/pc-regional-aggregates")(req, res)
 }
 
