@@ -17,15 +17,27 @@ pipapi_default_options <- list(
                              max_size = as.numeric(Sys.getenv("PIPAPI_CACHE_MAX_SIZE")),
                              prune_rate = 50)
 
-    pip            <<- memoise::memoise(pip, cache = cd, omit_args = "lkup")
-    ui_hp_stacked  <<- memoise::memoise(ui_hp_stacked, cache = cd, omit_args = "lkup")
-    pip_agg        <<- memoise::memoise(pip_agg, cache = cd, omit_args = "lkup")
-    pip_grp_new    <<- memoise::memoise(pip_grp_new, cache = cd, omit_args = "lkup")
-    pip_grp_logic  <<- memoise::memoise(pip_grp_logic, cache = cd, omit_args = "lkup")
-    pip_grp        <<- memoise::memoise(pip_grp, cache = cd, omit_args = "lkup")
-    ui_cp_charts   <<- memoise::memoise(ui_cp_charts, cache = cd, omit_args = "lkup")
-    ui_cp_download <<- memoise::memoise(ui_cp_download, cache = cd, omit_args = "lkup")
-    ui_cp_key_indicators <<- memoise::memoise(ui_cp_key_indicators, cache = cd, omit_args = "lkup")
+    # Small wrapper around memoised functions:
+    memo_norm <- \(f) {
+      memoise::memoise(\(...) {
+        args <- normalize_args(list(...))
+        do.call(f, args)
+      },
+      cache = cd,
+      omit_args = "lkup")
+    }
+
+    # Memoise your core functions with normalization
+    pip                  <<- memo_norm(pip)
+    ui_hp_stacked        <<- memo_norm(ui_hp_stacked)
+    pip_agg              <<- memo_norm(pip_agg)
+    pip_grp_new          <<- memo_norm(pip_grp_new)
+    pip_grp_logic        <<- memo_norm(pip_grp_logic)
+    pip_grp              <<- memo_norm(pip_grp)
+    ui_cp_charts         <<- memo_norm(ui_cp_charts)
+    ui_cp_download       <<- memo_norm(ui_cp_download)
+    ui_cp_key_indicators <<- memo_norm(ui_cp_key_indicators)
+
     pos = 1L
     assign("cd", cd, envir = as.environment(pos))
     packageStartupMessage("Info: Disk based caching is enabled.")
