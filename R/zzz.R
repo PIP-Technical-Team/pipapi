@@ -17,15 +17,15 @@ pipapi_default_options <- list(
                              max_size = as.numeric(Sys.getenv("PIPAPI_CACHE_MAX_SIZE")),
                              prune_rate = 50)
 
-    # keep originals under another name
-    pip_raw                  <- pip
-    pip_agg_raw              <- pip_agg
-    pip_grp_raw              <- pip_grp
-    pip_grp_logic_raw        <- pip_grp_logic
-    pip_grp_new_raw          <- pip_grp_new
-    ui_cp_charts_raw         <- ui_cp_charts
-    ui_cp_download_raw       <- ui_cp_download
-    ui_cp_key_indicators_raw <- ui_cp_key_indicators
+    # --- preserve raw versions
+    assign("pip_raw",                  pip,                  envir = parent.env(environment()))
+    assign("pip_agg_raw",              pip_agg,              envir = parent.env(environment()))
+    assign("pip_grp_raw",              pip_grp,              envir = parent.env(environment()))
+    assign("pip_grp_logic_raw",        pip_grp_logic,        envir = parent.env(environment()))
+    assign("pip_grp_new_raw",          pip_grp_new,          envir = parent.env(environment()))
+    assign("ui_cp_charts_raw",         ui_cp_charts,         envir = parent.env(environment()))
+    assign("ui_cp_download_raw",       ui_cp_download,       envir = parent.env(environment()))
+    assign("ui_cp_key_indicators_raw", ui_cp_key_indicators, envir = parent.env(environment()))
 
     # then memoise the memoised versions for external use
     pip                  <<- memo_norm(pip_raw, cache = cd)
