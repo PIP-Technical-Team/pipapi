@@ -734,27 +734,14 @@ function(req, res) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req, res) {
-  tryCatch({
+  safe_endpoint(function(req, res) {
     params <- req$argsQuery
     params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
     params$version <- NULL
-    out <- do.call(pipapi::ui_hp_countries, params) |>
-    with_req_timeout()
-    if (is.null(out)) {
-      res$status <- 503
-      return(list(
-        error = "Request timed out",
-        request_id = req$.id,
-        endpoint = "/api/v1/hp-countries"
-      ))
-    }
-    out
-  }, error = function(e) {
-    res$status <- 500
-    list(error = "Error in /api/v1/hp-countries",
-         message = e$message,
-         request_id = tryCatch(req$.id, error = function(.) NA))
-  })
+
+    do.call(pipapi::ui_hp_countries, params) |>
+      with_req_timeout()
+  }, endpoint = "/api/v1/hp-countries")(req, res)
 }
 
 
