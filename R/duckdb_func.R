@@ -2,7 +2,7 @@
 #'
 #' @inheritParams subset_lkup
 #'
-#' @return Dataframe
+#' @return list with 3 elements data_present_in_master, modified `lkup` value and `povline`
 #' @export
 return_if_exists <- function(slkup,
                              povline,
@@ -200,7 +200,7 @@ return_if_exists <- function(slkup,
 #' @param dat Dataframe to be appended
 #' @param cache_file_path path where cache file is saved
 #'
-#' @return number of rows updated
+#' @return a number i.e no. of rows updated
 #' @export
 #'
 update_master_file <- function(dat,
@@ -291,7 +291,7 @@ update_master_file <- function(dat,
   "))
 
   duckdb::dbDisconnect(write_con)
-  
+
   if (nr > 0 && verbose)  message(glue("{target_file} is updated."))
 
   return(nr)
@@ -362,7 +362,7 @@ reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'),
     DBI::dbExecute(write_con, "DELETE from fg_master_file")
   }
   duckdb::dbDisconnect(write_con)
-  
+
 }
 
 create_duckdb_file <- function(cache_file_path) {
@@ -388,17 +388,14 @@ create_duckdb_file <- function(cache_file_path) {
                  watts     DOUBLE
   )")
   DBI::dbDisconnect(con)
-  
+
 }
-
-
-
 
 #' Load Intermediate cache data
 #'
 #' @inheritParams return_if_exists
 #'
-#' @return data frame
+#' @return cached data frame
 #' @export
 load_inter_cache <- function(lkup = NULL,
                              cache_file_path = NULL,
@@ -423,8 +420,6 @@ load_inter_cache <- function(lkup = NULL,
   # connection object if it is not closed More details here
   # https://app.clickup.com/t/868cdpe3q
   duckdb::dbDisconnect(con)
-  
-
   setDT(master_file)
 }
 

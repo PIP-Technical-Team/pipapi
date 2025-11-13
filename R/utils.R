@@ -81,7 +81,6 @@ lkup_filter <- function(lkup,
   return(lkup)
 }
 
-
 #' select_country
 #' Helper function for subset_lkup()
 #' @inheritParams subset_lkup
@@ -115,9 +114,6 @@ select_country <- function(lkup, keep, country, valid_regions) {
   }
   return(keep)
 }
-
-
-
 
 #' select_years
 #' Helper function for subset_lkup()
@@ -212,7 +208,6 @@ select_years <- function(lkup,
   return(keep)
 }
 
-
 #' Helper to filter metadata
 #' aggregate distribution need to be filtered out when popshare is not null
 #' This is a temporary function until a full fix is implemented, and popshare is
@@ -235,7 +230,6 @@ filter_lkup <- function(metadata,
   }
 
 }
-
 
 #' helper function to correctly filter look up table according to requested
 #' reporting level
@@ -322,7 +316,6 @@ get_svy_data <- function(svy_id,
   return(out)
 }
 
-
 #' Add pre-computed distributional stats
 #'
 #' @param df data.table: Data frame of poverty statistics
@@ -374,12 +367,8 @@ add_dist_stats <- function(df, lkup, fill_gaps) {
                      allow.cartesian = TRUE
     ]
   }
-
-
   df
 }
-
-
 
 #' Add pre-computed distributional stats
 #'
@@ -582,10 +571,6 @@ estimate_type_ctr_lnp <- function(out, lkup) {
 
 
 }
-
-
-
-
 
 #' Create query controls
 #' @param syv_lkup data.table: Survey lkup table
@@ -800,7 +785,6 @@ convert_empty <- function(string) {
   }
 }
 
-
 #' Subset country-years table
 #' This is a table created at start time to facilitate imputations
 #' It part of the interpolated_list object
@@ -898,10 +882,9 @@ clear_cache <- function(cd) {
   })
 }
 
-
 #' Test whether a vector is length zero and IS not NULL
 #'
-#' @param x Value to be passed
+#' @param x Vector to be passed
 #'
 #' @return logical. TRUE if x is empty but it is not NULL
 #' @export
@@ -920,9 +903,6 @@ is_empty <- function(x) {
     FALSE
   }
 }
-
-
-
 
 #' Populate list in parent frame
 #'
@@ -1010,7 +990,6 @@ fillin_list <- function(l,
 get_valid_aux_long_format_tables <- function() {
   c('cpi', 'ppp', 'gdp', 'pce', 'pop')
 }
-
 
 #' load SPR table from aux data
 #'
@@ -1109,10 +1088,6 @@ get_pg_table <- function(data_dir,
   return(pg)
 }
 
-
-
-
-
 #' Add Prosperity Gap
 #'
 #' @param df data frame  inside [fg_pip] or [rg_pip]
@@ -1142,8 +1117,6 @@ add_pg <- function(df, fill_gaps, data_dir) {
       pg := i.pg
        ]
 }
-
-
 
 #' Add Distribution type
 #'
@@ -1191,8 +1164,6 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
     validate = "m:1",
     verbose  = 0
   )
-
-
 
   if (fill_gaps) {
     # line up years ----------
@@ -1319,11 +1290,6 @@ add_spl <- function(df, fill_gaps, data_dir) {
   return(invisible(out))
 }
 
-
-
-
-
-
 #' Add Aggregate medians
 #'
 #' @param df data frame from either [fg_pip] or [rg_pip]
@@ -1333,8 +1299,6 @@ add_spl <- function(df, fill_gaps, data_dir) {
 #'
 #' @return data.table
 add_agg_medians <- function(df, fill_gaps, data_dir) {
-
-
 
   if (fill_gaps) {
     table    = "spr_lnp"
@@ -1364,8 +1328,6 @@ add_agg_medians <- function(df, fill_gaps, data_dir) {
 
   return(invisible(df))
 }
-
-
 
 
 #' Get functions names in call stack
@@ -1434,10 +1396,6 @@ get_caller_names <- function() {
   invisible(caller_names)
 }
 
-
-
-
-
 #' Add all the variables that are estimated outside the pipelines
 #'
 #' This includes variables such as the SPL, SPR, PG, and distribution
@@ -1501,11 +1459,6 @@ unnest_dt_longer <- function(tbl, cols) {
   tbl
 }
 
-
-
-
-
-
 #' merge into fgt table the mean and median from dist stats table in lkup
 #'
 #' @param fgt data,table with fgt measures
@@ -1542,5 +1495,3 @@ get_mean_median <- \(fgt, lkup, fill_gaps) {
       validate = "m:1", # multiple povlines
       verbose = 0L)
 }
-
-

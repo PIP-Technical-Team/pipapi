@@ -21,7 +21,7 @@ update_master_file(
 values for missing years}
 }
 \value{
-number of rows updated
+a number i.e no. of rows updated
 }
 \description{
 Update master file with the contents of the dataframe

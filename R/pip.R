@@ -1,5 +1,3 @@
-
-
 #' Compute PIP statistics
 #'
 #' Compute the main PIP poverty and inequality statistics.
@@ -97,10 +95,3 @@ pip <- function(country         = "ALL",
   out
 
 }
-
-
-
-
-
-
-

@@ -83,7 +83,4 @@ New way to estimate Aggregate data
 \dontrun{
 # Create lkups
 }
-\dontrun{
-# Create lkups
-}
 }

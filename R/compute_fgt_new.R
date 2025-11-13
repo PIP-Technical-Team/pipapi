@@ -1,7 +1,7 @@
 # OLD APPROACH WITH MEAN --------------
 
-# Efficient FGT calculation for a data.table and vector of poverty lines
-#' Title
+#' Efficient FGT calculation for a data.table and vector of poverty lines
+#'
 #'
 #' @param dt data frame with `welfare` and `weight` columns
 #' @param welfare character: welfare variable name
@@ -76,8 +76,6 @@ compute_fgt_dt <- function(dt, welfare, weight, povlines, mean_and_med = FALSE) 
 
 }
 
-
-
 #' Efficient FGT calculation for vectors (No data.table)
 #'
 #' @param w character: welfare variable name
@@ -125,7 +123,6 @@ compute_fgt <- function(w, wt, povlines) {
     }
   }
 
-
   data.table(
       povline          = povlines,
       headcount        = res[, 1],
@@ -166,8 +163,6 @@ DT_fgt_by_rl <- \(x, y, nx, povline) {
   )]
 }
 
-
-
 #' jkoin reporting level and lt list into one data.table
 #'
 #' @rdname map_fgt
@@ -196,11 +191,10 @@ map_lt_to_dt <- \(lt, l_rl_rows, povline) {
     rbindlist(fill = TRUE)
 }
 
-
 #' map over list of data.tables and indices to compute FGT by reporting_level
 #'
 #' @param lt list of data.tables with welfare and weight data
-#' @param l_rl_rows list of indeces
+#' @param l_rl_rows list of indices
 #'
 #' @return data.table with all measured
 #' @keywords internal
@@ -273,8 +267,6 @@ load_data_list <- \(metadata) {
 
 }
 
-
-
 pov_from_DT <- function(DT, povline, g, cores = 1) {
   w       <- DT$welfare
   wt      <- DT$weight
@@ -321,10 +313,6 @@ pov_from_DT <- function(DT, povline, g, cores = 1) {
   add_vars(out, pos = "front") <- grp_dt
   out
 }
-
-
-
-
 
 # pov_from_DT2 <- function(DT, povline, g) {
 #   fgt0 <- numeric(length(povline))
