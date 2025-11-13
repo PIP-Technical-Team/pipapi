@@ -18,7 +18,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: R.Andrés Castañeda \email{acastanedaa@worldbank.org}
+\strong{Maintainer}: R.AndrÃ©s CastaÃ±eda \email{acastanedaa@worldbank.org}
 
 Authors:
 \itemize{
