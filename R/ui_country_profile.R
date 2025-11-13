@@ -13,15 +13,23 @@ ui_cp_key_indicators <- function(country   = "AGO",
   # Select surveys to use for CP page
   lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
 
-  hc <- ui_cp_ki_headcount(country = country,
-                           povline = povline,
-                           lkup = lkup)
+
+  hcg <- ui_cp_ki_headcount(country = country,
+                            povline = povline,
+                            lkup = lkup)
+
+  hc <- copy(hcg) |>
+    _[, gini := NULL]
+
+  gini <- copy(hcg) |>
+    _[, headcount := NULL]
 
   dl <- lapply(lkup[["cp_lkups"]]$key_indicators, function(x) {
     x[country_code == country]
   })
 
-  tmp <- list(headcount = hc)
+  tmp <- list(headcount = hc,
+              gini      = gini)
   dl <- list(append(tmp, dl))
 
   return(dl)
@@ -77,7 +85,8 @@ ui_cp_ki_headcount <- function(country,
     country_code   = country,
     reporting_year = res$reporting_year,
     poverty_line   = povline,
-    headcount      = res$headcount
+    headcount      = res$headcount,
+    gini           = res$gini
   )
   return(out)
 }
