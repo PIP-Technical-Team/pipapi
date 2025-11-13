@@ -232,7 +232,21 @@ function(req, res) {
     # Round poverty line
     # This is to prevent users to abuse the API by passing too many decimals
     if (!is.null(req$argsQuery$povline)) {
-      req$argsQuery$povline <- round(req$argsQuery$povline, digits = 2)
+      tmppl <- req$argsQuery$povline |>
+        round(digits = 2) |>
+        unique()
+
+      max_povlines <- 10
+      if (length(tmppl) > max_povlines) { # limit number of poverty lines
+        res$status <- 404
+        out <- list(
+          error = "Invalid number of poverty lines.",
+          details = list(msg = paste0("You can't provide more than ", max_povlines, " poverty lines"))
+        )
+        return(out)
+      }
+
+      req$argsQuery$povline <- tmppl
     }
   }
   plumber::forward()
