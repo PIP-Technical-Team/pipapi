@@ -53,28 +53,26 @@
 #'     lkup = lkups)
 #' }
 #' @export
-pip_old_lineups <- function(country         = "ALL",
-                year            = "ALL",
-                povline         = 1.9,
-                popshare        = NULL,
-                fill_gaps       = FALSE,
-                group_by        = c("none", "wb"),
-                welfare_type    = c("all", "consumption", "income"),
-                reporting_level = c("all", "national", "rural", "urban"),
-                ppp             = NULL,
-                lkup,
-                censor          = TRUE,
-                lkup_hash       = lkup$cache_data_id$hash_pip,
-                additional_ind  = FALSE) {
-
-
+pip_old_lineups <- function(
+  country = "ALL",
+  year = "ALL",
+  povline = 1.9,
+  popshare = NULL,
+  fill_gaps = FALSE,
+  group_by = c("none", "wb"),
+  welfare_type = c("all", "consumption", "income"),
+  reporting_level = c("all", "national", "rural", "urban"),
+  ppp = NULL,
+  lkup,
+  censor = TRUE,
+  lkup_hash = lkup$cache_data_id$hash_pip,
+  additional_ind = FALSE
+) {
   # set up -------------
-  welfare_type    <- match.arg(welfare_type)
+  welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
-  group_by        <- match.arg(group_by)
-  povline         <- round(povline, digits = 3)
-
-
+  group_by <- match.arg(group_by)
+  povline <- round(povline, digits = 3)
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
@@ -83,26 +81,30 @@ pip_old_lineups <- function(country         = "ALL",
   }
 
   # If svy_lkup is not part of lkup throw an error.
-  if (!all(c('svy_lkup') %in% names(lkup)))
-    stop("You are probably passing more than one dataset as lkup argument.
-  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
-
+  if (!all(c('svy_lkup') %in% names(lkup))) {
+    stop(
+      "You are probably passing more than one dataset as lkup argument.
+  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD"
+    )
+  }
 
   # **** TO BE REMOVED **** REMOVAL STARTS HERE
   # Once `pip-grp` has been integrated in ingestion pipeline
   # Forces fill_gaps to TRUE when using group_by option
   if (group_by != "none") {
     fill_gaps <- TRUE
-    message("Info: argument group_by in pip() is deprecated; please use pip_grp() instead.")
+    message(
+      "Info: argument group_by in pip() is deprecated; please use pip_grp() instead."
+    )
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   # Countries vector ------------
   lcv <- # List with countries vectors
     create_countries_vctr(
-      country         =  country,
-      year            =  year,
-      lkup            = lkup
+      country = country,
+      year = year,
+      lkup = lkup
     )
   # lcv$est_ctrs has all the country_code that we are interested in
 
@@ -115,26 +117,26 @@ pip_old_lineups <- function(country         = "ALL",
   if (fill_gaps) {
     ## lineup years-----------------
     out <- fg_pip_old(
-      country            = lcv$est_ctrs,
-      year               = year,
-      povline            = povline,
-      popshare           = popshare,
-      welfare_type       = welfare_type,
-      reporting_level    = reporting_level,
-      ppp                = ppp,
-      lkup               = lkup
+      country = lcv$est_ctrs,
+      year = year,
+      povline = povline,
+      popshare = popshare,
+      welfare_type = welfare_type,
+      reporting_level = reporting_level,
+      ppp = ppp,
+      lkup = lkup
     )
   } else {
     ## survey years ------------------
     out <- rg_pip_old(
-      country         = lcv$est_ctrs,
-      year            = year,
-      povline         = povline,
-      popshare        = popshare,
-      welfare_type    = welfare_type,
+      country = lcv$est_ctrs,
+      year = year,
+      povline = povline,
+      popshare = popshare,
+      welfare_type = welfare_type,
       reporting_level = reporting_level,
-      ppp             = ppp,
-      lkup            = lkup
+      ppp = ppp,
+      lkup = lkup
     )
   }
 
@@ -145,8 +147,7 @@ pip_old_lineups <- function(country         = "ALL",
     out <- main_data |>
       rowbind(cached_data)
 
-      update_master_file(main_data, cache_file_path, fill_gaps)
-
+    update_master_file(main_data, cache_file_path, fill_gaps)
   } else {
     out <- cached_data
   }
@@ -154,7 +155,9 @@ pip_old_lineups <- function(country         = "ALL",
     setDT(out)
   }
   # Early return for empty table---------------
-  if (nrow(out) == 0) return(pipapi::empty_response)
+  if (nrow(out) == 0) {
+    return(pipapi::empty_response)
+  }
 
   # aggregate distributions ------------------
   if (reporting_level %in% c("national", "all")) {
@@ -167,8 +170,6 @@ pip_old_lineups <- function(country         = "ALL",
     }
   }
 
-
-
   add_vars_out_of_pipeline(out, fill_gaps = fill_gaps, lkup = lkup)
 
   # **** TO BE REMOVED **** REMOVAL STARTS HERE
@@ -180,7 +181,8 @@ pip_old_lineups <- function(country         = "ALL",
     out$poverty_line <- povline
 
     out <- pip_aggregate_by(
-      df          = out,
+      df = out,
+      group_by = group_by,
       return_cols = lkup$return_cols$pip_grp
     )
     # Censor regional values
@@ -188,25 +190,26 @@ pip_old_lineups <- function(country         = "ALL",
       out <- censor_rows(out, lkup[["censored"]], type = "regions")
     }
 
-    out <- out[, c("region_name",
-                   "region_code",
-                   "reporting_year",
-                   "reporting_pop",
-                   "poverty_line",
-                   "headcount",
-                   "poverty_gap",
-                   "poverty_severity",
-                   "watts",
-                   "mean",
-                   "pop_in_poverty")]
+    out <- out[, c(
+      "region_name",
+      "region_code",
+      "reporting_year",
+      "reporting_pop",
+      "poverty_line",
+      "headcount",
+      "poverty_gap",
+      "poverty_severity",
+      "watts",
+      "mean",
+      "pop_in_poverty"
+    )]
 
     return(out)
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
-
   # pre-computed distributional stats ---------------
-  crr_names  <- names(out)    # current variables
+  crr_names <- names(out) # current variables
   names2keep <- lkup$return_cols$pip$cols # all variables
 
   out <- add_dist_stats_old(
@@ -216,24 +219,22 @@ pip_old_lineups <- function(country         = "ALL",
 
   # Add aggregate medians ----------------
   out <- add_agg_medians(
-    df        = out,
+    df = out,
     fill_gaps = fill_gaps,
-    data_dir  = lkup$data_root
+    data_dir = lkup$data_root
   )
 
   # format ----------------
 
-
   if (fill_gaps) {
-
     ## Inequality indicators to NA for lineup years ----
-    dist_vars  <- names2keep[!(names2keep %in% crr_names)]
+    dist_vars <- names2keep[!(names2keep %in% crr_names)]
     out[,
-        (dist_vars) := NA_real_]
+      (dist_vars) := NA_real_
+    ]
 
     ## estimate_var -----
     out <- estimate_type_ctr_lnp(out, lkup)
-
   } else {
     out[, estimate_type := NA_character_]
   }
@@ -248,28 +249,30 @@ pip_old_lineups <- function(country         = "ALL",
     out <- censor_rows(out, lkup[["censored"]], type = "countries")
   }
 
-
   # Select columns
   if (additional_ind) {
     get_additional_indicators(out)
     added_names <- attr(out, "new_indicators_names")
-    names2keep  <- c(names2keep, added_names)
-
+    names2keep <- c(names2keep, added_names)
   }
   # Keep relevant variables
-  out  <- out[, .SD, .SDcols = names2keep]
-
+  out <- out[, .SD, .SDcols = names2keep]
 
   # make sure we always report the same precision in all numeric variables
   doub_vars <-
     names(out)[unlist(lapply(out, is.double))] |>
     data.table::copy()
 
-  out[, (doub_vars) := lapply(.SD, round, digits = 12),
-      .SDcols = doub_vars]
+  out[, (doub_vars) := lapply(.SD, round, digits = 12), .SDcols = doub_vars]
 
   # Order rows by country code and reporting year
-  data.table::setorder(out, country_code, reporting_year, reporting_level, welfare_type)
+  data.table::setorder(
+    out,
+    country_code,
+    reporting_year,
+    reporting_level,
+    welfare_type
+  )
   #}
 
   # Make sure no duplicate remains

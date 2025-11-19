@@ -15,29 +15,31 @@
 #'         lkup = lkups)
 #' }
 #' @export
-pip_grp <- function(country         = "ALL",
-                    year            = "ALL",
-                    povline         = 1.9,
-                    group_by        = c("wb", "none"),
-                    welfare_type    = c("all", "consumption", "income"),
-                    reporting_level = c("all", "national"),
-                    lkup,
-                    censor          = TRUE,
-                    lkup_hash       = lkup$cache_data_id$hash_pip_grp) {
-
-  welfare_type    <- match.arg(welfare_type)
+pip_grp <- function(
+  country = "ALL",
+  year = "ALL",
+  povline = 1.9,
+  group_by = "wb",
+  welfare_type = c("all", "consumption", "income"),
+  reporting_level = c("all", "national"),
+  lkup,
+  censor = TRUE,
+  lkup_hash = lkup$cache_data_id$hash_pip_grp
+) {
+  welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
-  group_by        <- match.arg(group_by)
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
   year <- toupper(year)
 
   # If ref_lkup is not part of lkup throw an error.
-  if (!all(c('ref_lkup') %in% names(lkup)))
-    stop("You are probably passing more than one dataset as lkup argument.
-  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD")
-
+  if (!all(c('ref_lkup') %in% names(lkup))) {
+    stop(
+      "You are probably passing more than one dataset as lkup argument.
+  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD"
+    )
+  }
 
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
@@ -51,14 +53,15 @@ pip_grp <- function(country         = "ALL",
   }
 
   out <- fg_pip_old(
-    country         = country,
-    year            = year,
-    povline         = povline,
-    popshare        = NULL,
-    welfare_type    = welfare_type,
+    country = country,
+    year = year,
+    povline = povline,
+    popshare = NULL,
+    welfare_type = welfare_type,
     reporting_level = reporting_level,
-    ppp             = NULL,
-    lkup           = lkup)
+    ppp = NULL,
+    lkup = lkup
+  )
 
   # For now just rowbinding two dataframes, but we would need to use it more smartly in the future
   out <- collapse::rowbind(out, fill = TRUE)
@@ -69,8 +72,10 @@ pip_grp <- function(country         = "ALL",
 
   # Handles aggregated distributions (like CHN and IND)
   if (tolower(reporting_level) %in% c("national", "all")) {
-    out <- add_agg_stats(out,
-                         return_cols = lkup$return_cols$ag_average_poverty_stats)
+    out <- add_agg_stats(
+      out,
+      return_cols = lkup$return_cols$ag_average_poverty_stats
+    )
   }
 
   add_vars_out_of_pipeline(out, fill_gaps = TRUE, lkup = lkup)
@@ -83,25 +88,23 @@ pip_grp <- function(country         = "ALL",
 
   # Handle aggregations with sub-groups
   if (group_by != "none") {
-
     out <- pip_aggregate_by(
       df = out,
       country = country,
+      group_by = group_by,
       return_cols = lkup$return_cols$pip_grp
     )
 
-    out <- estimate_type_var(out,lkup)
+    out <- estimate_type_var(out, lkup)
 
     # Censor regional values
     # if (censor) {
     #   out <- censor_rows(out, lkup[["censored"]], type = "regions")
     # }
-
   } else {
     # Handle simple aggregation
-    out <- pip_aggregate(out,
-                         return_cols = lkup$return_cols$pip_grp)
-    out <- estimate_type_var(out,lkup)
+    out <- pip_aggregate(out, return_cols = lkup$return_cols$pip_grp)
+    out <- estimate_type_var(out, lkup)
   }
 
   keep <- lkup$return_cols$pip_grp$cols
@@ -123,43 +126,33 @@ pip_grp <- function(country         = "ALL",
 #'
 #' @return data.table
 pip_aggregate <- function(df, by = NULL, return_cols) {
-
   all_cols <- return_cols$cols
   weighted_cols <- return_cols$weighted_average_cols
 
   ## Assess by parameter ---------
 
   if (is.null(by)) {
-
     by_code <- "CUSTOM"
     by_name <- "CUSTOM"
 
-    to_keep <- all_cols[!all_cols %in%  c("pop_in_poverty", "estimate_type")]
-
+    to_keep <- all_cols[!all_cols %in% c("pop_in_poverty", "estimate_type")]
   } else {
-
     if (grepl("code$", by)) {
-
       by_code <- by
       by_name <- gsub("_code", "", by)
-
     } else {
-
       by_code <- paste0(by, "_code")
       by_name <- by
-
     }
 
-    to_keep <- all_cols[!all_cols %in% c("pop_in_poverty",
-                                         "region_code",
-                                         "region_name",
-                                         "estimate_type")]
+    to_keep <- all_cols[
+      !all_cols %in%
+        c("pop_in_poverty", "region_code", "region_name", "estimate_type")
+    ]
     to_keep <- c(by_name, by_code, to_keep)
 
     by <- c(by_name, by_code)
   }
-
-
 
   # Handle simple aggregation
 
@@ -168,20 +161,17 @@ pip_aggregate <- function(df, by = NULL, return_cols) {
   byvar <- c(by, "reporting_year", "poverty_line")
 
   # Compute population totals
-  pop <- df[, lapply(.SD,
-                     base::sum,
-                     na.rm = TRUE),
-            by = byvar,
-            .SDcols = "reporting_pop"
+  pop <- df[,
+    lapply(.SD, base::sum, na.rm = TRUE),
+    by = byvar,
+    .SDcols = "reporting_pop"
   ]
 
   # Compute stats weighted average by groups
-  df <- df[, lapply(.SD,
-                      stats::weighted.mean,
-                      w = reporting_pop,
-                      na.rm = TRUE),
-             by = byvar,
-             .SDcols = weighted_cols
+  df <- df[,
+    lapply(.SD, stats::weighted.mean, w = reporting_pop, na.rm = TRUE),
+    by = byvar,
+    .SDcols = weighted_cols
   ]
 
   # Combine results
@@ -189,108 +179,119 @@ pip_aggregate <- function(df, by = NULL, return_cols) {
 
   ## Add region code and name -----
   if (is.null(by)) {
-
     df$region_code <- "CUSTOM"
     df$region_name <- "CUSTOM"
-
   } else {
-    data.table::setnames(df,
-                         c(by_name, by_code),
-                         c("region_name", "region_code"))
+    data.table::setnames(
+      df,
+      c(by_name, by_code),
+      c("region_name", "region_code")
+    )
   }
 
   # Compute population living in poverty
   df <- df[, pop_in_poverty := round(headcount * reporting_pop, 0)]
 
   return(df)
-
 }
 
 #' Aggregate by predefined groups
 #' @param df data.frame: Response from `fg_pip_old()` or `rg_pip()`.
 #' @param country character: Selected countries / regions
+#' @param group_by character: Grouping variable (default is "wb")
 #' @param return_cols list: lkup$return_cols$pip_grp object. Controls returned
 #' columns
 #' @keywords internal
-pip_aggregate_by <- function(df,
-                             country = "ALL",
-                             return_cols = NULL) {
-
+pip_aggregate_by <- function(
+  df,
+  country = "ALL",
+  group_by = "wb",
+  return_cols = NULL
+) {
   all_cols <- return_cols$cols
   weighted_cols <- return_cols$weighted_average_cols
 
   # Keep only rows necessary for regional aggregates
   df <- filter_for_aggregate_by(df)
 
-  to_keep <- all_cols[!all_cols %in% c("pop_in_poverty",
-                                       "estimate_type")]
+  to_keep <- all_cols[!all_cols %in% c("pop_in_poverty", "estimate_type")]
 
   # df <- df[, .SD, .SDcols = to_keep] # I think we can ommit this part
 
-  # Compute stats weighted average by groups
-  rgn <- df |>
-    fgroup_by(region_name,
-              region_code,
-              reporting_year,
-              poverty_line) |>
-    fselect(c(weighted_cols, "reporting_pop")) |>
-    fmean(w = reporting_pop, stub = FALSE)
+  # Determine grouping variables based on group_by parameter
+  if (group_by == "wb") {
+    # Default case: use region_code and region_name
+    group_code <- "region_code"
+    group_name <- "region_name"
 
-  # World aggregation
-  if (any(c("ALL", "WLD") %in% country)) {
+    # Compute stats weighted average by groups
+    rgn <- df |>
+      fgroup_by(region_name, region_code, reporting_year, poverty_line) |>
+      fselect(c(weighted_cols, "reporting_pop")) |>
+      fmean(w = reporting_pop, stub = FALSE)
+  } else {
+    # Custom case: construct grouping variables dynamically
+    group_code <- paste0(group_by, "_code")
+    group_name <- group_by
+
+    # Create a temporary copy with renamed columns for grouping
+    df_temp <- copy(df)
+    setnames(
+      df_temp,
+      old = c(group_name, group_code),
+      new = c("region_name", "region_code")
+    )
+
+    # Compute stats weighted average by groups
+    rgn <- df_temp |>
+      fgroup_by(region_name, region_code, reporting_year, poverty_line) |>
+      fselect(c(weighted_cols, "reporting_pop")) |>
+      fmean(w = reporting_pop, stub = FALSE)
+  }
+
+  # World aggregation (only for default "wb" grouping)
+  if (group_by == "wb" && any(c("ALL", "WLD") %in% country)) {
     # Compute world aggregates
     wld <- compute_world_aggregates(rgn = rgn)
   } else {
     wld <- NULL
   }
 
-  # Africas aggregation
-  if (any(c("ALL", "AFE", "AFW") %in% country)) {
-  rgn <- df |>
-    fgroup_by(africa_split,
-              africa_split_code,
-              reporting_year,
-              poverty_line) |>
-    fselect(c(weighted_cols, "reporting_pop")) |>
-    fmean(w = reporting_pop, stub = FALSE) |>
-    fsubset(!is.na(africa_split_code)) |>
-    frename(africa_split_code = region_code,
-            africa_split      = region_name) |>
-    rowbind(rgn, fill = TRUE)
-  }
-  # Vintage aggregation
-  if ("ALL" %in% country & "regionpcn_code" %in% names(df)) {
-  rgn <- df |>
-    fgroup_by(regionpcn,
-              regionpcn_code,
-              reporting_year,
-              poverty_line) |>
-    fselect(c(weighted_cols, "reporting_pop")) |>
-    fmean(w = reporting_pop, stub = FALSE) |>
-    fsubset(!is.na(regionpcn_code)) |>
-    frename(regionpcn_code = region_code,
-            regionpcn      = region_name) |>
-    rowbind(rgn, fill = TRUE)
+  # Africa split aggregation (only for default "wb" grouping)
+  if (group_by == "wb" && any(c("ALL", "AFE", "AFW") %in% country)) {
+    rgn <- df |>
+      fgroup_by(
+        africa_split,
+        africa_split_code,
+        reporting_year,
+        poverty_line
+      ) |>
+      fselect(c(weighted_cols, "reporting_pop")) |>
+      fmean(w = reporting_pop, stub = FALSE) |>
+      fsubset(!is.na(africa_split_code)) |>
+      frename(africa_split_code = region_code, africa_split = region_name) |>
+      rowbind(rgn, fill = TRUE)
   }
 
+  # Remove regionpcn_code aggregation logic (as per requirements)
 
-    if (length(country) == 1) {
-      if (country == "WLD") {
-        # Return only world aggregate
-        wld[, pop_in_poverty := round(headcount * reporting_pop, 0)]
-        return(wld)
-      }
+  if (length(country) == 1) {
+    if (country == "WLD") {
+      # Return only world aggregate
+      wld[, pop_in_poverty := round(headcount * reporting_pop, 0)]
+      return(wld)
     }
+  }
 
   # Combine with other regional aggregates
-    out <- rowbind(rgn, wld, fill = TRUE)
-    out[, pop_in_poverty := round(headcount * reporting_pop, 0)]
+  out <- rowbind(rgn, wld, fill = TRUE)
+  out[, pop_in_poverty := round(headcount * reporting_pop, 0)]
 
-    if ("ALL" %in% country) {
-      return(out)
-    }
+  if ("ALL" %in% country) {
+    return(out)
+  }
 
-    out[region_code %in% country, ]
+  out[region_code %in% country, ]
 }
 
 
@@ -298,15 +299,12 @@ compute_world_aggregates <- function(rgn, cols = NULL) {
   # Compute stats
   # Grouping by poverty line as well since we now have vectorized poverty line values
   wld <- rgn |>
-    fgroup_by(reporting_year,
-              poverty_line) |>
+    fgroup_by(reporting_year, poverty_line) |>
     num_vars() |>
     fmean(w = reporting_pop, stub = FALSE) |>
-    ftransform(region_code = "WLD",
-               region_name = "World")
+    ftransform(region_code = "WLD", region_name = "World")
 
   return(wld)
-
 }
 
 
@@ -319,10 +317,10 @@ filter_for_aggregate_by <- function(df) {
   # If nationally representative survey is available, use it
   # Otherwise, use whatever is available
 
-  df[, check := length(reporting_level),
-      by = c("country_code", "reporting_year", "poverty_line")
-      ][
-        check == 1 | (check > 1 & reporting_level == "national"),
-        ]
-
+  df[,
+    check := length(reporting_level),
+    by = c("country_code", "reporting_year", "poverty_line")
+  ][
+    check == 1 | (check > 1 & reporting_level == "national"),
+  ]
 }
