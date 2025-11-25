@@ -12,7 +12,7 @@ ui_pc_charts(
   group_by = "none",
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
-  pop_units = 1e+06,
+  pop_units = 1000000,
   censor = TRUE,
   lkup,
   lkup_hash = lkup$cache_data_id$hash_pip_grp
