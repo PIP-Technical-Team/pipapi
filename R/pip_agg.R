@@ -35,6 +35,7 @@ pip_agg <- function(
       povline = povline,
       welfare_type = welfare_type,
       reporting_level = reporting_level,
+      group_by = group_by,
       lkup = lkup,
       censor = censor,
       additional_ind = additional_ind

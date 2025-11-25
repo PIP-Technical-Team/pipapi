@@ -6,6 +6,7 @@ pip_grp_new <- \(
   povline = 1.9,
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national"),
+  group_by = "wb",
   lkup,
   censor = TRUE,
   additional_ind = FALSE,
@@ -80,7 +81,7 @@ pip_grp_new <- \(
   out <- pip_aggregate_by(
     df = out,
     country = country,
-    group_by = "wb",
+    group_by = group_by,
     return_cols = lkup$return_cols$pip_grp
   )
 

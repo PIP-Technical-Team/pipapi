@@ -234,19 +234,18 @@ pip_aggregate_by <- function(
     group_code <- paste0(group_by, "_code")
     group_name <- group_by
 
-    # Create a temporary copy with renamed columns for grouping
-    df_temp <- copy(df)
+
+    # Compute stats weighted average by groups
+    rgn <- df |>
+      fgroup_by(c(group_name, group_code, "reporting_year", "poverty_line")) |>
+      fselect(c(weighted_cols, "reporting_pop")) |>
+      fmean(w = reporting_pop, stub = FALSE)
+
     setnames(
-      df_temp,
+      rgn,
       old = c(group_name, group_code),
       new = c("region_name", "region_code")
     )
-
-    # Compute stats weighted average by groups
-    rgn <- df_temp |>
-      fgroup_by(region_name, region_code, reporting_year, poverty_line) |>
-      fselect(c(weighted_cols, "reporting_pop")) |>
-      fmean(w = reporting_pop, stub = FALSE)
   }
 
   # World aggregation (only for default "wb" grouping)
