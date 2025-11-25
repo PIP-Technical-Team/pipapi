@@ -1544,3 +1544,9 @@ get_mean_median <- \(fgt, lkup, fill_gaps) {
 }
 
 
+
+
+
+.check_group_by <- \(group_by, lkup) {
+  if (length(group_by))  
+}

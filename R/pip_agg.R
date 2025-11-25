@@ -23,6 +23,12 @@ pip_agg <- function(
   #-------------------------------------
   use_new <- lkup$use_new_lineup_version
 
+
+  # filter group_by
+  if (group_by != "wb") .check_group_by(group_by = group_by, 
+                                        lkup     = lkup)
+
+
   # Run correct function
   #-------------------------------------
   out <- if (use_new) {
@@ -55,3 +61,4 @@ pip_agg <- function(
   #-------------------------------------
   out
 }
+
