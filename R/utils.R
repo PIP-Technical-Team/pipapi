@@ -1575,7 +1575,7 @@ get_mean_median <- \(fgt, lkup, fill_gaps) {
   # special grouping
   sp_groups <- c("none", "wb")
 
-  if (!group_by %in% sp_groups) {
+  if (group_by %in% sp_groups) {
     return(group_by)
   }
 
