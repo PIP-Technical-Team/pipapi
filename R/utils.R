@@ -1581,21 +1581,19 @@ get_mean_median <- \(fgt, lkup, fill_gaps) {
   }
 
   # special grouping
-  sp_groups <- c("none", "wb")
-
-  if (group_by %in% sp_groups) {
-    return(group_by)
+  if (group_by %in% c("none", "wb")) {
+    return("wb")
   }
 
-  sp_groups <- c("none", "wb")
-
   # get regions -----------
-  regs <- lkup$query_controls$group_by
+  regs <- lkup$query_controls$group_by |>
+    c("all")
 
-  if (!group_by %in% regs) {
+  if (!tolower(group_by) %in% tolower(regs)) {
     cli::cli_abort(
       "The `group_by` parameter can only take the following values: {.field {regs}}."
     )
   }
-  group_by
+
+  tolower(group_by)
 }
