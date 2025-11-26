@@ -1528,3 +1528,55 @@ get_mean_median <- \(fgt, lkup, fill_gaps) {
     verbose = 0L
   )
 }
+
+
+#' Validate internal 'group_by' specification against a lookup
+#'
+#' Internal helper that checks a user-supplied 'group_by' argument and ensures
+#' it is compatible with the provided lookup ('lkup'). This function is for
+#' internal use only and raises informative errors on invalid input.
+#'
+#' @inheritParams pip
+#'
+#' @details
+#' The function validates that:
+#' - 'group_by', when non-NULL, is a character vector.
+#' - Each element of 'group_by' exists in 'lkup$aux_files$country_list' (interpreted according to the
+#'   structure of 'country_list', e.g. column names for data frames or names/values for
+#'   named vectors/lists).
+#' - There are no duplicated grouping identifiers.
+#'
+#' On failure, the function stops with a clear error message describing the
+#' problem. On success it returns the validated 'group_by' specification (often
+#' invisibly) in a canonical form suitable for downstream code.
+#'
+#' @return A character vector of validated grouping keys. May be returned
+#'   invisibly.
+#'
+#' @keywords internal
+.check_group_by <- \(group_by, lkup) {
+  # Defenses and early return -----------
+  if (length(group_by) > 1) {
+    cli::cli_abort("The `group_by` parameter can only take a single value.")
+  }
+  # vintage
+  if (group_by %in% c("vintage", "pcn")) {
+    return("regionpcn")
+  }
+
+  # special grouping
+  if (group_by %in% c("none", "wb")) {
+    return("wb")
+  }
+
+  # get regions -----------
+  regs <- lkup$query_controls$group_by$values
+
+  if (!tolower(group_by) %in% tolower(regs)) {
+    cli::cli_abort(
+      "The `group_by` parameter can only take the following values: {.field {regs}}."
+    )
+  }
+
+  tolower(group_by)
+}
