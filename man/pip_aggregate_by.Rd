@@ -4,12 +4,14 @@
 \alias{pip_aggregate_by}
 \title{Aggregate by predefined groups}
 \usage{
-pip_aggregate_by(df, country = "ALL", return_cols = NULL)
+pip_aggregate_by(df, country = "ALL", group_by = "wb", return_cols = NULL)
 }
 \arguments{
 \item{df}{data.frame: Response from \code{fg_pip_old()} or \code{rg_pip()}.}
 
 \item{country}{character: Selected countries / regions}
+
+\item{group_by}{character: Grouping variable (default is "wb")}
 
 \item{return_cols}{list: lkup$return_cols$pip_grp object. Controls returned
 columns}

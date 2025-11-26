@@ -7,27 +7,28 @@
 #' @param cache_file_path file path for cache
 #' @return data.frame
 #' @keywords internal
-subset_lkup <- function(country,
-                        year,
-                        welfare_type,
-                        reporting_level,
-                        lkup,
-                        valid_regions,
-                        data_dir = NULL,
-                        povline,
-                        cache_file_path,
-                        fill_gaps,
-                        popshare = NULL
-                        ) {
-
-
-  lkup <- lkup_filter(lkup,
-                      country,
-                      year,
-                      valid_regions,
-                      reporting_level,
-                      welfare_type,
-                      data_dir)
+subset_lkup <- function(
+  country,
+  year,
+  welfare_type,
+  reporting_level,
+  lkup,
+  valid_regions,
+  data_dir = NULL,
+  povline,
+  cache_file_path,
+  fill_gaps,
+  popshare = NULL
+) {
+  lkup <- lkup_filter(
+    lkup,
+    country,
+    year,
+    valid_regions,
+    reporting_level,
+    welfare_type,
+    data_dir
+  )
   # If povline is NULL, this happens when popshare is passed
   # i.e popshare is not NULL
   if (is.null(povline)) {
@@ -48,34 +49,39 @@ subset_lkup <- function(country,
 
 
 #' @keywords internal
-lkup_filter <- function(lkup,
-                        country,
-                        year,
-                        valid_regions,
-                        reporting_level,
-                        welfare_type,
-                        data_dir) {
+lkup_filter <- function(
+  lkup,
+  country,
+  year,
+  valid_regions,
+  reporting_level,
+  welfare_type,
+  data_dir
+) {
   # STEP 1 - Keep every row by default
   keep <- rep(TRUE, nrow(lkup))
   # STEP 2 - Select countries
   keep <- select_country(lkup, keep, country, valid_regions)
   # STEP 3 - Select years
-  keep <- select_years(lkup = lkup,
-                       keep = keep,
-                       year = year,
-                       country = country,
-                       data_dir =  data_dir,
-                       valid_regions = valid_regions)
+  keep <- select_years(
+    lkup = lkup,
+    keep = keep,
+    year = year,
+    country = country,
+    data_dir = data_dir,
+    valid_regions = valid_regions
+  )
 
   # STEP 4 - Select welfare_type
   if (welfare_type[1] != "all") {
     keep <- keep & lkup$welfare_type == welfare_type
   }
   # STEP 5 - Select reporting_level
-  keep <- select_reporting_level(lkup = lkup,
-                                 keep = keep,
-                                 reporting_level = reporting_level[1])
-
+  keep <- select_reporting_level(
+    lkup = lkup,
+    keep = keep,
+    reporting_level = reporting_level[1]
+  )
 
   lkup <- lkup[keep, ]
   return(lkup)
@@ -120,12 +126,14 @@ select_country <- function(lkup, keep, country, valid_regions) {
 #' @inheritParams subset_lkup
 #' @param keep logical vector
 #' @return logical vector
-select_years <- function(lkup,
-                         keep,
-                         year,
-                         country,
-                         data_dir,
-                         valid_regions = NULL) {
+select_years <- function(
+  lkup,
+  keep,
+  year,
+  country,
+  data_dir,
+  valid_regions = NULL
+) {
   # columns i is an ID that identifies if a country has more than one
   # observation for reporting year. That is the case of IND with URB/RUR and ZWE
   # with interporaltion and microdata info
@@ -134,19 +142,19 @@ select_years <- function(lkup,
   #                   by = .(country_code, reporting_year)]
 
   caller_names <- get_caller_names()
-  is_agg       <-
+  is_agg <-
     grepl("pip_grp", caller_names) |>
     any()
 
   dtmp <- lkup
 
-  year       <- toupper(year)
-  country    <- toupper(country)
+  year <- toupper(year)
+  country <- toupper(country)
   keep_years <- rep(TRUE, nrow(dtmp))
 
-  has_region  <- FALSE
+  has_region <- FALSE
   has_country <- TRUE
-  has_all     <- "ALL" %in% country
+  has_all <- "ALL" %in% country
 
   if (!is.null(valid_regions)) {
     if (any(country %in% valid_regions[!valid_regions %in% "ALL"])) {
@@ -159,44 +167,42 @@ select_years <- function(lkup,
 
   # STEP 1 - If Most Recent Value requested
   if ("MRV" %in% year) {
-
     # for MRV, countries and regions not allowed
     if (has_country && has_region) {
-      rlang::abort("country codes and region codes not allowed with MRV in year")
+      rlang::abort(
+        "country codes and region codes not allowed with MRV in year"
+      )
     }
     # STEP 1.1 - If all countries selected. Select MRV for each country
 
     if (has_region || is_agg) {
       mr <- get_metaregion_table(data_dir)
-      dtmp[mr,
-           on = "region_code",
-           max_year := reporting_year == i.lineup_year]
+      dtmp[mr, on = "region_code", max_year := reporting_year == i.lineup_year]
 
       if (isFALSE(has_all)) {
-        dtmp[!region_code %in% country,
-             max_year := FALSE]
+        dtmp[!region_code %in% country, max_year := FALSE]
       }
-
     } else {
       # STEP 1.2 - If only some countries selected. Select MRV for each selected
       # country
       if (has_all) {
         dtmp[,
-           max_year := reporting_year == max(reporting_year),
-           by = country_code]
+          max_year := reporting_year == max(reporting_year),
+          by = country_code
+        ]
       } else {
-        dtmp[country_code %in% country | region_code %in% country,
-             max_year := reporting_year == max(reporting_year),
-             by = country_code]
+        dtmp[
+          country_code %in% country | region_code %in% country,
+          max_year := reporting_year == max(reporting_year),
+          by = country_code
+        ]
       }
     }
 
     # dtmp <- unique(dtmp[, .(country_code, reporting_year, max_year)])
     dtmp[is.na(max_year), max_year := FALSE]
 
-
     keep_years <- keep_years & as.logical(dtmp[["max_year"]])
-
   }
   # STEP 2 - If specific years are specified. Filter for these years
   if (!any(c("ALL", "MRV") %in% year)) {
@@ -218,8 +224,7 @@ select_years <- function(lkup,
 #'
 #' @return data.frame
 
-filter_lkup <- function(metadata,
-                        popshare) {
+filter_lkup <- function(metadata, popshare) {
   # popshare option not supported for aggregate distributions
   if (!is.null(popshare)) {
     return(
@@ -228,7 +233,6 @@ filter_lkup <- function(metadata,
   } else {
     return(metadata)
   }
-
 }
 
 #' helper function to correctly filter look up table according to requested
@@ -241,23 +245,20 @@ filter_lkup <- function(metadata,
 #' @return data.table
 #' @export
 #'
-select_reporting_level <- function(lkup,
-                                   keep,
-                                   reporting_level) {
+select_reporting_level <- function(lkup, keep, reporting_level) {
   # To be updated: Fix the coverage variable names in aux data (reporting_coverage?)
   if (reporting_level == "all") {
     return(keep)
-
   } else if (reporting_level == "national") {
     # Subnational levels necessary to compute national stats for aggregate distributions
-    keep <- keep & (lkup$reporting_level == reporting_level | lkup$is_used_for_aggregation)
+    keep <- keep &
+      (lkup$reporting_level == reporting_level | lkup$is_used_for_aggregation)
     return(keep)
-
   } else {
     if ("survey_coverage" %in% names(lkup)) {
       keep <- keep &
         (lkup$survey_coverage == reporting_level |
-           lkup$reporting_level == reporting_level)
+          lkup$reporting_level == reporting_level)
     } else {
       # This condition is not triggered
       keep <- keep & lkup$reporting_level == reporting_level
@@ -275,29 +276,31 @@ select_reporting_level <- function(lkup,
 #'
 #' @return data.frame
 #' @keywords internal
-get_svy_data <- function(svy_id,
-                         reporting_level,
-                         path) {
+get_svy_data <- function(svy_id, reporting_level, path) {
   # Each call should be made at a unique reporting_level (equivalent to reporting_data_level: national, urban, rural)
   # This check should be conducted at the data validation stage
   reporting_level <- unique(reporting_level)
-  assertthat::assert_that(length(reporting_level) == 1,
-                          msg = "Problem with input data: Multiple reporting_levels"
+  assertthat::assert_that(
+    length(reporting_level) == 1,
+    msg = "Problem with input data: Multiple reporting_levels"
   )
   # tictoc::tic("read_single")
   out <- lapply(path, function(x) {
-
     # Not robust. Should not be hard coded here.
     if (reporting_level %in% c("urban", "rural")) {
-      tmp <- fst::read_fst(x,
-                         columns = c("area", "welfare", "weight"),
-                         as.data.table = TRUE)
+      tmp <- fst::read_fst(
+        x,
+        columns = c("area", "welfare", "weight"),
+        as.data.table = TRUE
+      )
       tmp <- tmp[area == reporting_level, ]
       tmp[, area := NULL]
     } else {
-      tmp <- fst::read_fst(x,
-                           columns = c("welfare", "weight"),
-                           as.data.table = TRUE)
+      tmp <- fst::read_fst(
+        x,
+        columns = c("welfare", "weight"),
+        as.data.table = TRUE
+      )
     }
 
     return(tmp)
@@ -324,7 +327,6 @@ get_svy_data <- function(svy_id,
 #' @return data.table
 #' @export
 add_dist_stats <- function(df, lkup, fill_gaps) {
-
   if (fill_gaps) {
     dist_stats <- lkup[["lineup_dist_stats"]]
   } else {
@@ -332,18 +334,16 @@ add_dist_stats <- function(df, lkup, fill_gaps) {
   }
 
   if (fill_gaps) {
-
     df <- df |>
-      joyn::joyn(y                = dist_stats,
-                 by               = c("country_code",
-                                      "reporting_level",
-                                      "reporting_year"),
-                 match_type       = "m:1", # multiple poverty lines
-                 keep_common_vars = FALSE,
-                 reportvar        = FALSE,
-                 verbose          = FALSE,
-                 keep             = "left")
-
+      joyn::joyn(
+        y = dist_stats,
+        by = c("country_code", "reporting_level", "reporting_year"),
+        match_type = "m:1", # multiple poverty lines
+        keep_common_vars = FALSE,
+        reportvar = FALSE,
+        verbose = FALSE,
+        keep = "left"
+      )
   } else {
     # Keep only relevant columns
     cols <- c(
@@ -362,9 +362,10 @@ add_dist_stats <- function(df, lkup, fill_gaps) {
     # merge dist stats with main table
     # data.table::setnames(dist_stats, "survey_median_ppp", "median")
 
-    df <- dist_stats[df,
-                     on = .(cache_id, reporting_level), #.(country_code, reporting_year, welfare_type, reporting_level),
-                     allow.cartesian = TRUE
+    df <- dist_stats[
+      df,
+      on = .(cache_id, reporting_level), #.(country_code, reporting_year, welfare_type, reporting_level),
+      allow.cartesian = TRUE
     ]
   }
   df
@@ -396,9 +397,10 @@ add_dist_stats_old <- function(df, dist_stats) {
   # merge dist stats with main table
   # data.table::setnames(dist_stats, "survey_median_ppp", "median")
 
-  df <- dist_stats[df,
-                   on = .(cache_id, reporting_level), #.(country_code, reporting_year, welfare_type, reporting_level),
-                   allow.cartesian = TRUE
+  df <- dist_stats[
+    df,
+    on = .(cache_id, reporting_level), #.(country_code, reporting_year, welfare_type, reporting_level),
+    allow.cartesian = TRUE
   ]
 
   return(df)
@@ -409,11 +411,13 @@ add_dist_stats_old <- function(df, dist_stats) {
 #' @return data.table
 #' @noRd
 collapse_rows <- function(df, vars, na_var = NULL) {
-  tmp_vars      <- lapply(df[, .SD, .SDcols = vars], unique, collapse = "|")
-  tmp_vars      <- lapply(tmp_vars, paste, collapse = "|")
+  tmp_vars <- lapply(df[, .SD, .SDcols = vars], unique, collapse = "|")
+  tmp_vars <- lapply(tmp_vars, paste, collapse = "|")
   tmp_var_names <- names(df[, .SD, .SDcols = vars])
 
-  if (!is.null(na_var)) df[[na_var]] <- NA_real_
+  if (!is.null(na_var)) {
+    df[[na_var]] <- NA_real_
+  }
 
   for (tmp_var in seq_along(tmp_vars)) {
     df[[tmp_var_names[tmp_var]]] <- tmp_vars[[tmp_var]]
@@ -431,7 +435,6 @@ collapse_rows <- function(df, vars, na_var = NULL) {
 #' @return data.table
 #' @noRd
 censor_rows <- function(df, censored, type = c("countries", "regions")) {
-
   type <- match.arg(type)
 
   # Return early if there are no censoring observations
@@ -444,15 +447,18 @@ censor_rows <- function(df, censored, type = c("countries", "regions")) {
     df$tmp_id <-
       sprintf(
         "%s_%s_%s_%s_%s",
-        df$country_code, df$reporting_year,
-        df$survey_acronym, df$welfare_type,
+        df$country_code,
+        df$reporting_year,
+        df$survey_acronym,
+        df$welfare_type,
         df$reporting_level
       )
   } else {
     df$tmp_id <-
       sprintf(
         "%s_%s",
-        df$region_code, df$reporting_year
+        df$region_code,
+        df$reporting_year
       )
   }
 
@@ -487,8 +493,11 @@ censor_stats <- function(df, censored_table) {
   if (nrow(censor_stats) > 0) {
     # Perform a non-equi join to mark relevant statistics
     # Commenting mult = "first" since with multiple povline values there are more than one rows
-    df[censor_stats, on = .(tmp_id = id), #mult = "first",
-       unique(censor_stats$statistic) := NA_real_]
+    df[
+      censor_stats,
+      on = .(tmp_id = id), #mult = "first",
+      unique(censor_stats$statistic) := NA_real_
+    ]
   }
 
   # Clean up the temporary column
@@ -505,12 +514,10 @@ censor_stats <- function(df, censored_table) {
 #' @param lkup lkup value
 #' @keywords internal
 estimate_type_var <- function(df, lkup) {
-
   censored_table <- lkup$censored$regions
-  data_dir       <- lkup$data_root
+  data_dir <- lkup$data_root
 
-  mr <-  get_metaregion_table(data_dir = data_dir)
-
+  mr <- get_metaregion_table(data_dir = data_dir)
 
   df[, tmp_id := paste(region_code, reporting_year, sep = "_")]
   # Create a binary column to mark what is projections based on
@@ -529,18 +536,21 @@ estimate_type_var <- function(df, lkup) {
   # Merge metaregion and label those obs with reporting year
   # higher than lineup year as "nowcast"
   df <- mr[df, on = "region_code"]
-  df[reporting_year > lineup_year,
-     estimate_type := "nowcast"]
+  df[reporting_year > lineup_year, estimate_type := "nowcast"]
 
   # This should be done in a different function...
   # Update specific statistics to NA where not 'all'
   censor_stats <- censored_table[statistic != "all"]
   if (nrow(censor_stats) > 0) {
     # Perform a non-equi join to mark relevant statistics
-    df[censor_stats, on = .(tmp_id = id), mult = "first",
-       (censor_stats$statistic) := NA_real_]
+    df[
+      censor_stats,
+      on = .(tmp_id = id),
+      mult = "first",
+      (censor_stats$statistic) := NA_real_
+    ]
   }
-  df[, c("tmp_id", "lineup_year")  := NULL]
+  df[, c("tmp_id", "lineup_year") := NULL]
 }
 
 
@@ -552,24 +562,25 @@ estimate_type_var <- function(df, lkup) {
 #' @return out database with `estimate_type` variable
 #' @keywords internal
 estimate_type_ctr_lnp <- function(out, lkup) {
-
-  out[, estimate_type := fifelse(estimation_type == "survey", "actual", "projection")]
-  mr     <- get_metaregion_table(lkup$data_root)
-  wld    <- mr[region_code == "WLD", lineup_year]
-  regs   <- out[, unique(region_code)]
-  mr     <- mr[region_code %in% regs]
-  mr[, lineup_year := max(lineup_year, wld),
-     by = region_code]
+  out[,
+    estimate_type := fifelse(
+      estimation_type == "survey",
+      "actual",
+      "projection"
+    )
+  ]
+  mr <- get_metaregion_table(lkup$data_root)
+  wld <- mr[region_code == "WLD", lineup_year]
+  regs <- out[, unique(region_code)]
+  mr <- mr[region_code %in% regs]
+  mr[, lineup_year := max(lineup_year, wld), by = region_code]
 
   # Merge metaregion and label those obs with reporting year
   # higher than lineup year as "nowcast"
   out <- mr[out, on = "region_code"]
-  out[reporting_year > lineup_year,
-      estimate_type := "nowcast"]
+  out[reporting_year > lineup_year, estimate_type := "nowcast"]
 
   out[, lineup_year := NULL]
-
-
 }
 
 #' Create query controls
@@ -580,16 +591,18 @@ estimate_type_ctr_lnp <- function(out, lkup) {
 #' @param versions character: List of available data versions
 #' @return list
 #' @noRd
-create_query_controls <- function(svy_lkup,
-                                  ref_lkup,
-                                  aux_files,
-                                  aux_tables,
-                                  versions) {
+create_query_controls <- function(
+  svy_lkup,
+  ref_lkup,
+  aux_files,
+  aux_tables,
+  versions
+) {
   # Countries and regions
   countries <- unique(c(
-      svy_lkup$country_code,
-      ref_lkup$country_code
-    ))
+    svy_lkup$country_code,
+    ref_lkup$country_code
+  ))
 
   regions <- unique(c(
     aux_files$regions$region_code
@@ -600,8 +613,8 @@ create_query_controls <- function(svy_lkup,
       "ALL",
       sort(c(
         countries,
-        regions)
-      )
+        regions
+      ))
     ),
     type = "character"
   )
@@ -613,7 +626,8 @@ create_query_controls <- function(svy_lkup,
   # Year
   year <- list(
     values = c(
-      "all", "MRV",
+      "all",
+      "MRV",
       sort(unique(c(
         svy_lkup$reporting_year,
         ref_lkup$reporting_year
@@ -633,26 +647,23 @@ create_query_controls <- function(svy_lkup,
   )
 
   # Boolean parameters
-  fill_gaps        <-
-    aggregate      <-
-    long_format    <-
-    additional_ind <-
-    exclude        <-
-    list(values = c(TRUE, FALSE),
-         type = "logical")
+  fill_gaps <-
+    aggregate <-
+      long_format <-
+        additional_ind <-
+          exclude <-
+            list(values = c(TRUE, FALSE), type = "logical")
 
-  # Group by
-  group_by <- list(
-    values = c("none", "wb"),
-    type = "character"
-  )
 
   # Welfare type
   welfare_type <- list(
-    values = c("all", sort(unique(c(
-      svy_lkup$welfare_type,
-      ref_lkup$welfare_type
-    )))),
+    values = c(
+      "all",
+      sort(unique(c(
+        svy_lkup$welfare_type,
+        ref_lkup$welfare_type
+      )))
+    ),
     type = "character"
   )
   # Reporting level
@@ -677,8 +688,7 @@ create_query_controls <- function(svy_lkup,
     type = "character"
   )
   # Formats
-  format <- list(values = c("json", "csv", "rds", "arrow"),
-                 type = "character")
+  format <- list(values = c("json", "csv", "rds", "arrow"), type = "character")
   # Tables
   table <- list(values = aux_tables, type = "character")
 
@@ -688,12 +698,28 @@ create_query_controls <- function(svy_lkup,
   pass <- list(values = Sys.getenv('PIP_CACHE_SERVER_KEY'), type = "character")
   # parameters
   parameter <-
-    list(values = c("country", "year", "povline",
-                    "popshare", "fill_gaps", "aggregate",
-                    "group_by", "welfare_type",
-                    "reporting_level", "ppp", "version",
-                    "format", "table", "long_format", "exclude", "type", "pass"),
-         type = "character")
+    list(
+      values = c(
+        "country",
+        "year",
+        "povline",
+        "popshare",
+        "fill_gaps",
+        "aggregate",
+        "group_by",
+        "welfare_type",
+        "reporting_level",
+        "ppp",
+        "version",
+        "format",
+        "table",
+        "long_format",
+        "exclude",
+        "type",
+        "pass"
+      ),
+      type = "character"
+    )
 
   # cum_welfare
   cum_welfare <- list(
@@ -724,7 +750,7 @@ create_query_controls <- function(svy_lkup,
   )
 
   # lorenz
-  lorenz <- list(values = c("lb", "lq"),type = "character")
+  lorenz <- list(values = c("lb", "lq"), type = "character")
 
   # n_bins
   n_bins <- list(
@@ -734,44 +760,54 @@ create_query_controls <- function(svy_lkup,
 
   # Endpoint
   endpoint <-
-    list(values = c("all",
-                    "aux",
-                    "pip",
-                    "pip-grp",
-                    "pip-info",
-                    "valid-params"),
-         type = "character")
+    list(
+      values = c("all", "aux", "pip", "pip-grp", "pip-info", "valid-params"),
+      type = "character"
+    )
 
-    # Create list of query controls
+  # group_by
+  regs <- aux_files$country_list |>
+    names() |>
+    grep("_code$|_name$", x = _, value = TRUE, invert = TRUE) |>
+    c("wb", "none", "vintage", "pcn") |>
+    sort()
+
+  group_by <- list(
+    values = regs,
+    type   = "character"
+  )
+
+
+  # Create list of query controls
   query_controls <- list(
-    country         = country,
-    region          = region,
-    year            = year,
-    povline         = povline,
-    popshare        = popshare,
-    fill_gaps       = fill_gaps,
-    aggregate       = aggregate,
-    long_format     = long_format,
-    exclude         = exclude,
-    additional_ind  = additional_ind,
-    group_by        = group_by,
-    welfare_type    = welfare_type,
+    country = country,
+    region = region,
+    year = year,
+    povline = povline,
+    popshare = popshare,
+    fill_gaps = fill_gaps,
+    aggregate = aggregate,
+    long_format = long_format,
+    exclude = exclude,
+    additional_ind = additional_ind,
+    group_by = group_by,
+    welfare_type = welfare_type,
     reporting_level = reporting_level,
-    ppp             = ppp,
-    version         = version,
-    format          = format,
-    table           = table,
-    parameter       = parameter,
-    cum_welfare     = cum_welfare,
-    cum_population  = cum_population,
-    requested_mean  = requested_mean,
-    mean            = mean,
-    times_mean      = times_mean,
-    lorenz          = lorenz,
-    n_bins          = n_bins,
-    endpoint        = endpoint,
-    type            = type,
-    pass            = pass
+    ppp = ppp,
+    version = version,
+    format = format,
+    table = table,
+    parameter = parameter,
+    cum_welfare = cum_welfare,
+    cum_population = cum_population,
+    requested_mean = requested_mean,
+    mean = mean,
+    times_mean = times_mean,
+    lorenz = lorenz,
+    n_bins = n_bins,
+    endpoint = endpoint,
+    type = type,
+    pass = pass
   )
 
   return(query_controls)
@@ -792,12 +828,7 @@ convert_empty <- function(string) {
 #' @inheritParams subset_lkup
 #' @return data.frame
 #' @keywords internal
-subset_ctry_years <- function(country,
-                              year,
-                              lkup,
-                              valid_regions,
-                              data_dir) {
-
+subset_ctry_years <- function(country, year, lkup, valid_regions, data_dir) {
   is_agg <- get_caller_names()
   is_agg <- grepl(pattern = "pip_grp", x = is_agg) |>
     any()
@@ -809,8 +840,8 @@ subset_ctry_years <- function(country,
   if (!any(c("ALL", "WLD") %in% country)) {
     # Select regions
     if (any(country %in% valid_regions)) {
-      selected_regions  <- country[country %in% valid_regions]
-      keep_regions      <- lkup$region_code %in% selected_regions
+      selected_regions <- country[country %in% valid_regions]
+      keep_regions <- lkup$region_code %in% selected_regions
       country_or_region <- "region_code"
     } else {
       keep_regions <- rep(FALSE, length(lkup$region_code))
@@ -824,20 +855,20 @@ subset_ctry_years <- function(country,
   # }
 
   # Select years
-  if (year[1] == "MRV")  {
+  if (year[1] == "MRV") {
     if (is_agg) {
       mr <- get_metaregion_table(data_dir)
-      lkup[mr,
-           on = "region_code",
-           lineup_year := i.lineup_year]
+      lkup[mr, on = "region_code", lineup_year := i.lineup_year]
     } else {
       lkup[, lineup_year := reporting_year]
     }
 
     if (country[1] != "ALL") {
       max_year <-
-        lkup[get(country_or_region) == country & reporting_year == lineup_year,
-             reporting_year] |>
+        lkup[
+          get(country_or_region) == country & reporting_year == lineup_year,
+          reporting_year
+        ] |>
         max()
     } else {
       max_year <-
@@ -863,23 +894,32 @@ subset_ctry_years <- function(country,
 #' @return list
 #' @keywords internal
 clear_cache <- function(cd) {
-  tryCatch({
-    if (cd$size() > 0) {
-      cd$reset()
-      n <- cd$size()
-      if (n == 0) {
-        out <- list(status = 'success', msg = 'Cache cleared.')
+  tryCatch(
+    {
+      if (cd$size() > 0) {
+        cd$reset()
+        n <- cd$size()
+        if (n == 0) {
+          out <- list(status = 'success', msg = 'Cache cleared.')
+        } else {
+          out <- list(
+            status = 'error',
+            msg = sprintf('Something went wrong. %n items remain in cache.', n)
+          )
+        }
       } else {
-        out <- list(status = 'error', msg = sprintf('Something went wrong. %n items remain in cache.', n))
+        out <- list(
+          status = 'success',
+          msg = 'Cache directory is empty. Nothing to clear.'
+        )
       }
-    } else {
-      out <- list(status = 'success', msg = 'Cache directory is empty. Nothing to clear.')
+      return(out)
+    },
+    error = function(e) {
+      out <- list(status = 'error', msg = 'Cache directory not found.')
+      return(out)
     }
-    return(out)
-  }, error = function(e){
-    out <- list(status = 'error', msg = 'Cache directory not found.')
-    return(out)
-  })
+  )
 }
 
 #' Test whether a vector is length zero and IS not NULL
@@ -926,16 +966,13 @@ is_empty <- function(x) {
 #' z <- TRUE
 #' fillin_list(l)
 #' l
-fillin_list <- function(l,
-                        assign = TRUE) {
-
+fillin_list <- function(l, assign = TRUE) {
   #   ____________________________________________________________
   #   Defenses                                    ####
-  stopifnot( exprs = {
+  stopifnot(exprs = {
     is.list(l)
     is.data.frame(l) == FALSE
-  }
-  )
+  })
 
   #   __________________________________________________________________
   #   Early returns                                               ####
@@ -956,16 +993,17 @@ fillin_list <- function(l,
 
   # make sure that all the objects in list are in parent frame
   if (!all(nm_obj %in% obj_in_parent)) {
+    non_in_parent <- nm_obj[!nm_obj %in% obj_in_parent]
 
-    non_in_parent <-nm_obj[!nm_obj %in% obj_in_parent]
-
-    stop_msg <- paste("The following objects are not in calling function: \n",
-                      paste(non_in_parent, collapse = ", "))
+    stop_msg <- paste(
+      "The following objects are not in calling function: \n",
+      paste(non_in_parent, collapse = ", ")
+    )
 
     stop(stop_msg)
   }
 
-  val_obj        <- lapply(nm_obj, get, envir = parent.frame())
+  val_obj <- lapply(nm_obj, get, envir = parent.frame())
   names(val_obj) <- nm_obj
 
   for (i in seq_along(nm_obj)) {
@@ -980,7 +1018,6 @@ fillin_list <- function(l,
   }
 
   return(invisible(l))
-
 }
 
 #' Returns all auxiliary tables that support the long_format=TRUE parameter
@@ -999,27 +1036,24 @@ get_valid_aux_long_format_tables <- function() {
 #'
 #' @return data.table
 #' @keywords internal
-get_spr_table <- function(data_dir,
-                          table = c("spr_svy", "spr_lnp")) {
-
+get_spr_table <- function(data_dir, table = c("spr_svy", "spr_lnp")) {
   table <- match.arg(table)
 
   spr <-
     tryCatch(
       expr = {
         # Your code...
-        get_aux_table(data_dir = data_dir,
-                      table    = table)
+        get_aux_table(data_dir = data_dir, table = table)
       }, # end of expr section
       error = function(e) {
         data.table::data.table(
-          country_code    = character(0),
-          reporting_year  = numeric(0),
-          welfare_type    = character(0),
+          country_code = character(0),
+          reporting_year = numeric(0),
+          welfare_type = character(0),
           reporting_level = character(0),
-          spl             = numeric(0),
-          spr             = numeric(0),
-          median          = numeric(0)
+          spl = numeric(0),
+          spr = numeric(0),
+          median = numeric(0)
         )
       }
     ) # End of trycatch
@@ -1035,24 +1069,21 @@ get_spr_table <- function(data_dir,
 #' @return data.table
 #' @keywords internal
 get_metaregion_table <- function(data_dir) {
-
   spr <-
     tryCatch(
       expr = {
         # Your code...
-        get_aux_table(data_dir = data_dir,
-                      table    = "metaregion")
+        get_aux_table(data_dir = data_dir, table = "metaregion")
       }, # end of expr section
       error = function(e) {
         data.table::data.table(
-          region_code     = character(0),
-          lineup_year     = numeric(0)
+          region_code = character(0),
+          lineup_year = numeric(0)
         )
       }
     ) # End of trycatch
   return(spr)
 }
-
 
 
 #' Load prosperity gap table from aux data
@@ -1063,26 +1094,23 @@ get_metaregion_table <- function(data_dir) {
 #'
 #' @return data.table
 #' @keywords internal
-get_pg_table <- function(data_dir,
-                          table = c("pg_svy", "pg_lnp")) {
-
+get_pg_table <- function(data_dir, table = c("pg_svy", "pg_lnp")) {
   table <- match.arg(table)
 
   pg <-
     tryCatch(
       expr = {
         # Your code...
-        get_aux_table(data_dir = data_dir,
-                      table    = table)
+        get_aux_table(data_dir = data_dir, table = table)
       }, # end of expr section
       error = function(e) {
         data.table::data.table(
-            country_code    = character(0),
-            reporting_level = character(0),
-            pg              = numeric(0),
-            welfare_type    = character(0),
-            reporting_year  = integer(0)
-          )
+          country_code = character(0),
+          reporting_level = character(0),
+          pg = numeric(0),
+          welfare_type = character(0),
+          reporting_year = integer(0)
+        )
       }
     ) # End of trycatch
   return(pg)
@@ -1098,24 +1126,24 @@ get_pg_table <- function(data_dir,
 #' @return data.table
 #' @keywords internal
 add_pg <- function(df, fill_gaps, data_dir) {
-
-  if (fill_gaps)  {
+  if (fill_gaps) {
     table <- "pg_lnp"
   } else {
     table <- "pg_svy"
   }
 
-  pg <- get_pg_table(data_dir = data_dir,
-                     table    = table)
+  pg <- get_pg_table(data_dir = data_dir, table = table)
 
-  df[pg,
-     on = c(
-       "country_code",
-       "reporting_year",
-       "welfare_type",
-       "reporting_level"),
-      pg := i.pg
-       ]
+  df[
+    pg,
+    on = c(
+      "country_code",
+      "reporting_year",
+      "welfare_type",
+      "reporting_level"
+    ),
+    pg := i.pg
+  ]
 }
 
 #' Add Distribution type
@@ -1127,7 +1155,6 @@ add_pg <- function(df, fill_gaps, data_dir) {
 #' @return data.table
 #' @keywords internal
 add_distribution_type <- function(df, lkup, fill_gaps) {
-
   # merge reference table with framework table and get distribution type
   # from framework
   rf <- copy(lkup$ref_lkup) |>
@@ -1139,11 +1166,10 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
       reporting_year,
       surveyid_year
     )][,
-       surveyid_year := as.numeric(surveyid_year)]
+      surveyid_year := as.numeric(surveyid_year)
+    ]
 
-
-  fw <- get_aux_table(data_dir = lkup$data_root,
-                      "framework") |>
+  fw <- get_aux_table(data_dir = lkup$data_root, "framework") |>
     copy() |>
     _[, .(
       country_code,
@@ -1155,29 +1181,27 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
       use_groupdata
     )]
 
-
   dt <- collapse::join(
-    x        = rf,
-    y        = fw,
-    on       = c("country_code", "surveyid_year", "survey_acronym"),
-    how      = "left",
+    x = rf,
+    y = fw,
+    on = c("country_code", "surveyid_year", "survey_acronym"),
+    how = "left",
     validate = "m:1",
-    verbose  = 0
+    verbose = 0
   )
 
   if (fill_gaps) {
     # line up years ----------
 
-    by_vars <- c("country_code",
-                 "reporting_year",
-                 "welfare_type"
-                 )
+    by_vars <- c("country_code", "reporting_year", "welfare_type")
 
     dt[,
-       # distribution type by year
-       distribution_type := fcase(use_groupdata == 1, "group",
-                                  use_imputed == 1,   "imputed",
-                                  default = "micro")
+      # distribution type by year
+      distribution_type := fcase(
+        use_groupdata == 1 , "group"   ,
+        use_imputed == 1   , "imputed" ,
+        default = "micro"
+      )
     ][,
       # find interpolation with different distribution type and
       # replace by "mixed"
@@ -1189,9 +1213,9 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
     ]
 
     dt <- dt[,
-             # collapse by reporting_year and keep relevant variables
-             .(distribution_type = unique(distribution_type)),
-             by = by_vars
+      # collapse by reporting_year and keep relevant variables
+      .(distribution_type = unique(distribution_type)),
+      by = by_vars
     ]
 
     # df[dt,
@@ -1201,10 +1225,8 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
     #      # Calculate unique counts of reporting level and add new rows
     #      unique_replevel := uniqueN(reporting_level),
     #      by = c("country_code","reporting_year")]
-
-
   } else {
-  # survey years --------------
+    # survey years --------------
     by_vars <- c(
       "country_code",
       "surveyid_year",
@@ -1213,40 +1235,42 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
     )
 
     dt[,
-       # distribution type by year
-       distribution_type := fcase(use_groupdata == 1, "group",
-                                  use_imputed   == 1, "imputed",
-                                  default        =    "micro")
+      # distribution type by year
+      distribution_type := fcase(
+        use_groupdata == 1 , "group"   ,
+        use_imputed == 1   , "imputed" ,
+        default = "micro"
+      )
     ]
 
-    dt <- dt[, # collapse by reporting_year and keep relevant variables
-             .(distribution_type = unique(distribution_type)),
-             by = by_vars]
-
+    dt <- dt[,
+      # collapse by reporting_year and keep relevant variables
+      .(distribution_type = unique(distribution_type)),
+      by = by_vars
+    ]
   }
 
   if (!fill_gaps) {
     df <- df[,
-       surveyid_year := as.numeric(surveyid_year)
+      surveyid_year := as.numeric(surveyid_year)
     ]
   }
-  df[dt,
-      on = by_vars,
-      distribution_type := i.distribution_type
-      ][,
-         # Calculate unique counts of reporting level and add new rows
-         unique_replevel := uniqueN(reporting_level),
-         by = by_vars]
+  df[dt, on = by_vars, distribution_type := i.distribution_type][,
+    # Calculate unique counts of reporting level and add new rows
+    unique_replevel := uniqueN(reporting_level),
+    by = by_vars
+  ]
 
   # distribution type for national cases when aggregate data
 
-
-  df[unique_replevel == 3 &
-       reporting_level == "national" &
-       distribution_type == "group",
-     distribution_type := "synthetic"
-     ][,
-       unique_replevel := NULL]
+  df[
+    unique_replevel == 3 &
+      reporting_level == "national" &
+      distribution_type == "group",
+    distribution_type := "synthetic"
+  ][,
+    unique_replevel := NULL
+  ]
 
   setorderv(df, by_vars)
   return(invisible(df))
@@ -1263,29 +1287,28 @@ add_distribution_type <- function(df, lkup, fill_gaps) {
 #' @return data.table
 #' @keywords internal
 add_spl <- function(df, fill_gaps, data_dir) {
-
   if (fill_gaps) {
     table <- "spr_lnp"
   } else {
-    table <-  "spr_svy"
+    table <- "spr_svy"
   }
 
   spl <-
-    get_spr_table(data_dir = data_dir,
-                  table = table)
+    get_spr_table(data_dir = data_dir, table = table)
 
-
-  out <- df[spl,
-            on = c(
-              "country_code",
-              "reporting_year",
-              "welfare_type",
-              "reporting_level"
-            ),
-            `:=`(
-              spl = i.spl,
-              spr = i.spr
-            )]
+  out <- df[
+    spl,
+    on = c(
+      "country_code",
+      "reporting_year",
+      "welfare_type",
+      "reporting_level"
+    ),
+    `:=`(
+      spl = i.spl,
+      spr = i.spr
+    )
+  ]
 
   return(invisible(out))
 }
@@ -1301,30 +1324,31 @@ add_spl <- function(df, fill_gaps, data_dir) {
 add_agg_medians <- function(df, fill_gaps, data_dir) {
 
   if (fill_gaps) {
-    table    = "spr_lnp"
+    table = "spr_lnp"
     # set all lines up medians to NA.
     df[, median := NA_real_]
   } else {
     # if survey data, we keep the ones already calculated and add those
     # that are missing
-    table    = "spr_svy"
+    table = "spr_svy"
   }
   med <-
-    get_spr_table(data_dir = data_dir,
-                  table    = table)
+    get_spr_table(data_dir = data_dir, table = table)
 
   # join medians to missing data ---------
 
-  df[med,
-      on = c(
-        "country_code",
-        "reporting_year",
-        "welfare_type",
-        "reporting_level"
-      ),
-     # prefer median in df over the one in med as long as the one in
-     # in df is not NA. If that is the case, select the one in med.
-      median := fcoalesce(median, i.median)]
+  df[
+    med,
+    on = c(
+      "country_code",
+      "reporting_year",
+      "welfare_type",
+      "reporting_level"
+    ),
+    # prefer median in df over the one in med as long as the one in
+    # in df is not NA. If that is the case, select the one in med.
+    median := fcoalesce(median, i.median)
+  ]
 
   return(invisible(df))
 }
@@ -1339,15 +1363,15 @@ get_caller_names <- function() {
   calls <- sys.calls()
 
   lcalls <- length(calls)
-  caller_names <- vector("character" , length = lcalls)
+  caller_names <- vector("character", length = lcalls)
 
   tryCatch(
     expr = {
       i <- 1
       while (i <= lcalls) {
         call <- calls[[i]]
-        call_class  <- class(call[[1]])
-        call_type   <- typeof(call[[1]])
+        call_class <- class(call[[1]])
+        call_type <- typeof(call[[1]])
         call_length <- length(call[[1]])
 
         call[[1]] <-
@@ -1375,20 +1399,24 @@ get_caller_names <- function() {
     }, # end of expr section
 
     error = function(err) {
-      msg <- c(paste("Error in call",i),
-               paste("class:", call_class),
-               paste("type:", call_type),
-               paste("length:", call_length),
-               paste("text:", call_text))
+      msg <- c(
+        paste("Error in call", i),
+        paste("class:", call_class),
+        paste("type:", call_type),
+        paste("length:", call_length),
+        paste("text:", call_text)
+      )
       rlang::abort(msg, parent = err)
     }, # end of error section
 
     warning = function(w) {
-      msg <- c(paste("Warning in call",i),
-               paste("class:", call_class),
-               paste("type:", call_type),
-               paste("length:", call_length),
-               paste("text:", call_text))
+      msg <- c(
+        paste("Warning in call", i),
+        paste("class:", call_class),
+        paste("type:", call_type),
+        paste("length:", call_length),
+        paste("text:", call_text)
+      )
       rlang::warn(msg, parent = w)
     }
   ) # End of trycatch
@@ -1406,23 +1434,16 @@ get_caller_names <- function() {
 #' @keywords internal
 #' @return data.table from pip or pip_grp functions.
 add_vars_out_of_pipeline <- function(out, fill_gaps, lkup) {
-
   ## Add SPL and SPR  ---------------
-  out <- add_spl(df        = out,
-                 fill_gaps = fill_gaps,
-                 data_dir  = lkup$data_root)
+  out <- add_spl(df = out, fill_gaps = fill_gaps, data_dir = lkup$data_root)
 
   ## Add prosperity Gap -----------
 
-  out <- add_pg(df        = out,
-                fill_gaps = fill_gaps,
-                data_dir  = lkup$data_root)
+  out <- add_pg(df = out, fill_gaps = fill_gaps, data_dir = lkup$data_root)
 
   ## add distribution type -------------
   # based on info in framework data, rather than welfare data
-  out <- add_distribution_type(df        = out,
-                               lkup      = lkup,
-                               fill_gaps = fill_gaps)
+  out <- add_distribution_type(df = out, lkup = lkup, fill_gaps = fill_gaps)
 
   invisible(out)
 }
@@ -1446,7 +1467,6 @@ add_vars_out_of_pipeline <- function(out, fill_gaps, lkup) {
 #'  unnest_dt_longer(df, grep("^list_column", names(df), value = TRUE))
 #' }
 unnest_dt_longer <- function(tbl, cols) {
-
   tbl <- data.table::as.data.table(tbl)
   clnms <- rlang::syms(setdiff(colnames(tbl), cols))
 
@@ -1468,30 +1488,43 @@ unnest_dt_longer <- function(tbl, cols) {
 #' @return data.table with with fgt, mean and median
 #' @keywords internal
 get_mean_median <- \(fgt, lkup, fill_gaps) {
-
-  if (isFALSE(lkup$use_new_lineup_version)) return(fgt)
+  if (isFALSE(lkup$use_new_lineup_version)) {
+    return(fgt)
+  }
 
   if (fill_gaps) {
-    dist <- get_vars(lkup$lineup_dist_stats,
-                     c("country_code", "reporting_year",
-                       "reporting_level", "mean", "median"))
+    dist <- get_vars(
+      lkup$lineup_dist_stats,
+      c("country_code", "reporting_year", "reporting_level", "mean", "median")
+    )
     by_var <- c('country_code', "reporting_year", "reporting_level")
   } else {
-    dist <- get_vars(lkup$dist_stats,
-                     c("country_code", "reporting_year",
-                       "reporting_level", "mean",
-                       "survey_median_ppp", "welfare_type"))
+    dist <- get_vars(
+      lkup$dist_stats,
+      c(
+        "country_code",
+        "reporting_year",
+        "reporting_level",
+        "mean",
+        "survey_median_ppp",
+        "welfare_type"
+      )
+    )
     setnames(dist, "survey_median_ppp", "median")
 
-    by_var <- c('country_code',
-                "reporting_year",
-                "reporting_level",
-                "welfare_type")
+    by_var <- c(
+      'country_code',
+      "reporting_year",
+      "reporting_level",
+      "welfare_type"
+    )
   }
-  join(x = fgt,
-      y = dist,
-      on = by_var,
-      how = "left",
-      validate = "m:1", # multiple povlines
-      verbose = 0L)
+  join(
+    x = fgt,
+    y = dist,
+    on = by_var,
+    how = "left",
+    validate = "m:1", # multiple povlines
+    verbose = 0L
+  )
 }

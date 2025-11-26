@@ -1,22 +1,24 @@
 #' New way to estimate Aggregate data
 #' @rdname pip_agg
-pip_grp_new <- \(country         = "ALL",
-                 year            = "ALL",
-                 povline         = 1.9,
-                 welfare_type    = c("all", "consumption", "income"),
-                 reporting_level = c("all", "national"),
-                 lkup,
-                 censor          = TRUE,
-                 additional_ind  = FALSE,
-                 lkup_hash       = lkup$cache_data_id$hash_pip_grp) {
-
-  welfare_type    <- match.arg(welfare_type)
+pip_grp_new <- \(
+  country = "ALL",
+  year = "ALL",
+  povline = 1.9,
+  welfare_type = c("all", "consumption", "income"),
+  reporting_level = c("all", "national"),
+  group_by = "wb",
+  lkup,
+  censor = TRUE,
+  additional_ind = FALSE,
+  lkup_hash = lkup$cache_data_id$hash_pip_grp
+) {
+  welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
 
   # Custom aggregations only supported at the national level
   # subgroups aggregations only supported for "all" countries
   country <- toupper(country)
-  year    <- toupper(year)
+  year <- toupper(year)
 
   if (!all(country %in% c("ALL", lkup$query_controls$region$values))) {
     country <- "ALL"
@@ -24,30 +26,34 @@ pip_grp_new <- \(country         = "ALL",
 
   # Select countries to estimate poverty
   cts <- copy(lkup$aux_files$country_list)
-  country_code  <-  if (!"ALL" %in% country) {
+  country_code <- if (!"ALL" %in% country) {
     get_country_code_subset(dt = cts, country = country)
   } else {
     "ALL"
   }
 
   out <- fg_pip(
-    country         = country_code,
-    year            = year,
-    povline         = povline,
-    popshare        = NULL,
-    welfare_type    = welfare_type,
+    country = country_code,
+    year = year,
+    povline = povline,
+    popshare = NULL,
+    welfare_type = welfare_type,
     reporting_level = reporting_level,
-    ppp             = NULL,
-    lkup           = lkup)
+    ppp = NULL,
+    lkup = lkup
+  )
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
   if (!file.exists(cache_file_path)) {
     # Create an empty duckdb file
     create_duckdb_file(cache_file_path)
   }
-  out <- treat_cache_and_main(out,
-                              cache_file_path = cache_file_path,
-                              lkup = lkup, fill_gaps = TRUE)
+  out <- treat_cache_and_main(
+    out,
+    cache_file_path = cache_file_path,
+    lkup = lkup,
+    fill_gaps = TRUE
+  )
 
   # return empty dataframe if no metadata is found
   if (nrow(out) == 0) {
@@ -56,8 +62,10 @@ pip_grp_new <- \(country         = "ALL",
 
   # Handles aggregated distributions (like CHN and IND)
   if (tolower(reporting_level) %in% c("national", "all")) {
-    out <- add_agg_stats(out,
-                         return_cols = lkup$return_cols$ag_average_poverty_stats)
+    out <- add_agg_stats(
+      out,
+      return_cols = lkup$return_cols$ag_average_poverty_stats
+    )
   }
 
   add_vars_out_of_pipeline(out, fill_gaps = TRUE, lkup = lkup)
@@ -70,20 +78,21 @@ pip_grp_new <- \(country         = "ALL",
 
   # Handle aggregations with sub-groups
 
-    out <- pip_aggregate_by(
-      df = out,
-      country = country,
-      return_cols = lkup$return_cols$pip_grp
-    )
+  out <- pip_aggregate_by(
+    df = out,
+    country = country,
+    group_by = group_by,
+    return_cols = lkup$return_cols$pip_grp
+  )
 
-    out <- estimate_type_var(out,lkup)
+  out <- estimate_type_var(out, lkup)
 
-    # Censor regional values
-    if (censor) {
-      out <- censor_rows(out, lkup[["censored"]], type = "regions")
-    }
+  # Censor regional values
+  if (censor) {
+    out <- censor_rows(out, lkup[["censored"]], type = "regions")
+  }
 
-    out
+  out
 }
 
 #' Subset country_code values based on matches in *_code columns and country_code
@@ -125,7 +134,8 @@ get_country_code_subset <- function(dt, country) {
   if (any(!matched)) {
     cli::cli_abort(
       "The following values in {.arg country} were not found in any *_code column or country_code:
-      {country[!matched]}")
+      {country[!matched]}"
+    )
   }
   funique(result)
 }
