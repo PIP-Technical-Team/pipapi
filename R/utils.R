@@ -1586,7 +1586,7 @@ get_mean_median <- \(fgt, lkup, fill_gaps) {
   }
 
   # get regions -----------
-  regs <- lkup$query_controls$group_by
+  regs <- lkup$query_controls$group_by$values
 
   if (!tolower(group_by) %in% tolower(regs)) {
     cli::cli_abort(
