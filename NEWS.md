@@ -2,7 +2,8 @@
 * fix bugs
 * add more safeties to plumber and better documentation of errors
 * add `safe_endpoint()` to critical endpoints.
-* apply new way normaliza arguments with `normalize_args()`
+* apply new way normalize arguments with `normalize_args()`
+* add multiple options to `group_by` parameter
 
 # pipapi 1.4.1
 * Removed old regions aggregate from `pc_chart`.
