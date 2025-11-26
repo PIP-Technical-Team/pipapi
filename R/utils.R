@@ -1337,6 +1337,7 @@ add_spl <- function(df, fill_gaps, data_dir) {
 #'
 #' @return data.table
 add_agg_medians <- function(df, fill_gaps, data_dir) {
+
   if (fill_gaps) {
     table = "spr_lnp"
     # set all lines up medians to NA.
