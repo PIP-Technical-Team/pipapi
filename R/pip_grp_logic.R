@@ -2,10 +2,6 @@
 #' @rdname pip_agg
 #'
 #' @return data.table
-#' @examples
-#' \dontrun{
-#' # Create lkups
-#' }
 #' @export
 pip_grp_logic <- function(
   country = "ALL",
@@ -250,10 +246,10 @@ pip_grp_logic <- function(
   } else {
     ret <- de
   }
-
   # add new estimate type
 
-  ret <- estimate_type_var(ret, lkup)
+  ret <- estimate_type_var(ret,lkup)
+
 
   # Censor regional values ----------- We are not censoring at this stage
   # anymore because we need to show al the years in the homre page, including
@@ -261,7 +257,6 @@ pip_grp_logic <- function(
   # if (censor) {
   #   ret <- censor_rows(ret, lkup[["censored"]], type = "regions")
   # }
-
   data.table::setcolorder(ret, names_grp)
 
   # Select columns
@@ -270,7 +265,8 @@ pip_grp_logic <- function(
   }
 
   #Order rows by country code and reporting year
-  setorder(ret, region_code, reporting_year)
+  setorder(ret, region_code , reporting_year)
+
 
   #   ____________________________________________________________________
   #   Return                                                         ####

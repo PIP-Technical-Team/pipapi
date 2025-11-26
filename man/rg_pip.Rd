@@ -34,7 +34,7 @@ poverty line}
 \item{lkup}{list: A list of lkup tables}
 }
 \value{
-data.frame
+list of 2 data.frames, main_data and data_in_cache
 }
 \description{
 Compute the main PIP poverty and inequality statistics for survey years.

@@ -38,6 +38,7 @@ pip_grp_new(
   povline = 1.9,
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national"),
+  group_by = "wb",
   lkup,
   censor = TRUE,
   additional_ind = FALSE,
@@ -80,9 +81,6 @@ Old way to estimate aggregate data
 New way to estimate Aggregate data
 }
 \examples{
-\dontrun{
-# Create lkups
-}
 \dontrun{
 # Create lkups
 }

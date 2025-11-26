@@ -87,7 +87,6 @@ lkup_filter <- function(
   return(lkup)
 }
 
-
 #' select_country
 #' Helper function for subset_lkup()
 #' @inheritParams subset_lkup
@@ -121,7 +120,6 @@ select_country <- function(lkup, keep, country, valid_regions) {
   }
   return(keep)
 }
-
 
 #' select_years
 #' Helper function for subset_lkup()
@@ -216,7 +214,6 @@ select_years <- function(
   return(keep)
 }
 
-
 #' Helper to filter metadata
 #' aggregate distribution need to be filtered out when popshare is not null
 #' This is a temporary function until a full fix is implemented, and popshare is
@@ -237,7 +234,6 @@ filter_lkup <- function(metadata, popshare) {
     return(metadata)
   }
 }
-
 
 #' helper function to correctly filter look up table according to requested
 #' reporting level
@@ -323,7 +319,6 @@ get_svy_data <- function(svy_id, reporting_level, path) {
   return(out)
 }
 
-
 #' Add pre-computed distributional stats
 #'
 #' @param df data.table: Data frame of poverty statistics
@@ -373,10 +368,8 @@ add_dist_stats <- function(df, lkup, fill_gaps) {
       allow.cartesian = TRUE
     ]
   }
-
   df
 }
-
 
 #' Add pre-computed distributional stats
 #'
@@ -589,7 +582,6 @@ estimate_type_ctr_lnp <- function(out, lkup) {
 
   out[, lineup_year := NULL]
 }
-
 
 #' Create query controls
 #' @param syv_lkup data.table: Survey lkup table
@@ -829,7 +821,6 @@ convert_empty <- function(string) {
   }
 }
 
-
 #' Subset country-years table
 #' This is a table created at start time to facilitate imputations
 #' It part of the interpolated_list object
@@ -931,10 +922,9 @@ clear_cache <- function(cd) {
   )
 }
 
-
 #' Test whether a vector is length zero and IS not NULL
 #'
-#' @param x Value to be passed
+#' @param x Vector to be passed
 #'
 #' @return logical. TRUE if x is empty but it is not NULL
 #' @export
@@ -953,7 +943,6 @@ is_empty <- function(x) {
     FALSE
   }
 }
-
 
 #' Populate list in parent frame
 #'
@@ -1038,7 +1027,6 @@ fillin_list <- function(l, assign = TRUE) {
 get_valid_aux_long_format_tables <- function() {
   c('cpi', 'ppp', 'gdp', 'pce', 'pop')
 }
-
 
 #' load SPR table from aux data
 #'
@@ -1128,7 +1116,6 @@ get_pg_table <- function(data_dir, table = c("pg_svy", "pg_lnp")) {
   return(pg)
 }
 
-
 #' Add Prosperity Gap
 #'
 #' @param df data frame  inside [fg_pip] or [rg_pip]
@@ -1158,7 +1145,6 @@ add_pg <- function(df, fill_gaps, data_dir) {
     pg := i.pg
   ]
 }
-
 
 #' Add Distribution type
 #'
@@ -1327,7 +1313,6 @@ add_spl <- function(df, fill_gaps, data_dir) {
   return(invisible(out))
 }
 
-
 #' Add Aggregate medians
 #'
 #' @param df data frame from either [fg_pip] or [rg_pip]
@@ -1439,7 +1424,6 @@ get_caller_names <- function() {
   invisible(caller_names)
 }
 
-
 #' Add all the variables that are estimated outside the pipelines
 #'
 #' This includes variables such as the SPL, SPR, PG, and distribution
@@ -1495,7 +1479,6 @@ unnest_dt_longer <- function(tbl, cols) {
   tbl
 }
 
-
 #' merge into fgt table the mean and median from dist stats table in lkup
 #'
 #' @param fgt data,table with fgt measures
@@ -1544,56 +1527,4 @@ get_mean_median <- \(fgt, lkup, fill_gaps) {
     validate = "m:1", # multiple povlines
     verbose = 0L
   )
-}
-
-
-#' Validate internal 'group_by' specification against a lookup
-#'
-#' Internal helper that checks a user-supplied 'group_by' argument and ensures
-#' it is compatible with the provided lookup ('lkup'). This function is for
-#' internal use only and raises informative errors on invalid input.
-#'
-#' @inheritParams pip
-#'
-#' @details
-#' The function validates that:
-#' - 'group_by', when non-NULL, is a character vector.
-#' - Each element of 'group_by' exists in 'lkup$aux_files$country_list' (interpreted according to the
-#'   structure of 'country_list', e.g. column names for data frames or names/values for
-#'   named vectors/lists).
-#' - There are no duplicated grouping identifiers.
-#'
-#' On failure, the function stops with a clear error message describing the
-#' problem. On success it returns the validated 'group_by' specification (often
-#' invisibly) in a canonical form suitable for downstream code.
-#'
-#' @return A character vector of validated grouping keys. May be returned
-#'   invisibly.
-#'
-#' @keywords internal
-.check_group_by <- \(group_by, lkup) {
-  # Defenses and early return -----------
-  if (length(group_by) > 1) {
-    cli::cli_abort("The `group_by` parameter can only take a single value.")
-  }
-  # vintage
-  if (group_by %in% c("vintage", "pcn")) {
-    return("regionpcn")
-  }
-
-  # special grouping
-  if (group_by %in% c("none", "wb")) {
-    return("wb")
-  }
-
-  # get regions -----------
-  regs <- lkup$query_controls$group_by$values
-
-  if (!tolower(group_by) %in% tolower(regs)) {
-    cli::cli_abort(
-      "The `group_by` parameter can only take the following values: {.field {regs}}."
-    )
-  }
-
-  tolower(group_by)
 }

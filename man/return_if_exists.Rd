@@ -21,7 +21,7 @@ return_if_exists(
 values for missing years}
 }
 \value{
-Dataframe
+list with 3 elements data_present_in_master, modified \code{lkup} value and \code{povline}
 }
 \description{
 Return the rows of the table if they exist in master file

@@ -24,7 +24,7 @@ map_fgt(lt, l_rl_rows, povline)
 
 \item{lt}{list of data.tables with welfare and weight data}
 
-\item{l_rl_rows}{list of indeces}
+\item{l_rl_rows}{list of indices}
 }
 \value{
 data.table with all measured

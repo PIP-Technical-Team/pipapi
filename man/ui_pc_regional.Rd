@@ -8,7 +8,7 @@ ui_pc_regional(
   country = "ALL",
   year = "ALL",
   povline = 1.9,
-  pop_units = 1000000,
+  pop_units = 1e+06,
   lkup,
   lkup_hash = lkup$cache_data_id$hash_pip_grp
 )
