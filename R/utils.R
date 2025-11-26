@@ -662,11 +662,6 @@ create_query_controls <- function(
           exclude <-
             list(values = c(TRUE, FALSE), type = "logical")
 
-  # Group by
-  group_by <- list(
-    values = c("none", "wb"),
-    type = "character"
-  )
 
   # Welfare type
   welfare_type <- list(
@@ -777,6 +772,19 @@ create_query_controls <- function(
       values = c("all", "aux", "pip", "pip-grp", "pip-info", "valid-params"),
       type = "character"
     )
+
+  # group_by
+  regs <- aux_files$country_list |>
+    names() |>
+    grep("_code$|_name$", x = _, value = TRUE, invert = TRUE) |>
+    c("wb", "none", "vintage", "pcn") |>
+    sort()
+
+  group_by <- list(
+    values = regs,
+    type   = "character"
+  )
+
 
   # Create list of query controls
   query_controls <- list(
@@ -1582,14 +1590,11 @@ get_mean_median <- \(fgt, lkup, fill_gaps) {
   sp_groups <- c("none", "wb")
 
   # get regions -----------
-  regs <- lkup$aux_files$country_list |>
-    names() |>
-    grep("_code$|_name$", x = _, value = TRUE, invert = TRUE)
+  regs <- lkup$query_controls$group_by
 
   if (!group_by %in% regs) {
-    all_regs <- c(sp_groups, "vintage", "pcn", regs)
     cli::cli_abort(
-      "The `group_by` parameter can only take the following values: {.field {all_regs}}."
+      "The `group_by` parameter can only take the following values: {.field {regs}}."
     )
   }
   group_by
