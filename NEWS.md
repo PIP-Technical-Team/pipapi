@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.4.2
 * fix bugs
 * add more safeties to plumber and better documentation of errors
 * add `safe_endpoint()` to critical endpoints.
