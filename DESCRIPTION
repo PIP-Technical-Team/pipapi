@@ -58,7 +58,7 @@ Imports:
     cachem (>= 1.0.8),
     rappdirs,
     methods,
-    qs,
+    qs2,
     collapse,
     readr,
     arrow,

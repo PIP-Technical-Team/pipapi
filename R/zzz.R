@@ -9,9 +9,9 @@ pipapi_default_options <- list(
     d <- rappdirs::user_cache_dir("pipapi")
     # log <- sprintf("%s/cache.log", d)
     cd <- cachem::cache_disk(d,
-                             read_fn = qs::qread,
-                             write_fn = qs::qsave,
-                             extension = ".qs",
+                             read_fn = qs2::qs_read,
+                             write_fn = qs2::qs_save,
+                             extension = ".qs2",
                              evict = "lru",
                              logfile = NULL,
                              max_size = as.numeric(Sys.getenv("PIPAPI_CACHE_MAX_SIZE")),
