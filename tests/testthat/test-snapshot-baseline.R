@@ -100,3 +100,9 @@ test_that("pip AGO 2000 popshare matches snapshot", {
   actual <- pip("AGO", year = 2000, popshare = 0.2, lkup = lkup)
   expect_equal(actual, expected, tolerance = 1e-10)
 })
+
+test_that("pip ALL all years global poverty matches snapshot", {
+  expected <- load_snap("snap_pip_wld_pov")
+  actual <- pip("ALL", year = "ALL", povline = 3, lkup = lkup)
+  expect_equal(actual, expected, tolerance = 1e-10)
+})

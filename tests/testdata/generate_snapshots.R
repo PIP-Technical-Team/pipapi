@@ -1,13 +1,36 @@
-devtools::load_all(".")
+# tests/testdata/generate_snapshots.R
+#
+# PURPOSE: Generate snapshot .rds files for regression testing.
+#
+# Run this script manually whenever you need to regenerate the baseline:
+#   source("tests/testdata/generate_snapshots.R")
+#
+# Requirements:
+#   - PIPAPI_DATA_ROOT_FOLDER_LOCAL env var must be set
+#   - pipapi must be installed or loaded with devtools::load_all(".")
+#
+# Data version intentionally pinned to "20250930_2021_01_02_PROD".
+# This is the stable PROD release used as the regression baseline for Phase A.
+# Do NOT change this string until Phase A is complete and a new baseline is
+# deliberately chosen.
+
+library(pipapi)
 library(fs)
+
 data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
   fs::path()
 
-lkups <- create_versioned_lkups(data_dir = data_dir,
-                                vintage_pattern = "20250930_2021_01_02_PROD")
+if (identical(as.character(data_dir), "")) {
+  rlang::abort("PIPAPI_DATA_ROOT_FOLDER_LOCAL is not set. Cannot generate snapshots.")
+}
 
-# lkup <-  lkups$versions_paths$`20230328_2011_02_02_PROD`
-lkup <-  lkups$versions_paths[[lkups$latest_release]]
+# Pinned to PROD — see note above
+lkups <- create_versioned_lkups(
+  data_dir       = data_dir,
+  vintage_pattern = "20250930_2021_01_02_PROD"
+)
+
+lkup <- lkups$versions_paths[[lkups$latest_release]]
 
 snap_dir <- fs::path("tests", "testdata", "snapshots")
 fs::dir_create(snap_dir)
