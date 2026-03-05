@@ -1,5 +1,6 @@
 #' New way to estimate Aggregate data
 #' @rdname pip_agg
+#' @keywords internal
 pip_grp_new <- \(
   country = "ALL",
   year = "ALL",

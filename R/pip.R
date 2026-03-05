@@ -54,6 +54,10 @@ pip <- function(country         = "ALL",
                 lkup_hash       = lkup$cache_data_id$hash_pip,
                 additional_ind  = FALSE) {
 
+  # Validate lkup structure up-front
+  #-------------------------------------
+  validate_lkup(lkup, c("core", "new_pathway"))
+
   # Should pip_old or pip_new be used?
   #-------------------------------------
   use_new <- lkup$use_new_lineup_version

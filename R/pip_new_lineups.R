@@ -70,13 +70,9 @@ pip_new_lineups <- function(
     year <- toupper(year)
   }
 
-  # If svy_lkup is not part of lkup throw an error.
-  if (!all(c('svy_lkup') %in% names(lkup))) {
-    stop(
-      "You are probably passing more than one dataset as lkup argument.
-  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD"
-    )
-  }
+  # Validate lkup structure (covers svy_lkup and all new-pathway fields).
+  # Replaces the former ad-hoc svy_lkup check with a consistent validator.
+  validate_lkup(lkup, c("core", "new_pathway"))
 
   # Countries vector ------------
   validate_country_codes(country = country, lkup = lkup)
@@ -159,6 +155,8 @@ pip_new_lineups <- function(
 }
 
 
+#' Merge main and cached FGT estimates into a single data.table
+#' @noRd
 treat_cache_and_main <- \(out, cache_file_path, lkup, fill_gaps) {
   # early return of cache data if not available.
   cached_data <-
@@ -207,6 +205,8 @@ treat_cache_and_main <- \(out, cache_file_path, lkup, fill_gaps) {
 }
 
 
+#' Abort if any element of country is not a valid PIP country code
+#' @noRd
 validate_country_codes <- \(country, lkup) {
   cls <- lkup$aux_files$country_list$country_code |>
     unique() |>

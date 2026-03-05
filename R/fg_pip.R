@@ -191,7 +191,7 @@ fg_pip <- function(
 #' @param cols character: Columns with potential duplicate values
 #'
 #' @return data.table
-#'
+#' @keywords internal
 fg_remove_duplicates <- function(
   df,
   cols = c(
@@ -235,6 +235,7 @@ fg_remove_duplicates <- function(
 #' @param reporting_level character
 #'
 #' @return character
+#' @keywords internal
 fg_standardize_cache_id <- function(
   cache_id,
   interpolation_id,
@@ -257,6 +258,7 @@ fg_standardize_cache_id <- function(
 #' @inheritParams fg_remove_duplicates
 #'
 #' @return data.table
+#' @keywords internal
 fg_assign_nas_values_to_dup_cols <- function(df, cols) {
   #Classes are maintained by default.
   df[, (cols) := NA]
@@ -267,6 +269,7 @@ fg_assign_nas_values_to_dup_cols <- function(df, cols) {
 #'
 #' @param metadata data table from subset_lkup()$lkup
 #' @return data.table
+#' @keywords internal
 create_full_list <- function(metadata) {
   metadata[, path] |>
     funique()

@@ -143,6 +143,8 @@ ag_average_poverty_stats <- function(df, return_cols) {
 }
 
 
+#' Replace a vector with NA_real_ if it contains any negatives or NAs
+#' @noRd
 negative_to_na <- function(x) {
   if (any(x < 0, na.rm = TRUE) || anyNA(x)) {
     NA_real_
@@ -151,6 +153,8 @@ negative_to_na <- function(x) {
   }
 }
 
+#' Replace a vector with NA_real_ if it contains any zeros
+#' @noRd
 zeros_to_na <- function(x) {
   if (any(x == 0, na.rm = TRUE)) {
     NA_real_

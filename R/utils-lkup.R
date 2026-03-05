@@ -64,6 +64,13 @@ subset_lkup <- function(
 
 
 #' @keywords internal
+#' @param lkup data.table: The survey lookup table (typically `lkup$svy_lkup`).
+#' @param country character: Country ISO3 codes or "ALL"
+#' @param year integer or character: Reporting year(s), "ALL", or "MRV"
+#' @param valid_regions character: Valid region codes from `lkup$query_controls`
+#' @param reporting_level character: Requested reporting level
+#' @param welfare_type character: Requested welfare type
+#' @param data_dir character: Path to main data directory (`lkup$data_root`)
 lkup_filter <- function(
   lkup,
   country,

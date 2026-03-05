@@ -823,6 +823,7 @@ get_vintage_pattern_regex <- function(
 #' @param y in case x null. If X is not null, then x.
 #'
 #' @return object of class(x)
+#' @keywords internal
 ifel_isnull <- function(x, y) {
   if (is.null(x)) {
     y
@@ -944,6 +945,7 @@ create_return_cols <- function(...) {
 #' @param data_dir character: data directory
 #'
 #' @return character vector of sorted available PIP versions in data directory
+#' @keywords internal
 available_versions <- function(data_dir) {
   vintage_pattern <- create_vintage_pattern_call()
   fs::dir_ls(data_dir, type = "directory") |>
