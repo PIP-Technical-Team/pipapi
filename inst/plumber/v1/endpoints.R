@@ -330,7 +330,7 @@ function(req, res) {
 #* @param povline:[dbl] Poverty Line
 #* @param popshare:[dbl] Share of the population living below the poverty Line.
 #* @param fill_gaps:[bool] Fill gaps for years with no available surveys.
-#* @param group_by:[chr] Triggers sub-groups aggregation.
+#* @param group_by:[chr] Deprecated. Use /api/v1/pip-grp instead. Ignored if supplied.
 #* @param welfare_type:[chr] Welfare Type. Options are "income" or "consumption"
 #* @param reporting_level:[chr] Reporting level. Options are "national", "urban", "rural".
 #* @param ppp:[dbl] Custom Purchase Power Parity (PPP) value.
@@ -348,6 +348,8 @@ function(req, res) {
     res$serializer <- pipapi::assign_serializer(format = params$format)
     params$format  <- NULL
     params$version <- NULL
+    # group_by was removed from pip(); route aggregation calls to /api/v1/pip-grp
+    params$group_by <- NULL
 
     do.call(pip, params) |>
       with_req_timeout()

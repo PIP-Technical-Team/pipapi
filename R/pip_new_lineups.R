@@ -9,8 +9,6 @@
 #'   poverty line
 #' @param fill_gaps logical: If set to TRUE, will interpolate / extrapolate
 #'   values for missing years
-#' @param group_by character: Will return aggregated values for predefined
-#'   sub-groups
 #' @param welfare_type character: Welfare type
 #' @param reporting_level character: Geographical reporting level
 #' @param ppp numeric: Custom Purchase Power Parity value
@@ -45,12 +43,6 @@
 #'     fill_gaps = TRUE,
 #'     lkup = lkups)
 #'
-#' # Group by regions
-#' pip_new_lineups(country = "all",
-#'     year = "all",
-#'     povline = 1.9,
-#'     group_by = "wb",
-#'     lkup = lkups)
 #' }
 #' @export
 pip_new_lineups <- function(
@@ -59,7 +51,6 @@ pip_new_lineups <- function(
   povline = 1.9,
   popshare = NULL,
   fill_gaps = FALSE,
-  group_by = c("none", "wb"),
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
   ppp = NULL,
@@ -71,7 +62,6 @@ pip_new_lineups <- function(
   # set up -------------
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
-  group_by <- match.arg(group_by)
   povline <- round(povline, digits = 3)
 
   # TODO: Remove toupper() coercion when input validation is standardized upstream
@@ -87,17 +77,6 @@ pip_new_lineups <- function(
   Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD"
     )
   }
-
-  # **** TO BE REMOVED **** REMOVAL STARTS HERE
-  # Once `pip-grp` has been integrated in ingestion pipeline
-  # Forces fill_gaps to TRUE when using group_by option
-  if (group_by != "none") {
-    fill_gaps <- TRUE
-    message(
-      "Info: argument group_by in pip() is deprecated; please use pip_grp() instead."
-    )
-  }
-  # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   # Countries vector ------------
   validate_country_codes(country = country, lkup = lkup)
@@ -164,43 +143,6 @@ pip_new_lineups <- function(
   # Add out of pipeline variable
   #---------------------------------------------
   add_vars_out_of_pipeline(out, fill_gaps = fill_gaps, lkup = lkup)
-
-  # **** TO BE REMOVED **** REMOVAL STARTS HERE
-  # Once `pip-grp` has been integrated in ingestion pipeline
-  # Handles grouped aggregations
-  if (group_by != "none") {
-    # Handle potential (insignificant) difference in poverty_line values that
-    # may mess-up the grouping
-    out$poverty_line <- povline
-
-    out <- pip_aggregate_by(
-      df = out,
-      group_by = group_by,
-      return_cols = lkup$return_cols$pip_grp
-    )
-
-    # Censor regional values
-    if (censor) {
-      out <- censor_rows(out, lkup[["censored"]], type = "regions")
-    }
-
-    out <- out[, c(
-      "region_name",
-      "region_code",
-      "reporting_year",
-      "reporting_pop",
-      "poverty_line",
-      "headcount",
-      "poverty_gap",
-      "poverty_severity",
-      "watts",
-      "mean",
-      "pop_in_poverty"
-    )]
-
-    return(out)
-  }
-  # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   # pre-computed distributional stats ---------------
   crr_names <- names(out) # current variables
