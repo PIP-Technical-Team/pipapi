@@ -12,3 +12,17 @@ logs/
 demo.duckdb*
 /doc/
 /Meta/
+
+# Compound GPID (junction + backup - neither should be committed)
+.github
+.github.bak
+
+# Compound GPID managed items (junctions + copied file - do not commit)
+.github/prompts/
+.github/skills/
+.github/agents/
+.github/instructions/
+.github/copilot-instructions.md
+
+# Compound GPID local config (user-specific, never commit)
+compound-gpid.local.md
