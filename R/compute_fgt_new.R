@@ -139,6 +139,21 @@ compute_fgt <- function(w, wt, povlines) {
   )
 }
 
+#' Apply FGT computation across groups in a data.table
+#'
+#' Splits `dt` by `id_var` and `reporting_level`, then calls
+#' [compute_fgt_dt()] on each group for the given `povlines`.
+#'
+#' @param dt data.table: survey data with `welfare`, `weight`, and `id_var`
+#'   columns.
+#' @param povline numeric: vector of poverty lines to evaluate.
+#' @param mean_and_med logical: if `TRUE`, include `mean`, `median`,
+#'   `country_code`, and `reporting_year` in the output. Default `FALSE`.
+#' @param id_var character: name of the grouping id column. Default `"file"`.
+#'
+#' @return data.table with FGT0, FGT1, FGT2, and watts columns (plus id and
+#'   optional summary stats), one row per poverty line per group.
+#' @keywords internal
 process_dt <- function(dt, povline, mean_and_med = FALSE, id_var = "file") {
   byvars <- c(id_var, "reporting_level")
   dt[,
@@ -147,59 +162,3 @@ process_dt <- function(dt, povline, mean_and_med = FALSE, id_var = "file") {
   ]
 }
 
-#' load survey year files and store them in a list
-#'
-#' @param metadata data frame from `subset_lkup()`
-#'
-#' @return list with survey years data
-#' @keywords internal
-load_data_list <- \(metadata) {
-  # unique values
-  mdout <- metadata[, lapply(.SD, list), by = path]
-  upaths <- mdout$path
-  urep_level <- mdout$reporting_level
-  uppp <- mdout$ppp
-  ucpi <- mdout$cpi
-
-  seq_along(upaths) |>
-    lapply(\(f) {
-      path <- upaths[f]
-      rep_level <- urep_level[f][[1]]
-      ppp <- uppp[f][[1]]
-      cpi <- ucpi[f][[1]]
-
-      # Build a data.table to merge cpi and ppp
-      fdt <- data.table(
-        reporting_level = as.character(rep_level),
-        ppp = ppp,
-        cpi = cpi
-      )
-
-      # load data and format
-      dt <- fst::read_fst(path, as.data.table = TRUE)
-
-      if (length(rep_level) == 1) {
-        if (rep_level == "national") dt[, area := "national"]
-      }
-      setnames(dt, "area", "reporting_level")
-      dt[,
-        `:=`(
-          file = basename(path),
-          reporting_level = as.character(reporting_level)
-        )
-      ]
-
-      dt <- join(
-        dt,
-        fdt,
-        on = "reporting_level",
-        validate = "m:1",
-        how = "left",
-        verbose = 0
-      )
-
-      dt[, welfare := welfare / (cpi * ppp)][,
-        c("cpi", "ppp") := NULL
-      ]
-    })
-}
