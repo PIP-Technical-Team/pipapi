@@ -74,7 +74,7 @@ pip_new_lineups <- function(
   group_by <- match.arg(group_by)
   povline <- round(povline, digits = 3)
 
-  # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
+  # TODO: Remove toupper() coercion when input validation is standardized upstream
   country <- toupper(country)
   if (is.character(year)) {
     year <- toupper(year)

@@ -101,7 +101,7 @@ select_country <- function(lkup, keep, country, valid_regions) {
       selected_regions <- country[country %in% valid_regions]
       # Find all columns ending with _code
       code_cols <- grep("_code$", names(lkup), value = TRUE)
-      code_cols <- code_cols[!code_cols %in% "wb_region_code"] # Temporary solution
+      code_cols <- code_cols[!code_cols %in% "wb_region_code"] # TODO: remove exclusion when wb_region_code is handled upstream
       # For each code column, check if any value matches selected_regions
       keep_regions_list <- lapply(code_cols, \(col) {
         lkup[[col]] %in% selected_regions
@@ -216,8 +216,7 @@ select_years <- function(
 
 #' Helper to filter metadata
 #' aggregate distribution need to be filtered out when popshare is not null
-#' This is a temporary function until a full fix is implemented, and popshare is
-#' supported for all distributions
+#' TODO: Remove this function when popshare is fully supported for all distributions.
 #'
 #' @param metadata data.frame: Output of `subset_lkup()`
 #' @param popshare numeric: popshare value passed to `pip()`
@@ -406,26 +405,6 @@ add_dist_stats_old <- function(df, dist_stats) {
   return(df)
 }
 
-
-#' Collapse rows
-#' @return data.table
-#' @noRd
-collapse_rows <- function(df, vars, na_var = NULL) {
-  tmp_vars <- lapply(df[, .SD, .SDcols = vars], unique, collapse = "|")
-  tmp_vars <- lapply(tmp_vars, paste, collapse = "|")
-  tmp_var_names <- names(df[, .SD, .SDcols = vars])
-
-  if (!is.null(na_var)) {
-    df[[na_var]] <- NA_real_
-  }
-
-  for (tmp_var in seq_along(tmp_vars)) {
-    df[[tmp_var_names[tmp_var]]] <- tmp_vars[[tmp_var]]
-  }
-
-  df <- unique(df)
-  return(df)
-}
 
 #' Censor rows
 #' Censor statistics based on a pre-defined censor table.
@@ -654,7 +633,6 @@ create_query_controls <- function(
           exclude <-
             list(values = c(TRUE, FALSE), type = "logical")
 
-
   # Welfare type
   welfare_type <- list(
     values = c(
@@ -774,9 +752,8 @@ create_query_controls <- function(
 
   group_by <- list(
     values = regs,
-    type   = "character"
+    type = "character"
   )
-
 
   # Create list of query controls
   query_controls <- list(
@@ -811,14 +788,6 @@ create_query_controls <- function(
   )
 
   return(query_controls)
-}
-
-convert_empty <- function(string) {
-  if (string == "") {
-    "-"
-  } else {
-    string
-  }
 }
 
 #' Subset country-years table
@@ -1322,7 +1291,6 @@ add_spl <- function(df, fill_gaps, data_dir) {
 #'
 #' @return data.table
 add_agg_medians <- function(df, fill_gaps, data_dir) {
-
   if (fill_gaps) {
     table = "spr_lnp"
     # set all lines up medians to NA.

@@ -5,52 +5,57 @@
 #' @inheritParams pip
 #' @return list of 2 data.frames, main_data and data_in_cache
 #' @keywords internal
-rg_pip <- function(country,
-                   year,
-                   povline,
-                   popshare,
-                   welfare_type,
-                   reporting_level,
-                   ppp,
-                   lkup) {
+rg_pip <- function(
+  country,
+  year,
+  povline,
+  popshare,
+  welfare_type,
+  reporting_level,
+  ppp,
+  lkup
+) {
   # get values from lkup
   valid_regions <- lkup$query_controls$region$values
-  svy_lkup      <- lkup$svy_lkup
-  data_dir      <- lkup$data_root
+  svy_lkup <- lkup$svy_lkup
+  data_dir <- lkup$data_root
   # povline is set to NULL if popshare is given
-  if (!is.null(popshare)) povline <- NULL
-  if (is.list(povline))   povline <- unlist(povline)
+  if (!is.null(popshare)) {
+    povline <- NULL
+  }
+  if (is.list(povline)) {
+    povline <- unlist(povline)
+  }
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
 
   metadata <- subset_lkup(
-    country         = country,
-    year            = year,
-    welfare_type    = welfare_type,
+    country = country,
+    year = year,
+    welfare_type = welfare_type,
     reporting_level = reporting_level,
-    lkup            = svy_lkup,
-    valid_regions   = valid_regions,
-    data_dir        = data_dir,
-    povline         = povline,
+    lkup = svy_lkup,
+    valid_regions = valid_regions,
+    data_dir = data_dir,
+    povline = povline,
     cache_file_path = cache_file_path,
-    fill_gaps       = FALSE,
-    popshare        = popshare
+    fill_gaps = FALSE,
+    popshare = popshare
   )
 
   data_present_in_master <- metadata$data_present_in_master
-  povline  <- metadata$povline
-  metadata  <- metadata$lkup
+  povline <- metadata$povline
+  metadata <- metadata$lkup
 
-
-  # Remove aggregate distribution if popshare is specified
-  # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
-  metadata <- filter_lkup(metadata = metadata,
-                          popshare = popshare)
+  # TODO: Remove filter_lkup() call when popshare is supported for aggregate distributions
+  metadata <- filter_lkup(metadata = metadata, popshare = popshare)
 
   # return empty dataframe if no metadata is found
   if (nrow(metadata) == 0) {
-    return(list(main_data = pipapi::empty_response,
-                data_in_cache = data_present_in_master))
+    return(list(
+      main_data = pipapi::empty_response,
+      data_in_cache = data_present_in_master
+    ))
   }
 
   # load data
@@ -59,13 +64,15 @@ rg_pip <- function(country,
   if (!is.null(popshare)) {
     povline <- lapply(lt, \(x) {
       # wbpip:::md_infer_poverty_line(x$welfare, x$weight, popshare)
-      infer_poverty_line(welfare = x$welfare,
-                         weight = x$weight,
-                         popshare = popshare,
-                         include = FALSE,
-                         method = "nearest",
-                         assume_sorted = TRUE)
-      })
+      infer_poverty_line(
+        welfare = x$welfare,
+        weight = x$weight,
+        popshare = popshare,
+        include = FALSE,
+        method = "nearest",
+        assume_sorted = TRUE
+      )
+    })
   }
 
   # if popshare is not null, povline will be list
@@ -79,18 +86,19 @@ rg_pip <- function(country,
   }
   rm(lt)
 
-
   res <- rbindlist(res, fill = TRUE)
 
   # clean data
   metadata[, file := basename(path)]
 
-  out <- join(res,
-              metadata,
-              on = c("file", "reporting_level"),
-              how = "full",
-              validate = "m:1",
-              verbose = 0)
+  out <- join(
+    res,
+    metadata,
+    on = c("file", "reporting_level"),
+    how = "full",
+    validate = "m:1",
+    verbose = 0
+  )
 
   out[, `:=`(
     mean = survey_mean_ppp,

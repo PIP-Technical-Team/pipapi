@@ -139,26 +139,3 @@ get_country_code_subset <- function(dt, country) {
   }
   funique(result)
 }
-
-#' List values in each *_code column that match the country vector
-#'
-#' Returns a named list where each element is the vector of unique values in each *_code column
-#' that are present in the provided 'country' vector.
-#'
-#' @param dt A data.table, typically lkup$aux_files$country_list.
-#' @param country Character vector of country or region codes to match against *_code columns.
-#'
-#' @return A named list of unique values for each *_code column that match 'country'.
-#' @examples
-#' \dontrun{
-#' dt <- lkup$aux_files$country_list
-#' list_code_column_values(dt, c("USA", "EAP"))
-#' }
-list_code_column_values <- function(dt, country) {
-  code_cols <- grep("_code$", names(dt), value = TRUE)
-  lapply(code_cols, \(col) {
-    dt[get(col) %in% country, ..col] |>
-      funique()
-  }) |>
-    setNames(code_cols)
-}
