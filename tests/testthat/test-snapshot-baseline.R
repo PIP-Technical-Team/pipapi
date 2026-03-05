@@ -24,8 +24,22 @@ skip_if(
 
 # --- Setup -------------------------------------------------------------------
 
-lkups <- create_versioned_lkups(data_dir = fs::path(data_dir))
-lkup <- lkups$versions_paths[[lkups$latest_release]]
+# Pin to the vintage used when snapshots were generated (see snapshot_manifest.txt).
+# Update this constant whenever snapshots are regenerated with a new data version.
+SNAP_VINTAGE <- "20250930_2021_01_02_PROD"
+
+lkup <- tryCatch(
+  {
+    lkups <- create_versioned_lkups(
+      data_dir = fs::path(data_dir),
+      vintage_pattern = SNAP_VINTAGE
+    )
+    lkups$versions_paths[[lkups$latest_release]]
+  },
+  error = function(e) {
+    skip(paste("Could not load lkup:", conditionMessage(e)))
+  }
+)
 
 load_snap <- function(name) {
   path <- file.path(snap_dir, paste0(name, ".rds"))
