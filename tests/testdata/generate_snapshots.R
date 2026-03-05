@@ -1,24 +1,13 @@
-# tests/testdata/generate_snapshots.R
-#
-# PURPOSE: Generate snapshot .rds files for regression testing.
-# Run this script manually whenever the data version changes and you want to
-# update the baseline. Requires PIPAPI_DATA_ROOT_FOLDER_LOCAL to be set.
-#
-# Usage (from project root):
-#   source("tests/testdata/generate_snapshots.R")
-
-library(pipapi)
+devtools::load_all(".")
 library(fs)
+data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
+  fs::path()
 
-# --- Setup -------------------------------------------------------------------
+lkups <- create_versioned_lkups(data_dir = data_dir,
+                                vintage_pattern = "20250930_2021_01_02_PROD")
 
-data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL")
-if (data_dir == "") {
-  stop("PIPAPI_DATA_ROOT_FOLDER_LOCAL is not set. Cannot generate snapshots.")
-}
-
-lkups <- create_versioned_lkups(data_dir = fs::path(data_dir))
-lkup  <- lkups$versions_paths[[lkups$latest_release]]
+# lkup <-  lkups$versions_paths$`20230328_2011_02_02_PROD`
+lkup <-  lkups$versions_paths[[lkups$latest_release]]
 
 snap_dir <- fs::path("tests", "testdata", "snapshots")
 fs::dir_create(snap_dir)
@@ -98,6 +87,12 @@ save_snap(
 save_snap(
   pip("AGO", year = 2000, popshare = 0.2, lkup = lkup),
   "snap_pip_ago_popshare"
+)
+
+# 9. Global poverty over time
+save_snap(
+  pip("ALL", year = "ALL", povline = 3, lkup = lkup),
+  "snap_pip_wld_pov"
 )
 
 message("\nDone. Snapshots saved to: ", snap_dir)
