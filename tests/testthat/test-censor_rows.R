@@ -84,3 +84,81 @@ test_that("censor_rows() returns early when there no censoring observations", {
   res <- censor_rows(reg_agg, tmp, type = "regions")
   expect_equal(res, reg_agg)
 })
+
+
+# censor_stats() pure-unit tests (synthetic data, no file dependency) --------
+
+.make_censor_dt <- function() {
+  data.table::data.table(
+    tmp_id    = c("AAA_2000", "BBB_2005", "CCC_2010"),
+    headcount = c(0.3, 0.4, 0.5),
+    mean      = c(100, 200, 300),
+    gini      = c(0.35, 0.40, 0.45)
+  )
+}
+
+test_that("censor_stats: removes rows with statistic 'all'", {
+  df <- .make_censor_dt()
+  ct <- data.table::data.table(id = "AAA_2000", statistic = "all")
+  res <- censor_stats(df, ct)
+  expect_equal(nrow(res), 2L)
+  expect_false("AAA_2000" %in% res$tmp_id)
+})
+
+test_that("censor_stats: sets specific statistic to NA (partial censor)", {
+  df <- .make_censor_dt()
+  ct <- data.table::data.table(id = "BBB_2005", statistic = "headcount")
+  res <- censor_stats(df, ct)
+  expect_equal(nrow(res), 3L)
+  expect_true(is.na(res[tmp_id == "BBB_2005", headcount]))
+  expect_false(is.na(res[tmp_id == "AAA_2000", headcount]))
+})
+
+test_that("censor_stats: leaves df unchanged with empty censor table", {
+  df  <- .make_censor_dt()
+  ct  <- data.table::data.table(id = character(0), statistic = character(0))
+  res <- censor_stats(df, ct)
+  expect_equal(nrow(res), 3L)
+  expect_equal(res$headcount, df$headcount)
+})
+
+test_that("censor_stats: multiple 'all' rows each remove their row", {
+  df <- .make_censor_dt()
+  ct <- data.table::data.table(
+    id        = c("AAA_2000", "CCC_2010"),
+    statistic = c("all", "all")
+  )
+  res <- censor_stats(df, ct)
+  expect_equal(nrow(res), 1L)
+  expect_equal(res$tmp_id, "BBB_2005")
+})
+
+test_that("censor_stats: unmatched censor id leaves df unchanged", {
+  df <- .make_censor_dt()
+  ct <- data.table::data.table(id = "ZZZ_9999", statistic = "all")
+  res <- censor_stats(df, ct)
+  expect_equal(nrow(res), 3L)
+})
+
+
+# estimate_type initial labelling (pure logic, no file dependency) -----------
+
+test_that("estimate_type initial: survey rows labelled 'actual'", {
+  dt <- data.table::data.table(
+    estimation_type = c("survey", "survey", "interpolated"),
+    reporting_year  = c(2000L, 2005L, 2010L)
+  )
+  dt[, estimate_type := fifelse(estimation_type == "survey",
+                                "actual", "projection")]
+  expect_equal(dt$estimate_type[1:2], c("actual", "actual"))
+})
+
+test_that("estimate_type initial: non-survey rows labelled 'projection'", {
+  dt <- data.table::data.table(
+    estimation_type = c("interpolated", "extrapolated"),
+    reporting_year  = c(2010L, 2015L)
+  )
+  dt[, estimate_type := fifelse(estimation_type == "survey",
+                                "actual", "projection")]
+  expect_true(all(dt$estimate_type == "projection"))
+})
