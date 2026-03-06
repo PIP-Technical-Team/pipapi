@@ -175,3 +175,26 @@ test_that("assign_stat aborts when stat has no names and length > 1", {
     regexp = "names"
   )
 })
+
+test_that("assign_stat accepts named vector (not list)", {
+  dt <- data.table(x = 1:4)
+  assign_stat(dt,
+              lev    = c("rural", "urban"),
+              counts = c(2L, 2L),
+              stat   = c(rural = 2.0, urban = 8.0),
+              colname = "mean")
+  expect_equal(dt$mean[1:2], rep(2.0, 2))
+  expect_equal(dt$mean[3:4], rep(8.0, 2))
+})
+
+test_that("assign_stat aborts when a level is missing from stat names", {
+  dt <- data.table(x = 1:4)
+  expect_error(
+    assign_stat(dt,
+                lev    = c("rural", "urban"),
+                counts = c(2L, 2L),
+                stat   = list(rural = 1.0),  # urban missing
+                colname = "mean"),
+    regexp = "missing"
+  )
+})
