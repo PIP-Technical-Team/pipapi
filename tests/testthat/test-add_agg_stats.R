@@ -85,6 +85,53 @@ test_that("add_agg_stats() works", {
 
 })
 
+# negative_to_na() -----------------------------------------------------------
+
+test_that("negative_to_na: returns x unchanged when all values are positive", {
+  x <- c(1, 2, 3)
+  expect_equal(pipapi:::negative_to_na(x), x)
+})
+
+test_that("negative_to_na: returns NA_real_ when any value is negative", {
+  expect_equal(pipapi:::negative_to_na(c(1, -0.1, 3)), NA_real_)
+})
+
+test_that("negative_to_na: returns NA_real_ when any value is NA", {
+  expect_equal(pipapi:::negative_to_na(c(1, NA, 3)), NA_real_)
+})
+
+test_that("negative_to_na: returns NA_real_ for all-NA input", {
+  expect_equal(pipapi:::negative_to_na(c(NA_real_, NA_real_)), NA_real_)
+})
+
+test_that("negative_to_na: zero is not treated as negative", {
+  expect_equal(pipapi:::negative_to_na(c(0, 1, 2)), c(0, 1, 2))
+})
+
+
+# zeros_to_na() --------------------------------------------------------------
+
+test_that("zeros_to_na: returns x unchanged when no zeros", {
+  x <- c(1, 2, 3)
+  expect_equal(pipapi:::zeros_to_na(x), x)
+})
+
+test_that("zeros_to_na: returns NA_real_ when any value is zero", {
+  expect_equal(pipapi:::zeros_to_na(c(1, 0, 3)), NA_real_)
+})
+
+test_that("zeros_to_na: returns NA_real_ for all-zero input", {
+  expect_equal(pipapi:::zeros_to_na(c(0, 0)), NA_real_)
+})
+
+test_that("zeros_to_na: does not treat NA as zero", {
+  # NA is not 0 -> vector unchanged
+  expect_equal(pipapi:::zeros_to_na(c(1, NA, 3)), c(1, NA, 3))
+})
+
+
+# ag_average_poverty_stats() -------------------------------------------------
+
 test_that("ag_average_poverty_stats() works", {
 
   tmp <- ag_average_poverty_stats(res_ex4, return_cols = return_cols)
