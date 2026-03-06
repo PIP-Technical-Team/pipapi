@@ -1,4 +1,13 @@
-# OLD APPROACH WITH MEAN --------------
+# compute_fgt_new.R
+#
+# Core FGT (Foster-Greer-Thorbecke) poverty index computation.
+# All functions are pure numeric — no I/O, no lkup dependency.
+#
+# Functions:
+#   compute_fgt_dt() - FGT for a data.table, vectorised over poverty lines
+#   compute_fgt()    - FGT for bare vectors (no data.table)
+#   process_dt()     - apply compute_fgt_dt() grouped by id_var + reporting_level
+
 
 #' Efficient FGT calculation for a data.table and vector of poverty lines
 #'
@@ -57,7 +66,7 @@ compute_fgt_dt <- function(
   if (mean_and_med) {
     mn <- ffirst(dt$mean)
     med <- ffirst(dt$median)
-    cy <- ffirst(dt$coutnry_code)
+    cy <- ffirst(dt$country_code)
     ry <- ffirst(dt$reporting_year)
     out <- data.table(
       povline = povlines,

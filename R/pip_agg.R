@@ -19,7 +19,7 @@ pip_agg <- function(
   lkup_hash = lkup$cache_data_id$hash_pip_grp,
   additional_ind = FALSE
 ) {
-  # Validate lkup structure up-front
+  # Validate lkup structure first — before any lkup field access
   #-------------------------------------
   validate_lkup(lkup, c("core", "new_pathway", "query"))
 

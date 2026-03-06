@@ -59,6 +59,9 @@ pip_new_lineups <- function(
   lkup_hash = lkup$cache_data_id$hash_pip,
   additional_ind = FALSE
 ) {
+  # Validate lkup structure first — before any lkup field access
+  validate_lkup(lkup, c("core", "new_pathway"))
+
   # set up -------------
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
@@ -69,10 +72,6 @@ pip_new_lineups <- function(
   if (is.character(year)) {
     year <- toupper(year)
   }
-
-  # Validate lkup structure (covers svy_lkup and all new-pathway fields).
-  # Replaces the former ad-hoc svy_lkup check with a consistent validator.
-  validate_lkup(lkup, c("core", "new_pathway"))
 
   # Countries vector ------------
   validate_country_codes(country = country, lkup = lkup)

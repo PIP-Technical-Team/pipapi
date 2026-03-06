@@ -9,6 +9,10 @@
 #   assert_lkup_field() - check a single named field
 
 # Required fields by context ------------------------------------------------
+# To add a new field group: append a named entry here, then call
+# validate_lkup(lkup, "<new_group>") at the relevant entry point.
+# All entry points (pip, pip_agg, pip_new_lineups) call validate_lkup()
+# against at least the "core" and "new_pathway" groups.
 
 .LKUP_REQUIRED_FIELDS <- list(
   core        = c("svy_lkup", "data_root", "return_cols",

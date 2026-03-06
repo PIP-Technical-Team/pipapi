@@ -120,10 +120,10 @@ test_that("compute_fgt_dt mean_and_med=TRUE adds mean and median columns", {
     weight          = .wt,
     reporting_level = "national",
     file            = "TST_2000",
-    mean            = 5.5,   # pre-computed mean required by mean_and_med=TRUE
-    median          = 5.0,
-    coutnry_code    = "TST", # note: typo in source code — coutnry_code not country_code
-    reporting_year  = 2000L
+    mean           = 5.5,   # pre-computed mean required by mean_and_med=TRUE
+    median         = 5.0,
+    country_code   = "TST",
+    reporting_year = 2000L
   )
   res <- compute_fgt_dt(dt, welfare = "welfare", weight = "weight",
                         povlines = .pl, mean_and_med = TRUE)
@@ -167,7 +167,7 @@ test_that("process_dt groups by id_var and reporting_level", {
   )
   res <- process_dt(dt, povline = 4)
   expect_equal(nrow(res), 2L)
-  expect_true(all(c("AAA_2000", "BBB_2010") %in% res[[attr(dt, "id_var") %||% "file"]]))
+  expect_true(all(c("AAA_2000", "BBB_2010") %in% res[["file"]]))
 })
 
 test_that("process_dt output povline equals input povline", {

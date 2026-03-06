@@ -54,7 +54,7 @@ pip <- function(country         = "ALL",
                 lkup_hash       = lkup$cache_data_id$hash_pip,
                 additional_ind  = FALSE) {
 
-  # Validate lkup structure up-front
+  # Validate lkup structure first — before any lkup field access
   #-------------------------------------
   validate_lkup(lkup, c("core", "new_pathway"))
 
