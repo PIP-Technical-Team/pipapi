@@ -10,8 +10,8 @@ pipapi_default_options <- list(
     # log <- sprintf("%s/cache.log", d)
     cd <- cachem::cache_disk(
       d,
-      read_fn = qs::qread,
-      write_fn = qs::qsave,
+      read_fn = qs2::qs_read,
+      write_fn = qs2::qs_save,
       extension = ".qs",
       evict = "lru",
       logfile = NULL,
