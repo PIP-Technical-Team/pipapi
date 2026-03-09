@@ -3,9 +3,14 @@
 # tests/testthat/test-integ-survey-years.R and test-integ-lineup-years.R.
 
 test_that("pip errors when a multi-dataset lkups list is passed instead of single lkup", {
-  # validate_lkup() catches missing svy_lkup field first (lkups wraps multiple datasets)
+  # validate_lkup() catches missing svy_lkup field first (lkups wraps multiple datasets).
+  # Use test_lkups (defined in helper-lkup.R) — never rely on interactive-session globals.
+  skip_if(
+    is.null(test_lkups),
+    "test_lkups not available — set PIPAPI_DATA_ROOT_FOLDER_LOCAL"
+  )
   expect_error(
-    pip(country = "all", year = "all", povline = 1.9, lkup = lkups),
+    pip(country = "all", year = "all", povline = 1.9, lkup = test_lkups),
     "svy_lkup"
   )
 })

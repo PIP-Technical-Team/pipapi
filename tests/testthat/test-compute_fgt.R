@@ -204,12 +204,17 @@ test_that("compute_fgt: watts = 0 when all poor welfare values are zero", {
 })
 
 test_that("compute_fgt: single observation, below poverty line", {
-  # NOTE: poverty_gap / poverty_severity return 0 for a length-1 input due to
-  # collapse::setv() behaviour with scalar logical vectors (known edge case).
-  # headcount and watts are computed correctly.
+  # Known edge case: collapse::setv() with a scalar logical vector returns 0
+  # for poverty_gap and poverty_severity instead of the algebraically correct
+  # value. This is accepted behaviour for length-1 inputs; headcount and
+  # watts are computed correctly.
   res <- compute_fgt(w = 1, wt = 1, povlines = 5)
-  expect_equal(res$headcount, 1)
-  expect_equal(res$watts,     log(5 / 1), tolerance = 1e-9)
+  expect_equal(res$headcount,        1)
+  expect_equal(res$watts,            log(5 / 1), tolerance = 1e-9)
+  # Lock in the edge-case zero values so a future change to collapse::setv()
+  # behaviour is caught immediately.
+  expect_equal(res$poverty_gap,      0)
+  expect_equal(res$poverty_severity, 0)
 })
 
 test_that("compute_fgt: single observation, above poverty line", {

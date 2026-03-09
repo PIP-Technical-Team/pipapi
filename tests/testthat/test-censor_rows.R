@@ -1,19 +1,19 @@
-# constants
-censored <-
-  test_path("testdata", "censored.rds") |>
-  readRDS()
+# constants — loaded once at file scope; skip entire file if fixtures are absent
+.fixture_files <- c(
+  censored  = test_path("testdata", "censored.rds"),
+  censored2 = test_path("testdata", "censored-2.rds"),
+  reg_agg   = test_path("testdata", "ohi-sample.rds"),
+  chn       = test_path("testdata", "chn-2016.rds")
+)
+.missing_fixtures <- .fixture_files[!file.exists(.fixture_files)]
+if (length(.missing_fixtures) > 0L) {
+  skip(paste("Missing fixture files:", paste(names(.missing_fixtures), collapse = ", ")))
+}
 
-censored2 <-
-  test_path("testdata", "censored-2.rds") |>
-  readRDS()
-
-reg_agg <-
-  test_path("testdata", "ohi-sample.rds") |>
-  readRDS()
-
-chn <-
-  test_path("testdata", "chn-2016.rds") |>
-  readRDS()
+censored  <- readRDS(.fixture_files[["censored"]])
+censored2 <- readRDS(.fixture_files[["censored2"]])
+reg_agg   <- readRDS(.fixture_files[["reg_agg"]])
+chn       <- readRDS(.fixture_files[["chn"]])
 
 test_that("censor_rows() removes entire row when statistic is 'all'", {
 

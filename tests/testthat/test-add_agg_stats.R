@@ -36,8 +36,8 @@ test_that("add_agg_stats() works", {
   res_tmp$poverty_severity[1] <- -0.5
   tmp <- add_agg_stats(res_tmp, return_cols = return_cols)
 
-  # This test is wrong. It is testing as correct something that should
-  # not be the case.
+  # TODO: the original assertion below was incorrect (was testing a wrong value
+  # as correct). Correct assertion needs investigation — tracked separately.
   # expect_equal(tmp$headcount[2], tmp$headcount[3])
   expect_true(is.na(tmp$poverty_severity[3]))
 
