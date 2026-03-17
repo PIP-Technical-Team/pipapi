@@ -36,8 +36,8 @@ test_that("add_agg_stats() works", {
   res_tmp$poverty_severity[1] <- -0.5
   tmp <- add_agg_stats(res_tmp, return_cols = return_cols)
 
-  # This test is wrong. It is testing as correct something that should
-  # not be the case.
+  # TODO: the original assertion below was incorrect (was testing a wrong value
+  # as correct). Correct assertion needs investigation — tracked separately.
   # expect_equal(tmp$headcount[2], tmp$headcount[3])
   expect_true(is.na(tmp$poverty_severity[3]))
 
@@ -84,6 +84,53 @@ test_that("add_agg_stats() works", {
   expect_true(is.na(tmp$headcount[3]))
 
 })
+
+# negative_to_na() -----------------------------------------------------------
+
+test_that("negative_to_na: returns x unchanged when all values are positive", {
+  x <- c(1, 2, 3)
+  expect_equal(pipapi:::negative_to_na(x), x)
+})
+
+test_that("negative_to_na: returns NA_real_ when any value is negative", {
+  expect_equal(pipapi:::negative_to_na(c(1, -0.1, 3)), NA_real_)
+})
+
+test_that("negative_to_na: returns NA_real_ when any value is NA", {
+  expect_equal(pipapi:::negative_to_na(c(1, NA, 3)), NA_real_)
+})
+
+test_that("negative_to_na: returns NA_real_ for all-NA input", {
+  expect_equal(pipapi:::negative_to_na(c(NA_real_, NA_real_)), NA_real_)
+})
+
+test_that("negative_to_na: zero is not treated as negative", {
+  expect_equal(pipapi:::negative_to_na(c(0, 1, 2)), c(0, 1, 2))
+})
+
+
+# zeros_to_na() --------------------------------------------------------------
+
+test_that("zeros_to_na: returns x unchanged when no zeros", {
+  x <- c(1, 2, 3)
+  expect_equal(pipapi:::zeros_to_na(x), x)
+})
+
+test_that("zeros_to_na: returns NA_real_ when any value is zero", {
+  expect_equal(pipapi:::zeros_to_na(c(1, 0, 3)), NA_real_)
+})
+
+test_that("zeros_to_na: returns NA_real_ for all-zero input", {
+  expect_equal(pipapi:::zeros_to_na(c(0, 0)), NA_real_)
+})
+
+test_that("zeros_to_na: does not treat NA as zero", {
+  # NA is not 0 -> vector unchanged
+  expect_equal(pipapi:::zeros_to_na(c(1, NA, 3)), c(1, NA, 3))
+})
+
+
+# ag_average_poverty_stats() -------------------------------------------------
 
 test_that("ag_average_poverty_stats() works", {
 

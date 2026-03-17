@@ -1,33 +1,3 @@
-
-
-
-#' transform input list
-#'
-#' @inheritParams load_list_refy
-#'
-#' @return formated list
-#' @keywords internal
-transform_input <- function(input_list){
-  country_codes <- input_list$country_code
-  years <- input_list$year
-  if (!is.list(years)) {
-    years <- lapply(country_codes, function(x) years)
-  }
-  else {
-    if (length(years) != length(country_codes)) {
-      stop("The length of the 'year' list must match the length of the 'country_code' vector.")
-    }
-  }
-  output_list <- lapply(seq_along(country_codes), function(i) {
-    lapply(years[[i]], function(y) {
-      list(country_code = country_codes[i], year = y)
-    })
-  })
-  output_list <- unlist(output_list, recursive = FALSE)
-  return(output_list)
-}
-
-
 #' Add attributes as columns (vectorized, in-place)
 #'
 #' @description
@@ -94,18 +64,19 @@ transform_input <- function(input_list){
 #' @import data.table
 #' @export
 add_attributes_as_columns_vectorized <- function(dt) {
-
   # Ensure proper internal state & spare column capacity (handles readRDS/load cases)
-  setDT(dt)        # harmless if already a data.table
-  setalloccol(dt)    # pre-allocate room for new columns... #AC, I am still not sure about this.
+  setDT(dt) # harmless if already a data.table
+  setalloccol(dt) # pre-allocate room for new columns... #AC, I am still not sure about this.
 
-  rl   <- attr(dt, "reporting_level_rows")
-  lev  <- rl$reporting_level
+  rl <- attr(dt, "reporting_level_rows")
+  lev <- rl$reporting_level
   rows <- as.integer(rl$rows)
-  n    <- fnrow(dt)
+  n <- fnrow(dt)
 
   counts <- diff(c(0L, rows))
-  if (sum(counts) != n) cli::cli_abort("Sum of 'rows' in attribute does not equal nrow(dt).")
+  if (sum(counts) != n) {
+    cli::cli_abort("Sum of 'rows' in attribute does not equal nrow(dt).")
+  }
 
   # reporting_level: optimized assignment by range
   reporting_level_vec <- character(n)
@@ -121,14 +92,13 @@ add_attributes_as_columns_vectorized <- function(dt) {
   cc <- attr(dt, "country_code")
   ry <- attr(dt, "reporting_year")
   dt[, `:=`(
-    country_code   = cc,
+    country_code = cc,
     reporting_year = ry,
-    file           = paste0(cc, "_", ry)
+    file = paste0(cc, "_", ry)
   )]
 
   # dist_stats per reporting_level (align by names, then replicate by counts)
   ds <- attr(dt, "dist_stats")
-
 
   # This block processes distribution statistics (mean, median) for each reporting level.
   # If this is not required at this stage, consider removing it or deferring it to a later step.
@@ -150,7 +120,6 @@ add_attributes_as_columns_vectorized <- function(dt) {
 
   dt
 }
-
 
 
 #' Add attributes as columns for multi-segment reporting levels
@@ -186,19 +155,31 @@ add_attributes_as_columns_multi <- function(dt) {
   # --- Pull + validate segment metadata ---
   rl <- attr(dt, "reporting_level_rows")
   if (is.null(rl) || is.null(rl$reporting_level) || is.null(rl$rows)) {
-    cli::cli_abort("Missing 'reporting_level_rows' attribute with $reporting_level and $rows.")
+    cli::cli_abort(
+      "Missing 'reporting_level_rows' attribute with $reporting_level and $rows."
+    )
   }
-  lev  <- as.character(rl$reporting_level)
+  lev <- as.character(rl$reporting_level)
   rows <- as.integer(rl$rows)
-  n    <- nrow(dt)
+  n <- nrow(dt)
 
-  if (length(lev) != length(rows)) cli::cli_abort("'reporting_level' and 'rows' lengths differ.")
-  if (length(rows) == 0L) cli::cli_abort("'rows' is empty.")
-  if (any(diff(rows) < 0L)) cli::cli_abort("'rows' must be non-decreasing.")
-  if (rows[length(rows)] != n) cli::cli_abort("Last element of 'rows' must equal nrow(dt).")
+  if (length(lev) != length(rows)) {
+    cli::cli_abort("'reporting_level' and 'rows' lengths differ.")
+  }
+  if (length(rows) == 0L) {
+    cli::cli_abort("'rows' is empty.")
+  }
+  if (any(diff(rows) < 0L)) {
+    cli::cli_abort("'rows' must be non-decreasing.")
+  }
+  if (rows[length(rows)] != n) {
+    cli::cli_abort("Last element of 'rows' must equal nrow(dt).")
+  }
 
   counts <- diff(c(0L, rows))
-  if (any(counts <= 0L)) cli::cli_abort("Computed non-positive segment length(s).")
+  if (any(counts <= 0L)) {
+    cli::cli_abort("Computed non-positive segment length(s).")
+  }
 
   # --- reporting_level: vectorized per-segment replication ---
   dt[, reporting_level := rep.int(lev, counts)]
@@ -207,21 +188,20 @@ add_attributes_as_columns_multi <- function(dt) {
   cc <- attr(dt, "country_code")
   ry <- attr(dt, "reporting_year")
   dt[, `:=`(
-    country_code   = cc,
+    country_code = cc,
     reporting_year = ry,
-    file           = paste0(cc, "_", ry)
+    file = paste0(cc, "_", ry)
   )]
 
   # --- distribution stats ---
   ds <- attr(dt, "dist_stats")
   if (length(ds)) {
-    assign_stat(dt, lev, counts, ds$mean,   "mean")
+    assign_stat(dt, lev, counts, ds$mean, "mean")
     assign_stat(dt, lev, counts, ds$median, "median")
   }
 
   dt
 }
-
 
 
 #' Assign a per-level statistic to a data.table column (by reference)
@@ -246,7 +226,9 @@ add_attributes_as_columns_multi <- function(dt) {
 #' @import data.table
 #' @export
 assign_stat <- function(dt, lev, counts, stat, colname) {
-  if (is.null(stat)) return(invisible(dt))
+  if (is.null(stat)) {
+    return(invisible(dt))
+  }
   n <- nrow(dt)
 
   v <- if (is.list(stat)) unlist(stat, use.names = TRUE) else stat
@@ -266,8 +248,10 @@ assign_stat <- function(dt, lev, counts, stat, colname) {
   if (anyNA(map_idx)) {
     missing_levels <- unique(lev[is.na(map_idx)])
     stop(
-      sprintf("`stat` missing value(s) for level(s): %s",
-              paste(missing_levels, collapse = ", "))
+      sprintf(
+        "`stat` missing value(s) for level(s): %s",
+        paste(missing_levels, collapse = ", ")
+      )
     )
   }
 
@@ -276,60 +260,64 @@ assign_stat <- function(dt, lev, counts, stat, colname) {
 }
 
 
-
-
-
-#' extract rows indices
+#' Load survey year files and store them in a list
 #'
-#' @param a list with attributes from lt
+#' Reads each `.fst` file referenced in `metadata`, deflates welfare by CPI and
+#' PPP, and attaches `file` / `reporting_level` columns ready for
+#' [process_dt()].
 #'
-#' @return names list with indices for reporting level
+#' @param metadata data.table returned by [subset_lkup()], containing at least
+#'   `path`, `reporting_level`, `ppp`, and `cpi` columns.
+#'
+#' @return A list of `data.table` objects, one per unique file path.
 #' @keywords internal
-get_rl_rows_single <- function(a) {
-  rl <- a$rl_rows
-  rl_rows <- vector("list", length(rl$reporting_level))
+load_data_list <- \(metadata) {
+  # unique values
+  mdout <- metadata[, lapply(.SD, list), by = path]
+  upaths <- mdout$path
+  urep_level <- mdout$reporting_level
+  uppp <- mdout$ppp
+  ucpi <- mdout$cpi
 
-  start <- 1L
-  for (i in seq_along(rl$reporting_level)) {
-    end <- rl$rows[i]
-    rl_rows[[i]] <- start:end
-    start <- end + 1L
-  }
-  setNames(rl_rows, rl$reporting_level)
-}
+  seq_along(upaths) |>
+    lapply(\(f) {
+      path <- upaths[f]
+      rep_level <- urep_level[f][[1]]
+      ppp <- uppp[f][[1]]
+      cpi <- ucpi[f][[1]]
 
+      # Build a data.table to merge cpi and ppp
+      fdt <- data.table(
+        reporting_level = as.character(rep_level),
+        ppp = ppp,
+        cpi = cpi
+      )
 
-#' apply get_rl_rows_single
-#' @rdname get_rl_rows_single
-get_rl_rows <- \(lt_att) {
-  lapply(lt_att, get_rl_rows_single)
-}
+      # load data and format
+      dt <- fst::read_fst(path, as.data.table = TRUE)
 
+      if (length(rep_level) == 1) {
+        if (rep_level == "national") dt[, area := "national"]
+      }
+      setnames(dt, "area", "reporting_level")
+      dt[,
+        `:=`(
+          file = basename(path),
+          reporting_level = as.character(reporting_level)
+        )
+      ]
 
-#' get data.table with distribution stats
-#'
-#' this is a loop over lt attributes
-#'
-#' @param lt_att list of attributes of lt list
-#'
-#' @return data.table
-#' @keywords internal
-get_dt_dist_stats <- \(lt_att) {
-  lapply(lt_att, \(.) {
-    .$dist_stats
-  }) |>
-    rbindlist(fill = TRUE)
-}
+      dt <- join(
+        dt,
+        fdt,
+        on = "reporting_level",
+        validate = "m:1",
+        how = "left",
+        verbose = 0
+      )
 
-#' Get some attributes from lt lis
-#'
-#' @param lt list
-#' @keywords internal
-get_lt_attr <- function(lt) {
-  lapply(lt, \(.) {
-    list(
-      dist_stats = attr(., "dt_dist_stats"),
-      rl_rows    = attr(., "reporting_level_rows")
-    )
-  })
+      dt[, welfare := welfare / (cpi * ppp)][,
+        c("cpi", "ppp") := NULL
+      ]
+    })
 }

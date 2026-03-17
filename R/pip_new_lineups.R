@@ -9,8 +9,6 @@
 #'   poverty line
 #' @param fill_gaps logical: If set to TRUE, will interpolate / extrapolate
 #'   values for missing years
-#' @param group_by character: Will return aggregated values for predefined
-#'   sub-groups
 #' @param welfare_type character: Welfare type
 #' @param reporting_level character: Geographical reporting level
 #' @param ppp numeric: Custom Purchase Power Parity value
@@ -45,12 +43,6 @@
 #'     fill_gaps = TRUE,
 #'     lkup = lkups)
 #'
-#' # Group by regions
-#' pip_new_lineups(country = "all",
-#'     year = "all",
-#'     povline = 1.9,
-#'     group_by = "wb",
-#'     lkup = lkups)
 #' }
 #' @export
 pip_new_lineups <- function(
@@ -59,7 +51,6 @@ pip_new_lineups <- function(
   povline = 1.9,
   popshare = NULL,
   fill_gaps = FALSE,
-  group_by = c("none", "wb"),
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
   ppp = NULL,
@@ -68,36 +59,19 @@ pip_new_lineups <- function(
   lkup_hash = lkup$cache_data_id$hash_pip,
   additional_ind = FALSE
 ) {
+  # Validate lkup structure first — before any lkup field access
+  validate_lkup(lkup, c("core", "new_pathway"))
+
   # set up -------------
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
-  group_by <- match.arg(group_by)
   povline <- round(povline, digits = 3)
 
-  # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
+  # TODO: Remove toupper() coercion when input validation is standardized upstream
   country <- toupper(country)
   if (is.character(year)) {
     year <- toupper(year)
   }
-
-  # If svy_lkup is not part of lkup throw an error.
-  if (!all(c('svy_lkup') %in% names(lkup))) {
-    stop(
-      "You are probably passing more than one dataset as lkup argument.
-  Try passing a single one by subsetting it lkup <- lkups$versions_paths$dataset_name_PROD"
-    )
-  }
-
-  # **** TO BE REMOVED **** REMOVAL STARTS HERE
-  # Once `pip-grp` has been integrated in ingestion pipeline
-  # Forces fill_gaps to TRUE when using group_by option
-  if (group_by != "none") {
-    fill_gaps <- TRUE
-    message(
-      "Info: argument group_by in pip() is deprecated; please use pip_grp() instead."
-    )
-  }
-  # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
   # Countries vector ------------
   validate_country_codes(country = country, lkup = lkup)
@@ -165,121 +139,23 @@ pip_new_lineups <- function(
   #---------------------------------------------
   add_vars_out_of_pipeline(out, fill_gaps = fill_gaps, lkup = lkup)
 
-  # **** TO BE REMOVED **** REMOVAL STARTS HERE
-  # Once `pip-grp` has been integrated in ingestion pipeline
-  # Handles grouped aggregations
-  if (group_by != "none") {
-    # Handle potential (insignificant) difference in poverty_line values that
-    # may mess-up the grouping
-    out$poverty_line <- povline
-
-    out <- pip_aggregate_by(
-      df = out,
-      group_by = group_by,
-      return_cols = lkup$return_cols$pip_grp
-    )
-
-    # Censor regional values
-    if (censor) {
-      out <- censor_rows(out, lkup[["censored"]], type = "regions")
-    }
-
-    out <- out[, c(
-      "region_name",
-      "region_code",
-      "reporting_year",
-      "reporting_pop",
-      "poverty_line",
-      "headcount",
-      "poverty_gap",
-      "poverty_severity",
-      "watts",
-      "mean",
-      "pop_in_poverty"
-    )]
-
-    return(out)
-  }
-  # **** TO BE REMOVED **** REMOVAL ENDS HERE
-
-  # pre-computed distributional stats ---------------
-  crr_names <- names(out) # current variables
-  names2keep <- lkup$return_cols$pip$cols # all variables
-
-  out <- add_dist_stats(
-    df = out,
+  # Format, censor, select columns, order, de-duplicate ----------------
+  out <- pip_lineups_format_output(
+    out = out,
     lkup = lkup,
-    fill_gaps = fill_gaps
-  )
-
-  # Add aggregate medians ----------------
-  out <- add_agg_medians(
-    df = out,
     fill_gaps = fill_gaps,
-    data_dir = lkup$data_root
+    reporting_level = reporting_level,
+    censor = censor,
+    additional_ind = additional_ind,
+    use_old_dist_stats = FALSE
   )
-
-  # format ----------------
-
-  if (fill_gaps) {
-    # ZP temp NA lineups:
-    #---------------------
-    # ## Inequality indicators to NA for lineup years ----
-    dist_vars <- names2keep[!(names2keep %in% crr_names)]
-    out[,
-      (dist_vars) := NA_real_
-    ]
-
-    ## estimate_var -----
-    out <- estimate_type_ctr_lnp(out, lkup)
-  } else {
-    out[, estimate_type := NA_character_]
-  }
-
-  ## Handle survey coverage ------------
-  if (reporting_level != "all") {
-    keep <- out$reporting_level == reporting_level
-    out <- out[keep, ]
-  }
-
-  # Censor country values
-  if (censor) {
-    out <- censor_rows(out, lkup[["censored"]], type = "countries")
-  }
-
-  # Select columns
-  if (additional_ind) {
-    get_additional_indicators(out)
-    added_names <- attr(out, "new_indicators_names")
-    names2keep <- c(names2keep, added_names)
-  }
-  # Keep relevant variables
-  out <- out[, .SD, .SDcols = names2keep]
-
-  # make sure we always report the same precision in all numeric variables
-  doub_vars <-
-    names(out)[unlist(lapply(out, is.double))] |>
-    data.table::copy()
-
-  out[, (doub_vars) := lapply(.SD, round, digits = 12), .SDcols = doub_vars]
-
-  # Order rows by country code and reporting year
-  data.table::setorder(
-    out,
-    country_code,
-    reporting_year,
-    reporting_level,
-    welfare_type
-  )
-  #}
-
-  # Make sure no duplicate remains
-  out <- out |> collapse::funique()
   # return -------------
   return(out)
 }
 
 
+#' Merge main and cached FGT estimates into a single data.table
+#' @noRd
 treat_cache_and_main <- \(out, cache_file_path, lkup, fill_gaps) {
   # early return of cache data if not available.
   cached_data <-
@@ -328,6 +204,8 @@ treat_cache_and_main <- \(out, cache_file_path, lkup, fill_gaps) {
 }
 
 
+#' Abort if any element of country is not a valid PIP country code
+#' @noRd
 validate_country_codes <- \(country, lkup) {
   cls <- lkup$aux_files$country_list$country_code |>
     unique() |>

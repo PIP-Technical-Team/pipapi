@@ -12,3 +12,30 @@ logs/
 demo.duckdb*
 /doc/
 /Meta/
+
+# Compound GPID (junction + backup - neither should be committed)
+.github
+.github.bak
+
+
+# Compound GPID local config (user-specific, never commit)
+compound-gpid.local.md
+
+# Compound GPID managed items (junctions + copied file + knowledge base - do not commit)
+.github/prompts/
+.github/skills/
+.github/agents/
+.github/instructions/
+.github/copilot-instructions.md
+.cg-docs/
+
+tests/testdata/snapshots/snap_agg_all_2015.rds
+tests/testdata/snapshots/snap_pip_ago_2000.rds
+tests/testdata/snapshots/snap_pip_ago_all.rds
+tests/testdata/snapshots/snap_pip_ago_fg.rds
+tests/testdata/snapshots/snap_pip_ago_multi_pl.rds
+tests/testdata/snapshots/snap_pip_ago_popshare.rds
+tests/testdata/snapshots/snap_pip_all_2015.rds
+tests/testdata/snapshots/snap_pip_chn_2018.rds
+tests/testdata/snapshots/snap_pip_wld_pov.rds
+tests/testdata/snapshots/snapshot_manifest.txt

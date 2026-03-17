@@ -6,24 +6,30 @@
 #' @return list
 #' @export
 create_versioned_lkups <-
-  function(data_dir,
-           vintage_pattern = NULL) {
-
+  function(data_dir, vintage_pattern = NULL) {
     vintage_pattern <- create_vintage_pattern_call(vintage_pattern)
 
-    data_dirs <- extract_data_dirs(data_dir = data_dir,
-                                   vintage_pattern = vintage_pattern)
+    data_dirs <- extract_data_dirs(
+      data_dir = data_dir,
+      vintage_pattern = vintage_pattern
+    )
 
     versions <- names(data_dirs)
     # versions[1] <- "latest_release"
-    versions_paths <- mapply(create_lkups, data_dirs, versions,
-                             SIMPLIFY = FALSE, USE.NAMES = FALSE)
+    versions_paths <- mapply(
+      create_lkups,
+      data_dirs,
+      versions,
+      SIMPLIFY = FALSE,
+      USE.NAMES = FALSE
+    )
     names(versions_paths) <- versions
 
-    return(list(versions = versions,
-                versions_paths = versions_paths,
-                latest_release = versions[1]))
-
+    return(list(
+      versions = versions,
+      versions_paths = versions_paths,
+      latest_release = versions[1]
+    ))
   }
 
 #' Extract list of data sub-directories from main data directory
@@ -32,36 +38,34 @@ create_versioned_lkups <-
 #' @return character
 #' @noRd
 extract_data_dirs <-
-  function(data_dir,
-           vintage_pattern
-           ) {
+  function(data_dir, vintage_pattern) {
+    # List data directories under data_dir
 
+    data_dirs <- fs::dir_ls(data_dir, type = "directory")
+    dirs_names <- basename(data_dirs)
 
+    valid_dir <- id_valid_dirs(
+      dirs_names = dirs_names,
+      vintage_pattern = vintage_pattern$vintage_pattern
+    )
 
-  # List data directories under data_dir
+    data_dirs <- data_dirs[valid_dir]
+    versions <- dirs_names[valid_dir]
 
-  data_dirs  <- fs::dir_ls(data_dir, type = "directory")
-  dirs_names <- basename(data_dirs)
+    names(data_dirs) <- versions
 
-  valid_dir <- id_valid_dirs(dirs_names      = dirs_names,
-                             vintage_pattern = vintage_pattern$vintage_pattern)
+    # Sorting according to identity
+    sorted_versions <- sort_versions(
+      versions = versions,
+      prod_regex = vintage_pattern$prod_regex,
+      int_regex = vintage_pattern$int_regex,
+      test_regex = vintage_pattern$test_regex
+    )
+    # sort directories
+    data_dirs <- data_dirs[sorted_versions]
 
-  data_dirs  <- data_dirs[valid_dir]
-  versions   <- dirs_names[valid_dir]
-
-  names(data_dirs) <- versions
-
-
-  # Sorting according to identity
-  sorted_versions <- sort_versions(versions = versions,
-                                   prod_regex = vintage_pattern$prod_regex,
-                                   int_regex  = vintage_pattern$int_regex,
-                                   test_regex = vintage_pattern$test_regex)
-  # sort directories
-  data_dirs <- data_dirs[sorted_versions]
-
-  return(data_dirs)
-}
+    return(data_dirs)
+  }
 
 
 #' Create look-up tables
@@ -73,8 +77,6 @@ extract_data_dirs <-
 #' @keywords internal
 #' @return list
 create_lkups <- function(data_dir, versions) {
-
-
   # Use new lineup approach? -----
   use_new_lineup_version <- use_new_lineup_version(versions)
 
@@ -86,369 +88,359 @@ create_lkups <- function(data_dir, versions) {
   # Files with country and region information
   ## missing_data ----
   # Countries with Missing data
-  msd_lkup_path    <- fs::path(data_dir, "_aux/missing_data.fst")
-  missing_data     <- fst::read_fst(msd_lkup_path, as.data.table = TRUE)
+  msd_lkup_path <- fs::path(data_dir, "_aux/missing_data.fst")
+  missing_data <- fst::read_fst(msd_lkup_path, as.data.table = TRUE)
 
   ## country_list ----
-  cl_lkup_path    <- fs::path(data_dir, "_aux/country_list.fst")
-  country_list     <- fst::read_fst(cl_lkup_path, as.data.table = TRUE)
+  cl_lkup_path <- fs::path(data_dir, "_aux/country_list.fst")
+  country_list <- fst::read_fst(cl_lkup_path, as.data.table = TRUE)
   data.table::setnames(country_list, 'region', 'region_name') # Why is this necessary?
 
   ## countries ----
   cts_path <- fs::path(data_dir, "_aux/countries.fst")
-  countries <-  fst::read_fst(cts_path, as.data.table = TRUE)
+  countries <- fst::read_fst(cts_path, as.data.table = TRUE)
   data.table::setnames(countries, 'region', 'region_name') # Why is this necessary?
 
   ## regions ----
   reg_path <- fs::path(data_dir, "_aux/regions.fst")
-  regions   <-  fst::read_fst(reg_path, as.data.table = TRUE)
+  regions <- fst::read_fst(reg_path, as.data.table = TRUE)
 
   ## pop ----
   # population
-  pop_path    <- fs::path(data_dir, "_aux/pop.fst")
-  pop         <- fst::read_fst(pop_path, as.data.table = TRUE)
+  pop_path <- fs::path(data_dir, "_aux/pop.fst")
+  pop <- fst::read_fst(pop_path, as.data.table = TRUE)
 
-  aux_files <- list(missing_data = missing_data,
-                    country_list = country_list,
-                    countries    = countries,
-                    regions      = regions,
-                    pop          = pop)
+  aux_files <- list(
+    missing_data = missing_data,
+    country_list = country_list,
+    countries = countries,
+    regions = regions,
+    pop = pop
+  )
 
   # CREATE OBJECT: svy_lkup ----
   svy_lkup_path <- fs::path(data_dir, "estimations/prod_svy_estimation.fst")
-  svy_lkup      <- fst::read_fst(svy_lkup_path, as.data.table = TRUE)
+  svy_lkup <- fst::read_fst(svy_lkup_path, as.data.table = TRUE)
 
-  ## TEMP cleaning - START ----
+  # TODO: Move svy_lkup filtering and column normalization to upstream data prep
   svy_lkup <- svy_lkup[cache_id %in% paths_ids]
 
-
-  svy_lkup[ , path := {
-    fs::path(data_dir,"survey_data",
-              cache_id, ext = "fst") |>
-      as.character()
+  svy_lkup[,
+    path := {
+      fs::path(data_dir, "survey_data", cache_id, ext = "fst") |>
+        as.character()
     }
-    ]
+  ]
 
-  ## TEMP: Ideally, region should come from one single place
+  # TODO: region_code should originate from one canonical source upstream
   if ("region_code" %in% names(svy_lkup)) {
     svy_lkup[,
-             region_code := NULL]
+      region_code := NULL
+    ]
   }
 
-  ## TEMP fix to add country and region name
-  svy_lkup <- merge(svy_lkup, countries,
-                    by = 'country_code',
-                    all.x = TRUE)
-  ## TEMP cleaning - END
+  # TODO: merge country/region name upstream so this join is not needed here
+  svy_lkup <- merge(svy_lkup, countries, by = 'country_code', all.x = TRUE)
 
   # CREATE OBJECT: ref_lkup ----
   ref_lkup_path <- fs::path(data_dir, "estimations/prod_ref_estimation.fst")
-  ref_lkup      <- fst::read_fst(ref_lkup_path, as.data.table = TRUE)
+  ref_lkup <- fst::read_fst(ref_lkup_path, as.data.table = TRUE)
 
-  ## TEMP cleaning - START ----
+  # TODO: Move ref_lkup filtering and column normalization to upstream data prep
   ref_lkup <- ref_lkup[cache_id %in% paths_ids]
 
-  # TEMP: Ideally, region should come from one single place
+  # TODO: region_code should originate from one canonical source upstream
   if ("region_code" %in% names(ref_lkup)) {
     ref_lkup[,
-             region_code := NULL]
+      region_code := NULL
+    ]
   }
 
-  # TEMP fix to add country and region name
-  ref_lkup <-  merge(ref_lkup, countries,
-                     by = 'country_code',
-                     all.x = TRUE)
-  ## TEMP cleaning - END
+  # TODO: merge country/region name upstream so this join is not needed here
+  ref_lkup <- merge(ref_lkup, countries, by = 'country_code', all.x = TRUE)
 
   # Add path to survey files
-  ref_lkup[, path := {
-    fs::path(data_dir, "survey_data",
-             cache_id, ext = "fst") |>
-      as.character()
-  }]
-
+  ref_lkup[,
+    path := {
+      fs::path(data_dir, "survey_data", cache_id, ext = "fst") |>
+        as.character()
+    }
+  ]
 
   # Add data interpolation ID (unique combination of survey files used for one
   # or more reporting years)
 
   ref_lkup[,
-             data_interpolation_id := paste(cache_id,
-                                            reporting_level,
-                                            sep = "_")
-             ]
+    data_interpolation_id := paste(cache_id, reporting_level, sep = "_")
+  ]
 
-    ref_lkup[,
-             data_interpolation_id := paste(unique(data_interpolation_id),
-                                            collapse = "|"),
-             by = .(interpolation_id)]
-
-
-
+  ref_lkup[,
+    data_interpolation_id := paste(
+      unique(data_interpolation_id),
+      collapse = "|"
+    ),
+    by = .(interpolation_id)
+  ]
 
   # ZP ADD - CREATE OBJECT: refy_lkup
 
   # CREATE OBJECT: refy_lkup -------------
   #___________________________________________________________________________
   if (use_new_lineup_version) {
-      refy_lkup_path <- fs::path(data_dir,
-                                 "estimations/prod_refy_estimation.fst")
+    refy_lkup_path <- fs::path(data_dir, "estimations/prod_refy_estimation.fst")
 
-      # NOTE: THIS `prod_refy_estimation.fst` is the refy table but
-      #             unique at the country-year level
-      refy_lkup      <- fst::read_fst(refy_lkup_path,
-                                      as.data.table = TRUE)
+    # NOTE: THIS `prod_refy_estimation.fst` is the refy table but
+    #             unique at the country-year level
+    refy_lkup <- fst::read_fst(refy_lkup_path, as.data.table = TRUE)
 
-      ## TEMP START: add distribution type -----------
-      dt <- ref_lkup[, .(country_code,
-                   reporting_year,
-                   welfare_type,
-                   reporting_level,
-                   distribution_type)]
+    # TODO: Add distribution_type to refy_lkup upstream to remove this inline join
+    dt <- ref_lkup[, .(
+      country_code,
+      reporting_year,
+      welfare_type,
+      reporting_level,
+      distribution_type
+    )]
 
+    dt[,
+      y := as.integer(length(unique(distribution_type)) == 1),
+      by = .(country_code, reporting_year, welfare_type, reporting_level)
+    ]
+    dt[y == 0, distribution_type := "mixed"][, y := NULL]
 
-      dt[,
-         y := as.integer(length(unique(distribution_type)) == 1),
-         by = .(country_code,
-                reporting_year,
-                welfare_type,
-                reporting_level)
-         ]
-      dt[y == 0,
-         distribution_type := "mixed"
-         ][, y := NULL]
+    dt <- funique(dt)
+    refy_lkup <- joyn::joyn(
+      refy_lkup,
+      dt,
+      by = c(
+        "country_code",
+        "reporting_year",
+        "welfare_type",
+        "reporting_level"
+      ),
+      match_type = "1:1",
+      keep = "left",
+      update_values = TRUE,
+      reportvar = FALSE,
+      verbose = FALSE
+    )
 
-      dt <- funique(dt)
-      refy_lkup <- joyn::joyn(refy_lkup, dt,
-                              by = c("country_code",
-                                     "reporting_year",
-                                     "welfare_type",
-                                     "reporting_level"),
-                              match_type = "1:1",
-                              keep = "left",
-                              update_values = TRUE,
-                              reportvar = FALSE,
-                              verbose = FALSE)
+    # ZP ADD - CREATE OBJECT: lineup years
+    #______________________________________________________________
+    lineup_years_path <-
+      fs::path(data_dir, "estimations/lineup_years.fst")
 
+    lineup_years <- fst::read_fst(lineup_years_path) |>
+      as.list() # Why Is this a list?
 
-      ## TEMP END: add distribution type -----------
+    # --- START NOTE AC> Include here the refy_lkup for CMD
+    ncountries <- nrow(country_list)
+    ly <- lineup_years$lineup_years
 
+    cmd <- fs::path(data_dir, "_aux/missing_data.fst") |>
+      fst::read_fst(as.data.table = TRUE) |>
+      fselect(country_code, reporting_year = year, welfare_type)
 
+    # build some variables
+    cmd[,
+      `:=`(
+        survey_coverage = "national",
+        reporting_level = "national",
+        distribution_type = "CMD distribution",
+        is_interpolated = FALSE,
+        is_used_for_line_up = TRUE,
+        is_used_for_aggregation = FALSE,
+        estimation_type = "CMD estimation",
+        display_cp = "0",
+        monotonic = TRUE, # ?
+        same_direction = TRUE, # NA ?
+        relative_distance = 1,
+        lineup_approach = "CMD",
+        mult_factor = 1,
+        wt_code = toupper(substr(welfare_type, 1, 3))
+      )
+    ][,
+      cache_id := paste(
+        country_code,
+        reporting_year,
+        paste0("NOSVY_D1_", wt_code, "_CMD"),
+        sep = "_"
+      )
+    ][, wt_code := NULL]
 
-      # ZP ADD - CREATE OBJECT: lineup years
-      #______________________________________________________________
-      lineup_years_path <-
-        fs::path(data_dir,
-                 "estimations/lineup_years.fst")
+    # Append lineup and CMD info
 
-      lineup_years <- fst::read_fst(lineup_years_path) |>
-        as.list() # Why Is this a list?
+    refy_lkup <- rbindlist(list(refy_lkup, cmd), use.names = TRUE, fill = TRUE)
 
+    # Create additional variables
+    refy_lkup[,
+      path := {
+        fs::path(
+          data_dir,
+          "lineup_data",
+          paste0(country_code, "_", reporting_year),
+          ext = "fst"
+        ) |>
+          as.character()
+      }
+    ]
+    refy_lkup[,
+      interpolation_id := paste(
+        country_code,
+        reporting_year,
+        reporting_level,
+        sep = "_"
+      )
+    ]
 
+    # if ("region_code" %in% names(refy_lkup)) {
+    #   refy_lkup[,
+    #             region_code := NULL]
+    # }
 
-      # --- START NOTE AC> Include here the refy_lkup for CMD
-      ncountries <- nrow(country_list)
-      ly <- lineup_years$lineup_years
+    refy_lkup[,
+      data_interpolation_id := paste(cache_id, reporting_level, sep = "_")
+    ]
 
-      cmd <- fs::path(data_dir,
-                     "_aux/missing_data.fst") |>
-        fst::read_fst(as.data.table = TRUE) |>
-        fselect(country_code,
-                reporting_year = year,
-                welfare_type)
+    refy_lkup[,
+      data_interpolation_id := paste(
+        unique(data_interpolation_id),
+        collapse = "|"
+      ),
+      by = .(interpolation_id)
+    ]
 
+    # TODO: merge country_list upstream so this join is not needed
+    refy_lkup <- joyn::joyn(
+      refy_lkup,
+      country_list,
+      by = "country_code",
+      keep = "left",
+      reportvar = FALSE,
+      match_type = "m:1",
+      update_values = TRUE,
+      verbose = FALSE
+    )
 
-      # build some variables
-      cmd[,
-           `:=`(
-               survey_coverage = "national",
-               reporting_level = "national",
-               distribution_type = "CMD distribution",
-               is_interpolated = FALSE,
-               is_used_for_line_up = TRUE,
-               is_used_for_aggregation = FALSE,
-               estimation_type = "CMD estimation",
-               display_cp = "0",
-               monotonic = TRUE, # ?
-               same_direction = TRUE, # NA ?
-               relative_distance = 1,
-               lineup_approach = "CMD",
-               mult_factor = 1,
-               wt_code  = toupper(substr(welfare_type, 1, 3))
-             )][,
-                cache_id := paste(country_code,
-                                  reporting_year,
-                                  paste0("NOSVY_D1_", wt_code,"_CMD"),
-                                 sep = "_")
-                ][, wt_code := NULL]
+    # TODO: Fix ARG population data upstream so this workaround can be removed
+    pw <- pivot(
+      pop,
+      ids = c("country_code", "data_level"),
+      names = list(variable = "reporting_year", value = "reporting_pop"),
+      how = "longer"
+    ) |>
+      pivot(
+        how = "wider",
+        ids = c("country_code", "reporting_year"),
+        values = "reporting_pop",
+        names = "data_level"
+      ) |>
+      setorder(country_code, reporting_year)
 
-      # Append lineup and CMD info
-
-      refy_lkup <- rbindlist(list(refy_lkup, cmd),
-                             use.names = TRUE,
-                             fill = TRUE)
-
-
-      # Create additional variables
-      refy_lkup[ ,
-                 path := {
-                   fs::path(data_dir,
-                            "lineup_data",
-                            paste0(country_code,
-                                   "_",
-                                   reporting_year),
-                            ext = "fst") |>
-                     as.character()
-                 }
-      ]
-      refy_lkup[,
-                interpolation_id := paste(country_code,
-                                          reporting_year,
-                                          reporting_level,
-                                          sep = "_")]
-
-      # if ("region_code" %in% names(refy_lkup)) {
-      #   refy_lkup[,
-      #             region_code := NULL]
-      # }
-
-
-      refy_lkup[,
-                data_interpolation_id := paste(cache_id,
-                                               reporting_level,
-                                               sep = "_")
-      ]
-
-      refy_lkup[,
-                data_interpolation_id := paste(unique(data_interpolation_id),
-                                               collapse = "|"),
-                by = .(interpolation_id)]
-
-
-      # Temporal fix
-      refy_lkup <- joyn::joyn(refy_lkup, country_list,
-                              by         = "country_code",
-                              keep       = "left",
-                              reportvar  = FALSE,
-                              match_type = "m:1",
-                              update_values = TRUE,
-                              verbose = FALSE)
-
-
-      ## TEMP START: fix ARG population ----
-      pw <- pivot(pop,
-            ids = c("country_code", "data_level"),
-            names = list(variable = "reporting_year",
-                         value = "reporting_pop"),
-            how = "longer") |>
-        pivot(how = "wider",
-              ids = c("country_code", "reporting_year"),
-              values = "reporting_pop",
-              names = "data_level") |>
-        setorder(country_code, reporting_year)
-
-      pw[country_code != "CHN", `:=`(
+    pw[
+      country_code != "CHN",
+      `:=`(
         urban = national,
         rural = national
-        )]
+      )
+    ]
 
-      ## TEMP END: fix ARG population ------
+    popl <- pivot(
+      pw,
+      ids = c("country_code", "reporting_year"),
+      names = list(variable = "reporting_level", value = "reporting_pop"),
+      how = "longer"
+    ) |>
+      ftransform(
+        reporting_year = as_integer_factor(reporting_year),
+        reporting_level = as_character_factor(reporting_level)
+      ) |>
+      setkey(NULL)
 
-      popl <- pivot(pw,
-                    ids = c("country_code", "reporting_year"),
-                    names = list(variable = "reporting_level",
-                                 value = "reporting_pop"),
-                    how = "longer") |>
-        ftransform(reporting_year = as_integer_factor(reporting_year),
-                   reporting_level = as_character_factor(reporting_level)) |>
-        setkey(NULL)
+    refy_lkup <- joyn::joyn(
+      refy_lkup,
+      popl,
+      by = c('country_code', 'reporting_year', 'reporting_level'),
+      keep = "left",
+      reportvar = FALSE,
+      match_type = "1:1",
+      update_values = TRUE,
+      verbose = FALSE
+    )
 
+    # --- END inclussion of CMD data.
 
-      refy_lkup <- joyn::joyn(refy_lkup, popl,
-                              by         = c('country_code',
-                                             'reporting_year',
-                                             'reporting_level'),
-                              keep       = "left",
-                              reportvar  = FALSE,
-                              match_type = "1:1",
-                              update_values = TRUE,
-                              verbose = FALSE)
+    refy_lkup <- refy_lkup[reporting_year %in% lineup_years$lineup_years, ]
 
+    gv(
+      refy_lkup,
+      c(
+        "monotonic",
+        "same_direction",
+        "mult_factor",
+        "nac",
+        "nac_sy",
+        "svy_mean",
+        #"data_interpolation",
+        "relative_distance"
+      )
+    ) <- NULL
+    gv(
+      ref_lkup,
+      c(
+        "monotonic",
+        "same_direction",
+        "nac",
+        "nac_sy",
+        "svy_mean",
+        #"data_interpolation",
+        "relative_distance"
+      )
+    ) <- NULL
 
-      # --- END inclussion of CMD data.
+    # ZP ADD - CREATE OBJECT: lineup dist stats
+    #___________________________________________________________________________
+    lineup_dist_stats <-
+      fs::path(data_dir, "estimations/lineup_dist_stats.fst")
 
-      refy_lkup <- refy_lkup[reporting_year %in% lineup_years$lineup_years, ]
-
-      gv(refy_lkup,
-         c("monotonic",
-           "same_direction",
-           "mult_factor",
-           "nac",
-           "nac_sy",
-           "svy_mean",
-           #"data_interpolation",
-           "relative_distance")) <- NULL
-      gv(ref_lkup,
-         c("monotonic",
-           "same_direction",
-           "nac",
-           "nac_sy",
-           "svy_mean",
-           #"data_interpolation",
-           "relative_distance")) <- NULL
-
-
-
-
-      # ZP ADD - CREATE OBJECT: lineup dist stats
-      #___________________________________________________________________________
-      lineup_dist_stats <-
-        fs::path(data_dir,
-                 "estimations/lineup_dist_stats.fst")
-
-      lineup_dist_stats <- fst::read_fst(lineup_dist_stats,
-                                         as.data.table = TRUE) |>
-        fmutate(file = paste(country_code,
-                             reporting_year,
-                             sep = "_"))
-      gv(lineup_dist_stats,
-         c("min",
-           "max")) <- NULL
-
+    lineup_dist_stats <- fst::read_fst(
+      lineup_dist_stats,
+      as.data.table = TRUE
+    ) |>
+      fmutate(file = paste(country_code, reporting_year, sep = "_"))
+    gv(lineup_dist_stats, c("min", "max")) <- NULL
   }
 
-
-
-
-
-
   #___________________________________________________________________________
-
 
   # CREATE OBJECT: interpolation_list ----
   # This is to facilitate interpolation computations
   unique_survey_files <- unique(ref_lkup$data_interpolation_id)
-  interpolation_list  <- vector(mode = "list", length = length(unique_survey_files))
+  interpolation_list <- vector(
+    mode = "list",
+    length = length(unique_survey_files)
+  )
 
   for (i in seq_along(interpolation_list)) {
-
-    tmp_metadata    <- ref_lkup[data_interpolation_id == unique_survey_files[i], ]
-    cache_ids       <- unique(tmp_metadata[["cache_id"]])
+    tmp_metadata <- ref_lkup[data_interpolation_id == unique_survey_files[i], ]
+    cache_ids <- unique(tmp_metadata[["cache_id"]])
     reporting_level <- unique(tmp_metadata[["reporting_level"]])
-    paths           <- unique(tmp_metadata$path)
-    ctry_years      <- unique(tmp_metadata[, c("region_code",
-                                               "country_code",
-                                               "reporting_year",
-                                               "reporting_level",
-                                               "interpolation_id"
-    )
-    ])
+    paths <- unique(tmp_metadata$path)
+    ctry_years <- unique(tmp_metadata[, c(
+      "region_code",
+      "country_code",
+      "reporting_year",
+      "reporting_level",
+      "interpolation_id"
+    )])
 
     interpolation_list[[i]] <-
-      list(#tmp_metadata    = tmp_metadata,
-        cache_ids       = cache_ids,
+      list(
+        #tmp_metadata    = tmp_metadata,
+        cache_ids = cache_ids,
         reporting_level = reporting_level,
-        paths           = paths,
-        ctry_years      = ctry_years
+        paths = paths,
+        ctry_years = ctry_years
       )
   }
 
@@ -456,33 +448,34 @@ create_lkups <- function(data_dir, versions) {
 
   # CREATE OBJECT: dist_stats ----
   dist_stats_path <- fs::path(data_dir, "estimations/dist_stats.fst")
-  dist_stats      <- fst::read_fst(dist_stats_path, as.data.table = TRUE)
+  dist_stats <- fst::read_fst(dist_stats_path, as.data.table = TRUE)
 
   # CREATE OBJECT: pop_region ----
   pop_region_path <- fs::path(data_dir, "_aux/pop_region.fst")
-  pop_region      <- fst::read_fst(pop_region_path,as.data.table = TRUE)
+  pop_region <- fst::read_fst(pop_region_path, as.data.table = TRUE)
 
   # CREATE OBJECT: cp_lkups ----
   # country profiles lkups
-  cp_lkups_path   <- fs::path(data_dir, "_aux/country_profiles.rds")
-  cp_lkups        <- readRDS(cp_lkups_path)
+  cp_lkups_path <- fs::path(data_dir, "_aux/country_profiles.rds")
+  cp_lkups <- readRDS(cp_lkups_path)
 
   # CREATE OBJECT: pl_lkup ----
   # poverty lines table
-  pl_lkup_path    <- fs::path(data_dir, "_aux/poverty_lines.fst")
-  pl_lkup         <- fst::read_fst(pl_lkup_path, as.data.table = TRUE)
+  pl_lkup_path <- fs::path(data_dir, "_aux/poverty_lines.fst")
+  pl_lkup <- fst::read_fst(pl_lkup_path, as.data.table = TRUE)
 
   pl_lkup[, poverty_line := round(poverty_line, 2)]
 
   # CREATE OBJECT: censored
   # list with censor tables
-  censored_path   <- fs::path(data_dir, "_aux/censored.rds")
-  censored        <- readRDS(censored_path)
+  censored_path <- fs::path(data_dir, "_aux/censored.rds")
+  censored <- readRDS(censored_path)
 
   # CREATE OBJECT: return_cols ----
   return_cols <- create_return_cols(
     pip = list(
-      cols = c( # Columns for pip call
+      cols = c(
+        # Columns for pip call
         'region_name',
         'region_code',
         'country_name',
@@ -541,7 +534,8 @@ create_lkups <- function(data_dir, versions) {
       )
     ),
     pip_grp = list(
-      cols = c( # Columns for pip_grp call
+      cols = c(
+        # Columns for pip_grp call
         "region_name",
         "region_code",
         "reporting_year",
@@ -652,33 +646,31 @@ create_lkups <- function(data_dir, versions) {
         "cpi_data_level",
         "ppp_data_level"
       )
-
     )
   )
 
   # CREATE OBJECT: aux_tables ----
   # Create list of available auxiliary data tables
-  aux_tables <- list.files(fs::path(data_dir, "_aux"),pattern = "\\.fst$")
+  aux_tables <- list.files(fs::path(data_dir, "_aux"), pattern = "\\.fst$")
   aux_tables <- tools::file_path_sans_ext(aux_tables)
   aux_tables <- sort(aux_tables)
 
   # CREATE OBJECT: valid_years ----
   valid_years <- valid_years(data_dir)
   if (use_new_lineup_version) {
-    valid_years <- c(valid_years,
-                     lineup_years) # add lineup years
-
+    valid_years <- c(valid_years, lineup_years) # add lineup years
   }
 
   # CREATE OBJECT: query_controls ----
   # Create list of query controls
   query_controls <-
     create_query_controls(
-      svy_lkup   = svy_lkup,
-      ref_lkup   = ref_lkup,
+      svy_lkup = svy_lkup,
+      ref_lkup = ref_lkup,
       aux_files = aux_files,
       aux_tables = aux_tables,
-      versions   = versions)
+      versions = versions
+    )
 
   # CREATE OBJECT: cache_data_id ----
   # The cache_data_id will be used to trigger cache invalidation
@@ -700,104 +692,100 @@ create_lkups <- function(data_dir, versions) {
   }
   hash_ref_lkup$path <- NULL
 
-
   query_controls_hash <- query_controls
   query_controls_hash$version <- NULL
 
   ## Create cache_data_id for complete lkup ----
-  hash_lkup <- list(hash_svy_lkup,
-                    hash_ref_lkup,
-                    dist_stats,
-                    pop_region,
-                    cp_lkups,
-                    pl_lkup,
-                    censored,
-                    aux_files,
-                    return_cols,
-                    query_controls,
-                    aux_tables,
-                    valid_years
-                    )
+  hash_lkup <- list(
+    hash_svy_lkup,
+    hash_ref_lkup,
+    dist_stats,
+    pop_region,
+    cp_lkups,
+    pl_lkup,
+    censored,
+    aux_files,
+    return_cols,
+    query_controls,
+    aux_tables,
+    valid_years
+  )
   hash_lkup <- rlang::hash(hash_lkup)
 
   ## Create cache_data_id for pip() ----
-  hash_pip <- list(hash_svy_lkup,
-                   hash_ref_lkup,
-                   dist_stats,
-                   pop_region,
-                   censored,
-                   aux_files,
-                   return_cols$pip,
-                   query_controls$region$values,
-                   valid_years
-                   )
+  hash_pip <- list(
+    hash_svy_lkup,
+    hash_ref_lkup,
+    dist_stats,
+    pop_region,
+    censored,
+    aux_files,
+    return_cols$pip,
+    query_controls$region$values,
+    valid_years
+  )
   hash_pip <- rlang::hash(hash_pip)
 
   ## Create cache_data_id for pip_grp() ----
   ## Same data signature for pip_grp and pip_grp_logic
-  hash_pip_grp <- list(hash_ref_lkup,
-                       dist_stats,
-                       pop_region,
-                       censored,
-                       aux_files,
-                       return_cols$pip_grp,
-                       query_controls$region$values,
-                       valid_years
+  hash_pip_grp <- list(
+    hash_ref_lkup,
+    dist_stats,
+    pop_region,
+    censored,
+    aux_files,
+    return_cols$pip_grp,
+    query_controls$region$values,
+    valid_years
   )
   hash_pip_grp <- rlang::hash(hash_pip_grp)
 
   ## Create cache_data_id for ui_cp ----
   ## Same data signature for ui_cp_key_indicators, ui_cp_charts and ui_cp_download
-  hash_ui_cp <- list(hash_svy_lkup,
-                     dist_stats,
-                     pop_region,
-                     censored,
-                     aux_files,
-                     return_cols,
-                     query_controls$region$values,
-                     valid_years,
-                     pl_lkup,
-                     cp_lkups
+  hash_ui_cp <- list(
+    hash_svy_lkup,
+    dist_stats,
+    pop_region,
+    censored,
+    aux_files,
+    return_cols,
+    query_controls$region$values,
+    valid_years,
+    pl_lkup,
+    cp_lkups
   )
   hash_ui_cp <- rlang::hash(hash_ui_cp)
 
-
   ## Create cache_data_id list ----
   cache_data_id <- list(
-    hash_lkup    = hash_lkup,
-    hash_pip     = hash_pip,
+    hash_lkup = hash_lkup,
+    hash_pip = hash_pip,
     hash_pip_grp = hash_pip_grp,
-    hash_ui_cp   = hash_ui_cp
-
+    hash_ui_cp = hash_ui_cp
   )
-
-
-  # COERCE character to factors
-  # svy_lkup <- coerce_chr_to_fct(svy_lkup)
-  # dist_stats <- coerce_chr_to_fct(dist_stats)
-  # ref_lkup <- coerce_chr_to_fct(ref_lkup)
 
   # Create list of lkups
   lkup <- list(
-    svy_lkup               = svy_lkup,
-    ref_lkup               = ref_lkup,
-    dist_stats             = dist_stats,
-    pop_region             = pop_region,
-    cp_lkups               = cp_lkups,
-    pl_lkup                = pl_lkup,
-    censored               = censored,
-    aux_files              = aux_files,
-    return_cols            = return_cols,
-    query_controls         = query_controls,
-    data_root              = data_dir,
-    aux_tables             = aux_tables,
-    interpolation_list     = interpolation_list,
-    valid_years            = valid_years,
-    cache_data_id          = cache_data_id,
-    use_new_lineup_version = use_new_lineup_version)
+    svy_lkup = svy_lkup,
+    ref_lkup = ref_lkup,
+    dist_stats = dist_stats,
+    pop_region = pop_region,
+    cp_lkups = cp_lkups,
+    pl_lkup = pl_lkup,
+    censored = censored,
+    aux_files = aux_files,
+    return_cols = return_cols,
+    query_controls = query_controls,
+    data_root = data_dir,
+    aux_tables = aux_tables,
+    interpolation_list = interpolation_list,
+    valid_years = valid_years,
+    cache_data_id = cache_data_id,
+    use_new_lineup_version = use_new_lineup_version
+  )
 
   if (use_new_lineup_version) {
-    lkup$refy_lkup         <- refy_lkup
+    lkup$refy_lkup <- refy_lkup
     lkup$lineup_dist_stats <- lineup_dist_stats
   }
 
@@ -809,27 +797,24 @@ create_lkups <- function(data_dir, versions) {
 #'
 #' @return list
 #' @noRd
-get_vintage_pattern_regex <- function(vintage_pattern = NULL,
-                                      prod_regex      = NULL,
-                                      int_regex       = NULL,
-                                      test_regex      = NULL
-                                      ) {
-
-
+get_vintage_pattern_regex <- function(
+  vintage_pattern = NULL,
+  prod_regex = NULL,
+  int_regex = NULL,
+  test_regex = NULL
+) {
   list(
+    vintage_pattern = ifel_isnull(
+      vintage_pattern,
+      "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$"
+    ),
 
-    vintage_pattern = ifel_isnull(vintage_pattern,
-                                 "\\d{8}_\\d{4}_\\d{2}_\\d{2}_(PROD|TEST|INT)$"),
+    prod_regex = ifel_isnull(prod_regex, "PROD$"),
 
-    prod_regex      = ifel_isnull(prod_regex,
-                             "PROD$"),
+    int_regex = ifel_isnull(int_regex, "INT$"),
 
-    int_regex       = ifel_isnull(int_regex,
-                             "INT$"),
-
-    test_regex      = ifel_isnull(test_regex,
-                             "TEST$")
-    )
+    test_regex = ifel_isnull(test_regex, "TEST$")
+  )
 }
 
 #' Efficient "if" "else" evaluation of null.
@@ -838,16 +823,14 @@ get_vintage_pattern_regex <- function(vintage_pattern = NULL,
 #' @param y in case x null. If X is not null, then x.
 #'
 #' @return object of class(x)
+#' @keywords internal
 ifel_isnull <- function(x, y) {
-
   if (is.null(x)) {
     y
   } else {
     x
   }
-
 }
-
 
 
 #' create vintage call to be parsed into `get_vintage_pattern_regex()`
@@ -871,24 +854,18 @@ ifel_isnull <- function(x, y) {
 #' create_vintage_pattern_call(vintage_pattern)
 #' }
 create_vintage_pattern_call <- function(vintage_pattern = NULL) {
-
   #   ____________________________________________________________________________
   #   Defenses                                                                ####
-  stopifnot( exprs = {
-    class(vintage_pattern) %in% c("NULL",  "list",  "character")
-  }
-  )
+  stopifnot(exprs = {
+    class(vintage_pattern) %in% c("NULL", "list", "character")
+  })
 
   #   ______________________________________________________________________
   #   Computations                                                      ####
   vp <-
     if (is.null(vintage_pattern)) {
-
       get_vintage_pattern_regex()
-
     } else {
-
-
       lf <-
         formals(get_vintage_pattern_regex) |>
         names() |>
@@ -898,26 +875,20 @@ create_vintage_pattern_call <- function(vintage_pattern = NULL) {
 
       stopifnot(l >= 1 && l <= lf)
 
-      if (inherits(vintage_pattern, "list")) { # if list
+      if (inherits(vintage_pattern, "list")) {
+        # if list
 
-        do.call(get_vintage_pattern_regex,
-                vintage_pattern)
-
-
-      } else { # if character
-        do.call(get_vintage_pattern_regex,
-                as.list(vintage_pattern))
+        do.call(get_vintage_pattern_regex, vintage_pattern)
+      } else {
+        # if character
+        do.call(get_vintage_pattern_regex, as.list(vintage_pattern))
       }
-
     }
-
 
   #   ____________________________________________________________
   #   Return                                                     ####
   return(vp)
-
 }
-
 
 
 #' Identify valid data directories
@@ -925,8 +896,7 @@ create_vintage_pattern_call <- function(vintage_pattern = NULL) {
 #'
 #' @return logical
 #' @noRd
-id_valid_dirs <- function(dirs_names,
-                          vintage_pattern) {
+id_valid_dirs <- function(dirs_names, vintage_pattern) {
   grepl(vintage_pattern, dirs_names)
 }
 
@@ -940,15 +910,12 @@ id_valid_dirs <- function(dirs_names,
 #'
 #' @return character
 #' @noRd
-sort_versions <- function(versions,
-                          prod_regex,
-                          int_regex,
-                          test_regex) {
+sort_versions <- function(versions, prod_regex, int_regex, test_regex) {
   versions_prod <- versions[grepl(prod_regex, versions)]
   versions_prod <- sort(versions_prod, decreasing = TRUE)
 
-  versions_int  <- versions[grepl(int_regex,  versions)]
-  versions_int  <- sort(versions_int, decreasing = TRUE)
+  versions_int <- versions[grepl(int_regex, versions)]
+  versions_int <- sort(versions_int, decreasing = TRUE)
 
   versions_test <- versions[grepl(test_regex, versions)]
   versions_test <- sort(versions_test, decreasing = TRUE)
@@ -959,15 +926,6 @@ sort_versions <- function(versions,
   return(sorted_versions)
 }
 
-
-coerce_chr_to_fct <- function(df) {
-  df <- as.data.frame(df)
-  character_vec <- unname(unlist(lapply(df, is.character)))
-  df[, character_vec] <- lapply(df[, character_vec], as.factor)
-  df <- data.table::as.data.table(df)
-
-  return(df)
-}
 
 #' helper function to create a list of return columns for various pipapi functions
 #'
@@ -982,22 +940,21 @@ create_return_cols <- function(...) {
 }
 
 
-
-
 #' Sorted available PIP versions in data directory
 #'
 #' @param data_dir character: data directory
 #'
 #' @return character vector of sorted available PIP versions in data directory
+#' @keywords internal
 available_versions <- function(data_dir) {
   vintage_pattern <- create_vintage_pattern_call()
-    fs::dir_ls(data_dir,
-               type   = "directory") |>
+  fs::dir_ls(data_dir, type = "directory") |>
     fs::path_file() |>
-    sort_versions(prod_regex = vintage_pattern$prod_regex,
-                  int_regex  = vintage_pattern$int_regex,
-                  test_regex = vintage_pattern$test_regex)
-
+    sort_versions(
+      prod_regex = vintage_pattern$prod_regex,
+      int_regex = vintage_pattern$int_regex,
+      test_regex = vintage_pattern$test_regex
+    )
 }
 
 
@@ -1033,4 +990,3 @@ use_new_lineup_version <- function(x) {
   # Compare
   date_val > threshold
 }
-

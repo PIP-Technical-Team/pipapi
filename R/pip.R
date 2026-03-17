@@ -54,6 +54,10 @@ pip <- function(country         = "ALL",
                 lkup_hash       = lkup$cache_data_id$hash_pip,
                 additional_ind  = FALSE) {
 
+  # Validate lkup structure first — before any lkup field access
+  #-------------------------------------
+  validate_lkup(lkup, c("core", "new_pathway"))
+
   # Should pip_old or pip_new be used?
   #-------------------------------------
   use_new <- lkup$use_new_lineup_version
@@ -66,7 +70,6 @@ pip <- function(country         = "ALL",
                     povline         = povline,
                     popshare        = popshare,
                     fill_gaps       = fill_gaps,
-                    group_by        = group_by,
                     welfare_type    = welfare_type,
                     reporting_level = reporting_level,
                     ppp             = ppp,

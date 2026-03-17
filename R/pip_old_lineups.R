@@ -208,75 +208,16 @@ pip_old_lineups <- function(
   }
   # **** TO BE REMOVED **** REMOVAL ENDS HERE
 
-  # pre-computed distributional stats ---------------
-  crr_names <- names(out) # current variables
-  names2keep <- lkup$return_cols$pip$cols # all variables
-
-  out <- add_dist_stats_old(
-    df = out,
-    dist_stats = lkup[["dist_stats"]]
-  )
-
-  # Add aggregate medians ----------------
-  out <- add_agg_medians(
-    df = out,
+  # Format, censor, select columns, order, de-duplicate ----------------
+  out <- pip_lineups_format_output(
+    out = out,
+    lkup = lkup,
     fill_gaps = fill_gaps,
-    data_dir = lkup$data_root
+    reporting_level = reporting_level,
+    censor = censor,
+    additional_ind = additional_ind,
+    use_old_dist_stats = TRUE
   )
-
-  # format ----------------
-
-  if (fill_gaps) {
-    ## Inequality indicators to NA for lineup years ----
-    dist_vars <- names2keep[!(names2keep %in% crr_names)]
-    out[,
-      (dist_vars) := NA_real_
-    ]
-
-    ## estimate_var -----
-    out <- estimate_type_ctr_lnp(out, lkup)
-  } else {
-    out[, estimate_type := NA_character_]
-  }
-  ## Handle survey coverage ------------
-  if (reporting_level != "all") {
-    keep <- out$reporting_level == reporting_level
-    out <- out[keep, ]
-  }
-
-  # Censor country values
-  if (censor) {
-    out <- censor_rows(out, lkup[["censored"]], type = "countries")
-  }
-
-  # Select columns
-  if (additional_ind) {
-    get_additional_indicators(out)
-    added_names <- attr(out, "new_indicators_names")
-    names2keep <- c(names2keep, added_names)
-  }
-  # Keep relevant variables
-  out <- out[, .SD, .SDcols = names2keep]
-
-  # make sure we always report the same precision in all numeric variables
-  doub_vars <-
-    names(out)[unlist(lapply(out, is.double))] |>
-    data.table::copy()
-
-  out[, (doub_vars) := lapply(.SD, round, digits = 12), .SDcols = doub_vars]
-
-  # Order rows by country code and reporting year
-  data.table::setorder(
-    out,
-    country_code,
-    reporting_year,
-    reporting_level,
-    welfare_type
-  )
-  #}
-
-  # Make sure no duplicate remains
-  out <- out |> collapse::funique()
   # return -------------
   return(out)
 }
