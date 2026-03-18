@@ -1,6 +1,6 @@
 Package: pipapi
 Title: API for the Poverty and Inequality Platform
-Version: 1.5.1
+Version: 1.5.1.9000
 Authors@R: 
     c(person(given = "Tony",
             family = "Fujs",
