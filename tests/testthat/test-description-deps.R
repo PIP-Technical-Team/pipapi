@@ -104,7 +104,10 @@ local({
     #             in plumber's Suggests (not Imports) so must be declared here
     #   - readr:  needed at runtime by plumber::serializer_csv(); same reason
     indirect_runtime_deps <- c("arrow", "readr")
-    ghost <- setdiff(imports, c(used, "methods", "parallel", indirect_runtime_deps))
+    ghost <- setdiff(
+      imports,
+      c(used, "methods", "parallel", indirect_runtime_deps)
+    )
     expect_equal(
       ghost,
       character(0L),

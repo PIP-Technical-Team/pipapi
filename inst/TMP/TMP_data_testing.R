@@ -129,6 +129,8 @@ svy <- get_aux_table(data_dir = lkup$data_root, table = "spr_svy")
 
 lnp <- get_aux_table(data_dir = lkup$data_root, table = "spr_lnp")
 
+npl <- get_aux_table(data_dir = lkup$data_root)
+
 
 # PIP ------------
 debugonce(pip)
