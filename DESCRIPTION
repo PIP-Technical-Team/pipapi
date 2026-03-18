@@ -44,7 +44,6 @@ Suggests:
     stringr, 
     knitr, 
     dplyr,
-    readr,
     rprojroot
 Language: en-US
 Imports: 
@@ -71,7 +70,9 @@ Imports:
     jsonlite,
     assertthat,
     parallel,
-    R.utils
+    R.utils,
+    arrow,
+    readr
 Remotes:
     PIP-Technical-Team/wbpip@DEV
 Depends: 

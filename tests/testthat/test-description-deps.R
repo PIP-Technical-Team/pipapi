@@ -98,9 +98,13 @@ local({
 
   # ---- test 1: no package in Imports should be completely absent from R/ ------
   test_that("all Imports are actually used in R/ source", {
-    # Packages that are ALLOWED to be import-only (used implicitly or by plumber)
-    # tools is in base, parallel/methods/stats/utils excluded above
-    ghost <- setdiff(imports, c(used, "methods", "parallel"))
+    # Packages allowed in Imports even without a direct `pkg::` call:
+    #   - methods, parallel: base/recommended, excluded from scanner
+    #   - arrow:  needed at runtime by plumber::serializer_feather(); arrow is
+    #             in plumber's Suggests (not Imports) so must be declared here
+    #   - readr:  needed at runtime by plumber::serializer_csv(); same reason
+    indirect_runtime_deps <- c("arrow", "readr")
+    ghost <- setdiff(imports, c(used, "methods", "parallel", indirect_runtime_deps))
     expect_equal(
       ghost,
       character(0L),
@@ -148,6 +152,36 @@ local({
     expect_true(
       "assertthat" %in% imports,
       info = "assertthat::assert_that() is called in R/utils-aux.R but is only in Suggests"
+    )
+  })
+
+  # ---- test 6: arrow must be in Imports (indirect runtime dep of serializer) ----
+  # plumber::serializer_feather() calls arrow internally. arrow is in plumber's
+  # Suggests (not Imports), so it is NOT transitively guaranteed. pipapi must
+  # declare it explicitly since assign_serializer() exposes the "arrow" format.
+  test_that("arrow is in Imports (needed by plumber::serializer_feather at runtime)", {
+    expect_true(
+      "arrow" %in% imports,
+      info = paste(
+        "arrow is NOT in plumber Imports (only Suggests) — it must be declared",
+        "in pipapi Imports because assign_serializer() exposes format='arrow'",
+        "via plumber::serializer_feather()"
+      )
+    )
+  })
+
+  # ---- test 7: readr must be in Imports (indirect runtime dep of serializer) ----
+  # plumber::serializer_csv() calls readr internally. readr is in plumber's
+  # Suggests (not Imports), so it is NOT transitively guaranteed. pipapi must
+  # declare it explicitly since assign_serializer() exposes the "csv" format.
+  test_that("readr is in Imports (needed by plumber::serializer_csv at runtime)", {
+    expect_true(
+      "readr" %in% imports,
+      info = paste(
+        "readr is NOT in plumber Imports (only Suggests) — it must be declared",
+        "in pipapi Imports because assign_serializer() exposes format='csv'",
+        "via plumber::serializer_csv()"
+      )
     )
   })
 })
