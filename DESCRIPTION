@@ -1,6 +1,6 @@
 Package: pipapi
 Title: API for the Poverty and Inequality Platform
-Version: 1.5.0
+Version: 1.5.1
 Authors@R: 
     c(person(given = "Tony",
             family = "Fujs",
@@ -36,7 +36,6 @@ Suggests:
     spelling,
     rmarkdown,
     markdown,
-    assertthat,
     callr,
     httr,
     lintr,
@@ -44,7 +43,9 @@ Suggests:
     devtools, 
     stringr, 
     knitr, 
-    dplyr
+    dplyr,
+    readr,
+    rprojroot
 Language: en-US
 Imports: 
     data.table,
@@ -58,10 +59,8 @@ Imports:
     cachem (>= 1.0.8),
     rappdirs,
     methods,
-    qs,
+    qs2,
     collapse,
-    readr,
-    arrow,
     cli,
     joyn,
     yaml,
@@ -70,7 +69,7 @@ Imports:
     DBI,
     duckdb,
     jsonlite,
-    digest,
+    assertthat,
     parallel,
     R.utils
 Remotes:
