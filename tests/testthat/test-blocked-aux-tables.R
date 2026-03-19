@@ -60,6 +60,11 @@ test_that("blocked_aux_tables() errors when tables is not a character vector", {
   expect_error(blocked_aux_tables(tables = list("a")))
 })
 
+test_that("blocked_aux_tables() errors when tables contains NA", {
+  expect_error(blocked_aux_tables(tables = NA_character_))
+  expect_error(blocked_aux_tables(tables = c("foo", NA_character_)))
+})
+
 # ── Reset ────────────────────────────────────────────────────────────────────
 
 test_that("reset_blocked_aux_tables() restores the default after an override", {
@@ -72,6 +77,7 @@ test_that("reset_blocked_aux_tables() restores the default after an override", {
 })
 
 test_that("reset_blocked_aux_tables() is safe to call when nothing is set", {
+  withr::defer(reset_blocked_aux_tables())
   reset_blocked_aux_tables() # idempotent — should never error
 
   expect_no_error(reset_blocked_aux_tables())
@@ -97,8 +103,8 @@ test_that("get_aux_table_ui() rejects a blocked table as if it does not exist", 
   expect_error(
     get_aux_table_ui(
       data_dir = "fake/path",
-      table    = "national_poverty_lines",
-      lkup     = list()
+      table = "national_poverty_lines",
+      lkup = list()
     )
   )
 })
@@ -145,8 +151,8 @@ test_that("lkup$query_controls$table$values does not contain any blocked table",
   withr::defer(reset_blocked_aux_tables())
   reset_blocked_aux_tables()
 
-  blocked  <- blocked_aux_tables()
-  in_ctrl  <- intersect(test_lkup$query_controls$table$values, blocked)
+  blocked <- blocked_aux_tables()
+  in_ctrl <- intersect(test_lkup$query_controls$table$values, blocked)
   expect_identical(
     in_ctrl,
     character(0),
@@ -166,7 +172,7 @@ test_that("get_aux_table() serves an unblocked table normally", {
 
   result <- get_aux_table(
     data_dir = test_lkup$data_root,
-    table    = "countries"
+    table = "countries"
   )
   expect_s3_class(result, "data.table")
   expect_gt(nrow(result), 0L)

@@ -32,7 +32,8 @@ get_aux_table <- function(data_dir = NULL, table, long_format = FALSE) {
     cli::cli_abort(
       c(
         "{.field {sanitized_table}} is not an available auxiliary table.",
-        "i" = "Run {.code names(lkup$aux_tables)} to see available tables."
+        "i" = "Run {.code blocked_aux_tables()} to see the current blocklist,
+                 or {.code reset_blocked_aux_tables()} to unblock all tables."
       )
     )
   }
@@ -62,7 +63,7 @@ get_aux_table <- function(data_dir = NULL, table, long_format = FALSE) {
 #' Helper function to the UI
 #' @param data_dir character: Data directory
 #' @param table character: Name of auxiliary table
-#' @param esclude logical: whether or not to exclude some countries or regions...
+#' @param exclude logical: whether or not to exclude some countries or regions...
 #'
 #' @return data.frame
 #' @family aux

@@ -12,7 +12,7 @@ get_aux_table_ui(data_dir, table, exclude = TRUE, lkup)
 
 \item{table}{character: Name of auxiliary table}
 
-\item{esclude}{logical: whether or not to exclude some countries or regions...}
+\item{exclude}{logical: whether or not to exclude some countries or regions...}
 }
 \value{
 data.frame
