@@ -1,4 +1,4 @@
-# pipapi (development version)
+# pipapi 1.5.2
 
 * Temporarily block `national_poverty_lines` from the public API via the new
   `blocked_aux_tables()` function. Direct R calls to `get_aux_table()` are
