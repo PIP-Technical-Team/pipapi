@@ -6,8 +6,12 @@
 #
 # rprojroot locates the package root regardless of working directory, so these
 # tests work both via devtools::test() and when run interactively.
-
-pkg_root <- rprojroot::find_package_root_file()
+# The tryCatch ensures a graceful skip rather than an opaque error if rprojroot
+# cannot find the package root (e.g., unusual CI working directories).
+pkg_root <- tryCatch(
+  rprojroot::find_package_root_file(),
+  error = function(e) NULL
+)
 
 # ── infer_poverty_line: unescaped bracket interval ───────────────────────────
 # Roxygen2 treats [text] as a cross-reference link.  "[0,1]" inside a @param
@@ -15,6 +19,7 @@ pkg_root <- rprojroot::find_package_root_file()
 # Fix: use \\[0, 1\\] (escaped) or backtick notation.
 
 test_that("infer_poverty_line @param does not contain unescaped [0,1] link syntax", {
+  skip_if(is.null(pkg_root), "Cannot locate package root via rprojroot")
   src <- readLines(file.path(pkg_root, "R", "infer_poverty_line.R"))
   roxy_lines <- src[startsWith(trimws(src), "#'")]
   bad <- grep("\\[0,1\\]", roxy_lines, value = TRUE)
@@ -27,6 +32,7 @@ test_that("infer_poverty_line @param does not contain unescaped [0,1] link synta
 # Fix: add a one-line title as the very first #' line of the block.
 
 test_that("lkup_filter roxygen block has a title line", {
+  skip_if(is.null(pkg_root), "Cannot locate package root via rprojroot")
   src <- readLines(file.path(pkg_root, "R", "utils-lkup.R"))
   func_line <- grep("^lkup_filter <- function", src)
   expect_length(func_line, 1L)

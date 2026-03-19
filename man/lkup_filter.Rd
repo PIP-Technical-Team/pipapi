@@ -15,6 +15,8 @@ lkup_filter(
 )
 }
 \arguments{
+\item{lkup}{data.table: The survey lookup table (typically \code{lkup$svy_lkup}).}
+
 \item{country}{character: Country ISO3 codes or "ALL"}
 
 \item{year}{integer or character: Reporting year(s), "ALL", or "MRV"}

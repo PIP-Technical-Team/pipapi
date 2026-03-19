@@ -70,7 +70,7 @@ blocked_aux_tables <- function(tables = NULL) {
   if (!is.null(tables)) {
     stopifnot(
       "`tables` must be a character vector" = is.character(tables),
-      "`tables` must not contain NA values"  = !anyNA(tables)
+      "`tables` must not contain NA values" = !anyNA(tables)
     )
     set_in_pipapienv("blocked_tables", tables)
     return(invisible(tables))
