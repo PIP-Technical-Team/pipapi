@@ -21,3 +21,10 @@ data.frame
 Return specified auxiliary data in wide format
 Helper function to the UI
 }
+\seealso{
+Other aux: 
+\code{\link{blocked_aux_tables}()},
+\code{\link{get_aux_table}()},
+\code{\link{reset_blocked_aux_tables}()}
+}
+\concept{aux}
