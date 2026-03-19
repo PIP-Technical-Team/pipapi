@@ -654,6 +654,10 @@ create_lkups <- function(data_dir, versions) {
   aux_tables <- list.files(fs::path(data_dir, "_aux"), pattern = "\\.fst$")
   aux_tables <- tools::file_path_sans_ext(aux_tables)
   aux_tables <- sort(aux_tables)
+  # Remove any tables that are temporarily blocked from the public API.
+  # To add or remove blocked tables, edit blocked_aux_tables() in
+  # R/blocked_aux_tables.R.  Direct R calls to get_aux_table() still work.
+  aux_tables <- setdiff(aux_tables, blocked_aux_tables())
 
   # CREATE OBJECT: valid_years ----
   valid_years <- valid_years(data_dir)

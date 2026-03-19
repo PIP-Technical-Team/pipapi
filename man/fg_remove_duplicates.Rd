@@ -24,3 +24,4 @@ data.table
 \description{
 Remove duplicated rows created during the interpolation process
 }
+\keyword{internal}

@@ -9,7 +9,7 @@
 #'   consumption).
 #' @param weight Numeric vector of sampling weights (must be non-negative, same
 #'   length as welfare).
-#' @param popshare Numeric vector of population shares (probabilities in [0,1]);
+#' @param popshare Numeric vector of population shares (probabilities in \[0, 1\]);
 #'   default is 0.5 (median).
 #' @param include Logical; if TRUE, averages neighbors for ties (only for method
 #'   = "nearest").
@@ -26,17 +26,29 @@
 #' - If include = TRUE (and method = "nearest"), averages the two closest neighbors using their weights.
 #' - Returns numeric(0) if popshare is empty.
 #' @keywords internal
-infer_poverty_line <- function(welfare, weight, popshare = 0.5,
-                               include = FALSE,
-                               method = c("nearest","interp"),
-                               assume_sorted = TRUE) {
+infer_poverty_line <- function(
+  welfare,
+  weight,
+  popshare = 0.5,
+  include = FALSE,
+  method = c("nearest", "interp"),
+  assume_sorted = TRUE
+) {
   method <- match.arg(method)
 
   # defenses
-  if (length(welfare) != length(weight)) cli::cli_abort("welfare and weight must have the same length")
-  if (anyNA(welfare) || anyNA(weight))   cli::cli_abort("welfare and weight cannot contain NA")
-  if (any(weight < 0))                   cli::cli_abort("weights must be non-negative")
-  if (!length(popshare)) return(numeric(0))
+  if (length(welfare) != length(weight)) {
+    cli::cli_abort("welfare and weight must have the same length")
+  }
+  if (anyNA(welfare) || anyNA(weight)) {
+    cli::cli_abort("welfare and weight cannot contain NA")
+  }
+  if (any(weight < 0)) {
+    cli::cli_abort("weights must be non-negative")
+  }
+  if (!length(popshare)) {
+    return(numeric(0))
+  }
 
   # clamp probs
   p <- pmin(pmax(as.numeric(popshare), 0), 1)
@@ -55,32 +67,30 @@ infer_poverty_line <- function(welfare, weight, popshare = 0.5,
   if (method == "interp") {
     # collapse::fquantile: weighted linear interpolation
     # 'include' is not used here: interpolation doesn't have that discrete toggle
-    return(fquantile(y,
-                     probs = p,
-                     w = w,
-                     o = o,
-                     names = FALSE))
+    return(fquantile(y, probs = p, w = w, o = o, names = FALSE))
   }
 
   # ---- method == "nearest" (matches your function) ----
   # cumulative weight fractions
-  W  <- fsum(w)
-  if (W <= 0) stop("sum(weight) must be > 0")
-  cw   <- fcumsum(w)
+  W <- fsum(w)
+  if (W <= 0) {
+    stop("sum(weight) must be > 0")
+  }
+  cw <- fcumsum(w)
   prob <- cw / W
-  n    <- length(y)
+  n <- length(y)
 
   # for each p, find the nearest cumulative location (ties -> lower index)
-  j <- findInterval(p, prob, left.open = FALSE)        # j ∈ {0..n}
+  j <- findInterval(p, prob, left.open = FALSE) # j ∈ {0..n}
   j[j < 0L] <- 0L # fit into boundries of vector
-  j[j > n]  <- n
+  j[j > n] <- n
 
-  prev_idx <- pmax.int(j, 1L)                          # 1..n
-  next_idx <- pmin.int(j + 1L, n)                      # 1..n
-  d_prev   <- p - prob[prev_idx]
-  d_next   <- prob[next_idx] - p
+  prev_idx <- pmax.int(j, 1L) # 1..n
+  next_idx <- pmin.int(j + 1L, n) # 1..n
+  d_prev <- p - prob[prev_idx]
+  d_next <- prob[next_idx] - p
   use_next <- (d_next < d_prev) & (j < n)
-  idx      <- fifelse(use_next, next_idx, prev_idx)     # final index
+  idx <- fifelse(use_next, next_idx, prev_idx) # final index
 
   if (!include) {
     # take the discrete value at the nearest location
@@ -88,11 +98,11 @@ infer_poverty_line <- function(welfare, weight, popshare = 0.5,
   } else {
     # average the two neighbors using their weights (the original rule in wbpip)
     idx2 <- pmin.int(idx + 1L, n)
-    wi   <- w[idx]
-    wi2  <- w[idx2]
-    s    <- wi + wi2
-    num  <- wi * y[idx] + wi2 * y[idx2]
-    out  <- fifelse((idx == n) | (s <= 0), y[idx], num / s)
+    wi <- w[idx]
+    wi2 <- w[idx2]
+    s <- wi + wi2
+    num <- wi * y[idx] + wi2 * y[idx2]
+    out <- fifelse((idx == n) | (s <= 0), y[idx], num / s)
     return(out)
   }
 }

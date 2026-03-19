@@ -15,3 +15,4 @@ data.table
 \description{
 Create full list for fg data load, not including country-years in cache
 }
+\keyword{internal}

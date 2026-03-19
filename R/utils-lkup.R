@@ -12,7 +12,6 @@
 #   select_reporting_level()- step 5: filter by reporting level
 #   subset_ctry_years()    - filter the country-years interpolation table
 
-
 #' Subset look-up data
 #' @inheritParams pip
 #' @inheritParams rg_pip
@@ -63,8 +62,9 @@ subset_lkup <- function(
 }
 
 
+#' Filter a survey lookup table by country, year, welfare type, and reporting level
+#'
 #' @keywords internal
-#' @param lkup data.table: The survey lookup table (typically `lkup$svy_lkup`).
 #' @param country character: Country ISO3 codes or "ALL"
 #' @param year integer or character: Reporting year(s), "ALL", or "MRV"
 #' @param valid_regions character: Valid region codes from `lkup$query_controls`

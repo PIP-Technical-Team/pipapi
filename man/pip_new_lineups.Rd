@@ -10,7 +10,6 @@ pip_new_lineups(
   povline = 1.9,
   popshare = NULL,
   fill_gaps = FALSE,
-  group_by = c("none", "wb"),
   welfare_type = c("all", "consumption", "income"),
   reporting_level = c("all", "national", "rural", "urban"),
   ppp = NULL,
@@ -32,9 +31,6 @@ poverty line}
 
 \item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
 values for missing years}
-
-\item{group_by}{character: Will return aggregated values for predefined
-sub-groups}
 
 \item{welfare_type}{character: Welfare type}
 
@@ -81,11 +77,5 @@ pip_new_lineups(country = "AGO",
     fill_gaps = TRUE,
     lkup = lkups)
 
-# Group by regions
-pip_new_lineups(country = "all",
-    year = "all",
-    povline = 1.9,
-    group_by = "wb",
-    lkup = lkups)
 }
 }

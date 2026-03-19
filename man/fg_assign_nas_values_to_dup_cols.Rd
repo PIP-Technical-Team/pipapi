@@ -17,3 +17,4 @@ data.table
 \description{
 Coerce variable causing potential duplicates to NAs
 }
+\keyword{internal}

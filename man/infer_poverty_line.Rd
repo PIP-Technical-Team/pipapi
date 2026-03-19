@@ -20,7 +20,7 @@ consumption).}
 \item{weight}{Numeric vector of sampling weights (must be non-negative, same
 length as welfare).}
 
-\item{popshare}{Numeric vector of population shares (probabilities in \link{0,1});
+\item{popshare}{Numeric vector of population shares (probabilities in [0, 1]);
 default is 0.5 (median).}
 
 \item{include}{Logical; if TRUE, averages neighbors for ties (only for method

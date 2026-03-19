@@ -17,3 +17,4 @@ object of class(x)
 \description{
 Efficient "if" "else" evaluation of null.
 }
+\keyword{internal}

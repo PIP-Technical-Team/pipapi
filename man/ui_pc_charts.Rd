@@ -28,9 +28,6 @@ ui_pc_charts(
 \item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
 values for missing years}
 
-\item{group_by}{character: Will return aggregated values for predefined
-sub-groups}
-
 \item{welfare_type}{character: Welfare type}
 
 \item{reporting_level}{character: Geographical reporting level}

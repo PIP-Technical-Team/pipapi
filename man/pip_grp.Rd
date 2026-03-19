@@ -23,9 +23,6 @@ pip_grp(
 
 \item{povline}{numeric: Poverty line}
 
-\item{group_by}{character: Will return aggregated values for predefined
-sub-groups}
-
 \item{welfare_type}{character: Welfare type}
 
 \item{reporting_level}{character: Geographical reporting level}
