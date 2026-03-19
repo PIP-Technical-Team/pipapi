@@ -2,39 +2,48 @@
 % Please edit documentation in R/blocked_aux_tables.R
 \name{blocked_aux_tables}
 \alias{blocked_aux_tables}
-\title{Auxiliary tables blocked from the public API}
+\title{Get or set the list of blocked auxiliary tables}
 \usage{
-blocked_aux_tables()
+blocked_aux_tables(tables = NULL)
+}
+\arguments{
+\item{tables}{\code{character} vector of auxiliary table names to block, or
+\code{NULL} (default) to retrieve the current blocked list without modifying
+it. Table names are not validated against the available tables at this
+point — a misspelled name will be silently ignored at query time.}
 }
 \value{
-A character vector of table names (may be \code{character(0)} when no
-tables are blocked).
+When getting: a character vector of currently blocked table names.
+When setting: the new blocked list, invisibly.
 }
 \description{
-Returns a character vector of auxiliary table names that are hidden from
-the PIP API.  Tables in this list are excluded from the \verb{/api/v1/aux} and
-\verb{/api/v1/ui_aux} table listings, and are rejected by the plumber validation
-filter when supplied as the \code{table} query parameter.
+When called with no arguments, returns the currently blocked table names.
+When called with \code{tables}, stores that vector as the new blocked list for
+the duration of the R session. Blocked tables are excluded from
+\code{\link[=get_aux_table]{get_aux_table()}} and the API listing endpoints, and behave as if they do
+not exist.
 }
 \details{
-Direct R calls to \code{\link[=get_aux_table]{get_aux_table()}} are \strong{not} affected — blocked tables
-can still be read programmatically from R.
+The default list is defined in \code{.default_blocked_tables} at the top of
+\code{R/blocked_aux_tables.R}. Edit or empty that constant when a table no
+longer needs to be blocked.
 }
-\section{Modifying the blocklist}{
-
-Edit the character vector returned by this function.  Then:
-\enumerate{
-\item Run \code{devtools::document()}.
-\item Re-create lkups (or redeploy) so \code{\link[=create_lkups]{create_lkups()}} picks up the
-change.
-\item Update \code{tests/testthat/test-blocked-aux-tables.R} to match.
-}
-}
-
 \examples{
+# Retrieve the current blocked list
 blocked_aux_tables()
+
+# Override at API startup
+blocked_aux_tables(tables = c("national_poverty_lines"))
+
+# Reset to defaults
+reset_blocked_aux_tables()
 }
 \seealso{
-\code{\link[=get_aux_table]{get_aux_table()}}, \code{\link[=create_lkups]{create_lkups()}}
+\code{\link[=reset_blocked_aux_tables]{reset_blocked_aux_tables()}}, \code{\link[=get_aux_table]{get_aux_table()}}, \code{\link[=create_lkups]{create_lkups()}}
+
+Other aux: 
+\code{\link{get_aux_table}()},
+\code{\link{get_aux_table_ui}()},
+\code{\link{reset_blocked_aux_tables}()}
 }
 \concept{aux}
