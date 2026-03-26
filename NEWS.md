@@ -1,3 +1,7 @@
+# pipapi 1.5.3
+
+* Fix issue with `NA` population in refy
+
 # pipapi 1.5.2
 
 * Temporarily block `national_poverty_lines` from the public API via the new
