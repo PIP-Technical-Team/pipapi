@@ -370,7 +370,12 @@ create_lkups <- function(data_dir, versions) {
 
     # --- END inclussion of CMD data.
 
-    refy_lkup <- refy_lkup[reporting_year %in% lineup_years$lineup_years, ]
+    refy_lkup <- refy_lkup[
+      reporting_year %in% lineup_years$lineup_years,
+    ][
+      # Filter out rows with missing or zero population
+      !is.na(reporting_pop) & reporting_pop > 0
+    ]
 
     gv(
       refy_lkup,

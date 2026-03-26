@@ -28,7 +28,7 @@ fg <- pip(country = "ALL", lkup = lkup, fill_gaps = TRUE)
 
 ago <- pip(country = "AGO", lkup = lkup, fill_gaps = TRUE)
 
-wb <- pip_agg(group_by = "wb", lkup = lkup)
+wb <- pip_agg(group_by = "wb", lkup = lkup, povline = 3)
 
 
 # cache most common queries --------------
@@ -50,19 +50,18 @@ cl <- pip(
 fg <- pip(country = "ALL", lkup = lkup, fill_gaps = TRUE, povline = povlines)
 
 wb <- pip_agg(group_by = "wb", lkup = lkup, povline = povlines)
-
+pushoverr::pushover("finished inter caching")
 
 # Debugging --------------
 
 # remove columns where all obs ar NAs
 
-ttt <- pip(country = "AUS", lkup = lkup, fill_gaps = FALSE, povline = 3)
+ttt <- pip(country = "MWI", lkup = lkup, fill_gaps = FALSE, povline = 3)
 head(ttt)
 
 
-debugonce(pipapi:::add_spl)
-col <- pip(country = "COL", lkup = lkup, fill_gaps = TRUE, povline = 3)
-head(col)
+qqq <- pip(country = "MWI", lkup = lkup, fill_gaps = TRUE, povline = 3)
+head(qqq)
 
 
 dt <- dt[, .SD, .SDcols = \(x) !all(is.na(x))]
