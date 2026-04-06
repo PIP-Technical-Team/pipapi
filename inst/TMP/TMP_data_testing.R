@@ -88,6 +88,14 @@ dt <- pip("COL", lkup = lkup, additional_ind = TRUE)
 
 dt <- pip("VEN", lkup = lkup, fill_gaps = TRUE)
 
+
+dd <- ui_cp_charts(
+  country = "CHN",
+  povline = 2.15,
+  lkup = lkup
+)
+
+
 # default parameters]
 
 lp <- list(

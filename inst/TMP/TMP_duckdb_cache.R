@@ -12,47 +12,60 @@ latest_version <-
   available_versions(root_dir) |>
   max()
 
-lkups <- create_versioned_lkups(root_dir,
-                                vintage_pattern = "^202509.+2017.+(PROD)$")
+lkups <- create_versioned_lkups(
+  root_dir,
+  vintage_pattern = "^20260324.+(PROD)$"
+)
+
 # lkups <- create_versioned_lkups(root_dir,
 #                                 vintage_pattern = latest_version)
 
-# lkup <- lkups$versions_paths[[lkups$versions[[2]]]]
-ver_to_use <- lkups$latest_release # this is important. You need this object below
-
-lkup <- lkups$versions_paths[[ver_to_use]]
-
 # DEGUB -------------
-
 
 options(pipapi.query_live_data = FALSE)
 getOption("pipapi.query_live_data")
 
-reset_cache(lkup = lkup)
+for (ver_to_use in lkups$versions) {
+  lkup <- lkups$versions_paths[[ver_to_use]]
 
-tictoc::tic()
-sv <- pip(country = "ALL",
-          year = "ALL",
-          povline = lkup$pl_lkup$poverty_line,
-          lkup = lkup,
-          fill_gaps = FALSE)
-tictoc::toc()
+  reset_cache(lkup = lkup)
+  povlines <- get_aux_table(lkup$data_root, "poverty_lines") |>
+    _[, poverty_line]
 
+  tictoc::tic()
+  sv <- pip(
+    country = "ALL",
+    year = "ALL",
+    povline = povlines,
+    lkup = lkup,
+    fill_gaps = FALSE
+  )
+  sv_time <- tictoc::toc(quiet = TRUE)
+  sv_elapsed <- round(sv_time$toc - sv_time$tic, 1)
 
-tictoc::tic()
-fg <- pip(country = "ALL",
-          year = "ALL",
-          povline = lkup$pl_lkup$poverty_line,
-          lkup = lkup,
-          fill_gaps = TRUE)
-tictoc::toc()
+  tictoc::tic()
+  fg <- pip(
+    country = "ALL",
+    year = "ALL",
+    povline = povlines,
+    lkup = lkup,
+    fill_gaps = TRUE
+  )
+  fg_time <- tictoc::toc(quiet = TRUE)
+  fg_elapsed <- round(fg_time$toc - fg_time$tic, 1)
 
-
-# copy cache to TFS folder
-ori_cache <- fs::path(lkup$data_root, "cache.duckdb")
-dest_cache <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_SERVER") |>
-  fs::path(ver_to_use, "cache.duckdb")
-
-if (fs::file_exists(ori_cache)) {
-  fs::file_copy(ori_cache, dest_cache, overwrite = TRUE)
+  msg <- paste0(
+    "Finished caching for: ",
+    ver_to_use,
+    "\n",
+    "Survey years: ",
+    sv_elapsed,
+    "s | Lineup years: ",
+    fg_elapsed,
+    "s | ",
+    "Total: ",
+    sv_elapsed + fg_elapsed,
+    "s"
+  )
+  pushoverr::pushover(msg)
 }
