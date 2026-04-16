@@ -1,3 +1,19 @@
+test_that("DuckDB file can be reopened for writing after load_inter_cache reads it", {
+  tmp        <- withr::local_tempdir()
+  cache_path <- fs::path(tmp, "cache", ext = "duckdb")
+
+  create_duckdb_file(cache_path)
+
+  # Simulate the sequence: read (load_inter_cache) then write (update_master_file)
+  load_inter_cache(cache_file_path = cache_path, fill_gaps = FALSE)
+
+  # Must be able to open a write connection immediately after
+  expect_no_error({
+    write_con <- connect_with_retry(cache_path, read_only = FALSE)
+    DBI::dbDisconnect(write_con, shutdown = TRUE)
+  })
+})
+
 test_that("load_inter_cache returns empty data.table when tables do not exist", {
   tmp <- withr::local_tempdir()
   cache_path <- fs::path(tmp, "cache", ext = "duckdb")

@@ -243,7 +243,7 @@ update_master_file <- function(
     !DBI::dbExistsTable(write_con, "rg_master_file") ||
       !DBI::dbExistsTable(write_con, "fg_master_file")
   ) {
-    duckdb::dbDisconnect(write_con)
+    DBI::dbDisconnect(write_con, shutdown = TRUE)
     create_duckdb_file(cache_file_path)
     write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
   }
@@ -307,7 +307,7 @@ update_master_file <- function(
     )
   )
 
-  duckdb::dbDisconnect(write_con)
+  DBI::dbDisconnect(write_con, shutdown = TRUE)
 
   if (nr > 0 && verbose) {
     message(glue("{target_file} is updated."))
@@ -378,7 +378,7 @@ reset_cache <- function(
   }
 
   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
-  write_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path)
+  write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
 
   type <- match.arg(type)
   if (type == "both") {
@@ -390,7 +390,7 @@ reset_cache <- function(
   if ("fg" %in% type && DBI::dbExistsTable(write_con, "fg_master_file")) {
     DBI::dbExecute(write_con, "DELETE from fg_master_file")
   }
-  duckdb::dbDisconnect(write_con)
+  DBI::dbDisconnect(write_con, shutdown = TRUE)
 }
 
 create_duckdb_file <- function(cache_file_path) {
@@ -420,7 +420,7 @@ create_duckdb_file <- function(cache_file_path) {
                  watts     DOUBLE
   )"
   )
-  DBI::dbDisconnect(con)
+  DBI::dbDisconnect(con, shutdown = TRUE)
 }
 
 #' Load Intermediate cache data
@@ -446,7 +446,7 @@ load_inter_cache <- function(
   con <- connect_with_retry(cache_file_path)
 
   if (!DBI::dbExistsTable(con, target_file)) {
-    duckdb::dbDisconnect(con)
+    DBI::dbDisconnect(con, shutdown = TRUE)
     return(data.table::data.table())
   }
 
@@ -456,6 +456,6 @@ load_inter_cache <- function(
   # connection because duckdb kind of inherits read_only flag from previous
   # connection object if it is not closed More details here
   # https://app.clickup.com/t/868cdpe3q
-  duckdb::dbDisconnect(con)
+  DBI::dbDisconnect(con, shutdown = TRUE)
   setDT(master_file)
 }
