@@ -1,5 +1,5 @@
 test_that("DuckDB file can be reopened for writing after load_inter_cache reads it", {
-  tmp        <- withr::local_tempdir()
+  tmp <- withr::local_tempdir()
   cache_path <- fs::path(tmp, "cache", ext = "duckdb")
 
   create_duckdb_file(cache_path)
@@ -120,4 +120,25 @@ test_that("reset_cache deletes rows when tables exist", {
 
   expect_equal(rg_count, 0)
   expect_equal(fg_count, 0)
+})
+
+# TMP: live test against real data vintage ----
+# Delete this test once the DuckDB connection lifecycle is confirmed working.
+test_that("TMP: full read-then-write cycle works on real 2017 INT cache", {
+  real_data_root <- "E:/PIP/pipapi_data/20260430_2017_01_02_INT"
+  skip_if(!dir.exists(real_data_root), "Real data directory not available")
+
+  cache_path <- fs::path(real_data_root, "cache", ext = "duckdb")
+
+  # Step 1: read (replicates load_inter_cache inside return_if_exists)
+  result <- expect_no_warning(
+    load_inter_cache(cache_file_path = cache_path, fill_gaps = FALSE)
+  )
+  expect_true(data.table::is.data.table(result))
+
+  # Step 2: write connection must open immediately after — this was the failure
+  expect_no_error({
+    write_con <- connect_with_retry(cache_path, read_only = FALSE)
+    DBI::dbDisconnect(write_con, shutdown = TRUE)
+  })
 })

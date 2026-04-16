@@ -8,7 +8,7 @@ data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
 
 lkups <- create_versioned_lkups(
   data_dir = data_dir,
-  vintage_pattern = "20260430_2021_01_02_INT"
+  vintage_pattern = "20260430_2017_01_02_INT"
 )
 lkup <- lkups$versions_paths[[lkups$latest_release]]
 
