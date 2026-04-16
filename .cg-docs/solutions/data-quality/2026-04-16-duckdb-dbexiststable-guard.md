@@ -81,6 +81,10 @@ if (!DBI::dbExistsTable(con, target_file)) {
 > `DBI::dbExistsTable(con, table_name)` and handle the absent-table case
 > explicitly.**
 
+> **Always disconnect with `DBI::dbDisconnect(con, shutdown = TRUE)` to fully
+> release the file lock. Never use `duckdb::dbDisconnect(con)` or
+> `DBI::dbDisconnect(con)` without `shutdown = TRUE`.**
+
 ### Pattern options by operation type
 
 | Operation | When table absent, do… |
@@ -99,4 +103,5 @@ if (!DBI::dbExistsTable(con, target_file)) {
 
 - [bugs/2026-04-16-reset-cache-missing-tables.md](../bugs/2026-04-16-reset-cache-missing-tables.md) — first instance (`reset_cache`)
 - [bugs/2026-04-16-load-inter-cache-missing-tables.md](../bugs/2026-04-16-load-inter-cache-missing-tables.md) — third instance (`load_inter_cache`)
+- [bugs/2026-04-16-duckdb-file-lock-shutdown.md](../bugs/2026-04-16-duckdb-file-lock-shutdown.md) — file locking: always use `shutdown = TRUE`
 - [testing-patterns/2026-04-16-testing-duckdb-functions.md](../testing-patterns/2026-04-16-testing-duckdb-functions.md) — how to unit-test DuckDB functions safely
