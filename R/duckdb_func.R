@@ -354,11 +354,11 @@ reset_cache <- function(pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'),
   write_con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path)
 
   type <- match.arg(type)
-  if(type == "both") type = c("rg", "fg")
-  if("rg" %in% type) {
+  if(type == "both") type <- c("rg", "fg")
+  if("rg" %in% type && DBI::dbExistsTable(write_con, "rg_master_file")) {
     DBI::dbExecute(write_con, "DELETE from rg_master_file")
   }
-  if("fg" %in% type) {
+  if("fg" %in% type && DBI::dbExistsTable(write_con, "fg_master_file")) {
     DBI::dbExecute(write_con, "DELETE from fg_master_file")
   }
   duckdb::dbDisconnect(write_con)
