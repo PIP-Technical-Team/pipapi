@@ -8,7 +8,7 @@ data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
 
 lkups <- create_versioned_lkups(
   data_dir = data_dir,
-  vintage_pattern = "20260324_2021_01_02_PROD"
+  vintage_pattern = "20260430_2021_01_02_INT"
 )
 lkup <- lkups$versions_paths[[lkups$latest_release]]
 
@@ -26,9 +26,9 @@ cl <- pip(country = "ALL", lkup = lkup, fill_gaps = FALSE)
 
 fg <- pip(country = "ALL", lkup = lkup, fill_gaps = TRUE)
 
-ago <- pip(country = "AGO", lkup = lkup, fill_gaps = TRUE)
-
 wb <- pip_agg(group_by = "wb", lkup = lkup, povline = 3)
+
+ago <- pip(country = "AGO", lkup = lkup, fill_gaps = TRUE)
 
 
 # cache most common queries --------------

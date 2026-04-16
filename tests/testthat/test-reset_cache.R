@@ -1,5 +1,5 @@
 test_that("update_master_file creates schema on a fresh cache file", {
-  tmp        <- withr::local_tempdir()
+  tmp <- withr::local_tempdir()
   cache_path <- fs::path(tmp, "cache", ext = "duckdb")
 
   # Empty DuckDB — no tables
@@ -10,13 +10,13 @@ test_that("update_master_file creates schema on a fresh cache file", {
   set_in_pipapienv("pl_to_store", c(2.15))
 
   dat <- data.table::data.table(
-    cache_id        = "AGO_2018_IBEP-II_V01_M_V02_A_GMD",
+    cache_id = "AGO_2018_IBEP-II_V01_M_V02_A_GMD",
     reporting_level = "national",
-    poverty_line    = 2.15,
-    headcount       = 0.5,
-    poverty_gap     = 0.2,
+    poverty_line = 2.15,
+    headcount = 0.5,
+    poverty_gap = 0.2,
     poverty_severity = 0.1,
-    watts           = 0.05
+    watts = 0.05
   )
 
   expect_no_error(
@@ -25,7 +25,7 @@ test_that("update_master_file creates schema on a fresh cache file", {
 
   # Tables must now exist and contain the inserted row
   con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_path)
-  n   <- DBI::dbGetQuery(con, "SELECT count(*) as n FROM rg_master_file")$n
+  n <- DBI::dbGetQuery(con, "SELECT count(*) as n FROM rg_master_file")$n
   duckdb::dbDisconnect(con)
 
   expect_equal(n, 1L)
@@ -35,14 +35,14 @@ test_that("reset_cache does not error when cache tables do not exist", {
   tmp <- withr::local_tempdir()
   cache_path <- fs::path(tmp, "cache", ext = "duckdb")
 
- # Create an empty DuckDB — no tables inside
+  # Create an empty DuckDB — no tables inside
   con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_path)
   duckdb::dbDisconnect(con)
 
   lkup_mock <- list(data_root = tmp)
 
   withr::local_envvar(
-    PIP_CACHE_LOCAL_KEY  = "test-key",
+    PIP_CACHE_LOCAL_KEY = "test-key",
     PIP_CACHE_SERVER_KEY = "test-key"
   )
 
@@ -59,15 +59,21 @@ test_that("reset_cache deletes rows when tables exist", {
   create_duckdb_file(cache_path)
 
   # Insert a dummy row
- con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_path)
-  DBI::dbExecute(con, "INSERT INTO rg_master_file VALUES ('id1', 'national', 2.15, 0.1, 0.05, 0.02, 0.01)")
-  DBI::dbExecute(con, "INSERT INTO fg_master_file VALUES ('id1', 2.15, 0.1, 0.05, 0.02, 0.01)")
+  con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_path)
+  DBI::dbExecute(
+    con,
+    "INSERT INTO rg_master_file VALUES ('id1', 'national', 2.15, 0.1, 0.05, 0.02, 0.01)"
+  )
+  DBI::dbExecute(
+    con,
+    "INSERT INTO fg_master_file VALUES ('id1', 2.15, 0.1, 0.05, 0.02, 0.01)"
+  )
   duckdb::dbDisconnect(con)
 
   lkup_mock <- list(data_root = tmp)
 
   withr::local_envvar(
-    PIP_CACHE_LOCAL_KEY  = "test-key",
+    PIP_CACHE_LOCAL_KEY = "test-key",
     PIP_CACHE_SERVER_KEY = "test-key"
   )
 
