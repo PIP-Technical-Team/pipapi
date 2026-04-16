@@ -77,3 +77,4 @@ Anti-pattern: assuming database state based on file existence alone.
 ## Related
 
 - [testing-patterns/2026-04-16-testing-duckdb-functions.md](../testing-patterns/2026-04-16-testing-duckdb-functions.md) — pattern for unit-testing DuckDB cache functions with ephemeral databases
+- [data-quality/2026-04-16-duckdb-dbexiststable-guard.md](../data-quality/2026-04-16-duckdb-dbexiststable-guard.md) — team-wide convention: always guard DuckDB table operations with `dbExistsTable()`

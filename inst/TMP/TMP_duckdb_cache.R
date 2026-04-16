@@ -15,7 +15,8 @@ latest_version <-
 lkups <- create_versioned_lkups(
   root_dir,
   # vintage_pattern = "^20260324.+(PROD)$"
-  vintage_pattern = "^20260430.+(INT)$"
+  # vintage_pattern = "^20260430.+(INT)$"
+  vintage_pattern = "^20260430_2017.+(INT)$"
 )
 
 # lkups <- create_versioned_lkups(root_dir,

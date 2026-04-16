@@ -94,3 +94,4 @@ test_that("reset_cache deletes rows when tables exist", {
 ## Related
 
 - [bugs/2026-04-16-reset-cache-missing-tables.md](../bugs/2026-04-16-reset-cache-missing-tables.md) — the bug that surfaced this pattern
+- [data-quality/2026-04-16-duckdb-dbexiststable-guard.md](../data-quality/2026-04-16-duckdb-dbexiststable-guard.md) — team-wide convention: always guard DuckDB table operations with `dbExistsTable()`
