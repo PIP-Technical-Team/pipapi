@@ -237,6 +237,14 @@ update_master_file <- function(dat,
 
   write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
 
+  # Create schema if this is a fresh / uninitialized cache file
+  if (!DBI::dbExistsTable(write_con, "rg_master_file") ||
+      !DBI::dbExistsTable(write_con, "fg_master_file")) {
+    duckdb::dbDisconnect(write_con)
+    create_duckdb_file(cache_file_path)
+    write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
+  }
+
   if (fill_gaps) {
     target_file <- "fg_master_file"
     unique_keys  <- c("interpolation_id", "poverty_line")
