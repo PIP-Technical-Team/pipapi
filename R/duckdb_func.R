@@ -445,6 +445,11 @@ load_inter_cache <- function(
   }
   con <- connect_with_retry(cache_file_path)
 
+  if (!DBI::dbExistsTable(con, target_file)) {
+    duckdb::dbDisconnect(con)
+    return(data.table::data.table())
+  }
+
   master_file <- DBI::dbGetQuery(con, glue("select * from {target_file}"))
 
   # It is important to close the read connection before you open a write

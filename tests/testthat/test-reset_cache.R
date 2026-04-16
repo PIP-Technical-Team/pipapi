@@ -1,3 +1,18 @@
+test_that("load_inter_cache returns empty data.table when tables do not exist", {
+  tmp <- withr::local_tempdir()
+  cache_path <- fs::path(tmp, "cache", ext = "duckdb")
+
+  # Empty DuckDB — no tables
+  con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_path)
+  duckdb::dbDisconnect(con)
+
+  result <- expect_no_warning(
+    load_inter_cache(cache_file_path = cache_path, fill_gaps = FALSE)
+  )
+  expect_true(is.data.table(result))
+  expect_equal(nrow(result), 0L)
+})
+
 test_that("update_master_file creates schema on a fresh cache file", {
   tmp <- withr::local_tempdir()
   cache_path <- fs::path(tmp, "cache", ext = "duckdb")
