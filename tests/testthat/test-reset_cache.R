@@ -117,6 +117,38 @@ test_that("update_master_file releases DuckDB lock even when it errors", {
   })
 })
 
+test_that("treat_cache_and_main returns results when cache update fails", {
+  out_in <- list(
+    data_in_cache = NULL,
+    main_data = data.table::data.table(
+      country_code = "AGO",
+      reporting_year = 2017L,
+      reporting_level = "national",
+      welfare_type = "income",
+      poverty_line = 2.15,
+      headcount = 0.2
+    )
+  )
+
+  result <- testthat::with_mocked_bindings(
+    expect_warning(
+      pipapi:::treat_cache_and_main(
+        out = out_in,
+        cache_file_path = "E:/PIP/pipapi_data/20260430_2017_01_02_INT/cache.duckdb",
+        lkup = list(use_new_lineup_version = TRUE),
+        fill_gaps = FALSE
+      ),
+      "Failed to update intermediate cache"
+    ),
+    update_master_file = function(...) stop("simulated cache lock"),
+    .package = "pipapi"
+  )
+
+  expect_true(data.table::is.data.table(result))
+  expect_equal(nrow(result), 1L)
+  expect_equal(result$country_code, "AGO")
+})
+
 test_that("reset_cache does not error when cache tables do not exist", {
   tmp <- withr::local_tempdir()
   cache_path <- fs::path(tmp, "cache", ext = "duckdb")
@@ -184,6 +216,24 @@ test_that("TMP: full read-then-write cycle works on real 2017 INT cache", {
   skip_if(!dir.exists(real_data_root), "Real data directory not available")
 
   cache_path <- fs::path(real_data_root, "cache", ext = "duckdb")
+
+  probe <- tryCatch(
+    {
+      con <- connect_with_retry(
+        cache_path,
+        read_only = TRUE,
+        max_attempts = 1,
+        delay_sec = 0
+      )
+      DBI::dbDisconnect(con, shutdown = TRUE)
+      TRUE
+    },
+    error = function(e) conditionMessage(e)
+  )
+
+  if (is.character(probe) && grepl("being used by another process", probe)) {
+    skip("Real cache file is already locked in the current Positron R process")
+  }
 
   # Step 1: read (replicates load_inter_cache inside return_if_exists)
   result <- expect_no_warning(

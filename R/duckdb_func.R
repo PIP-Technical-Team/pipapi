@@ -435,6 +435,16 @@ create_duckdb_file <- function(cache_file_path) {
   DBI::dbDisconnect(con, shutdown = TRUE)
 }
 
+safe_update_master_file <- function(dat, cache_file_path, fill_gaps) {
+  tryCatch(
+    update_master_file(dat, cache_file_path, fill_gaps),
+    error = function(e) {
+      cli::cli_warn("Failed to update intermediate cache: {e$message}")
+      invisible(FALSE)
+    }
+  )
+}
+
 #' Load Intermediate cache data
 #'
 #' @inheritParams return_if_exists

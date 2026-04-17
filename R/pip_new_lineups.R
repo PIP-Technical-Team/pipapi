@@ -194,7 +194,7 @@ treat_cache_and_main <- \(out, cache_file_path, lkup, fill_gaps) {
         rowbind(cached_data)
     }
 
-    update_master_file(main_data, cache_file_path, fill_gaps)
+    safe_update_master_file(main_data, cache_file_path, fill_gaps)
     rm(main_data)
   } else {
     out <- cached_data

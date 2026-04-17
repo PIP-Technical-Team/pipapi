@@ -147,7 +147,7 @@ pip_old_lineups <- function(
     out <- main_data |>
       rowbind(cached_data)
 
-    update_master_file(main_data, cache_file_path, fill_gaps)
+    safe_update_master_file(main_data, cache_file_path, fill_gaps)
   } else {
     out <- cached_data
   }
