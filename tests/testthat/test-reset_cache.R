@@ -14,6 +14,33 @@ test_that("DuckDB file can be reopened for writing after load_inter_cache reads 
   })
 })
 
+test_that("connect_with_retry shuts down DuckDB driver after connect failure", {
+  tmp <- withr::local_tempdir()
+  cache_path <- fs::path(tmp, "cache", ext = "duckdb")
+
+  testthat::with_mocked_bindings(
+    {
+      expect_error(
+        connect_with_retry(
+          cache_path,
+          read_only = FALSE,
+          max_attempts = 1,
+          delay_sec = 0,
+          verbose = FALSE
+        ),
+        "forced connect failure"
+      )
+    },
+    dbConnect = function(...) stop("forced connect failure"),
+    .package = "duckdb"
+  )
+
+  expect_no_error({
+    con <- connect_with_retry(cache_path, read_only = FALSE)
+    DBI::dbDisconnect(con, shutdown = TRUE)
+  })
+})
+
 test_that("load_inter_cache returns empty data.table when tables do not exist", {
   tmp <- withr::local_tempdir()
   cache_path <- fs::path(tmp, "cache", ext = "duckdb")
@@ -60,6 +87,34 @@ test_that("update_master_file creates schema on a fresh cache file", {
   duckdb::dbDisconnect(con)
 
   expect_equal(n, 1L)
+})
+
+test_that("update_master_file releases DuckDB lock even when it errors", {
+  tmp <- withr::local_tempdir()
+  cache_path <- fs::path(tmp, "cache", ext = "duckdb")
+
+  create_duckdb_file(cache_path)
+
+  set_in_pipapienv("pl_to_store", c(2.15))
+
+  dat <- data.table::data.table(
+    cache_id = "AGO_2018_IBEP-II_V01_M_V02_A_GMD",
+    reporting_level = "national",
+    poverty_line = 2.15,
+    headcount = 0.5,
+    poverty_gap = 0.2,
+    poverty_severity = 0.1
+  )
+
+  expect_error(
+    update_master_file(dat, cache_file_path = cache_path, fill_gaps = FALSE),
+    "watts"
+  )
+
+  expect_no_error({
+    con <- connect_with_retry(cache_path, read_only = FALSE)
+    DBI::dbDisconnect(con, shutdown = TRUE)
+  })
 })
 
 test_that("reset_cache does not error when cache tables do not exist", {

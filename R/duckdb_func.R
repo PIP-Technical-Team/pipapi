@@ -330,16 +330,28 @@ connect_with_retry <- function(
 
   attempt <- 1
   while (attempt <= max_attempts) {
+    drv <- NULL
+    con <- NULL
+
     tryCatch(
       {
-        con <- duckdb::duckdb(dbdir = db_path, read_only = read_only) |>
-          duckdb::dbConnect()
+        drv <- duckdb::duckdb(dbdir = db_path, read_only = read_only)
+        con <- duckdb::dbConnect(drv)
         if (verbose) {
           message("Connected on attempt ", attempt)
         }
         return(con)
       },
       error = function(e) {
+        if (!is.null(con) && DBI::dbIsValid(con)) {
+          try(DBI::dbDisconnect(con, shutdown = TRUE), silent = TRUE)
+        } else if (!is.null(drv)) {
+          suppressWarnings(
+            try(duckdb::duckdb_shutdown(drv), silent = TRUE)
+          )
+        }
+        gc()
+
         if (verbose) {
           message("Attempt ", attempt, " failed: ", conditionMessage(e))
         }
