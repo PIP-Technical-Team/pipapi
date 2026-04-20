@@ -23,14 +23,17 @@ library(pipapi)
 .req_id <- function() {
   ts_ms_num <- as.numeric(Sys.time()) * 1000
   ts_ms_chr <- format(ts_ms_num, scientific = FALSE, trim = TRUE)
-  rnd       <- sample.int(1e9, 1)
-  id_raw    <- paste0(ts_ms_chr, "-", rnd)
+  rnd <- sample.int(1e9, 1)
+  id_raw <- paste0(ts_ms_chr, "-", rnd)
 
   list(
-    id_raw    = id_raw,
-    timestamp = as.POSIXct(as.numeric(ts_ms_chr) / 1000,
-                           origin = "1970-01-01", tz = "UTC"),
-    random    = rnd
+    id_raw = id_raw,
+    timestamp = as.POSIXct(
+      as.numeric(ts_ms_chr) / 1000,
+      origin = "1970-01-01",
+      tz = "UTC"
+    ),
+    random = rnd
   )
 }
 
@@ -39,9 +42,9 @@ library(pipapi)
 # ---- Always-on request context (one log line per request) ----
 #* @filter ctx
 function(req, res) {
-  rid <- .req_id()  # list(id_raw, timestamp, random)
+  rid <- .req_id() # list(id_raw, timestamp, random)
 
-  req$.id      <- rid$id_raw
+  req$.id <- rid$id_raw
   res$setHeader("X-Request-ID", req$.id)
 
   # keep decoded pieces if helpful
@@ -49,16 +52,26 @@ function(req, res) {
   req$.id_rand <- rid$random
 
   req$.start <- .now()
-  req$.path  <- req$PATH_INFO %||% ""
-  req$.meth  <- req$REQUEST_METHOD %||% ""
+  req$.path <- req$PATH_INFO %||% ""
+  req$.meth <- req$REQUEST_METHOD %||% ""
 
-  on.exit({
-    total <- .now() - req$.start
-    cat(sprintf(
-      '{"type":"access","id":"%s","method":"%s","path":"%s","status":%s,"dur_s":%.6f}\n',
-      req$.id, req$.meth, req$.path, as.character(res$status %||% NA_integer_), total
-    ), file = stderr())
-  }, add = TRUE)
+  on.exit(
+    {
+      total <- .now() - req$.start
+      cat(
+        sprintf(
+          '{"type":"access","id":"%s","method":"%s","path":"%s","status":%s,"dur_s":%.6f}\n',
+          req$.id,
+          req$.meth,
+          req$.path,
+          as.character(res$status %||% NA_integer_),
+          total
+        ),
+        file = stderr()
+      )
+    },
+    add = TRUE
+  )
 
   forward()
 }
@@ -73,58 +86,69 @@ function(pr) {
     pr_hook("postserialize", function(req, res) {
       if (!is.null(req$.ser0) && !is.na(req$.ser0)) {
         ser <- .now() - req$.ser0
-        cat(sprintf(
-          '{"type":"serialize","id":"%s","path":"%s","dur_s":%.6f}\n',
-          req$.id %||% "", req$.path %||% "", ser
-        ), file = stderr())
+        cat(
+          sprintf(
+            '{"type":"serialize","id":"%s","path":"%s","dur_s":%.6f}\n',
+            req$.id %||% "",
+            req$.path %||% "",
+            ser
+          ),
+          file = stderr()
+        )
       }
     })
 }
-
 
 
 # ========================================================================
 # API filters -------------------------------------------------------------
 # ========================================================================
 
-
 #* Ensure that version parameter is correct
 #* @filter validate_version
 function(req, res) {
   ### STEP 1:
   # If no arguments are passed, use the latest version
-  if (is.null(req$argsQuery$release_version) &
+  if (
+    is.null(req$argsQuery$release_version) &
       is.null(req$argsQuery$ppp_version) &
       is.null(req$argsQuery$version) &
-      is.null(req$argsQuery$identity)) {
-      version <- lkups$latest_release
+      is.null(req$argsQuery$identity)
+  ) {
+    version <- lkups$latest_release
   } else {
-  ### STEP 2:
-  # If partial version information is passed, use selection algorithm
+    ### STEP 2:
+    # If partial version information is passed, use selection algorithm
     if (is.null(req$argsQuery$identity)) {
       req$argsQuery$identity <- 'PROD'
     }
 
     version <-
-      pipapi::return_correct_version(req$argsQuery$version,
-                                     req$argsQuery$release_version,
-                                     req$argsQuery$ppp_version,
-                                     req$argsQuery$identity, lkups$versions)
+      pipapi::return_correct_version(
+        req$argsQuery$version,
+        req$argsQuery$release_version,
+        req$argsQuery$ppp_version,
+        req$argsQuery$identity,
+        lkups$versions
+      )
   }
   ### STEP 3:
   # If the version is still not found (404) or it is not present in valid versions
-    # vector return an error.
-    if (!version %in% lkups$versions) {
-        res$status <- 404
-        out <- list(
-          error = "Invalid query arguments have been submitted.",
-          details = list(msg = "The selected value is not available.
+  # vector return an error.
+  if (!version %in% lkups$versions) {
+    res$status <- 404
+    out <- list(
+      error = "Invalid query arguments have been submitted.",
+      details = list(
+        msg = "The selected value is not available.
                          Please select one of the valid values",
-                         valid = pipapi::version_dataframe(lkups$versions)))
-        return(out)
-    } else {
-      req$argsQuery$version <- version
-    }
+        valid = pipapi::version_dataframe(lkups$versions)
+      )
+    )
+    return(out)
+  } else {
+    req$argsQuery$version <- version
+  }
 
   plumber::forward()
 }
@@ -166,8 +190,7 @@ function(req, res) {
     # treated asynchronously.
     # 2) The introduction of PPP versioning implies having a dynamic default
     # poverty line
-    req <- pipapi:::assign_required_params(req,
-                                           pl_lkup = lkups$pl_lkup)
+    req <- pipapi:::assign_required_params(req, pl_lkup = lkups$pl_lkup)
 
     ### STEP 2
     # Validate individual query parameters
@@ -183,8 +206,10 @@ function(req, res) {
     # Break if bad combination of country/region and grouping
     endpoint <- pipapi:::extract_endpoint(req$PATH_INFO)
     if (endpoint == "pip-grp") {
-      group_condition   <- req$argsQuery$group_by != "none"
-      country_condition <- !all(req$argsQuery$country %in% query_controls$region$values)
+      group_condition <- req$argsQuery$group_by != "none"
+      country_condition <- !all(
+        req$argsQuery$country %in% query_controls$region$values
+      )
       if (group_condition & country_condition) {
         res$status <- 400
         invalid_params <- "region"
@@ -196,28 +221,38 @@ function(req, res) {
 
     # Break if bad combination of table and long_format
     if (endpoint == "aux") {
-      if (isTRUE(req$argsQuery$long_format) &
-          !is.null(req$argsQuery$table)) {
-
-        if (!req$argsQuery$table %in% pipapi::get_valid_aux_long_format_tables()) {
-
+      if (
+        isTRUE(req$argsQuery$long_format) &
+          !is.null(req$argsQuery$table)
+      ) {
+        if (
+          !req$argsQuery$table %in% pipapi::get_valid_aux_long_format_tables()
+        ) {
           res$status <- 404
           out <- list(
             error = "Invalid query arguments have been submitted.",
-            details = list(msg = "The selected table is not available in long format. Please select one of the valid values",
-                         valid = pipapi::get_valid_aux_long_format_tables()))
+            details = list(
+              msg = "The selected table is not available in long format. Please select one of the valid values",
+              valid = pipapi::get_valid_aux_long_format_tables()
+            )
+          )
           return(out)
         }
       }
     }
 
     if (endpoint %in% c("grouped-stats", "regression-params", "lorenz-curve")) {
-      result <- validate_input_grouped_stats(req$argsQuery$cum_welfare, req$argsQuery$cum_population)
-      if(is.null(result)) {
+      result <- validate_input_grouped_stats(
+        req$argsQuery$cum_welfare,
+        req$argsQuery$cum_population
+      )
+      if (is.null(result)) {
         res$status <- 404
         out <- list(
           error = "Invalid query arguments have been submitted.",
-          details = list(msg = "You have either passed more than 100 values or the length of two vectors is not the same")
+          details = list(
+            msg = "You have either passed more than 100 values or the length of two vectors is not the same"
+          )
         )
         return(out)
       } else {
@@ -237,11 +272,18 @@ function(req, res) {
         unique()
 
       max_povlines <- 10
-      if (length(tmppl) > max_povlines) { # limit number of poverty lines
+      if (length(tmppl) > max_povlines) {
+        # limit number of poverty lines
         res$status <- 404
         out <- list(
           error = "Invalid number of poverty lines.",
-          details = list(msg = paste0("You can't provide more than ", max_povlines, " poverty lines"))
+          details = list(
+            msg = paste0(
+              "You can't provide more than ",
+              max_povlines,
+              " poverty lines"
+            )
+          )
         )
         return(out)
       }
@@ -256,23 +298,23 @@ function(req, res) {
 #* Set required response headers
 #* @filter response_headers
 function(req, res) {
-  res$setHeader("Strict-Transport-Security",
-                "max-age=63072000; includeSubDomains; preload")
+  res$setHeader(
+    "Strict-Transport-Security",
+    "max-age=63072000; includeSubDomains; preload"
+  )
 
-  res$setHeader("Content-Security-Policy",
-                "default-src *  data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval' 'unsafe-dynamic'; script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src * data: blob: 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src * data: blob: ; style-src * data: blob: 'unsafe-inline'; font-src * data: blob: 'unsafe-inline';")
+  res$setHeader(
+    "Content-Security-Policy",
+    "default-src *  data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval' 'unsafe-dynamic'; script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src * data: blob: 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src * data: blob: ; style-src * data: blob: 'unsafe-inline'; font-src * data: blob: 'unsafe-inline';"
+  )
 
-  res$setHeader("X-Frame-Options",
-                "SAMEORIGIN")
+  res$setHeader("X-Frame-Options", "SAMEORIGIN")
 
-  res$setHeader("X-Content-Type-Options",
-                "nosniff")
+  res$setHeader("X-Content-Type-Options", "nosniff")
 
-  res$setHeader("Referrer-Policy",
-                "no-referrer")
+  res$setHeader("Referrer-Policy", "no-referrer")
 
-  res$setHeader("Access-Control-Allow-Origin",
-                "*")
+  res$setHeader("Access-Control-Allow-Origin", "*")
 
   # Set Cache-Control header to allow caching
   res$setHeader("Cache-Control", "public, max-age=7200")
@@ -281,12 +323,9 @@ function(req, res) {
   # res$setHeader("Cache-Control",
   #               "max-age=172800")
 
-  res$setHeader("ETag",
-                pipapi::create_etag_header(req,
-                                           lkups = lkups))
+  res$setHeader("ETag", pipapi::create_etag_header(req, lkups = lkups))
 
   plumber::forward()
-
 }
 
 # Endpoints definition ----------------------------------------------------
@@ -296,9 +335,10 @@ function(req, res) {
 #* Return PIP information
 #* @get /api/v1/pip-info
 function(req) {
-  pipapi::get_pip_version(pip_packages = c("pipapi",
-                                           "wbpip"),
-                          data_versions = lkups$versions)
+  pipapi::get_pip_version(
+    pip_packages = c("pipapi", "wbpip"),
+    data_versions = lkups$versions
+  )
 }
 
 ### valid-params -------------
@@ -318,7 +358,8 @@ function(req, res) {
   out <- pipapi::get_param_values(
     lkup = lkups,
     version = version,
-    endpoint = endpoint)
+    endpoint = endpoint
+  )
   out
 }
 
@@ -342,18 +383,21 @@ function(req, res) {
 #* @param additional_ind:[bool] Additional indicators based on standard PIP output.
 #* Default is FALSE
 function(req, res) {
-  safe_endpoint(function(req, res) {
-    params         <- req$argsQuery
-    params$lkup    <- lkups$versions_paths[[params$version]]
-    res$serializer <- pipapi::assign_serializer(format = params$format)
-    params$format  <- NULL
-    params$version <- NULL
-    # group_by was removed from pip(); route aggregation calls to /api/v1/pip-grp
-    params$group_by <- NULL
+  safe_endpoint(
+    function(req, res) {
+      params <- req$argsQuery
+      params$lkup <- lkups$versions_paths[[params$version]]
+      res$serializer <- pipapi::assign_serializer(format = params$format)
+      params$format <- NULL
+      params$version <- NULL
+      # group_by was removed from pip(); route aggregation calls to /api/v1/pip-grp
+      params$group_by <- NULL
 
-    do.call(pip, params) |>
-      with_req_timeout()
-  }, endpoint = "/api/v1/pip")(req, res)
+      do.call(pip, params) |>
+        with_req_timeout()
+    },
+    endpoint = "/api/v1/pip"
+  )(req, res)
 }
 
 
@@ -373,15 +417,18 @@ function(req, res) {
 #* @param additional_ind:[bool] Additional indicators based on standard PIP output.
 #* Default is FALSE
 function(req, res) {
-  safe_endpoint(function(req, res) {
-    params         <- req$argsQuery
-    params$lkup    <- lkups$versions_paths[[params$version]]
-    res$serializer <- pipapi::assign_serializer(format = params$format)
-    params$format  <- NULL
-    params$version <- NULL
+  safe_endpoint(
+    function(req, res) {
+      params <- req$argsQuery
+      params$lkup <- lkups$versions_paths[[params$version]]
+      res$serializer <- pipapi::assign_serializer(format = params$format)
+      params$format <- NULL
+      params$version <- NULL
 
-    do.call(pip_agg, params) |> with_req_timeout()
-  }, endpoint = "/api/v1/pip-grp")(req, res)
+      do.call(pip_agg, params) |> with_req_timeout()
+    },
+    endpoint = "/api/v1/pip-grp"
+  )(req, res)
 }
 
 
@@ -447,11 +494,16 @@ function() {
 }
 
 ### cache-delete ------------
-#* Delete current cache directory
+#* Delete the DuckDB cache file for a given data version
 #* @get /api/v1/cache-delete
+#* @param pass:[chr] Local password, checked against the server key
+#* @param version:[chr] Data version string (e.g. 20240326_2017_01_02_PROD)
 #* @serializer unboxedJSON
-function() {
-  unlink(cd$info()$dir, recursive = TRUE)
+function(req, res) {
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[params$version]]
+  params$version <- NULL
+  do.call(pipapi:::delete_cache, params)
 }
 
 
@@ -492,8 +544,8 @@ function() {
 #* @param type:[chr] Which table do you want to delete? Values accepted are "both", "rg" and "fg"
 #* @serializer unboxedJSON
 function(req, res) {
-  params         <- req$argsQuery
-  params$lkup    <- lkups$versions_paths[[params$version]]
+  params <- req$argsQuery
+  params$lkup <- lkups$versions_paths[[params$version]]
   params$version <- NULL
   do.call(pipapi:::reset_cache, params)
 }
@@ -557,7 +609,7 @@ function(req, res) {
   relevant_params <- lapply(params, as.numeric)
 
   out <- do.call(wbpip:::gd_compute_pip_stats, relevant_params)
-  if(!is.null(tmp_format) && tmp_format == "csv") {
+  if (!is.null(tmp_format) && tmp_format == "csv") {
     out <- change_grouped_stats_to_csv(out)
   }
 
@@ -577,10 +629,17 @@ function(req, res) {
   params$version <- NULL
   params$weight <- params$population
   params$population <- NULL
-    out <- do.call(pipapi:::pipgd_select_lorenz, params)
-  new <- purrr::map_df(out$gd_params, pipapi:::return_output_regression_params, .id = "lorenz")
-  new <- cbind(new, selected_for_dist = out$selected_lorenz$for_dist,
-        selected_for_pov = out$selected_lorenz$for_pov)
+  out <- do.call(pipapi:::pipgd_select_lorenz, params)
+  new <- purrr::map_df(
+    out$gd_params,
+    pipapi:::return_output_regression_params,
+    .id = "lorenz"
+  )
+  new <- cbind(
+    new,
+    selected_for_dist = out$selected_lorenz$for_dist,
+    selected_for_pov = out$selected_lorenz$for_pov
+  )
   return(new)
 }
 
@@ -599,16 +658,18 @@ function(req, res) {
 
   params$weight <- params$population
 
-  params$format         <- NULL
-  params$version        <- NULL
-  params$population     <- NULL
+  params$format <- NULL
+  params$version <- NULL
+  params$population <- NULL
 
   params$welfare = as.numeric(params$welfare)
   params$weight = as.numeric(params$weight)
   out <- do.call(pipgd_lorenz_curve, params)
 
-  out <- data.frame(welfare = out$lorenz_curve$output,
-                    weight = out$lorenz_curve$points)
+  out <- data.frame(
+    welfare = out$lorenz_curve$output,
+    weight = out$lorenz_curve$points
+  )
   return(out)
 }
 
@@ -623,11 +684,19 @@ function(req) {
   dir <- lkups$versions_paths[[req$argsQuery$version]]$data_root
   x <- fs::dir_info(dir, recurse = TRUE, type = "file")
   x$file <- sub(".*/", "", x$path)
-  x <- x[c("path", "file", "size", "birth_time", "modification_time", "change_time", "access_time")]
+  x <- x[c(
+    "path",
+    "file",
+    "size",
+    "birth_time",
+    "modification_time",
+    "change_time",
+    "access_time"
+  )]
   list(
-    aux_files = x[grepl("aux", x$path),],
-    estimation_files = x[grepl("estimation", x$path),],
-    survey_data = x[grepl("survey_data", x$path),]
+    aux_files = x[grepl("aux", x$path), ],
+    estimation_files = x[grepl("estimation", x$path), ],
+    survey_data = x[grepl("survey_data", x$path), ]
   )
 }
 
@@ -640,8 +709,10 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer unboxedJSON
 function(req) {
-  list(pipapi = packageDescription("pipapi")$GithubSHA1,
-       wbpip = packageDescription("wbpip")$GithubSHA1)
+  list(
+    pipapi = packageDescription("pipapi")$GithubSHA1,
+    wbpip = packageDescription("wbpip")$GithubSHA1
+  )
 }
 
 ### pkgs-version ---------
@@ -652,10 +723,11 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer unboxedJSON
 function(req) {
-  list(pipapi = packageDescription("pipapi")$Version,
-       wbpip = packageDescription("wbpip")$Version)
+  list(
+    pipapi = packageDescription("pipapi")$Version,
+    wbpip = packageDescription("wbpip")$Version
+  )
 }
-
 
 
 # #* Return system info
@@ -693,8 +765,10 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
-  pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
-                        table = "poverty_lines")
+  pipapi::get_aux_table(
+    data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
+    table = "poverty_lines"
+  )
 }
 
 ### indicators ---------------
@@ -705,8 +779,10 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req) {
-  out <- pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
-                        table = "indicators")
+  out <- pipapi::get_aux_table(
+    data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
+    table = "indicators"
+  )
   out
 }
 
@@ -718,8 +794,10 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req) {
-  pipapi::get_aux_table(data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
-                        table = "decomposition_master")
+  pipapi::get_aux_table(
+    data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
+    table = "decomposition_master"
+  )
 }
 
 ### hp-stacked -----------
@@ -731,13 +809,16 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req, res) {
-  safe_endpoint(function(req, res) {
-    params <- req$argsQuery
-    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-    params$version <- NULL
+  safe_endpoint(
+    function(req, res) {
+      params <- req$argsQuery
+      params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+      params$version <- NULL
 
-    do.call(pipapi::ui_hp_stacked, params) |> with_req_timeout()
-  }, endpoint = "/api/v1/hp-stacked")(req, res)
+      do.call(pipapi::ui_hp_stacked, params) |> with_req_timeout()
+    },
+    endpoint = "/api/v1/hp-stacked"
+  )(req, res)
 }
 
 
@@ -750,14 +831,17 @@ function(req, res) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req, res) {
-  safe_endpoint(function(req, res) {
-    params <- req$argsQuery
-    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-    params$version <- NULL
+  safe_endpoint(
+    function(req, res) {
+      params <- req$argsQuery
+      params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+      params$version <- NULL
 
-    do.call(pipapi::ui_hp_countries, params) |>
-      with_req_timeout()
-  }, endpoint = "/api/v1/hp-countries")(req, res)
+      do.call(pipapi::ui_hp_countries, params) |>
+        with_req_timeout()
+    },
+    endpoint = "/api/v1/hp-countries"
+  )(req, res)
 }
 
 
@@ -778,14 +862,17 @@ function(req, res) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na = "null")
 function(req, res) {
-  safe_endpoint(function(req, res) {
-    params <- req$argsQuery
-    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-    params$version <- NULL
-    params$censor  <- TRUE
+  safe_endpoint(
+    function(req, res) {
+      params <- req$argsQuery
+      params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+      params$version <- NULL
+      params$censor <- TRUE
 
-    do.call(pipapi::ui_pc_charts, params) |> with_req_timeout()
-  }, endpoint = "/api/v1/pc-charts")(req, res)
+      do.call(pipapi::ui_pc_charts, params) |> with_req_timeout()
+    },
+    endpoint = "/api/v1/pc-charts"
+  )(req, res)
 }
 
 ### pc-download -----------
@@ -807,10 +894,9 @@ function(req) {
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$pop_units <- 1
   params$version <- NULL
-  params$censor  <- TRUE
+  params$censor <- TRUE
 
   do.call(pipapi::ui_pc_charts, params)
-
 }
 
 ### pc-regional-aggregates -----------
@@ -824,14 +910,17 @@ function(req) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
 function(req, res) {
-  safe_endpoint(function(req, res) {
-    params <- req$argsQuery
-    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-    params$version <- NULL
+  safe_endpoint(
+    function(req, res) {
+      params <- req$argsQuery
+      params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+      params$version <- NULL
 
-    do.call(pipapi::ui_pc_regional, params) |>
-      with_req_timeout()
-  }, endpoint = "/api/v1/pc-regional-aggregates")(req, res)
+      do.call(pipapi::ui_pc_regional, params) |>
+        with_req_timeout()
+    },
+    endpoint = "/api/v1/pc-regional-aggregates"
+  )(req, res)
 }
 
 ## UI Endpoints: Country Profiles ----------------------------------------
@@ -846,14 +935,17 @@ function(req, res) {
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json list(na="null")
 function(req, res) {
-  safe_endpoint(function(req, res) {
-    params <- req$argsQuery
-    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-    params$version <- NULL
+  safe_endpoint(
+    function(req, res) {
+      params <- req$argsQuery
+      params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+      params$version <- NULL
 
-    do.call(ui_cp_key_indicators, params) |>
-      with_req_timeout()
-  }, endpoint = "/api/v1/cp-key-indicators")(req, res)
+      do.call(ui_cp_key_indicators, params) |>
+        with_req_timeout()
+    },
+    endpoint = "/api/v1/cp-key-indicators"
+  )(req, res)
 }
 
 
@@ -866,17 +958,18 @@ function(req, res) {
 #* @param ppp_version:[chr] ppp year to be used
 #* @param version:[chr] Data version. Defaults to most recent version. See api/v1/versions
 #* @serializer json
-cp_charts <- safe_endpoint(function(req, res) {
-  params <- req$argsQuery
-  params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-  params$version <- NULL
+cp_charts <- safe_endpoint(
+  function(req, res) {
+    params <- req$argsQuery
+    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
+    params$version <- NULL
 
-  # wrap the heavy work in with_req_timeout
-  do.call(ui_cp_charts, params) |>
-    with_req_timeout()
-
+    # wrap the heavy work in with_req_timeout
+    do.call(ui_cp_charts, params) |>
+      with_req_timeout()
   },
-  endpoint = "/api/v1/cp-charts")
+  endpoint = "/api/v1/cp-charts"
+)
 
 ### cp-download -----------
 #* Return Country Profile - Downloads
@@ -891,7 +984,7 @@ function(req, res) {
   res$serializer <- pipapi::assign_serializer(format = params$format)
   params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
   params$version <- NULL
-  params$format  <- NULL
+  params$format <- NULL
 
   out <- do.call(ui_cp_download, params)
   out

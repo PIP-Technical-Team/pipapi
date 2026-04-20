@@ -1,6 +1,8 @@
 # SETUP  -------------
 
 devtools::load_all(".")
+# install()
+# library(pipapi)
 library(fastverse)
 
 root_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
@@ -22,15 +24,15 @@ lkups <- create_versioned_lkups(
 # lkups <- create_versioned_lkups(root_dir,
 #                                 vintage_pattern = latest_version)
 
-# DEGUB -------------
-
 options(pipapi.query_live_data = FALSE)
 getOption("pipapi.query_live_data")
 
 for (ver_to_use in lkups$versions) {
   lkup <- lkups$versions_paths[[ver_to_use]]
-
+  # NOTE: Set PIP_CACHE_LOCAL_KEY and PIP_CACHE_SERVER_KEY in your
+  # .Renviron or env before calling reset_cache(). Never hardcode keys here.
   reset_cache(lkup = lkup)
+
   povlines <- get_aux_table(lkup$data_root, "poverty_lines") |>
     _[, poverty_line]
 

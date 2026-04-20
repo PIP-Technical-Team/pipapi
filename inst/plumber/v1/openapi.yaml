@@ -1,463 +1,2241 @@
 openapi: 3.0.0
 info:
-  description: This API computes all poverty and inequality statistics available at pip.worldbank.org
-  title: Poverty and Inequality Platform API
+  title: Poverty and Inequality Platform (PIP) API
+  description: |
+    The PIP API provides programmatic access to poverty and inequality
+    statistics published at [pip.worldbank.org](https://pip.worldbank.org).
+    It supports country-level estimates, regional and global aggregations,
+    auxiliary reference tables, grouped-data computations, and pre-built
+    data feeds for the PIP website.
+
+    ## Authentication
+
+    No authentication is required. The API is publicly accessible.
+
+    ## Response Formats
+
+    Most endpoints accept a `format` query parameter:
+    - `json` (default) — JSON array or object
+    - `csv` — comma-separated values
+    - `rds` — R serialized object
+    - `arrow` — Apache Arrow IPC format
+
+    ## Data Versioning
+
+    The API serves multiple data versions simultaneously. Use `version`,
+    `release_version`, `ppp_version`, and `identity` to select a specific
+    release. Omit all four to default to the latest production version.
+
+    ## Rate Limits & Caching
+
+    Responses are cached with `Cache-Control: public, max-age=7200`
+    (2 hours). Please respect caching headers to avoid unnecessary load.
   version: 0.0.1
+  contact:
+    name: DECDG / GPID — World Bank
+    url: https://pip.worldbank.org
+  license:
+    name: Creative Commons Attribution 4.0 International
+    url: https://creativecommons.org/licenses/by/4.0/
+
+tags:
+  - name: Poverty Statistics
+    description: >-
+      Core endpoints for computing country-level and aggregated poverty
+      and inequality statistics from household survey data.
+  - name: Grouped Data
+    description: >-
+      Compute poverty and distributional statistics from grouped (binned)
+      welfare distributions. Useful when only tabulated data is available.
+  - name: Metadata
+    description: >-
+      Reference data, valid query parameters, data versions, and citations.
+  - name: System
+    description: >-
+      Health checks, data signatures, and deployed package versions.
+  - name: Homepage
+    description: >-
+      Pre-computed data powering the pip.worldbank.org homepage charts.
+  - name: Poverty Calculator
+    description: >-
+      Data for the Poverty Calculator tool on pip.worldbank.org.
+  - name: Country Profiles
+    description: >-
+      Data for country profile pages on pip.worldbank.org.
+  - name: UI Miscellaneous
+    description: >-
+      Additional endpoints supporting the pip.worldbank.org user interface.
+  - name: Cache Management
+    description: >-
+      Internal endpoints for managing the in-memory plumber cache and the
+      DuckDB persistent cache. Require server authentication where noted.
+
 paths:
-  /api/v1/health-check:
-    get:
-      summary: ' Determine if the API is running and listening as expected'
-      responses:
-        default:
-          description: Default response.
-      parameters: []
+
+  # ── Poverty Statistics ──────────────────────────────────────────────
+
   /api/v1/pip:
     get:
-      summary: ' Return main poverty and inequality statistics'
-      description: Main function to compute poverty and inequality statistics.
+      tags: [Poverty Statistics]
+      summary: Country-level poverty and inequality statistics
+      description: |
+        Returns poverty and inequality estimates for one or more countries,
+        years, and poverty lines. Supports both survey-year estimates and
+        interpolated/extrapolated ("lined-up") estimates via `fill_gaps`.
+
+        **Key behaviours:**
+        - When `fill_gaps = FALSE` (default), returns only years with an
+          actual survey. Distributional indicators (Gini, MLD, deciles) are
+          populated.
+        - When `fill_gaps = TRUE`, returns estimates for every requested
+          year using interpolation/extrapolation. Distributional indicators
+          are set to `null`.
+        - Poverty lines are rounded to 2 decimal places. A maximum of 10
+          distinct poverty lines may be requested per call.
       parameters:
-           - in: query
-             name: country
-             required: true
-             schema:
-              type: array
-              items:
-               type: string
-               enum: [AGO, ALB, COL, SSA, all]
-               example: AGO
-             description: The countries for which statistics are to be computed, specified as ISO3 codes.
-           - in: query
-             name: year
-             required: true
-             schema:
-              type: array
-              items:
-               type: string
-               enum: [2008, 2018, all]
-               example: 2008
-             description: Year(s) for which statistics are to be computed, specified as YYYY.
-           - in: query
-             name: povline
-             schema:
-              type: number
-              minimum: 0
-              maximum: 2700
-              example: 2.15
-             description: Poverty line to be used to compute poverty mesures. Poverty lines are only accepted up to 3 decimals.
-           - in: query
-             name: popshare
-             schema:
-              type: number
-              minimum: 0
-              maximum: 1
-             description: Proportion of the population living below the poverty line. Will be ignored if povline is specified.
-           - in: query
-             name: fill_gaps
-             schema:
-              type: boolean
-              example: FALSE
-             description: Whether to interpolate / extrapolate statistics for years without available survey data.
-           - in: query
-             name: welfare_type
-             schema:
-              type: string
-              enum: [all, consumption, income]
-             description: Welfare measure
-           - in: query
-             name: reporting_level
-             schema:
-              type: string
-              enum: [all, national, rural, urban]
-             description: Reporting coverage.
-           - in: query
-             name: additional_ind
-             schema:
-              type: boolean
-              example: false
-             description: Report additional indicators based on standard output
-           - in: query
-             name: release_version
-             schema:
-              type: string
-             description: date when the data was published in YYYYMMDD format
-           - in: query
-             name: ppp_version
-             schema:
-              type: string
-              enum: [2017, 2011]
-              example: 2017
-             description: ppp year to be used
-           - in: query
-             name: version
-             schema:
-              type: string
-             description: Data version. Defaults to most recent version. See api/v1/versions.
-           - in: query
-             name: identity
-             schema:
-              type: string
-              enum: [PROD, INT, TEST]
-             description: One of PROD (production), INT (internal) and TEST
-           - in: query
-             name: format
-             schema:
-              type: string
-              enum: [json, csv, rds, arrow]
-             description: Response format. Defaults to json.
+        - $ref: '#/components/parameters/Country'
+        - $ref: '#/components/parameters/Year'
+        - $ref: '#/components/parameters/Povline'
+        - $ref: '#/components/parameters/Popshare'
+        - name: fill_gaps
+          in: query
+          description: >-
+            Interpolate/extrapolate estimates for years without a survey.
+          schema:
+            type: boolean
+            default: false
+            example: false
+        - $ref: '#/components/parameters/WelfareType'
+        - $ref: '#/components/parameters/ReportingLevel'
+        - $ref: '#/components/parameters/AdditionalInd'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+        - $ref: '#/components/parameters/Identity'
+        - $ref: '#/components/parameters/ResponseFormat'
       responses:
-       '200':
-         description: successful message
+        '200':
+          description: >-
+            Array of poverty and inequality estimates. One row per
+            country × year × reporting-level × poverty-line combination.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PipRow'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/InvalidParams'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/v1/pip-grp:
     get:
-      summary: ' Return aggregations of PIP statistics'
-      description: Compute aggregated poverty and inequality statistics
+      tags: [Poverty Statistics]
+      summary: Aggregated poverty and inequality statistics
+      description: |
+        Returns population-weighted aggregated poverty statistics for
+        regions or custom country groups.
+
+        Use `group_by=wb` to aggregate by World Bank regions. Use
+        `country=all` with `group_by=wb` to get all standard regional
+        and world aggregates.
       parameters:
-           - in: query
-             name: country
-             required: true
-             schema:
-              type: array
-              items:
-               type: string
-               enum: [LAC, ECA, SSA, all]
-               example: all
-             description: The countries for which statistics are to be computed, specified as ISO3 codes.
-           - in: query
-             name: year
-             required: true
-             schema:
-              type: array
-              items:
-               type: string
-               enum: [2008, 2018, all]
-               example: 2018
-             description: Year(s) for which statistics are to be computed, specified as YYYY.
-           - in: query
-             name: povline
-             schema:
-              type: number
-              minimum: 0
-              maximum: 2700
-              example: 2.15
-             description: Poverty line to be used to compute poverty mesures. Poverty lines are only accepted up to 3 decimals.
-           - in: query
-             name: popshare
-             schema:
-              type: number
-              minimum: 0
-              maximum: 1
-             description: Proportion of the population living below the poverty line. Will be ignored if povline is specified.
-           - in: query
-             name: group_by
-             schema:
+        - name: country
+          in: query
+          required: true
+          description: >-
+            Region code(s) or `all`. When `group_by=wb`, valid values are
+            World Bank region codes (EAP, ECA, LAC, MNA, SAR, SSA, OHI)
+            or `all`.
+          schema:
+            type: array
+            items:
               type: string
-              enum: [none, wb]
-              example: wb
-             description: Aggregate results by pre-defined sub-groups.
-           - in: query
-             name: welfare_type
-             schema:
-              type: string
-              enum: [all, consumption, income]
-             description: Welfare measure
-           - in: query
-             name: reporting_level
-             schema:
-              type: string
-              enum: [all, national]
-             description: Reporting coverage.
-           - in: query
-             name: additional_ind
-             schema:
-              type: boolean
-              example: false
-             description: Report additional indicators based on standard output
-           - in: query
-             name: release_version
-             schema:
-              type: string
-             description: date when the data was published in YYYYMMDD format
-           - in: query
-             name: ppp_version
-             schema:
-              type: string
-              enum: [2017, 2011]
-              example: 2017
-             description: ppp year to be used
-           - in: query
-             name: version
-             schema:
-              type: string
-             description: Data version. Defaults to most recent version. See api/v1/versions.
-           - in: query
-             name: format
-             schema:
-              type: string
-              enum: [json, csv, rds, arrow]
-             description: Response format. Defaults to json.
+            example: [all]
+        - $ref: '#/components/parameters/Year'
+        - $ref: '#/components/parameters/Povline'
+        - $ref: '#/components/parameters/Popshare'
+        - name: group_by
+          in: query
+          description: >-
+            Aggregation grouping. `wb` aggregates by standard World Bank
+            regions; `none` returns a simple weighted average across
+            selected countries.
+          schema:
+            type: string
+            enum: [none, wb]
+            default: none
+            example: wb
+        - $ref: '#/components/parameters/WelfareType'
+        - name: reporting_level
+          in: query
+          description: Reporting coverage level.
+          schema:
+            type: string
+            enum: [all, national]
+            default: all
+        - $ref: '#/components/parameters/AdditionalInd'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+        - $ref: '#/components/parameters/Identity'
+        - $ref: '#/components/parameters/ResponseFormat'
       responses:
-       '200':
-         description: successful message
-  /api/v1/aux:
-    get:
-      summary: ' Return auxiliary data tables'
-      responses:
-        default:
-          description: Default response.
-      parameters:
-          - in: query
-            name: table
-            schema:
-              type: string
-            description: Auxiliary data table to be returned.
-          - in: query
-            name: release_version
-            schema:
-              type: string
-            description: Date when the data was published in YYYYMMDD format
-          - in: query
-            name: ppp_version
-            schema:
-              type: string
-            description: ppp year to be used
-          - in: query
-            name: version
-            schema:
-              type: string
-            description: Data version. Defaults to most recent version. See api/v1/versions.
-          - in: query
-            name: long_format
-            schema:
-              type: boolean
-              example: FALSE
-            description: If the response should be in long format.
-          - in: query
-            name: format
-            schema:
-              type: string
-              enum: [json, csv, rds, arrow]
-            description: Response format. Defaults to json.
-  /api/v1/valid-years:
-    get:
-      summary: ' Return valid years for surveys and interpolated years'
-      responses:
-        default:
-          description: Default response.
-      parameters:
-          - in: query
-            name: release_version
-            schema:
-              type: string
-            description: Date when the data was published in YYYYMMDD format
-          - in: query
-            name: ppp_version
-            schema:
-              type: string
-            description: ppp year to be used
-          - in: query
-            name: version
-            schema:
-              type: string
-            description: Data version. Defaults to most recent version. See api/v1/versions.
-  /api/v1/citation:
-    get:
-      summary: 'Return citation for given version'
-      responses:
-        default:
-          description: Default response.
-      parameters:
-          - in: query
-            name: version
-            schema:
-              type: string
-            description: Data version. Defaults to most recent version. See api/v1/versions.
-          - in: query
-            name: release_version
-            schema:
-              type: string
-            description: Date when the data was published in YYYYMMDD format
-          - in: query
-            name: ppp_version
-            schema:
-              type: string
-            description: ppp year to be used
-  /api/v1/valid-params:
-    get:
-      summary: ' Return valid query parameters'
-      responses:
-        default:
-          description: Default response.
-      parameters:
-          - in: query
-            name: endpoint
-            schema:
-              type: string
-              enum: [aux, pip, pip-grp, pip-info, valid-params, all]
-            description: Endpoint for which corresponding valid parameters will be returned
-          - in: query
-            name: release_version
-            schema:
-              type: string
-            description: Date when the data was published in YYYYMMDD format
-          - in: query
-            name: ppp_version
-            schema:
-              type: string
-            description: ppp year to be used
-          - in: query
-            name: version
-            schema:
-              type: string
-            description: Data version. Defaults to most recent version. See api/v1/versions.
-          - in: query
-            name: format
-            schema:
-              type: string
-              enum: [json, csv, rds, arrow]
-            description: Response format. Defaults to json.
-  /api/v1/versions:
-    get:
-      summary: ' Return available data versions'
-      responses:
-        default:
-          description: Default response.
-      parameters:
-          - in: query
-            name: format
-            schema:
-              type: string
-              enum: [json, csv, rds, arrow]
-            description: Response format. Defaults to json.
-  /api/v1/pip-info:
-    get:
-      summary: ' Return information about the API'
-      responses:
-        default:
-          description: Default response.
-      parameters: []
+        '200':
+          description: >-
+            Array of aggregated poverty estimates. One row per
+            region × year × poverty-line.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PipGrpRow'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/InvalidParams'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ── Grouped Data ────────────────────────────────────────────────────
+
   /api/v1/grouped-stats:
     get:
-      summary: 'Retrieve grouped data stats'
-      responses:
-        default:
-          description: Default response.
+      tags: [Grouped Data]
+      summary: Poverty statistics from grouped distribution data
+      description: |
+        Computes headcount, poverty gap, severity, Watts index, mean,
+        median, Gini, MLD, polarization, and decile shares from cumulative
+        welfare and population vectors (binned/grouped data).
+
+        Both `cum_welfare` and `cum_population` must have the same length
+        (max 100 values). Values should be comma-separated and
+        monotonically increasing, ending at 1.
       parameters:
-        - in: query
-          name: cum_welfare
-          schema:
-            type: number
-          minimum: 0
-          maximum: 1
-          example: .00208,.01013,.03122,.07083,.12808,.23498,.34887,.51994,.6427,.79201,.86966,.91277,1
-        - in: query
-          name: cum_population
-          schema:
-            type: number
-          minimum: 0
-          maximum: 1
-          example: .0092,.0339,.085,.164,.2609,.4133,.5497,.7196,.8196,.9174,.957,.9751,1
-        - in: query
-          name: requested_mean
-          schema:
-            type: number
-          minimum: 0
-          maximum: 1e10
-          example: 2.911786
-        - in: query
-          name: povline
-          schema:
-            type: number
-          minimum: 0
-          maximum: 2700
-          example: 1.9
-        - in: query
-          name: format
+        - name: cum_welfare
+          in: query
+          required: true
+          description: >-
+            Comma-separated cumulative welfare shares (0 to 1).
           schema:
             type: string
-          enum: [json, csv, rds, arrow]
+            pattern: '^[0-9.,]+$'
+          example: "0.00208,0.01013,0.03122,0.07083,0.12808,0.23498,0.34887,0.51994,0.6427,0.79201,0.86966,0.91277,1"
+        - name: cum_population
+          in: query
+          required: true
+          description: >-
+            Comma-separated cumulative population shares (0 to 1).
+          schema:
+            type: string
+            pattern: '^[0-9.,]+$'
+          example: "0.0092,0.0339,0.085,0.164,0.2609,0.4133,0.5497,0.7196,0.8196,0.9174,0.957,0.9751,1"
+        - name: requested_mean
+          in: query
+          required: true
+          description: >-
+            Survey mean welfare in daily PPP dollars.
+          schema:
+            type: number
+            minimum: 0
+            exclusiveMinimum: true
+          example: 2.911786
+        - $ref: '#/components/parameters/Povline'
+        - $ref: '#/components/parameters/ResponseFormat'
+      responses:
+        '200':
+          description: >-
+            Poverty and distributional statistics computed from the grouped
+            data. JSON returns a nested object; CSV returns a flat
+            single-row table.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupedStatsResponse'
+        '422':
+          $ref: '#/components/responses/InvalidParams'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/v1/regression-params:
     get:
-      summary: 'Retrieve regression parameters'
-      responses:
-        default:
-          description: Default response.
+      tags: [Grouped Data]
+      summary: Lorenz curve regression parameters
+      description: |
+        Fits both Lorenz Quadratic (LQ) and Lorenz Beta (LB)
+        parameterizations to the provided grouped distribution data.
+        Returns regression coefficients (A, B, C), standard errors,
+        goodness-of-fit statistics, validity flags, and which form
+        was selected for poverty and distributional estimation.
       parameters:
-        - in: query
-          name: cum_welfare
-          schema:
-            type: number
-          minimum: 0
-          maximum: 1
-          example: 0.234
-        - in: query
-          name: cum_population
-          schema:
-            type: number
-          minimum: 0
-          maximum: 1
-          example: 0.234
-        - in: query
-          name: format
+        - name: cum_welfare
+          in: query
+          required: true
+          description: >-
+            Comma-separated cumulative welfare shares (0 to 1).
           schema:
             type: string
-          enum: [json, csv, rds, arrow]
+            pattern: '^[0-9.,]+$'
+          example: "0.00208,0.01013,0.03122,0.07083,0.12808,0.23498,0.34887,0.51994,0.6427,0.79201,0.86966,0.91277,1"
+        - name: cum_population
+          in: query
+          required: true
+          description: >-
+            Comma-separated cumulative population shares (0 to 1).
+          schema:
+            type: string
+            pattern: '^[0-9.,]+$'
+          example: "0.0092,0.0339,0.085,0.164,0.2609,0.4133,0.5497,0.7196,0.8196,0.9174,0.957,0.9751,1"
+        - $ref: '#/components/parameters/ResponseFormat'
+      responses:
+        '200':
+          description: >-
+            Two rows — one for each Lorenz parameterization (LQ and LB) —
+            with regression coefficients, fit statistics, and selection
+            flags.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RegressionParamsRow'
+        '422':
+          $ref: '#/components/responses/InvalidParams'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/v1/lorenz-curve:
     get:
-      summary: 'Lorenz curve data points'
-      responses:
-        default:
-          description: Default response.
+      tags: [Grouped Data]
+      summary: Lorenz curve data points
+      description: |
+        Generates Lorenz curve data points from grouped welfare and
+        population vectors. Returns evenly spaced points along the
+        fitted Lorenz curve.
       parameters:
-        - in: query
-          name: cum_welfare
-          schema:
-            type: number
-          minimum: 0
-          maximum: 1
-          example: 0.234
-        - in: query
-          name: cum_population
-          schema:
-            type: number
-          minimum: 0
-          maximum: 1
-          example: 0.234
-        - in: query
-          name: mean
-          schema:
-            type: number
-          minimum: 0
-          maximum: 1e10
-          example: 1.9
-        - in: query
-          name: times_mean
-          schema:
-            type: number
-          minimum: 0.01
-          maximum: 5
-          example: 1.9
-        - in: query
-          name: popshare
-          schema:
-            type: number
-          minimum: 0
-          maximum: 1
-          example: 0.234
-        - in: query
-          name: lorenz
+        - name: cum_welfare
+          in: query
+          required: true
+          description: >-
+            Comma-separated cumulative welfare shares (0 to 1).
           schema:
             type: string
-          enum: [lb, lq]
-        - in: query
-          name: n_bins
-          schema:
-            type: number
-          minimum: 0
-          maximum: 1000
-          example: 100
-        - in: query
-          name: format
+            pattern: '^[0-9.,]+$'
+          example: "0.00208,0.01013,0.03122,0.07083,0.12808,0.23498,0.34887,0.51994,0.6427,0.79201,0.86966,0.91277,1"
+        - name: cum_population
+          in: query
+          required: true
+          description: >-
+            Comma-separated cumulative population shares (0 to 1).
           schema:
             type: string
-          enum: [json, csv, rds, arrow]
+            pattern: '^[0-9.,]+$'
+          example: "0.0092,0.0339,0.085,0.164,0.2609,0.4133,0.5497,0.7196,0.8196,0.9174,0.957,0.9751,1"
+        - name: lorenz
+          in: query
+          description: >-
+            Lorenz parameterization to use. `lq` = Lorenz Quadratic,
+            `lb` = Lorenz Beta. Auto-selected based on fit if omitted.
+          schema:
+            type: string
+            enum: [lb, lq]
+        - name: n_bins
+          in: query
+          description: Number of evenly spaced points to generate.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+            example: 100
+        - $ref: '#/components/parameters/ResponseFormat'
+      responses:
+        '200':
+          description: >-
+            Array of Lorenz curve points with cumulative welfare
+            and population shares.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LorenzCurveRow'
+        '422':
+          $ref: '#/components/responses/InvalidParams'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ── Metadata ────────────────────────────────────────────────────────
+
+  /api/v1/pip-info:
+    get:
+      tags: [Metadata]
+      summary: API and server information
+      description: >-
+        Returns the current API version, underlying R package versions,
+        available data versions, R runtime information, and server details.
+      parameters: []
+      responses:
+        '200':
+          description: API information object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipInfoResponse'
+
+  /api/v1/valid-params:
+    get:
+      tags: [Metadata]
+      summary: Valid query parameters and their allowed values
+      description: |
+        Returns a table of all valid parameter names, their accepted
+        values, types, and boundary constraints for a given endpoint
+        and data version. Useful for building dynamic query interfaces.
+      parameters:
+        - name: endpoint
+          in: query
+          description: >-
+            Restrict results to parameters for a specific endpoint.
+            Use `all` to return parameters for every endpoint.
+          schema:
+            type: string
+            description: API endpoint name, or `all` for every endpoint.
+            example: pip
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+        - $ref: '#/components/parameters/ResponseFormat'
+      responses:
+        '200':
+          description: >-
+            Table of valid parameters. One row per parameter–value pair.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ValidParamRow'
+
+  /api/v1/aux:
+    get:
+      tags: [Metadata]
+      summary: Auxiliary reference data tables
+      description: |
+        Returns auxiliary data tables such as country lists, population,
+        regional classifications, PPP values, CPI, and more.
+
+        - If `table` is omitted, returns a list of available table names.
+        - If `table` is specified, returns the full contents of that table.
+        - Use `long_format=true` to pivot supported tables to long format.
+          Not all tables support long format; see `/api/v1/valid-params`
+          for the list of valid long-format tables.
+      parameters:
+        - name: table
+          in: query
+          description: >-
+            Name of the auxiliary table to retrieve. Omit to list all
+            available tables.
+          schema:
+            type: string
+          example: countries
+        - name: long_format
+          in: query
+          description: >-
+            Return the table in long format (country_code, data_level,
+            year, value). Only supported for certain tables.
+          schema:
+            type: boolean
+            default: false
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+        - $ref: '#/components/parameters/ResponseFormat'
+      responses:
+        '200':
+          description: >-
+            When `table` is omitted: `{"tables": [...]}`. When `table`
+            is specified: array of objects whose columns depend on the
+            requested table.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/AuxTableList'
+                  - type: array
+                    description: Contents of the requested auxiliary table.
+                    items:
+                      type: object
+                      additionalProperties: true
+        '422':
+          $ref: '#/components/responses/InvalidParams'
+
+  /api/v1/versions:
+    get:
+      tags: [Metadata]
+      summary: Available data versions
+      description: >-
+        Lists all data versions currently loaded by the API, including
+        their release date, PPP vintage, and identity (PROD/INT/TEST).
+      parameters:
+        - $ref: '#/components/parameters/ResponseFormat'
+      responses:
+        '200':
+          description: Table of available data versions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VersionRow'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/version:
+    get:
+      tags: [Metadata]
+      summary: Details for a specific data version
+      description: >-
+        Returns the version metadata for the resolved version string.
+        Same schema as `/versions` but filtered to one row.
+      parameters:
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: Single-row table with version metadata.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VersionRow'
+                maxItems: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/valid-years:
+    get:
+      tags: [Metadata]
+      summary: Valid survey and interpolated years
+      description: >-
+        Returns two arrays: years for which actual survey data is
+        available, and years for which interpolated (lined-up) estimates
+        can be computed.
+      parameters:
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: Object with two arrays of valid years.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidYearsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/citation:
+    get:
+      tags: [Metadata]
+      summary: Citation for a given data version
+      description: >-
+        Returns a formatted citation string for the specified data
+        version, including the current date as the access date. The
+        response is not cached since the access date changes with
+        each request.
+      parameters:
+        - $ref: '#/components/parameters/DataVersion'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+      responses:
+        '200':
+          description: Citation object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CitationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # ── System ──────────────────────────────────────────────────────────
+
+  /api/v1/health-check:
+    get:
+      tags: [System]
+      summary: API health check
+      description: >-
+        Simple liveness probe. Returns a string confirming the API is
+        running. Use for load balancer or monitoring health checks.
+      parameters: []
+      responses:
+        '200':
+          description: API is healthy.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "PIP API is running"
+
+  /api/v1/data-timestamp:
+    get:
+      tags: [System]
+      summary: Data update timestamp
+      description: >-
+        Returns the timestamp of the last data update for the selected
+        data version, as recorded in the data directory.
+      parameters:
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: Timestamp string.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "2024-03-26 14:30:00 UTC"
+
+  /api/v1/data-signature:
+    get:
+      tags: [System]
+      summary: Data signature hash
+      description: >-
+        Returns the cache data ID hash for the selected data version.
+        Useful for checking whether underlying data has changed.
+      parameters:
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: Hash string identifying the data version.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "a1b2c3d4e5f6"
+
+  /api/v1/gh-hash:
+    get:
+      tags: [System]
+      summary: GitHub commit hashes for deployed packages
+      description: >-
+        Returns the GitHub SHA1 commit hashes for the `pipapi` and
+        `wbpip` packages currently deployed on the server.
+      parameters:
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: Object with GitHub SHA1 hashes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pipapi:
+                    type: string
+                    description: GitHub SHA1 for the pipapi package.
+                    example: "abc123def456"
+                  wbpip:
+                    type: string
+                    description: GitHub SHA1 for the wbpip package.
+                    example: "789ghi012jkl"
+
+  /api/v1/pkgs-version:
+    get:
+      tags: [System]
+      summary: Deployed package versions
+      description: >-
+        Returns the DESCRIPTION-file version strings for the `pipapi`
+        and `wbpip` packages currently deployed on the server.
+      parameters:
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: Object with package version strings.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pipapi:
+                    type: string
+                    description: Version of pipapi.
+                    example: "1.2.0"
+                  wbpip:
+                    type: string
+                    description: Version of wbpip.
+                    example: "0.5.1"
+
+  # ── Homepage ────────────────────────────────────────────────────────
+
+  /api/v1/poverty-lines:
+    get:
+      tags: [Homepage]
+      summary: Poverty lines for homepage display
+      description: >-
+        Returns the set of poverty lines used on the pip.worldbank.org
+        homepage (e.g. international poverty lines at different
+        thresholds).
+      parameters:
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: >-
+            Array of poverty line objects. Structure may vary by data
+            version.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+
+  /api/v1/indicators:
+    get:
+      tags: [Homepage]
+      summary: Indicators master table
+      description: >-
+        Returns the indicators master table used by the website to
+        configure available metrics and their display properties.
+        Null values are serialized as JSON `null`.
+      parameters:
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: >-
+            Array of indicator definitions. Structure may vary by data
+            version.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+
+  /api/v1/decomposition-vars:
+    get:
+      tags: [Homepage]
+      summary: Decomposition variable definitions
+      description: >-
+        Returns the list of variables used for poverty decomposition
+        analysis on the website.
+      parameters:
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: >-
+            Array of decomposition variable definitions. Structure may
+            vary by data version.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+
+  /api/v1/hp-stacked:
+    get:
+      tags: [Homepage]
+      summary: Homepage stacked area chart data
+      description: |
+        Returns data for the main stacked area chart on the
+        pip.worldbank.org homepage showing the number of people living
+        in poverty by region over time.
+
+        Data is filtered to years from 1990 onward and to valid World
+        Bank regions plus the World aggregate.
+      parameters:
+        - $ref: '#/components/parameters/Povline'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: Array of stacked chart data points.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HpStackedRow'
+
+  /api/v1/hp-countries:
+    get:
+      tags: [Homepage]
+      summary: Homepage country chart data
+      description: >-
+        Returns country-level poverty data for the homepage country
+        charts. Uses survey-year estimates only (no interpolation),
+        at the national reporting level. Population and poverty counts
+        are divided by a scaling factor (default 1 million).
+      parameters:
+        - $ref: '#/components/parameters/Povline'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: Country-level poverty chart data.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HpCountriesRow'
+
+  # ── Poverty Calculator ──────────────────────────────────────────────
+
+  /api/v1/pc-charts:
+    get:
+      tags: [Poverty Calculator]
+      summary: Poverty Calculator chart data
+      description: |
+        Returns poverty and inequality data for the Poverty Calculator
+        tool. Supports the same parameters as `/pip` but applies
+        country-level censoring and adjusts output for chart display.
+
+        When `fill_gaps = TRUE`, inequality indicators are set to `null`
+        and nowcast estimates are excluded. When `fill_gaps = FALSE`
+        (default), the `estimate_type` column is omitted.
+      parameters:
+        - $ref: '#/components/parameters/Country'
+        - $ref: '#/components/parameters/Year'
+        - $ref: '#/components/parameters/Povline'
+        - name: fill_gaps
+          in: query
+          description: >-
+            Interpolate/extrapolate estimates for non-survey years.
+          schema:
+            type: boolean
+            default: false
+        - name: group_by
+          in: query
+          description: Triggers sub-group aggregation.
+          schema:
+            type: string
+            enum: [none, wb]
+            default: none
+        - $ref: '#/components/parameters/WelfareType'
+        - $ref: '#/components/parameters/ReportingLevel'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: >-
+            Array of poverty and inequality estimates for the Poverty
+            Calculator. Null values serialized as JSON `null`.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PcChartsRow'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/InvalidParams'
+
+  /api/v1/pc-download:
+    get:
+      tags: [Poverty Calculator]
+      summary: Poverty Calculator CSV download
+      description: >-
+        Same data as `/pc-charts` but always returned as CSV. Population
+        figures are not scaled (reported in absolute numbers). Intended
+        for data download from the Poverty Calculator UI.
+      parameters:
+        - $ref: '#/components/parameters/Country'
+        - $ref: '#/components/parameters/Year'
+        - $ref: '#/components/parameters/Povline'
+        - name: fill_gaps
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: group_by
+          in: query
+          schema:
+            type: string
+            enum: [none, wb]
+            default: none
+        - $ref: '#/components/parameters/WelfareType'
+        - $ref: '#/components/parameters/ReportingLevel'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: CSV file with poverty and inequality estimates.
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /api/v1/pc-regional-aggregates:
+    get:
+      tags: [Poverty Calculator]
+      summary: Regional aggregates for all years
+      description: >-
+        Returns regional poverty aggregates for the Poverty Calculator,
+        using World Bank standard regions. Filtered to actual estimates
+        only (no projections or nowcasts).
+      parameters:
+        - name: country
+          in: query
+          required: true
+          description: Region code(s) or `all`.
+          schema:
+            type: array
+            items:
+              type: string
+            example: [all]
+        - $ref: '#/components/parameters/Year'
+        - $ref: '#/components/parameters/Povline'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: Regional aggregate poverty estimates.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PcRegionalRow'
+
+  # ── Country Profiles ────────────────────────────────────────────────
+
+  /api/v1/cp-key-indicators:
+    get:
+      tags: [Country Profiles]
+      summary: Country profile key indicators
+      description: |
+        Returns key poverty and inequality indicators for a given
+        country, used on the Country Profile page. The response is a
+        nested object containing headcount trends, Gini trends, and
+        pre-computed key indicator tables.
+
+        Null values are serialized as JSON `null`.
+      parameters:
+        - $ref: '#/components/parameters/Country'
+        - $ref: '#/components/parameters/Povline'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: >-
+            Nested object with key indicator tables. Structure varies
+            by data version. Typically includes `headcount` and `gini`
+            arrays plus pre-computed indicator tables.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                description: >-
+                  Nested structure with headcount trends, Gini trends,
+                  and version-specific pre-computed indicator tables.
+
+  /api/v1/cp-charts:
+    get:
+      tags: [Country Profiles]
+      summary: Country profile chart data
+      description: |
+        Returns chart data for the Country Profile page, including
+        poverty trends, most-recent-value comparisons, and prosperity
+        gap data.
+
+        The response is keyed by country code, with nested objects for
+        poverty trend charts (`pov_trend`, `pov_mrv`) and additional
+        pre-computed chart data that varies by data version.
+      parameters:
+        - $ref: '#/components/parameters/Country'
+        - $ref: '#/components/parameters/Povline'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: >-
+            Object keyed by country code, containing nested chart
+            data arrays.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  description: >-
+                    Nested chart data for a single country. Contains
+                    `pov_trend`, `pov_mrv`, prosperity gap data, and
+                    version-specific pre-computed chart tables.
+
+  /api/v1/cp-download:
+    get:
+      tags: [Country Profiles]
+      summary: Country profile data download
+      description: >-
+        Returns a flat table for download from the Country Profile page,
+        merging headcount, Gini, and pre-computed country profile
+        indicators into a single table.
+      parameters:
+        - $ref: '#/components/parameters/Country'
+        - $ref: '#/components/parameters/Povline'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+        - $ref: '#/components/parameters/ResponseFormat'
+      responses:
+        '200':
+          description: >-
+            Flat table with headcount, Gini, and pre-computed country
+            profile indicators. Column set varies by data version.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+
+  # ── UI Miscellaneous ────────────────────────────────────────────────
+
+  /api/v1/ui_aux:
+    get:
+      tags: [UI Miscellaneous]
+      summary: Auxiliary tables with UI-specific filtering
+      description: |
+        Similar to `/aux` but applies additional filtering for the
+        website UI:
+
+        - `table=regions`: filtered to valid region codes only.
+        - `table=countries` with `exclude=true`: removes excluded
+          countries (e.g. countries under special treatment).
+        - Other tables: returned as-is.
+      parameters:
+        - name: table
+          in: query
+          description: >-
+            Name of the auxiliary table to retrieve. Omit to list
+            available tables.
+          schema:
+            type: string
+          example: countries
+        - name: exclude
+          in: query
+          description: >-
+            Exclude specific countries from the `countries` table.
+            Only applies when `table=countries`.
+          schema:
+            type: boolean
+            default: false
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+        - $ref: '#/components/parameters/ResponseFormat'
+      responses:
+        '200':
+          description: >-
+            Same as `/aux` but with UI-specific filtering applied.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/AuxTableList'
+                  - type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+
+  /api/v1/survey-metadata:
+    get:
+      tags: [UI Miscellaneous]
+      summary: Survey metadata for the Data Sources page
+      description: >-
+        Returns survey metadata used on the website's Data Sources page.
+        Includes survey names, coverage, years, and methodology details.
+        Can be filtered by country. Null values serialized as JSON
+        `null`.
+      parameters:
+        - $ref: '#/components/parameters/Country'
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: >-
+            Array of survey metadata records. Column set varies by
+            data version.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+
+  /api/v1/wld-lineup-year:
+    get:
+      tags: [UI Miscellaneous]
+      summary: World lineup year for nowcast display
+      description: >-
+        Returns the current lineup (nowcast) year for the World
+        aggregate and a tooltip text for display on the website.
+      parameters:
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: Single-row object with nowcast year and tooltip.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WldLineupYearRow'
+                maxItems: 1
+
+# ════════════════════════════════════════════════════════════════════
+# Components
+# ════════════════════════════════════════════════════════════════════
+
+  # ── Cache Management ───────────────────────────────────────────────
+
+  /api/v1/cache-reset:
+    get:
+      tags: [Cache Management]
+      summary: Reset the in-memory plumber cache
+      description: Clears all entries from the current in-memory plumber cache directory.
+      responses:
+        '200':
+          description: Cache cleared successfully.
+
+  /api/v1/cache-delete:
+    get:
+      tags: [Cache Management]
+      summary: Delete the DuckDB cache file for a data version
+      description: |-
+        Deletes the DuckDB `.duckdb` cache file and its `.wal` sidecar for
+        the specified data version. Requires matching local and server keys.
+        **Ensure all DuckDB connections are closed before calling.**
+      parameters:
+        - name: pass
+          in: query
+          required: true
+          description: Local password, checked against `PIP_CACHE_SERVER_KEY`.
+          schema:
+            type: string
+        - name: version
+          in: query
+          required: true
+          description: Data version string (e.g. `20240326_2017_01_02_PROD`).
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paths of deleted files.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /api/v1/cache-get:
+    get:
+      tags: [Cache Management]
+      summary: Get a value from the in-memory cache
+      parameters:
+        - name: key
+          in: query
+          required: true
+          description: Cache key to retrieve.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cached value.
+
+  /api/v1/cache-keys:
+    get:
+      tags: [Cache Management]
+      summary: List all keys in the in-memory cache
+      responses:
+        '200':
+          description: Array of cache key strings.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /api/v1/cache-info:
+    get:
+      tags: [Cache Management]
+      summary: Return in-memory cache metadata
+      responses:
+        '200':
+          description: Cache info object including size and directory path.
+
+  /api/v1/duckdb-reset:
+    get:
+      tags: [Cache Management]
+      summary: Reset the DuckDB poverty statistics cache tables
+      description: |-
+        Truncates `rg_master_file` and/or `fg_master_file` tables in the
+        DuckDB cache database. Requires matching local and server keys.
+      parameters:
+        - name: pass
+          in: query
+          required: true
+          description: Local password, checked against `PIP_CACHE_SERVER_KEY`.
+          schema:
+            type: string
+        - name: version
+          in: query
+          required: true
+          description: Data version string.
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: false
+          description: Which table to reset — `both`, `rg`, or `fg`. Default `both`.
+          schema:
+            type: string
+            enum: [both, rg, fg]
+            default: both
+      responses:
+        '200':
+          description: Cache tables truncated.
+
+components:
+
+  # ── Reusable Parameters ─────────────────────────────────────────
+
+  parameters:
+    Country:
+      name: country
+      in: query
+      required: true
+      description: >-
+        One or more ISO3 country codes, or `all` for every country.
+      schema:
+        type: array
+        items:
+          type: string
+        example: [AGO]
+
+    Year:
+      name: year
+      in: query
+      required: true
+      description: >-
+        One or more years (YYYY), or `all` for every available year.
+      schema:
+        type: array
+        items:
+          type: string
+        example: ["2018"]
+
+    Povline:
+      name: povline
+      in: query
+      description: >-
+        Poverty line in daily 2017 PPP dollars. Rounded to 2 decimals.
+        Maximum of 10 distinct values per request.
+      schema:
+        type: number
+        minimum: 0
+        maximum: 2700
+        example: 2.15
+
+    Popshare:
+      name: popshare
+      in: query
+      description: >-
+        Proportion of the population (0 to 1). Returns the poverty line
+        at which this share of the population is poor. Ignored if
+        `povline` is specified.
+      schema:
+        type: number
+        minimum: 0
+        maximum: 1
+
+    WelfareType:
+      name: welfare_type
+      in: query
+      description: Filter by welfare measure type.
+      schema:
+        type: string
+        enum: [all, consumption, income]
+        default: all
+
+    ReportingLevel:
+      name: reporting_level
+      in: query
+      description: Filter by reporting coverage level.
+      schema:
+        type: string
+        enum: [all, national, rural, urban]
+        default: all
+
+    AdditionalInd:
+      name: additional_ind
+      in: query
+      description: >-
+        Include additional derived indicators (e.g. Palma ratio,
+        population in poverty, average shortfall). Default is false.
+      schema:
+        type: boolean
+        default: false
+
+    Identity:
+      name: identity
+      in: query
+      description: >-
+        Data identity. `PROD` = production, `INT` = internal,
+        `TEST` = testing.
+      schema:
+        type: string
+        enum: [PROD, INT, TEST]
+        default: PROD
+
+    ReleaseVersion:
+      name: release_version
+      in: query
+      description: >-
+        Release date in YYYYMMDD format. Used with `ppp_version` and
+        `identity` to resolve a specific data version.
+      schema:
+        type: string
+      example: "20240326"
+
+    PppVersion:
+      name: ppp_version
+      in: query
+      description: PPP vintage year (e.g. 2017 or 2011).
+      schema:
+        type: string
+        enum: ["2017", "2011"]
+      example: "2017"
+
+    DataVersion:
+      name: version
+      in: query
+      description: >-
+        Full data version string (e.g. `20240326_2017_01_02_PROD`).
+        Overrides `release_version`, `ppp_version`, and `identity`
+        if specified. Defaults to the latest production version.
+      schema:
+        type: string
+
+    ResponseFormat:
+      name: format
+      in: query
+      description: Response serialization format.
+      schema:
+        type: string
+        enum: [json, csv, rds, arrow]
+        default: json
+
+  # ── Reusable Responses ──────────────────────────────────────────
+
+  responses:
+    BadRequest:
+      description: >-
+        Invalid combination of query parameter values (e.g. non-region
+        country codes with `group_by=wb`).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InvalidParams:
+      description: >-
+        One or more query parameter values are invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: An unexpected server-side error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  # ── Schemas ─────────────────────────────────────────────────────
+
+  schemas:
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Short error message.
+          example: "Invalid query arguments have been submitted."
+        details:
+          type: object
+          properties:
+            msg:
+              type: string
+              description: Detailed explanation.
+            valid:
+              description: >-
+                List or table of valid values for the offending
+                parameter(s).
+
+    PipRow:
+      type: object
+      description: >-
+        One row of country-level poverty and inequality statistics.
+      properties:
+        region_name:
+          type: string
+          description: World Bank region name.
+          example: "Sub-Saharan Africa"
+        region_code:
+          type: string
+          description: World Bank region code.
+          example: "SSA"
+        country_name:
+          type: string
+          description: Country name.
+          example: "Angola"
+        country_code:
+          type: string
+          description: ISO3 country code.
+          example: "AGO"
+        reporting_year:
+          type: integer
+          description: Year of the estimate.
+          example: 2018
+        reporting_level:
+          type: string
+          description: Reporting coverage level.
+          enum: [national, urban, rural]
+          example: "national"
+        survey_acronym:
+          type: string
+          description: Survey acronym (e.g. ECAM, LSMS).
+          example: "IDREA"
+        survey_coverage:
+          type: string
+          description: Geographic coverage of the survey.
+          example: "national"
+        survey_year:
+          type: number
+          description: Year the underlying survey was conducted.
+          example: 2018.5
+        welfare_type:
+          type: string
+          description: Welfare measure type.
+          enum: [consumption, income]
+          example: "consumption"
+        survey_comparability:
+          type: number
+          nullable: true
+          description: >-
+            Comparability flag. Null for lined-up years.
+        comparable_spell:
+          type: string
+          nullable: true
+          description: Identifier for comparable survey spells.
+        poverty_line:
+          type: number
+          description: Poverty line used (daily PPP$).
+          example: 2.15
+        headcount:
+          type: number
+          description: Poverty headcount ratio (0–1).
+          example: 0.318
+        poverty_gap:
+          type: number
+          description: Poverty gap index.
+          example: 0.112
+        poverty_severity:
+          type: number
+          description: Squared poverty gap index.
+          example: 0.054
+        watts:
+          type: number
+          description: Watts poverty index.
+          example: 0.152
+        mean:
+          type: number
+          description: Mean welfare (daily PPP$).
+          example: 4.25
+        median:
+          type: number
+          nullable: true
+          description: >-
+            Median welfare (daily PPP$). Null for lined-up years.
+          example: 2.89
+        mld:
+          type: number
+          nullable: true
+          description: Mean Log Deviation. Null for lined-up years.
+          example: 0.254
+        gini:
+          type: number
+          nullable: true
+          description: Gini coefficient (0–1). Null for lined-up years.
+          example: 0.513
+        polarization:
+          type: number
+          nullable: true
+          description: Polarization index. Null for lined-up years.
+        decile1:
+          type: number
+          nullable: true
+          description: Welfare share of the 1st decile.
+        decile2:
+          type: number
+          nullable: true
+          description: Welfare share of the 2nd decile. Null for lined-up years.
+        decile3:
+          type: number
+          nullable: true
+          description: Welfare share of the 3rd decile. Null for lined-up years.
+        decile4:
+          type: number
+          nullable: true
+          description: Welfare share of the 4th decile. Null for lined-up years.
+        decile5:
+          type: number
+          nullable: true
+          description: Welfare share of the 5th decile. Null for lined-up years.
+        decile6:
+          type: number
+          nullable: true
+          description: Welfare share of the 6th decile. Null for lined-up years.
+        decile7:
+          type: number
+          nullable: true
+          description: Welfare share of the 7th decile. Null for lined-up years.
+        decile8:
+          type: number
+          nullable: true
+          description: Welfare share of the 8th decile. Null for lined-up years.
+        decile9:
+          type: number
+          nullable: true
+          description: Welfare share of the 9th decile. Null for lined-up years.
+        decile10:
+          type: number
+          nullable: true
+          description: Welfare share of the 10th decile.
+        cpi:
+          type: number
+          description: Consumer Price Index, indexed to the 2017 PPP base year.
+        ppp:
+          type: number
+          description: PPP conversion factor (local currency units per 2017 international dollar).
+        reporting_pop:
+          type: number
+          description: Total reported population (absolute count, not scaled).
+        reporting_gdp:
+          type: number
+          nullable: true
+          description: GDP per capita.
+        reporting_pce:
+          type: number
+          nullable: true
+          description: Private consumption expenditure per capita.
+        is_interpolated:
+          type: boolean
+          description: Whether the estimate is interpolated/extrapolated.
+          example: false
+        distribution_type:
+          type: string
+          description: Type of underlying data distribution.
+          enum: [micro, group, imputed, mixed, synthetic]
+          example: "micro"
+        estimation_type:
+          type: string
+          description: >-
+            Estimation approach used to obtain the poverty estimate.
+            `survey` = directly observed survey year; `lineup` = interpolated
+            or extrapolated to fill a reference year gap.
+          enum: [survey, lineup]
+          example: "survey"
+        spl:
+          type: number
+          nullable: true
+          description: Societal Poverty Line (daily PPP$).
+        spr:
+          type: number
+          nullable: true
+          description: Societal Poverty Rate.
+        pg:
+          type: number
+          nullable: true
+          description: Prosperity Gap.
+        estimate_type:
+          type: string
+          nullable: true
+          description: >-
+            Classification of the estimate. Populated when
+            `fill_gaps = TRUE`: `actual`, `projection`, or `nowcast`.
+            Null for survey-year estimates.
+          enum: [actual, projection, nowcast]
+        bottom40:
+          type: number
+          nullable: true
+          description: >-
+            Sum of decile1–decile4 shares. Only present when
+            `additional_ind = TRUE`.
+        pop_in_poverty:
+          type: number
+          nullable: true
+          description: >-
+            Number of people living below the poverty line. Only
+            present when `additional_ind = TRUE`.
+        average_shortfall:
+          type: number
+          nullable: true
+          description: >-
+            Average income/consumption shortfall from the poverty
+            line. Only present when `additional_ind = TRUE`.
+        total_shortfall:
+          type: number
+          nullable: true
+          description: >-
+            Total poverty shortfall. Only present when
+            `additional_ind = TRUE`.
+        income_gap_ratio:
+          type: number
+          nullable: true
+          description: >-
+            Income gap ratio. Only present when
+            `additional_ind = TRUE`.
+        palma_ratio:
+          type: number
+          nullable: true
+          description: >-
+            Palma ratio (top 10% share / bottom 40% share). Only
+            present when `additional_ind = TRUE`.
+        p90p10_ratio:
+          type: number
+          nullable: true
+          description: >-
+            90th/10th percentile ratio. Only present when
+            `additional_ind = TRUE`.
+
+    PipGrpRow:
+      type: object
+      description: >-
+        One row of aggregated poverty statistics.
+      properties:
+        region_name:
+          type: string
+          description: >-
+            Region name (e.g. "Sub-Saharan Africa", "World",
+            "CUSTOM").
+          example: "Sub-Saharan Africa"
+        region_code:
+          type: string
+          description: Region code (e.g. SSA, WLD, CUSTOM).
+          example: "SSA"
+        reporting_year:
+          type: integer
+          description: Year.
+          example: 2019
+        reporting_pop:
+          type: number
+          description: Total population for the aggregate.
+        poverty_line:
+          type: number
+          description: Poverty line (daily PPP$).
+          example: 2.15
+        headcount:
+          type: number
+          description: Population-weighted headcount ratio.
+          example: 0.389
+        poverty_gap:
+          type: number
+          description: Population-weighted poverty gap index.
+        poverty_severity:
+          type: number
+          description: Population-weighted squared poverty gap.
+        watts:
+          type: number
+          description: Population-weighted Watts index.
+        mean:
+          type: number
+          description: Population-weighted mean welfare.
+        pop_in_poverty:
+          type: number
+          description: Number of people in poverty.
+        spr:
+          type: number
+          nullable: true
+          description: Weighted Societal Poverty Rate.
+        pg:
+          type: number
+          nullable: true
+          description: Weighted Prosperity Gap.
+        estimate_type:
+          type: string
+          description: Estimate classification.
+          enum: [actual, projection, nowcast]
+          example: "actual"
+        average_shortfall:
+          type: number
+          nullable: true
+          description: >-
+            Average shortfall. Only present when
+            `additional_ind = TRUE`.
+        total_shortfall:
+          type: number
+          nullable: true
+          description: >-
+            Total shortfall. Only present when
+            `additional_ind = TRUE`.
+        income_gap_ratio:
+          type: number
+          nullable: true
+          description: >-
+            Income gap ratio. Only present when
+            `additional_ind = TRUE`.
+
+    GroupedStatsResponse:
+      type: object
+      description: >-
+        Poverty and distributional statistics computed from grouped
+        data. When `format=csv`, deciles are flattened to separate
+        columns (decile1–decile10).
+      properties:
+        headcount:
+          type: number
+          description: Poverty headcount ratio.
+        poverty_gap:
+          type: number
+          description: Poverty gap index.
+        poverty_severity:
+          type: number
+          description: Squared poverty gap.
+        watts:
+          type: number
+          description: Watts index.
+        mean:
+          type: number
+          description: Mean welfare.
+        median:
+          type: number
+          description: Median welfare.
+        gini:
+          type: number
+          description: Gini coefficient.
+        mld:
+          type: number
+          description: Mean Log Deviation.
+        polarization:
+          type: number
+          description: Polarization index.
+        deciles:
+          type: array
+          description: Welfare shares by decile (10 elements).
+          items:
+            type: number
+          minItems: 10
+          maxItems: 10
+        eh:
+          type: number
+          description: Lorenz Quadratic headcount estimate.
+        epovline:
+          type: number
+          description: Lorenz Quadratic effective poverty line.
+        gh:
+          type: number
+          description: Lorenz Beta headcount estimate.
+        gpovline:
+          type: number
+          description: Lorenz Beta effective poverty line.
+        lorenz_validity:
+          type: object
+          description: >-
+            Validity flags for both Lorenz parameterizations.
+          properties:
+            lq:
+              type: boolean
+              nullable: true
+              description: Whether the Lorenz Quadratic parameterization is valid.
+            lb:
+              type: boolean
+              nullable: true
+              description: Whether the Lorenz Beta parameterization is valid.
+
+    RegressionParamsRow:
+      type: object
+      description: >-
+        Regression parameters for one Lorenz parameterization.
+      properties:
+        lorenz:
+          type: string
+          description: Lorenz form identifier.
+          enum: [lq, lb]
+          example: "lq"
+        A:
+          type: number
+          description: Regression coefficient A.
+        B:
+          type: number
+          description: Regression coefficient B.
+        C:
+          type: number
+          description: Regression coefficient C.
+        sse:
+          type: number
+          description: Sum of squared errors.
+        r2:
+          type: number
+          description: R-squared goodness of fit.
+        se_A:
+          type: number
+          description: Standard error of coefficient A.
+        se_B:
+          type: number
+          description: Standard error of coefficient B.
+        se_C:
+          type: number
+          description: Standard error of coefficient C.
+        validity:
+          type: boolean
+          description: >-
+            Whether the Lorenz curve satisfies validity conditions.
+        normality:
+          type: boolean
+          description: >-
+            Whether the distribution satisfies normality conditions.
+        selected_for_dist:
+          type: string
+          description: >-
+            Lorenz form selected for distributional statistics.
+          enum: [lq, lb]
+        selected_for_pov:
+          type: string
+          description: >-
+            Lorenz form selected for poverty statistics.
+          enum: [lq, lb]
+
+    LorenzCurveRow:
+      type: object
+      description: One point on the Lorenz curve.
+      properties:
+        welfare:
+          type: number
+          description: Cumulative welfare share (y-axis).
+          example: 0.012
+        weight:
+          type: number
+          description: Cumulative population share (x-axis).
+          example: 0.01
+
+    VersionRow:
+      type: object
+      description: Metadata for a data version.
+      properties:
+        version:
+          type: string
+          description: Full version string.
+          example: "20240326_2017_01_02_PROD"
+        release_version:
+          type: string
+          description: Release date (YYYYMMDD).
+          example: "20240326"
+        ppp_version:
+          type: string
+          description: PPP vintage year.
+          example: "2017"
+        identity:
+          type: string
+          description: Data identity.
+          enum: [PROD, INT, TEST]
+          example: "PROD"
+
+    ValidParamRow:
+      type: object
+      description: One valid parameter–value pair.
+      properties:
+        param_names:
+          type: string
+          description: Parameter name.
+          example: "country"
+        param_values:
+          type: string
+          description: A valid value for this parameter.
+          example: "AGO"
+        param_boundaries:
+          type: string
+          nullable: true
+          description: >-
+            For numeric parameters, `min` or `max` label. Null for
+            non-numeric parameters.
+        param_types:
+          type: string
+          description: Parameter data type.
+          enum: [character, numeric, logical]
+          example: "character"
+
+    ValidYearsResponse:
+      type: object
+      properties:
+        valid_survey_years:
+          type: array
+          description: Years with actual survey data.
+          items:
+            type: integer
+          example: [1981, 1990, 2000, 2010, 2015, 2019, 2022]
+        valid_interpolated_years:
+          type: array
+          description: >-
+            Years for which interpolated estimates are available.
+          items:
+            type: integer
+          example: [1981, 1982, 1983, 1984, 1985]
+
+    CitationResponse:
+      type: object
+      properties:
+        citation:
+          type: string
+          description: Formatted citation string.
+          example: >-
+            World Bank (2024). Poverty and Inequality Platform
+            (version 20240326_2017_01_02_PROD) [Data set]. World
+            Bank Group. https://pip.worldbank.org. Accessed
+            April 17, 2026.
+        version_id:
+          type: string
+          description: Data version cited.
+          example: "20240326_2017_01_02_PROD"
+        date_accessed:
+          type: string
+          format: date
+          description: Date the citation was generated.
+          example: "2026-04-17"
+
+    PipInfoResponse:
+      type: object
+      description: API and server information.
+      properties:
+        available_data_versions:
+          type: array
+          description: All available data version strings.
+          items:
+            type: string
+        pip_packages:
+          type: object
+          description: Version and hash for core PIP packages.
+          properties:
+            pipapi:
+              type: object
+              properties:
+                pkg_version:
+                  type: string
+                  example: "1.2.0"
+                pkg_hash:
+                  type: string
+                  example: "abc123def456"
+            wbpip:
+              type: object
+              properties:
+                pkg_version:
+                  type: string
+                  example: "0.5.1"
+                pkg_hash:
+                  type: string
+                  example: "789ghi012jkl"
+        other_packages:
+          type: array
+          description: >-
+            Sorted list of all other loaded package versions.
+          items:
+            type: string
+        r_version:
+          type: string
+          description: R runtime version string.
+          example: "R version 4.5.2 (2025-10-31)"
+        server_os:
+          type: string
+          description: Operating system description.
+          example: "Linux 5.15.0-1053-azure"
+        server_time:
+          type: string
+          format: date-time
+          description: Current server timestamp.
+
+    AuxTableList:
+      type: object
+      description: List of available auxiliary table names.
+      properties:
+        tables:
+          type: array
+          items:
+            type: string
+          example:
+            - countries
+            - cpi
+            - decomposition_master
+            - framework
+            - gdp
+            - indicators
+            - pop
+            - poverty_lines
+            - ppp
+            - regions
+
+    HpStackedRow:
+      type: object
+      description: >-
+        One data point for the homepage stacked area chart.
+      properties:
+        region_code:
+          type: string
+          description: World Bank region code or WLD.
+          example: "SSA"
+        reporting_year:
+          type: integer
+          description: Year (1990 onward).
+          example: 2019
+        poverty_line:
+          type: number
+          description: Poverty line (daily PPP$).
+          example: 2.15
+        pop_in_poverty:
+          type: number
+          description: Number of people living in poverty.
+
+    HpCountriesRow:
+      type: object
+      description: One row of homepage country chart data.
+      properties:
+        region_code:
+          type: string
+          example: "SSA"
+        country_code:
+          type: string
+          example: "AGO"
+        reporting_year:
+          type: integer
+          example: 2018
+        poverty_line:
+          type: number
+          example: 2.15
+        reporting_pop:
+          type: number
+          description: >-
+            Population (scaled, typically in millions).
+        pop_in_poverty:
+          type: number
+          description: >-
+            Number in poverty (scaled, typically in millions).
+
+    PcChartsRow:
+      type: object
+      description: >-
+        One row of Poverty Calculator chart data. Column availability
+        depends on the `fill_gaps` setting.
+      properties:
+        country_code:
+          type: string
+          example: "AGO"
+        reporting_year:
+          type: integer
+          example: 2018
+        welfare_type:
+          type: string
+          enum: [consumption, income]
+        reporting_level:
+          type: string
+          enum: [national, urban, rural]
+        median:
+          type: number
+          nullable: true
+        gini:
+          type: number
+          nullable: true
+        polarization:
+          type: number
+          nullable: true
+        mld:
+          type: number
+          nullable: true
+        decile1:
+          type: number
+          nullable: true
+        decile2:
+          type: number
+          nullable: true
+          description: Welfare share of the 2nd decile. Null for lined-up years.
+        decile3:
+          type: number
+          nullable: true
+          description: Welfare share of the 3rd decile. Null for lined-up years.
+        decile4:
+          type: number
+          nullable: true
+          description: Welfare share of the 4th decile. Null for lined-up years.
+        decile5:
+          type: number
+          nullable: true
+          description: Welfare share of the 5th decile. Null for lined-up years.
+        decile6:
+          type: number
+          nullable: true
+          description: Welfare share of the 6th decile. Null for lined-up years.
+        decile7:
+          type: number
+          nullable: true
+          description: Welfare share of the 7th decile. Null for lined-up years.
+        decile8:
+          type: number
+          nullable: true
+          description: Welfare share of the 8th decile. Null for lined-up years.
+        decile9:
+          type: number
+          nullable: true
+          description: Welfare share of the 9th decile. Null for lined-up years.
+        decile10:
+          type: number
+          nullable: true
+        region_code:
+          type: string
+          example: "SSA"
+        survey_coverage:
+          type: string
+        survey_comparability:
+          type: number
+          nullable: true
+        comparable_spell:
+          type: string
+          nullable: true
+        survey_year:
+          type: number
+        reporting_pop:
+          type: number
+          description: Population (scaled).
+        ppp:
+          type: number
+        cpi:
+          type: number
+        distribution_type:
+          type: string
+          enum: [micro, group, imputed, mixed, synthetic]
+        is_interpolated:
+          type: boolean
+        poverty_line:
+          type: number
+          example: 2.15
+        mean:
+          type: number
+        headcount:
+          type: number
+        poverty_gap:
+          type: number
+        poverty_severity:
+          type: number
+        watts:
+          type: number
+        pop_in_poverty:
+          type: number
+          description: Population in poverty (scaled).
+        spr:
+          type: number
+          nullable: true
+        pg:
+          type: number
+          nullable: true
+        estimate_type:
+          type: string
+          nullable: true
+          description: >-
+            Present only when `fill_gaps = TRUE`.
+          enum: [actual, projection, nowcast]
+
+    PcRegionalRow:
+      type: object
+      description: Regional aggregate for the Poverty Calculator.
+      properties:
+        region_name:
+          type: string
+          example: "Sub-Saharan Africa"
+        region_code:
+          type: string
+          example: "SSA"
+        reporting_year:
+          type: integer
+          example: 2019
+        reporting_pop:
+          type: number
+          description: Population (scaled).
+        poverty_line:
+          type: number
+          example: 2.15
+        headcount:
+          type: number
+        poverty_gap:
+          type: number
+        poverty_severity:
+          type: number
+        watts:
+          type: number
+        mean:
+          type: number
+        pop_in_poverty:
+          type: number
+          description: Population in poverty (scaled).
+        spr:
+          type: number
+          nullable: true
+        pg:
+          type: number
+          nullable: true
+        estimate_type:
+          type: string
+          description: Always `actual` (filtered).
+          example: "actual"
+
+    WldLineupYearRow:
+      type: object
+      description: World lineup year information.
+      properties:
+        nowcast_year:
+          type: integer
+          description: The lineup year for the World aggregate.
+          example: 2024
+        tooltip_text:
+          type: string
+          description: Display text for the website tooltip.
+          example: "Estimates after 2022 are nowcasted."
 

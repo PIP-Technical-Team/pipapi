@@ -134,7 +134,7 @@ test_that("treat_cache_and_main returns results when cache update fails", {
     expect_warning(
       pipapi:::treat_cache_and_main(
         out = out_in,
-        cache_file_path = "E:/PIP/pipapi_data/20260430_2017_01_02_INT/cache.duckdb",
+        cache_file_path = fs::path(withr::local_tempdir(), "cache.duckdb"),
         lkup = list(use_new_lineup_version = TRUE),
         fill_gaps = FALSE
       ),
@@ -209,11 +209,144 @@ test_that("reset_cache deletes rows when tables exist", {
   expect_equal(fg_count, 0)
 })
 
+test_that("delete_cache does not error when cache file does not exist", {
+  tmp <- withr::local_tempdir()
+  lkup_mock <- list(data_root = tmp)
+
+  withr::local_envvar(
+    PIP_CACHE_LOCAL_KEY = "test-key",
+    PIP_CACHE_SERVER_KEY = "test-key"
+  )
+
+  expect_no_error(
+    delete_cache(pass = "test-key", lkup = lkup_mock)
+  )
+
+  result <- delete_cache(pass = "test-key", lkup = lkup_mock)
+  expect_identical(result, character())
+})
+
+test_that("delete_cache removes duckdb file and wal sidecar", {
+  tmp <- withr::local_tempdir()
+  cache_path <- fs::path(tmp, "cache", ext = "duckdb")
+  wal_path <- paste0(cache_path, ".wal")
+  lkup_mock <- list(data_root = tmp)
+
+  create_duckdb_file(cache_path)
+  fs::file_create(wal_path)
+
+  withr::local_envvar(
+    PIP_CACHE_LOCAL_KEY = "test-key",
+    PIP_CACHE_SERVER_KEY = "test-key"
+  )
+
+  expect_true(file.exists(cache_path))
+  expect_true(file.exists(wal_path))
+
+  result <- delete_cache(pass = "test-key", lkup = lkup_mock)
+
+  expect_length(result, 2L)
+  expect_false(file.exists(cache_path))
+  expect_false(file.exists(wal_path))
+
+  deleted_paths <- delete_cache(pass = "test-key", lkup = lkup_mock)
+  expect_length(deleted_paths, 0L) # second call: files already gone
+})
+
+test_that("delete_cache removes only the duckdb file when no WAL sidecar exists", {
+  tmp <- withr::local_tempdir()
+  cache_path <- fs::path(tmp, "cache", ext = "duckdb")
+  lkup_mock <- list(data_root = tmp)
+
+  create_duckdb_file(cache_path)
+
+  withr::local_envvar(
+    PIP_CACHE_LOCAL_KEY = "test-key",
+    PIP_CACHE_SERVER_KEY = "test-key"
+  )
+
+  expect_true(file.exists(cache_path))
+
+  result <- delete_cache(pass = "test-key", lkup = lkup_mock)
+
+  expect_length(result, 1L)
+  expect_false(file.exists(cache_path))
+})
+
+# Auth failure tests ----
+
+test_that("reset_cache aborts when PIP_CACHE_SERVER_KEY is not set", {
+  tmp <- withr::local_tempdir()
+  lkup_mock <- list(data_root = tmp)
+
+  withr::local_envvar(
+    PIP_CACHE_LOCAL_KEY = "test-key",
+    PIP_CACHE_SERVER_KEY = ""
+  )
+
+  expect_error(
+    reset_cache(pass = "test-key", lkup = lkup_mock),
+    class = "rlang_error"
+  )
+})
+
+test_that("reset_cache aborts when supplied key does not match server key", {
+  tmp <- withr::local_tempdir()
+  cache_path <- fs::path(tmp, "cache", ext = "duckdb")
+  lkup_mock <- list(data_root = tmp)
+  create_duckdb_file(cache_path)
+
+  withr::local_envvar(
+    PIP_CACHE_LOCAL_KEY = "correct-key",
+    PIP_CACHE_SERVER_KEY = "correct-key"
+  )
+
+  expect_error(
+    reset_cache(pass = "wrong-key", lkup = lkup_mock),
+    class = "rlang_error"
+  )
+})
+
+test_that("delete_cache aborts when PIP_CACHE_SERVER_KEY is not set", {
+  tmp <- withr::local_tempdir()
+  lkup_mock <- list(data_root = tmp)
+
+  withr::local_envvar(
+    PIP_CACHE_LOCAL_KEY = "test-key",
+    PIP_CACHE_SERVER_KEY = ""
+  )
+
+  expect_error(
+    delete_cache(pass = "test-key", lkup = lkup_mock),
+    class = "rlang_error"
+  )
+})
+
+test_that("delete_cache aborts when supplied key does not match server key", {
+  tmp <- withr::local_tempdir()
+  cache_path <- fs::path(tmp, "cache", ext = "duckdb")
+  lkup_mock <- list(data_root = tmp)
+  create_duckdb_file(cache_path)
+
+  withr::local_envvar(
+    PIP_CACHE_LOCAL_KEY = "correct-key",
+    PIP_CACHE_SERVER_KEY = "correct-key"
+  )
+
+  expect_error(
+    delete_cache(pass = "wrong-key", lkup = lkup_mock),
+    class = "rlang_error"
+  )
+})
+
 # TMP: live test against real data vintage ----
 # Delete this test once the DuckDB connection lifecycle is confirmed working.
 test_that("TMP: full read-then-write cycle works on real 2017 INT cache", {
-  real_data_root <- "E:/PIP/pipapi_data/20260430_2017_01_02_INT"
-  skip_if(!dir.exists(real_data_root), "Real data directory not available")
+  real_data_root <- Sys.getenv("PIPAPI_TMP_TEST_DATA_ROOT", unset = "")
+  skip_if(
+    !nzchar(real_data_root) || !dir.exists(real_data_root),
+    "Real data directory not available (set PIPAPI_TMP_TEST_DATA_ROOT)"
+  )
 
   cache_path <- fs::path(real_data_root, "cache", ext = "duckdb")
 

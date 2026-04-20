@@ -374,22 +374,42 @@ connect_with_retry <- function(
 }
 
 
+# Internal helper: validate cache auth before destructive operations.
+# Aborts if either env var is unset/empty or if `pass` != server key.
+.check_cache_auth <- function(pass) {
+  server_key <- Sys.getenv("PIP_CACHE_SERVER_KEY", unset = "")
+  if (
+    !nzchar(Sys.getenv("PIP_CACHE_LOCAL_KEY", unset = "")) ||
+      !nzchar(server_key)
+  ) {
+    cli::cli_abort(
+      "Cache key env var(s) not set \\
+      ({.envvar PIP_CACHE_LOCAL_KEY} / {.envvar PIP_CACHE_SERVER_KEY})."
+    )
+  }
+  if (pass != server_key) {
+    cli::cli_abort(
+      "Cache key mismatch: supplied key does not match server key."
+    )
+  }
+  invisible(TRUE)
+}
+
+
 #' Reset the cache. Only to be used internally
 #'
 #' @noRd
 reset_cache <- function(
-  pass = Sys.getenv('PIP_CACHE_LOCAL_KEY'),
+  pass = Sys.getenv("PIP_CACHE_LOCAL_KEY"),
   type = c("both", "rg", "fg"),
   lkup
 ) {
   # lkup will be passed through API and will not be an argument to endpoint,
   # same as pip call Checks if the keys match across local and server before
   # reseting the cache
-  if (pass != Sys.getenv('PIP_CACHE_SERVER_KEY')) {
-    rlang::abort("Either key not set or incorrect key!")
-  }
+  .check_cache_auth(pass)
 
-  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  cache_file_path <- fs::path(lkup$data_root, "cache", ext = "duckdb")
   write_con <- connect_with_retry(cache_file_path, read_only = FALSE)
 
   type <- match.arg(type)
@@ -403,6 +423,41 @@ reset_cache <- function(
     DBI::dbExecute(write_con, "DELETE from fg_master_file")
   }
   DBI::dbDisconnect(write_con, shutdown = TRUE)
+}
+
+#' Delete the DuckDB cache file. Only to be used internally
+#'
+#' @details
+#' All DuckDB connections to the target cache file must be closed/disconnected
+#' before calling this function. Calling with an open connection will result in
+#' a locked-file error on Windows.
+#'
+#' @noRd
+delete_cache <- function(
+  pass = Sys.getenv("PIP_CACHE_LOCAL_KEY"),
+  lkup
+) {
+  .check_cache_auth(pass)
+
+  if (is.null(lkup$data_root) || !nzchar(lkup$data_root)) {
+    cli::cli_abort("{.arg lkup$data_root} must be a non-empty string.")
+  }
+
+  cache_file_path <- fs::path(lkup$data_root, "cache", ext = "duckdb")
+  cache_sidecars <- c(
+    cache_file_path,
+    paste0(cache_file_path, ".wal")
+  )
+
+  cache_sidecars <- cache_sidecars[fs::file_exists(cache_sidecars)]
+
+  if (length(cache_sidecars) == 0) {
+    return(invisible(character()))
+  }
+
+  fs::file_delete(cache_sidecars)
+
+  invisible(cache_sidecars)
 }
 
 create_duckdb_file <- function(cache_file_path) {

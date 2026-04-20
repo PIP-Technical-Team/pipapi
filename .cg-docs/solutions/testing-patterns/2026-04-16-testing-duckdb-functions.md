@@ -94,4 +94,5 @@ test_that("reset_cache deletes rows when tables exist", {
 ## Related
 
 - [bugs/2026-04-16-reset-cache-missing-tables.md](../bugs/2026-04-16-reset-cache-missing-tables.md) — the bug that surfaced this pattern
-- [data-quality/2026-04-16-duckdb-dbexiststable-guard.md](../data-quality/2026-04-16-duckdb-dbexiststable-guard.md) — team-wide convention: always guard DuckDB table operations with `dbExistsTable()`
+- [testing-patterns/2026-04-20-withr-local-envvar-both-keys-required.md](2026-04-20-withr-local-envvar-both-keys-required.md) — env-var completeness requirement for auth helpers
+- [bugs/2026-04-20-getenv-empty-string-auth-bypass.md](../bugs/2026-04-20-getenv-empty-string-auth-bypass.md) — auth bypass from unguarded Sys.getenv()

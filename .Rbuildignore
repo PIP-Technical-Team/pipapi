@@ -8,6 +8,7 @@
 ^codecov\.yml$
 ^data-raw$
 TEMP/
+^inst/TMP$
 ^\.github$
 ^_pkgdown\.yml$
 ^docs$
