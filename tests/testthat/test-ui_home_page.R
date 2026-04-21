@@ -7,8 +7,7 @@ latest_version <-
   available_versions(data_dir) |>
   max()
 
-lkups <- create_versioned_lkups(data_dir,
-                                vintage_pattern = latest_version)
+lkups <- create_versioned_lkups(data_dir, vintage_pattern = latest_version)
 lkups <- lkups$versions_paths[[lkups$latest_release]]
 
 set.seed(42)
@@ -23,30 +22,38 @@ local_mocked_bindings(
 
 
 test_that("ui_hp_stacked() works as expected", {
-  res                <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
+  res <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
   countries_selected <- lkups2$svy_lkup[, unique(country_code)]
-  tmp                <- lkups2$aux_files$country_list[country_code %in% countries_selected]
+  tmp <- lkups2$aux_files$country_list[country_code %in% countries_selected]
 
   var_code <- c("country_code", "region_code", "world_code")
 
   regions_of_countries <-
     tmp[, ..var_code] |>
     melt(id.vars = "country_code") |>
-    {\(.) .[, value] }() |>
+    {
+      \(.) .[, value]
+    }() |>
     unique()
-
 
   expect_identical(
     names(res),
     c(
-      "region_code", "reporting_year",
-      "poverty_line", "pop_in_poverty"
+      "region_code",
+      "reporting_year",
+      "poverty_line",
+      "pop_in_poverty"
     )
   )
-  expect_identical(unique(res$region_code) |>
-                     sort(),
-                   regions_of_countries |>
-                     sort())
+  expect_identical(
+    unique(res$region_code) |>
+      sort(),
+    lkups2$aux_files$regions[
+      grouping_type %in% c("region", "world"),
+      region_code
+    ] |>
+      sort()
+  )
   expect_true(all(res$pop_in_poverty == floor(res$pop_in_poverty))) # No decimals for population numbers
 })
 
@@ -55,13 +62,15 @@ test_that("ui_hp_countries() works as expected", {
   expect_identical(
     names(res),
     c(
-      "region_code", "country_code",
-      "reporting_year", "poverty_line",
-      "reporting_pop", "pop_in_poverty"
+      "region_code",
+      "country_code",
+      "reporting_year",
+      "poverty_line",
+      "reporting_pop",
+      "pop_in_poverty"
     )
   )
   expect_true(all(res$pop_in_poverty < 50))
   check <- lkups$svy_lkup[country_code %in% c("AGO", "CIV")]$reporting_year
   expect_equal(res$reporting_year, check)
 })
-

@@ -622,6 +622,41 @@ paths:
                 type: string
                 example: "a1b2c3d4e5f6"
 
+  /api/v1/dir-info:
+    get:
+      tags: [System]
+      summary: Directory information for a data version
+      description: >-
+        Returns file-level metadata (path, size, timestamps) for all
+        files under the selected data version directory, grouped into
+        `aux_files`, `estimation_files`, and `survey_data`.
+      parameters:
+        - $ref: '#/components/parameters/ReleaseVersion'
+        - $ref: '#/components/parameters/PppVersion'
+        - $ref: '#/components/parameters/DataVersion'
+      responses:
+        '200':
+          description: >-
+            Object with three arrays of file metadata: `aux_files`,
+            `estimation_files`, and `survey_data`.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  aux_files:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FileInfo'
+                  estimation_files:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FileInfo'
+                  survey_data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FileInfo'
+
   /api/v1/gh-hash:
     get:
       tags: [System]
@@ -1395,6 +1430,36 @@ components:
   # ── Schemas ─────────────────────────────────────────────────────
 
   schemas:
+
+    FileInfo:
+      type: object
+      description: File metadata from the data directory.
+      properties:
+        path:
+          type: string
+          description: Relative path to the file.
+        file:
+          type: string
+          description: File name.
+        size:
+          type: integer
+          description: File size in bytes.
+        birth_time:
+          type: string
+          format: date-time
+          description: File creation timestamp.
+        modification_time:
+          type: string
+          format: date-time
+          description: Last modification timestamp.
+        change_time:
+          type: string
+          format: date-time
+          description: Last metadata-change timestamp.
+        access_time:
+          type: string
+          format: date-time
+          description: Last access timestamp.
 
     ErrorResponse:
       type: object

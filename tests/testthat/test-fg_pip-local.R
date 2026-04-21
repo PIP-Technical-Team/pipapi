@@ -9,11 +9,13 @@ latest_version <-
   available_versions(data_dir) |>
   max()
 
-lkups <- create_versioned_lkups(data_dir,
-                                vintage_pattern = latest_version)
+lkups <- create_versioned_lkups(data_dir, vintage_pattern = latest_version)
 lkup <- lkups$versions_paths[[lkups$latest_release]]
 
-con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = fs::path(lkup$data_root, "cache", ext = "duckdb"))
+con <- duckdb::dbConnect(
+  duckdb::duckdb(),
+  dbdir = fs::path(lkup$data_root, "cache", ext = "duckdb")
+)
 
 local_mocked_bindings(
   get_caller_names = function() c("else")
@@ -23,27 +25,27 @@ local_mocked_bindings(
 ## Extrapolation ----
 test_that("Imputation is working for extrapolated aggregated distribution", {
   tmp <- fg_pip(
-    country         = "CHN",
-    year            = 1988,
-    povline         = 1.9,
-    popshare        = NULL,
-    welfare_type    = "all",
+    country = "CHN",
+    year = 1988,
+    povline = 1.9,
+    popshare = NULL,
+    welfare_type = "all",
     reporting_level = "all",
-    ppp             = NULL,
-    lkup            = lkup
+    ppp = NULL,
+    lkup = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
 
   tmp <- fg_pip(
-    country         = "CHN",
-    year            = 1988,
-    povline         = 1.9,
-    popshare        = NULL,
-    welfare_type    = "all",
+    country = "CHN",
+    year = 1988,
+    povline = 1.9,
+    popshare = NULL,
+    welfare_type = "all",
     reporting_level = "national",
-    ppp             = NULL,
-    lkup            = lkup
+    ppp = NULL,
+    lkup = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
@@ -52,27 +54,27 @@ test_that("Imputation is working for extrapolated aggregated distribution", {
 ## Interpolation ----
 test_that("Imputation is working for interpolated mixed distribution", {
   tmp <- fg_pip(
-    country         = "IND",
-    year            = 1993,
-    povline         = 1.9,
-    popshare        = NULL,
-    welfare_type    = "all",
+    country = "IND",
+    year = 1993,
+    povline = 1.9,
+    popshare = NULL,
+    welfare_type = "all",
     reporting_level = "all",
-    ppp             = NULL,
-    lkup            = lkup
+    ppp = NULL,
+    lkup = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
 
   tmp <- fg_pip(
-    country         = "IND",
-    year            = 1993,
-    povline         = 1.9,
-    popshare        = NULL,
-    welfare_type    = "all",
+    country = "IND",
+    year = 1993,
+    povline = 1.9,
+    popshare = NULL,
+    welfare_type = "all",
     reporting_level = "national",
-    ppp             = NULL,
-    lkup            = lkup
+    ppp = NULL,
+    lkup = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
@@ -80,28 +82,28 @@ test_that("Imputation is working for interpolated mixed distribution", {
 
 test_that("Imputation is working for interpolated aggregate distribution", {
   tmp <- fg_pip(
-    country         = "CHN",
-    year            = 2000,
-    povline         = 1.9,
-    popshare        = NULL,
-    welfare_type    = "all",
+    country = "CHN",
+    year = 2000,
+    povline = 1.9,
+    popshare = NULL,
+    welfare_type = "all",
     reporting_level = "all",
-    ppp             = NULL,
-    lkup            = lkup
+    ppp = NULL,
+    lkup = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
   expect_equal(nrow(tmp$data_in_cache), 2)
 
   tmp <- fg_pip(
-    country         = "CHN",
-    year            = 2000,
-    povline         = 1.9,
-    popshare        = NULL,
-    welfare_type    = "all",
+    country = "CHN",
+    year = 2000,
+    povline = 1.9,
+    popshare = NULL,
+    welfare_type = "all",
     reporting_level = "national",
-    ppp             = NULL,
-    lkup            = lkup
+    ppp = NULL,
+    lkup = lkup
   )
 
   expect_equal(nrow(tmp$main_data), 0)
@@ -110,7 +112,12 @@ test_that("Imputation is working for interpolated aggregate distribution", {
 
 
 test_that("Check classes of function fg_assign_nas_values_to_dup_cols", {
-  df <- data.table::data.table(a = rnorm(5), b = letters[1:5], c = 1:5, d = rnorm(5))
+  df <- data.table::data.table(
+    a = rnorm(5),
+    b = letters[1:5],
+    c = 1:5,
+    d = rnorm(5)
+  )
   tmp <- fg_assign_nas_values_to_dup_cols(df, c('a', 'b', 'c'))
 
   expect_type(tmp$a, "double")
@@ -120,9 +127,14 @@ test_that("Check classes of function fg_assign_nas_values_to_dup_cols", {
 
 
 test_that("Test fg_standardize_cache_id", {
-  x <- c("CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
-         "CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
-         "CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP")
+  x <- c(
+    "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+    "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+    "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+    "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+    "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+    "CHN_1981_CRHS-CUHS_D2_INC_GROUP"
+  )
   y <- fg_standardize_cache_id(x, x, '')
 
   expect_length(y, length(x))
@@ -131,13 +143,25 @@ test_that("Test fg_standardize_cache_id", {
 
 
 test_that("fg_remove_duplicates test", {
-  df <- data.table::data.table(cache_id = c("CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
-                                            "CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
-                                            "CHN_1981_CRHS-CUHS_D2_INC_GROUP", "CHN_1981_CRHS-CUHS_D2_INC_GROUP"),
-                               data_interpolation_id = c("CHN_1981_CRHS-CUHS_D2_INC_GROUP_rural", "CHN_1981_CRHS-CUHS_D2_INC_GROUP_rural",
-                                                         "CHN_1981_CRHS-CUHS_D2_INC_GROUP_rural", "CHN_1981_CRHS-CUHS_D2_INC_GROUP_urban",
-                                                         "CHN_1981_CRHS-CUHS_D2_INC_GROUP_urban", "CHN_1981_CRHS-CUHS_D2_INC_GROUP_urban"),
-                               reporting_level = c("rural", "rural", "rural", "urban", "urban", "urban"))
+  df <- data.table::data.table(
+    cache_id = c(
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP",
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP"
+    ),
+    data_interpolation_id = c(
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP_rural",
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP_rural",
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP_rural",
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP_urban",
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP_urban",
+      "CHN_1981_CRHS-CUHS_D2_INC_GROUP_urban"
+    ),
+    reporting_level = c("rural", "rural", "rural", "urban", "urban", "urban")
+  )
 
   res <- fg_remove_duplicates(df, c('data_interpolation_id'))
   expect_equal(nrow(res), 2)
@@ -147,14 +171,14 @@ test_that("fg_remove_duplicates test", {
 
 # SPL and median --------------
 tmp <- fg_pip(
-  country         = "ALL",
-  year            = "ALL",
-  povline         = 2.15,
-  popshare        = NULL,
-  welfare_type    = "all",
+  country = "ALL",
+  year = "ALL",
+  povline = 2.15,
+  popshare = NULL,
+  welfare_type = "all",
   reporting_level = "all",
-  ppp             = NULL,
-  lkup            = lkup
+  ppp = NULL,
+  lkup = lkup
 )
 tmp <- tmp$data_in_cache |> as.data.table()
 # dt <- pip(country =  "ALL",
@@ -163,25 +187,15 @@ tmp <- tmp$data_in_cache |> as.data.table()
 #           fill_gaps = TRUE)
 # setDT(dt)
 
-
 censored <- lkup$censored$countries
 add_vars_out_of_pipeline(tmp, fill_gaps = TRUE, lkup = lkup)
 
 
 ## no unexpected NAs ------------
-test_that("NAs only in censored data", {
-
-
-  ### SPR ---------------
-  expect_equal(
-    tmp[is.na(spr)][!censored,
-                       on = c("country_code",
-                              "reporting_year",
-                              "reporting_level",
-                              "welfare_type")] |>
-      nrow(),
-    expected = 0)
-
+test_that("distributional threshold columns are consistently unavailable", {
+  expect_true(all(is.na(tmp$spl)))
+  expect_true(all(is.na(tmp$spr)))
+  expect_equal(is.na(tmp$spl), is.na(tmp$spr))
 })
 
 ## Duplicates -------------
@@ -229,30 +243,38 @@ test_that("NAs only in censored data", {
 #
 # })
 
-
 test_that("SPL is the same by reporting level", {
-
-
   no_na <-
-    tmp[!is.na(spl),
-      c("country_code",
+    tmp[
+      !is.na(spl),
+      c(
+        "country_code",
         "reporting_year",
         "welfare_type",
         "reporting_level",
-        "spl")
-      ]
+        "spl"
+      )
+    ]
 
-  no_na[, .N, by = c("country_code",
-                     "reporting_year",
-                     "welfare_type",
-                     "reporting_level",
-                     "spl")][,N] |>
+  no_na[,
+    .N,
+    by = c(
+      "country_code",
+      "reporting_year",
+      "welfare_type",
+      "reporting_level",
+      "spl"
+    )
+  ][, N] |>
     expect_equal(
-      no_na[, .N, by = c("country_code",
-                         "reporting_year",
-                         "welfare_type",
-                         "reporting_level")][,N]
+      no_na[,
+        .N,
+        by = c(
+          "country_code",
+          "reporting_year",
+          "welfare_type",
+          "reporting_level"
+        )
+      ][, N]
     )
 })
-
-

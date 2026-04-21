@@ -169,7 +169,14 @@ pip_grp_logic <- function(
   # This merge will remove those countries for which there is no official
   # aggregate because of lack of coverage in the region. Eg. There is not data
   # for SAS in 2000, so for countries like AFG 2000 we can't input estimates
-  md_grp <- merge(pop_md, grp, by = c("region_code", "reporting_year"))
+  # Multiple poverty lines intentionally expand one country-year into multiple
+  # rows, one per poverty line estimate.
+  md_grp <- merge(
+    pop_md,
+    grp,
+    by = c("region_code", "reporting_year"),
+    allow.cartesian = TRUE
+  )
 
   ### Merge other region codes -----------
   md_grp[,
@@ -248,8 +255,7 @@ pip_grp_logic <- function(
   }
   # add new estimate type
 
-  ret <- estimate_type_var(ret,lkup)
-
+  ret <- estimate_type_var(ret, lkup)
 
   # Censor regional values ----------- We are not censoring at this stage
   # anymore because we need to show al the years in the homre page, including
@@ -265,8 +271,7 @@ pip_grp_logic <- function(
   }
 
   #Order rows by country code and reporting year
-  setorder(ret, region_code , reporting_year)
-
+  setorder(ret, region_code, reporting_year)
 
   #   ____________________________________________________________________
   #   Return                                                         ####

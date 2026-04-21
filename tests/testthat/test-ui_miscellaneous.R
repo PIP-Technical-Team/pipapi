@@ -7,8 +7,7 @@ latest_version <-
   available_versions(data_dir) |>
   max()
 
-lkups <- create_versioned_lkups(data_dir,
-                                vintage_pattern = latest_version)
+lkups <- create_versioned_lkups(data_dir, vintage_pattern = latest_version)
 lkups <- lkups$versions_paths[[lkups$latest_release]]
 
 
@@ -19,39 +18,44 @@ lkups2$svy_lkup <- lkups2$svy_lkup[country_code %in% c('AGO', 'ZWE')]
 lkups2$ref_lkup <- lkups2$ref_lkup[country_code %in% c('AGO', 'ZWE')]
 
 test_that("ui_hp_stacked() works as expected", {
+  with_mocked_bindings(
+    {
+      res <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
+      countries_selected <- lkups2$svy_lkup[, unique(country_code)]
+      tmp <- lkups2$aux_files$country_list[country_code %in% countries_selected]
 
-  with_mocked_bindings({
-    res                <- ui_hp_stacked(povline = 1.9, lkup = lkups2)
-    countries_selected <- lkups2$svy_lkup[, unique(country_code)]
-    tmp                <- lkups2$aux_files$country_list[country_code %in% countries_selected]
+      var_code <- c("country_code", "region_code", "world_code")
 
-    var_code <- c("country_code", "region_code", "world_code")
+      regions_of_countries <-
+        tmp[, ..var_code] |>
+        melt(id.vars = "country_code") |>
+        {
+          \(.) .[, value]
+        }() |>
+        unique()
 
-    regions_of_countries <-
-      tmp[, ..var_code] |>
-      melt(id.vars = "country_code") |>
-      {\(.) .[, value] }() |>
-      unique()
-
-
-    expect_identical(
-      names(res),
-      c(
-        "region_code", "reporting_year",
-        "poverty_line", "pop_in_poverty"
+      expect_identical(
+        names(res),
+        c(
+          "region_code",
+          "reporting_year",
+          "poverty_line",
+          "pop_in_poverty"
+        )
       )
-    )
-    expect_identical(unique(res$region_code) |>
-                       sort(),
-                     regions_of_countries |>
-                       sort())
-    expect_true(all(res$pop_in_poverty == floor(res$pop_in_poverty))) # No decimals for population numbers
-
-  },
-  get_caller_names = function() c("pip_grp")
+      expect_identical(
+        unique(res$region_code) |>
+          sort(),
+        lkups2$aux_files$regions[
+          grouping_type %in% c("region", "world"),
+          region_code
+        ] |>
+          sort()
+      )
+      expect_true(all(res$pop_in_poverty == floor(res$pop_in_poverty))) # No decimals for population numbers
+    },
+    get_caller_names = function() c("pip_grp")
   )
-
-
 })
 
 test_that("ui_hp_countries() works as expected", {
@@ -59,9 +63,12 @@ test_that("ui_hp_countries() works as expected", {
   expect_identical(
     names(res),
     c(
-      "region_code", "country_code",
-      "reporting_year", "poverty_line",
-      "reporting_pop", "pop_in_poverty"
+      "region_code",
+      "country_code",
+      "reporting_year",
+      "poverty_line",
+      "reporting_pop",
+      "pop_in_poverty"
     )
   )
   expect_true(all(res$pop_in_poverty < 50))
@@ -74,7 +81,7 @@ test_that("ui_svy_meta() works as expected", {
     c(
       "country_code",
       "country_name",
-      "reporting_year" ,
+      "reporting_year",
       "survey_year",
       "surveyid_year",
       "survey_title",
@@ -103,8 +110,7 @@ test_that("ui_svy_meta() works as expected", {
 
   res <- ui_svy_meta(country = "AGO", lkup = lkups)
   expect_equal(unique(res$country_code), "AGO")
-  expect_equal(names(res),
-               expected_names)
+  expect_equal(names(res), expected_names)
 
   expect_equal(
     names(res$metadata[[1]]),
@@ -113,17 +119,15 @@ test_that("ui_svy_meta() works as expected", {
 
   res <- ui_svy_meta(country = "all", lkup = lkups)
 
-  expect_true(all(unique(res$country_code) %in%
-                    lkups$query_controls$country$values))
+  expect_true(all(
+    unique(res$country_code) %in%
+      lkups$query_controls$country$values
+  ))
 
-  expect_equal(names(res),
-               expected_names)
+  expect_equal(names(res), expected_names)
 
   expect_equal(
     names(res$metadata[[1]]),
     expected_metadata
   )
-
 })
-
-

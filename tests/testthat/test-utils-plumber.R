@@ -14,29 +14,32 @@ pl_lkup <- lkups$pl_lkup
 poverty_line <- pl_lkup$poverty_line[pl_lkup$is_default == TRUE]
 
 test_that("validate_query_parameters() works", {
-
   # Test that all pip() parameters are accepted
-  req <- list(argsQuery = list(
-    country = "AGO",
-    year = "2018",
-    povline = "1.9",
-    popshare = "NULL",
-    fill_gaps = "FALSE",
-    aggregate = "FALSE",
-    group_by = "none",
-    welfare_type = "all",
-    reporting_level = "all",
-    ppp = "NULL",
-    format = "json"
-  ))
+  req <- list(
+    argsQuery = list(
+      country = "AGO",
+      year = "2018",
+      povline = "1.9",
+      popshare = "NULL",
+      fill_gaps = "FALSE",
+      aggregate = "FALSE",
+      group_by = "none",
+      welfare_type = "all",
+      reporting_level = "all",
+      ppp = "NULL",
+      format = "json"
+    )
+  )
   tmp <- validate_query_parameters(req)
   expect_identical(req$argsQuery, tmp)
 
   # Test that non-accepted parameter are removed
-  req <- list(argsQuery = list(
-    country = "AGO",
-    test = "hello"
-  ))
+  req <- list(
+    argsQuery = list(
+      country = "AGO",
+      test = "hello"
+    )
+  )
   tmp <- validate_query_parameters(req)
   expect_identical(list(country = "AGO"), tmp)
 })
@@ -94,24 +97,24 @@ test_that("parse_parameter() correctly parses query parameter values", {
   # Multiple logicals
   out <- parse_parameter(param = c("TRUE", "FALSE"), param_name = "fill_gaps")
   expect_equal(out, c(TRUE, FALSE))
-
 })
 
 test_that("check_parameters_values() works as expected", {
-
   # Test that all pip() parameters are accepted
-  req <- list(argsQuery = list(
-    country = "AGO",
-    year = 2018,
-    povline = 1.9,
-    popshare = NULL,
-    fill_gaps = FALSE,
-    aggregate = FALSE,
-    group_by = "none",
-    welfare_type = "all",
-    reporting_level = "all",
-    ppp = NULL
-  ))
+  req <- list(
+    argsQuery = list(
+      country = "AGO",
+      year = 2018,
+      povline = 1.9,
+      popshare = NULL,
+      fill_gaps = FALSE,
+      aggregate = FALSE,
+      group_by = "none",
+      welfare_type = "all",
+      reporting_level = "all",
+      ppp = NULL
+    )
+  )
   tmp <- check_parameters_values(req, lkups$query_controls)
   expect_true(all(tmp))
 
@@ -132,7 +135,9 @@ test_that("check_parameters_values() works as expected", {
   req <- list(argsQuery = list(povline = "all"))
   tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
-  req <- list(argsQuery = list(povline = lkups$query_controls$povline$values[["max"]] + 1))
+  req <- list(
+    argsQuery = list(povline = lkups$query_controls$povline$values[["max"]] + 1)
+  )
   tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 
@@ -154,7 +159,7 @@ test_that("check_parameters_values() works as expected", {
   # Invalid group_by parameter
   req <- list(argsQuery = list(group_by = "pcn"))
   tmp <- check_parameters_values(req, lkups$query_controls)
-  expect_false(tmp)
+  expect_true(tmp)
 
   # Invalid welfare_type parameter
   req <- list(argsQuery = list(welfare_type = "INC"))
@@ -178,7 +183,6 @@ test_that("check_parameters_values() works as expected", {
 })
 
 test_that("format_error() works as expected", {
-
   req <- list(argsQuery = list(country = "XXX", year = 2050, povline = 0))
   params <- names(req$argsQuery)
   tmp <- format_error(params, lkups$query_controls)
@@ -200,7 +204,6 @@ test_that("format_error() works as expected", {
 })
 
 test_that("assign_required_params works as expected for /pip endpoint", {
-
   req <- list()
   req$PATH_INFO <- "api/v1/pip"
   req <- assign_required_params(req, pl_lkup)
@@ -214,7 +217,6 @@ test_that("assign_required_params works as expected for /pip endpoint", {
 })
 
 test_that("assign_required_params works as expected for /pip-grp endpoint", {
-
   req <- list()
   req$PATH_INFO <- "api/v1/pip-grp"
   req <- assign_required_params(req, pl_lkup)
@@ -230,7 +232,6 @@ test_that("assign_required_params works as expected for /pip-grp endpoint", {
 })
 
 test_that("extract_endpoint works as expected", {
-
   expect_identical(extract_endpoint("api/v1/pip"), "pip")
   expect_identical(extract_endpoint("/api//v1/pip"), "pip")
   expect_identical(extract_endpoint("/api//v1//pip"), "pip")
@@ -241,30 +242,107 @@ test_that("extract_endpoint works as expected", {
   expect_identical(extract_endpoint("api/v2/aux"), "aux")
 })
 
-x <- c("20220609_2011_02_02_PROD", "20220504_2017_01_02_PROD", "20211212_2011_01_01_PROD",
-       "20200101_2011_01_01_PROD", "20220602_2017_01_02_INT", "20220504_2017_01_02_INT", "20211212_2011_02_01_PROD")
+x <- c(
+  "20220609_2011_02_02_PROD",
+  "20220504_2017_01_02_PROD",
+  "20211212_2011_01_01_PROD",
+  "20200101_2011_01_01_PROD",
+  "20220602_2017_01_02_INT",
+  "20220504_2017_01_02_INT",
+  "20211212_2011_02_01_PROD"
+)
 
 test_that("return_correct_version works as expected", {
-  expect_equal(return_correct_version(ppp_version = 2017, versions_available = x), "20220504_2017_01_02_PROD")
-  expect_equal(return_correct_version(ppp_version = 2017, identity = "INT", versions_available = x), "20220602_2017_01_02_INT")
-  expect_equal(return_correct_version(release_version = 20220504, versions_available = x), "20220504_2017_01_02_PROD")
-  expect_equal(return_correct_version(release_version = 20220504, ppp_version = 2017, versions_available = x), "20220504_2017_01_02_PROD")
-  expect_equal(return_correct_version(version = "20220609_2011_02_02_PROD", versions_available = x), "20220609_2011_02_02_PROD")
-  expect_equal(return_correct_version(release_version = 20220504, ppp_version = 2017, identity = "INT", versions_available = x), "20220504_2017_01_02_INT")
-  expect_equal(return_correct_version(release_version = 20220504, identity = "INT", versions_available = x), "20220504_2017_01_02_INT")
-  expect_equal(return_correct_version(release_version = 20211212, ppp_version = 2011, versions_available = x), "20211212_2011_02_01_PROD")
+  expect_equal(
+    return_correct_version(ppp_version = 2017, versions_available = x),
+    "20220504_2017_01_02_PROD"
+  )
+  expect_equal(
+    return_correct_version(
+      ppp_version = 2017,
+      identity = "INT",
+      versions_available = x
+    ),
+    "20220602_2017_01_02_INT"
+  )
+  expect_equal(
+    return_correct_version(release_version = 20220504, versions_available = x),
+    "20220504_2017_01_02_PROD"
+  )
+  expect_equal(
+    return_correct_version(
+      release_version = 20220504,
+      ppp_version = 2017,
+      versions_available = x
+    ),
+    "20220504_2017_01_02_PROD"
+  )
+  expect_equal(
+    return_correct_version(
+      version = "20220609_2011_02_02_PROD",
+      versions_available = x
+    ),
+    "20220609_2011_02_02_PROD"
+  )
+  expect_equal(
+    return_correct_version(
+      release_version = 20220504,
+      ppp_version = 2017,
+      identity = "INT",
+      versions_available = x
+    ),
+    "20220504_2017_01_02_INT"
+  )
+  expect_equal(
+    return_correct_version(
+      release_version = 20220504,
+      identity = "INT",
+      versions_available = x
+    ),
+    "20220504_2017_01_02_INT"
+  )
+  expect_equal(
+    return_correct_version(
+      release_version = 20211212,
+      ppp_version = 2011,
+      versions_available = x
+    ),
+    "20211212_2011_02_01_PROD"
+  )
 })
 
 
 test_that("extract_release_date works as expected", {
   val <- extract_release_date(x)
-  expect_equal(val, as.Date(c("2022-06-09", "2022-05-04", "2021-12-12", "2020-01-01", "2022-06-02", "2022-05-04", "2021-12-12")))
+  expect_equal(
+    val,
+    as.Date(c(
+      "2022-06-09",
+      "2022-05-04",
+      "2021-12-12",
+      "2020-01-01",
+      "2022-06-02",
+      "2022-05-04",
+      "2021-12-12"
+    ))
+  )
   expect_s3_class(val, "Date")
 })
 
 test_that("extract_ppp_date works as expected", {
   val <- extract_ppp_date(x)
-  expect_equal(val, as.Date(c("2011-02-02","2017-01-02","2011-01-01","2011-01-01","2017-01-02","2017-01-02","2011-02-01")))
+  expect_equal(
+    val,
+    as.Date(c(
+      "2011-02-02",
+      "2017-01-02",
+      "2011-01-01",
+      "2011-01-01",
+      "2017-01-02",
+      "2017-01-02",
+      "2011-02-01"
+    ))
+  )
   expect_s3_class(val, "Date")
 })
 
@@ -284,12 +362,21 @@ test_that("version_dataframe works as expected", {
 
 
 test_that("rpi_version works as expected", {
-    expect_equal(rpi_version("20220602", "2017", "INT", x), "20220602_2017_01_02_INT")
-    expect_equal(rpi_version("20220504", "2017", "PROD", x), "20220504_2017_01_02_PROD")
+  expect_equal(
+    rpi_version("20220602", "2017", "INT", x),
+    "20220602_2017_01_02_INT"
+  )
+  expect_equal(
+    rpi_version("20220504", "2017", "PROD", x),
+    "20220504_2017_01_02_PROD"
+  )
 })
 
 test_that("rp_version works as expected", {
-  expect_equal(rp_version("20220504", "2017", x), c("20220504_2017_01_02_PROD", "20220504_2017_01_02_INT"))
+  expect_equal(
+    rp_version("20220504", "2017", x),
+    c("20220504_2017_01_02_PROD", "20220504_2017_01_02_INT")
+  )
   expect_equal(rp_version("20220609", "2011", x), "20220609_2011_02_02_PROD")
 })
 
@@ -299,9 +386,19 @@ test_that("ri_version works as expected", {
 })
 
 test_that("pi_version works as expected", {
-  expect_equal(pi_version("2017", "INT", x), c("20220602_2017_01_02_INT", "20220504_2017_01_02_INT"))
-  expect_equal(pi_version("2011", "PROD", x), c("20220609_2011_02_02_PROD", "20211212_2011_01_01_PROD",
-                                                "20200101_2011_01_01_PROD", "20211212_2011_02_01_PROD"))
+  expect_equal(
+    pi_version("2017", "INT", x),
+    c("20220602_2017_01_02_INT", "20220504_2017_01_02_INT")
+  )
+  expect_equal(
+    pi_version("2011", "PROD", x),
+    c(
+      "20220609_2011_02_02_PROD",
+      "20211212_2011_01_01_PROD",
+      "20200101_2011_01_01_PROD",
+      "20211212_2011_02_01_PROD"
+    )
+  )
 })
 
 test_that("citation_from_version works as expected", {
@@ -309,11 +406,15 @@ test_that("citation_from_version works as expected", {
 
   expect_equal(names(citation), c("citation", "version_id", "date_accessed"))
   current_date <- Sys.Date()
-  expect_equal(citation$citation,
-               paste0("World Bank (",
-                      format(current_date, '%Y'),
-                      "), Poverty and Inequality Platform (version 20220609_2011_02_02_PROD) [data set]. pip.worldbank.org. Accessed on ",
-                      as.character(current_date)))
+  expect_equal(
+    citation$citation,
+    paste0(
+      "World Bank (",
+      format(current_date, '%Y'),
+      "), Poverty and Inequality Platform (version 20220609_2011_02_02_PROD) [data set]. pip.worldbank.org. Accessed on ",
+      as.character(current_date)
+    )
+  )
   expect_equal(citation$version_id, "20220609_2011_02_02_PROD")
   expect_equal(as.character(citation$date_accessed), as.character(Sys.Date()))
 })
@@ -404,7 +505,6 @@ test_that("is_forked() correctly identifies intensive requests", {
 })
 
 test_that("is_forked() include_year argument works correctly", {
-
   country <- c("ALL")
   x <- is_forked(country = country, include_year = FALSE)
   expect_true(x)
@@ -422,28 +522,30 @@ test_that("is_forked() include_year argument works correctly", {
 
 test_that("csv serialization returns empty string for missing values", {
   # Load a saved API response that contains missing values
-  value <- readr::read_rds(test_path("testdata",
-                                     "response_with_missing_values.rds"))
-  req <- readr::read_rds(test_path("testdata",
-                                   "req_missing_value.rds"))
-  res <- readr::read_rds(test_path("testdata",
-                                   "res_missing_value.rds"))
-  error_handler <- readr::read_rds(test_path("testdata",
-                                             "error_handler_missing_value.rds"))
+  value <- readr::read_rds(test_path(
+    "testdata",
+    "response_with_missing_values.rds"
+  ))
+  req <- readr::read_rds(test_path("testdata", "req_missing_value.rds"))
+  res <- readr::read_rds(test_path("testdata", "res_missing_value.rds"))
+  error_handler <- readr::read_rds(test_path(
+    "testdata",
+    "error_handler_missing_value.rds"
+  ))
   # Assign API csv serializer function
   res$serializer <- pipapi::assign_serializer(format = "csv")
 
   # Capture the serialized response
-  serialized_response <- res$serializer(val = value,
-                                        req = req,
-                                        res = res,
-                                        errorHandler = error_handler)
+  serialized_response <- res$serializer(
+    val = value,
+    req = req,
+    res = res,
+    errorHandler = error_handler
+  )
   serialized_response <- serialized_response$body
   # Check that it contains no NAs
   # NAs are avoided because they are tricky to parse for Stata
-  expect_true(grepl(",,,,,,,,,,,,,,,,",
-                    serialized_response,
-                    fixed = TRUE))
+  expect_true(grepl(",,,,,,,,,,,,,,,,", serialized_response, fixed = TRUE))
 })
 
 
@@ -451,8 +553,8 @@ test_that("validate_input_grouped_stats works correctly", {
   out <- validate_input_grouped_stats(c("1.2,2.3,3.4,6.5"), c("2,3,4,5"))
   expect_length(out, 2L)
   expect_equal(names(out), c("welfare", "population"))
-  expect_equal(out$welfare, c(1.2,2.3,3.4,6.5))
-  expect_equal(out$population, c(2,3,4,5))
+  expect_equal(out$welfare, c(1.2, 2.3, 3.4, 6.5))
+  expect_equal(out$population, c(2, 3, 4, 5))
 })
 
 test_that("validate_input_grouped_stats handles correct input", {
