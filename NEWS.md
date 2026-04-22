@@ -1,5 +1,57 @@
 # pipapi 1.5.4
 
+## Bug fixes
+
+* Fixed `pip_grp_logic()` so that the internal merge of missing-data rows with
+  regional aggregate estimates uses `allow.cartesian = TRUE`. This was silently
+  dropping results when more than one poverty line was requested in a grouped
+  query (`pip_grp()` with multiple `povline` values).
+
+## Documentation
+
+* Added the existing `/api/v1/dir-info` plumber endpoint to the OpenAPI
+  specification (`inst/plumber/v1/openapi.yaml`), which was previously
+  undocumented. Also added the `FileInfo` schema used by that endpoint.
+
+## Tests
+
+* Regenerated `tests/testthat/testdata/mock_aux_files.rds` and
+  `mock_valid_years.rds` from the current lookup universe so that region
+  codes, grouping types, and country counts stay in sync with real data
+  (`EAS`, `ECS`, `LCN`, `MEA`, `NAC`, `SAS`, `SSF` as official WB region
+  codes; `regionpcn`, `africa_split`, `fcv`, `ida`, `incgroup` as additional
+  grouping types).
+* Updated `test-create_countries_vctr.R`: replaced stale region codes
+  (`SSA → SSF`, `LAC → LCN`, `MNA → MEA`, `AFW → AFE`) and replaced the
+  hardcoded missing-data country list with the actual countries present in the
+  current fixture.
+* Updated `test-fg_pip-local.R`: replaced a test that expected `spr` NAs only
+  for censored data with a check that `spl` and `spr` are consistently
+  unavailable across the full output.
+* Updated `test-pip-local.R`: regional aggregation test now checks the correct
+  current region codes (`EAS/ECS/LCN/MEA/NAC/SAS/SSF`) instead of an exact
+  row count; censoring test for CHN 2016 now expects 3 rows with zeroed-out
+  poverty measures (current behavior) instead of 0 rows; `spl`/`spr` tests
+  assert consistent missingness; the expected error message when passing the
+  full `lkups` list now matches the updated validation wording; grouped
+  `pop_share` comparisons that were failing due to floating-point sensitivity
+  now use `tolerance`.
+* Updated `test-pip_grp_logic.R`: replaced old region codes throughout;
+  equality comparisons between `pip_grp` and `pip_grp_logic` outputs when
+  alternative aggregates are mixed in now drop the `mean` column (which is
+  `NA` from `pip_grp` but populated from `pip_grp_logic`); `region_code`
+  uniqueness assertions use `unique()` where a single query can now return
+  multiple rows.
+* Updated `test-ui_country_profile.R`: `ui_cp_ki_headcount()` now returns a
+  `gini` column; `ui_cp_key_indicators()` now returns 8 objects (added
+  `gini`); `ui_cp_charts()` now returns 7 objects (added `venn` and `pg`).
+* Updated `test-ui_home_page.R` and `test-ui_miscellaneous.R`:
+  `ui_hp_stacked()` region expectations now compare against official and world
+  region codes from the auxiliary table (`grouping_type %in% c("region",
+  "world")`) instead of the country-derived subset.
+* Updated `test-utils-plumber.R`: `group_by = "pcn"` is now correctly treated
+  as a valid parameter value (returns `TRUE` from `check_parameters_values()`).
+
 # pipapi 1.5.3
 
 * Fix issue with `NA` population in refy
