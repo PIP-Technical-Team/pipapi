@@ -1059,6 +1059,27 @@ paths:
 
   # ── UI Miscellaneous ────────────────────────────────────────────────
 
+  /api/v1/ui_version_id:
+    get:
+      tags: [UI Miscellaneous]
+      summary: Latest release version IDs by PPP year
+      description: >-
+        Returns the most recent release date and every available PPP year as
+        normalized frontend version IDs. Keys are named `ppp_uuuu` and values
+        are `yyyymmdd_uuuu`.
+      responses:
+        '200':
+          description: Version IDs keyed by PPP year.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                example:
+                  ppp_2017: "20260922_2017"
+                  ppp_2021: "20260922_2021"
+
   /api/v1/ui_aux:
     get:
       tags: [UI Miscellaneous]

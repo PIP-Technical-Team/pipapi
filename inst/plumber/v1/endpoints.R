@@ -992,6 +992,13 @@ function(req, res) {
 
 ## UI endpoints: Miscellaneous ----
 
+### ui_version_id -----------
+#* Return normalized version IDs for the frontend
+#* @get /api/v1/ui_version_id
+function() {
+  pipapi::ui_version_id(lkups$versions)
+}
+
 ### ui_aux -----------
 #* Return auxiliary data table
 #* @get /api/v1/ui_aux
