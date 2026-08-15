@@ -17,16 +17,4 @@ data.frame
 \description{
 The popshare option is not supported for aggregate distributions.
 }
-\keyword{Remove}
-\keyword{TODO:}
-\keyword{all}
-\keyword{distributions.}
-\keyword{for}
-\keyword{fully}
-\keyword{function}
 \keyword{internal}
-\keyword{is}
-\keyword{popshare}
-\keyword{supported}
-\keyword{this}
-\keyword{when}

@@ -237,7 +237,9 @@ select_years <- function(
   return(keep)
 }
 
-
+# TODO: Remove this function when popshare is fully supported for all
+# distributions.
+#'
 #' Filter aggregate distributions when popshare is active
 #'
 #' The popshare option is not supported for aggregate distributions.
@@ -247,9 +249,6 @@ select_years <- function(
 #'
 #' @return data.frame
 #' @keywords internal
-#'
-#' TODO: Remove this function when popshare is fully supported for all
-#' distributions.
 filter_lkup <- function(metadata, popshare) {
   # popshare option not supported for aggregate distributions
   if (!is.null(popshare)) {
