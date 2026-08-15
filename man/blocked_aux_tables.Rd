@@ -41,9 +41,9 @@ reset_blocked_aux_tables()
 \seealso{
 \code{\link[=reset_blocked_aux_tables]{reset_blocked_aux_tables()}}, \code{\link[=get_aux_table]{get_aux_table()}}, \code{\link[=create_lkups]{create_lkups()}}
 
-Other aux: 
-\code{\link{get_aux_table}()},
-\code{\link{get_aux_table_ui}()},
-\code{\link{reset_blocked_aux_tables}()}
+Other aux:
+\code{\link[=get_aux_table]{get_aux_table()}},
+\code{\link[=get_aux_table_ui]{get_aux_table_ui()}},
+\code{\link[=reset_blocked_aux_tables]{reset_blocked_aux_tables()}}
 }
 \concept{aux}

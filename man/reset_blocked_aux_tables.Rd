@@ -22,9 +22,9 @@ blocked_aux_tables() # back to .default_blocked_tables
 \seealso{
 \code{\link[=blocked_aux_tables]{blocked_aux_tables()}}
 
-Other aux: 
-\code{\link{blocked_aux_tables}()},
-\code{\link{get_aux_table}()},
-\code{\link{get_aux_table_ui}()}
+Other aux:
+\code{\link[=blocked_aux_tables]{blocked_aux_tables()}},
+\code{\link[=get_aux_table]{get_aux_table()}},
+\code{\link[=get_aux_table_ui]{get_aux_table_ui()}}
 }
 \concept{aux}

@@ -22,9 +22,9 @@ Return specified auxiliary data
 \seealso{
 \code{\link[=blocked_aux_tables]{blocked_aux_tables()}}
 
-Other aux: 
-\code{\link{blocked_aux_tables}()},
-\code{\link{get_aux_table_ui}()},
-\code{\link{reset_blocked_aux_tables}()}
+Other aux:
+\code{\link[=blocked_aux_tables]{blocked_aux_tables()}},
+\code{\link[=get_aux_table_ui]{get_aux_table_ui()}},
+\code{\link[=reset_blocked_aux_tables]{reset_blocked_aux_tables()}}
 }
 \concept{aux}
