@@ -1,3 +1,24 @@
+# pipapi 1.5.5
+
+## New features
+
+* Added `ui_version_id()` and the `/api/v1/ui_version_id` plumber endpoint,
+  which returns the most recent release date and every available PPP year for
+  that date as normalized frontend version IDs (`yyyymmdd_uuuu`), keyed by
+  `ppp_<year>`. PPP years are extracted dynamically from `lkups$versions`, so
+  new PPP years are picked up automatically on startup.
+
+## Bug fixes
+
+* Fixed the `filter_lkup()` roxygen block where an inline TODO comment was
+  being parsed as extra `@keywords` entries, which broke documentation
+  generation.
+
+## Tests
+
+* Added `test-ui_version_id.R` covering standard parsing, scalability to new
+  PPP years, tie-breaking/ordering, and malformed version-string edge cases.
+
 # pipapi 1.5.4
 
 ## Bug fixes
