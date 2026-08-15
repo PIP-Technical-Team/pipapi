@@ -40,3 +40,4 @@ tests/testdata/snapshots/snapshot_manifest.txt
 .github/instructions/
 .github/copilot-instructions.md
 
+inst/TMP/
