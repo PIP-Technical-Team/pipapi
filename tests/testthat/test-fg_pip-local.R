@@ -192,9 +192,9 @@ add_vars_out_of_pipeline(tmp, fill_gaps = TRUE, lkup = lkup)
 
 
 ## no unexpected NAs ------------
-test_that("distributional threshold columns are consistently unavailable", {
-  expect_true(all(is.na(tmp$spl)))
-  expect_true(all(is.na(tmp$spr)))
+test_that("distributional threshold columns are consistently available", {
+  expect_true(all(!is.na(tmp$spl)))
+  expect_true(all(!is.na(tmp$spr)))
   expect_equal(is.na(tmp$spl), is.na(tmp$spr))
 })
 

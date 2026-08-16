@@ -753,8 +753,8 @@ setDT(tmp)
 ## NAs -----------
 
 test_that("SPL and SPR missingness is consistent", {
-  expect_true(all(is.na(tmp$spl)))
-  expect_true(all(is.na(tmp$spr)))
+  expect_true(all(!is.na(tmp$spl)))
+  expect_true(all(!is.na(tmp$spr)))
   expect_equal(is.na(tmp$spl), is.na(tmp$spr))
 })
 
@@ -766,7 +766,7 @@ test_that("median does not have duplicates", {
       "country_code",
       "reporting_year",
       "welfare_type",
-      # "reporting_level",
+      "reporting_level",
       "median"
     )
   ]) |>
