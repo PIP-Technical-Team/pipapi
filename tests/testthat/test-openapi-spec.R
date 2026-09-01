@@ -1,4 +1,4 @@
-test_that("openapi.yaml paths match mounted routes in endpoints.R", {
+test_that("openapi.yaml documents only public mounted routes", {
   skip_if_not_installed("yaml")
 
   spec_path <- system.file("plumber", "v1", "openapi.yaml", package = "pipapi")
@@ -35,8 +35,19 @@ test_that("openapi.yaml paths match mounted routes in endpoints.R", {
   # Paths documented in YAML but not found in endpoints.R
   missing_from_router <- setdiff(spec_paths, router_paths)
 
-  # Paths in endpoints.R not documented in YAML
+  # Internal routes intentionally omitted from the public specification
   missing_from_spec <- setdiff(router_paths, spec_paths)
+  internal_routes <- c(
+    "/api/v1/cache-reset",
+    "/api/v1/cache-delete",
+    "/api/v1/cache-get",
+    "/api/v1/cache-keys",
+    "/api/v1/cache-info",
+    "/api/v1/duckdb-reset",
+    "/api/v1/dir-info",
+    "/api/v1/gh-hash",
+    "/api/v1/pkgs-version"
+  )
 
   expect_equal(
     length(missing_from_router),
@@ -46,12 +57,28 @@ test_that("openapi.yaml paths match mounted routes in endpoints.R", {
       paste(missing_from_router, collapse = ", ")
     )
   )
-  expect_equal(
-    length(missing_from_spec),
-    0L,
-    label = paste(
-      "Paths in endpoints.R but not in openapi.yaml:",
-      paste(missing_from_spec, collapse = ", ")
-    )
+  expect_setequal(
+    missing_from_spec,
+    internal_routes
   )
+})
+
+test_that("openapi.yaml tags are declared and assigned", {
+  skip_if_not_installed("yaml")
+
+  spec_path <- system.file("plumber", "v1", "openapi.yaml", package = "pipapi")
+  if (!nzchar(spec_path)) {
+    pkg_root <- rprojroot::find_package_root_file()
+    spec_path <- file.path(pkg_root, "inst", "plumber", "v1", "openapi.yaml")
+  }
+
+  skip_if(!file.exists(spec_path), "openapi.yaml not found")
+
+  spec <- yaml::read_yaml(spec_path)
+  declared_tags <- vapply(spec$tags, `[[`, character(1), "name")
+  operation_tags <- lapply(spec$paths, function(path) path$get$tags)
+
+  expect_equal(anyDuplicated(declared_tags), 0L)
+  expect_true(all(lengths(operation_tags) > 0L))
+  expect_setequal(unique(unlist(operation_tags)), declared_tags)
 })

@@ -39,7 +39,7 @@ info:
     url: https://creativecommons.org/licenses/by/4.0/
 
 tags:
-  - name: Poverty Statistics
+  - name: Poverty and Inequality
     description: >-
       Core endpoints for computing country-level and aggregated poverty
       and inequality statistics from household survey data.
@@ -47,13 +47,19 @@ tags:
     description: >-
       Compute poverty and distributional statistics from grouped (binned)
       welfare distributions. Useful when only tabulated data is available.
-  - name: Metadata
+  - name: API Information
     description: >-
-      Reference data, valid query parameters, data versions, and citations.
-  - name: System
+      API metadata, valid query parameters, and citation information.
+  - name: Reference Data
     description: >-
-      Health checks, data signatures, and deployed package versions.
-  - name: Homepage
+      Auxiliary tables and survey metadata used with poverty estimates.
+  - name: Data Versions
+    description: >-
+      Available data releases and the years supported by each release.
+  - name: API Status
+    description: >-
+      Health checks and read-only data update identifiers.
+  - name: Homepage Data
     description: >-
       Pre-computed data powering the pip.worldbank.org homepage charts.
   - name: Poverty Calculator
@@ -62,13 +68,9 @@ tags:
   - name: Country Profiles
     description: >-
       Data for country profile pages on pip.worldbank.org.
-  - name: UI Miscellaneous
+  - name: Website Support
     description: >-
-      Additional endpoints supporting the pip.worldbank.org user interface.
-  - name: Cache Management
-    description: >-
-      Internal endpoints for managing the in-memory plumber cache and the
-      DuckDB persistent cache. Require server authentication where noted.
+      Shared reference and version data for the pip.worldbank.org interface.
 
 paths:
 
@@ -76,7 +78,7 @@ paths:
 
   /api/v1/pip:
     get:
-      tags: [Poverty Statistics]
+      tags: [Poverty and Inequality]
       summary: Country-level poverty and inequality statistics
       description: |
         Returns poverty and inequality estimates for one or more countries,
@@ -133,7 +135,7 @@ paths:
 
   /api/v1/pip-grp:
     get:
-      tags: [Poverty Statistics]
+      tags: [Poverty and Inequality]
       summary: Aggregated poverty and inequality statistics
       description: |
         Returns population-weighted aggregated poverty statistics for
@@ -369,11 +371,11 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  # ── Metadata ────────────────────────────────────────────────────────
+  # ── API Information and Reference Data ─────────────────────────────
 
   /api/v1/pip-info:
     get:
-      tags: [Metadata]
+      tags: [API Information]
       summary: API and server information
       description: >-
         Returns the current API version, underlying R package versions,
@@ -389,7 +391,7 @@ paths:
 
   /api/v1/valid-params:
     get:
-      tags: [Metadata]
+      tags: [API Information]
       summary: Valid query parameters and their allowed values
       description: |
         Returns a table of all valid parameter names, their accepted
@@ -422,7 +424,7 @@ paths:
 
   /api/v1/aux:
     get:
-      tags: [Metadata]
+      tags: [Reference Data]
       summary: Auxiliary reference data tables
       description: |
         Returns auxiliary data tables such as country lists, population,
@@ -475,7 +477,7 @@ paths:
 
   /api/v1/versions:
     get:
-      tags: [Metadata]
+      tags: [Data Versions]
       summary: Available data versions
       description: >-
         Lists all data versions currently loaded by the API, including
@@ -496,7 +498,7 @@ paths:
 
   /api/v1/version:
     get:
-      tags: [Metadata]
+      tags: [Data Versions]
       summary: Details for a specific data version
       description: >-
         Returns the version metadata for the resolved version string.
@@ -520,7 +522,7 @@ paths:
 
   /api/v1/valid-years:
     get:
-      tags: [Metadata]
+      tags: [Data Versions]
       summary: Valid survey and interpolated years
       description: >-
         Returns two arrays: years for which actual survey data is
@@ -542,7 +544,7 @@ paths:
 
   /api/v1/citation:
     get:
-      tags: [Metadata]
+      tags: [API Information]
       summary: Citation for a given data version
       description: >-
         Returns a formatted citation string for the specified data
@@ -563,11 +565,11 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  # ── System ──────────────────────────────────────────────────────────
+  # ── API Status ──────────────────────────────────────────────────────
 
   /api/v1/health-check:
     get:
-      tags: [System]
+      tags: [API Status]
       summary: API health check
       description: >-
         Simple liveness probe. Returns a string confirming the API is
@@ -584,7 +586,7 @@ paths:
 
   /api/v1/data-timestamp:
     get:
-      tags: [System]
+      tags: [API Status]
       summary: Data update timestamp
       description: >-
         Returns the timestamp of the last data update for the selected
@@ -604,7 +606,7 @@ paths:
 
   /api/v1/data-signature:
     get:
-      tags: [System]
+      tags: [API Status]
       summary: Data signature hash
       description: >-
         Returns the cache data ID hash for the selected data version.
@@ -622,102 +624,11 @@ paths:
                 type: string
                 example: "a1b2c3d4e5f6"
 
-  /api/v1/dir-info:
-    get:
-      tags: [System]
-      summary: Directory information for a data version
-      description: >-
-        Returns file-level metadata (path, size, timestamps) for all
-        files under the selected data version directory, grouped into
-        `aux_files`, `estimation_files`, and `survey_data`.
-      parameters:
-        - $ref: '#/components/parameters/ReleaseVersion'
-        - $ref: '#/components/parameters/PppVersion'
-        - $ref: '#/components/parameters/DataVersion'
-      responses:
-        '200':
-          description: >-
-            Object with three arrays of file metadata: `aux_files`,
-            `estimation_files`, and `survey_data`.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  aux_files:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/FileInfo'
-                  estimation_files:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/FileInfo'
-                  survey_data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/FileInfo'
-
-  /api/v1/gh-hash:
-    get:
-      tags: [System]
-      summary: GitHub commit hashes for deployed packages
-      description: >-
-        Returns the GitHub SHA1 commit hashes for the `pipapi` and
-        `wbpip` packages currently deployed on the server.
-      parameters:
-        - $ref: '#/components/parameters/ReleaseVersion'
-        - $ref: '#/components/parameters/PppVersion'
-        - $ref: '#/components/parameters/DataVersion'
-      responses:
-        '200':
-          description: Object with GitHub SHA1 hashes.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  pipapi:
-                    type: string
-                    description: GitHub SHA1 for the pipapi package.
-                    example: "abc123def456"
-                  wbpip:
-                    type: string
-                    description: GitHub SHA1 for the wbpip package.
-                    example: "789ghi012jkl"
-
-  /api/v1/pkgs-version:
-    get:
-      tags: [System]
-      summary: Deployed package versions
-      description: >-
-        Returns the DESCRIPTION-file version strings for the `pipapi`
-        and `wbpip` packages currently deployed on the server.
-      parameters:
-        - $ref: '#/components/parameters/ReleaseVersion'
-        - $ref: '#/components/parameters/PppVersion'
-        - $ref: '#/components/parameters/DataVersion'
-      responses:
-        '200':
-          description: Object with package version strings.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  pipapi:
-                    type: string
-                    description: Version of pipapi.
-                    example: "1.2.0"
-                  wbpip:
-                    type: string
-                    description: Version of wbpip.
-                    example: "0.5.1"
-
   # ── Homepage ────────────────────────────────────────────────────────
 
   /api/v1/poverty-lines:
     get:
-      tags: [Homepage]
+      tags: [Homepage Data]
       summary: Poverty lines for homepage display
       description: >-
         Returns the set of poverty lines used on the pip.worldbank.org
@@ -742,7 +653,7 @@ paths:
 
   /api/v1/indicators:
     get:
-      tags: [Homepage]
+      tags: [Homepage Data]
       summary: Indicators master table
       description: >-
         Returns the indicators master table used by the website to
@@ -767,7 +678,7 @@ paths:
 
   /api/v1/decomposition-vars:
     get:
-      tags: [Homepage]
+      tags: [Homepage Data]
       summary: Decomposition variable definitions
       description: >-
         Returns the list of variables used for poverty decomposition
@@ -791,7 +702,7 @@ paths:
 
   /api/v1/hp-stacked:
     get:
-      tags: [Homepage]
+      tags: [Homepage Data]
       summary: Homepage stacked area chart data
       description: |
         Returns data for the main stacked area chart on the
@@ -817,7 +728,7 @@ paths:
 
   /api/v1/hp-countries:
     get:
-      tags: [Homepage]
+      tags: [Homepage Data]
       summary: Homepage country chart data
       description: >-
         Returns country-level poverty data for the homepage country
@@ -1057,11 +968,11 @@ paths:
                   type: object
                   additionalProperties: true
 
-  # ── UI Miscellaneous ────────────────────────────────────────────────
+  # ── Website Support ─────────────────────────────────────────────────
 
   /api/v1/ui_version_id:
     get:
-      tags: [UI Miscellaneous]
+      tags: [Website Support]
       summary: Latest release version IDs by PPP year
       description: >-
         Returns the most recent release date and every available PPP year as
@@ -1082,7 +993,7 @@ paths:
 
   /api/v1/ui_aux:
     get:
-      tags: [UI Miscellaneous]
+      tags: [Website Support]
       summary: Auxiliary tables with UI-specific filtering
       description: |
         Similar to `/aux` but applies additional filtering for the
@@ -1129,7 +1040,7 @@ paths:
 
   /api/v1/survey-metadata:
     get:
-      tags: [UI Miscellaneous]
+      tags: [Reference Data]
       summary: Survey metadata for the Data Sources page
       description: >-
         Returns survey metadata used on the website's Data Sources page.
@@ -1156,7 +1067,7 @@ paths:
 
   /api/v1/wld-lineup-year:
     get:
-      tags: [UI Miscellaneous]
+      tags: [Website Support]
       summary: World lineup year for nowcast display
       description: >-
         Returns the current lineup (nowcast) year for the World
@@ -1175,121 +1086,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/WldLineupYearRow'
                 maxItems: 1
-
-# ════════════════════════════════════════════════════════════════════
-# Components
-# ════════════════════════════════════════════════════════════════════
-
-  # ── Cache Management ───────────────────────────────────────────────
-
-  /api/v1/cache-reset:
-    get:
-      tags: [Cache Management]
-      summary: Reset the in-memory plumber cache
-      description: Clears all entries from the current in-memory plumber cache directory.
-      responses:
-        '200':
-          description: Cache cleared successfully.
-
-  /api/v1/cache-delete:
-    get:
-      tags: [Cache Management]
-      summary: Delete the DuckDB cache file for a data version
-      description: |-
-        Deletes the DuckDB `.duckdb` cache file and its `.wal` sidecar for
-        the specified data version. Requires matching local and server keys.
-        **Ensure all DuckDB connections are closed before calling.**
-      parameters:
-        - name: pass
-          in: query
-          required: true
-          description: Local password, checked against `PIP_CACHE_SERVER_KEY`.
-          schema:
-            type: string
-        - name: version
-          in: query
-          required: true
-          description: Data version string (e.g. `20240326_2017_01_02_PROD`).
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Paths of deleted files.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-
-  /api/v1/cache-get:
-    get:
-      tags: [Cache Management]
-      summary: Get a value from the in-memory cache
-      parameters:
-        - name: key
-          in: query
-          required: true
-          description: Cache key to retrieve.
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Cached value.
-
-  /api/v1/cache-keys:
-    get:
-      tags: [Cache Management]
-      summary: List all keys in the in-memory cache
-      responses:
-        '200':
-          description: Array of cache key strings.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-
-  /api/v1/cache-info:
-    get:
-      tags: [Cache Management]
-      summary: Return in-memory cache metadata
-      responses:
-        '200':
-          description: Cache info object including size and directory path.
-
-  /api/v1/duckdb-reset:
-    get:
-      tags: [Cache Management]
-      summary: Reset the DuckDB poverty statistics cache tables
-      description: |-
-        Truncates `rg_master_file` and/or `fg_master_file` tables in the
-        DuckDB cache database. Requires matching local and server keys.
-      parameters:
-        - name: pass
-          in: query
-          required: true
-          description: Local password, checked against `PIP_CACHE_SERVER_KEY`.
-          schema:
-            type: string
-        - name: version
-          in: query
-          required: true
-          description: Data version string.
-          schema:
-            type: string
-        - name: type
-          in: query
-          required: false
-          description: Which table to reset — `both`, `rg`, or `fg`. Default `both`.
-          schema:
-            type: string
-            enum: [both, rg, fg]
-            default: both
-      responses:
-        '200':
-          description: Cache tables truncated.
 
 components:
 
@@ -1451,36 +1247,6 @@ components:
   # ── Schemas ─────────────────────────────────────────────────────
 
   schemas:
-
-    FileInfo:
-      type: object
-      description: File metadata from the data directory.
-      properties:
-        path:
-          type: string
-          description: Relative path to the file.
-        file:
-          type: string
-          description: File name.
-        size:
-          type: integer
-          description: File size in bytes.
-        birth_time:
-          type: string
-          format: date-time
-          description: File creation timestamp.
-        modification_time:
-          type: string
-          format: date-time
-          description: Last modification timestamp.
-        change_time:
-          type: string
-          format: date-time
-          description: Last metadata-change timestamp.
-        access_time:
-          type: string
-          format: date-time
-          description: Last access timestamp.
 
     ErrorResponse:
       type: object
