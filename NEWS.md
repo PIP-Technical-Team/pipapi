@@ -1,3 +1,15 @@
+# pipapi 1.5.7
+
+# pipapi 1.5.6
+
+## Tests
+
+* Updated `test-pip-local.R` and `test-fg_pip-local.R` so that expectations
+  match the current lookup data. The pinned PROD vintage now ships fully
+  populated `spr_lnp`/`spr_svy` aux tables, so SPL and SPR values are expected
+  to be present (not `NA`) for lineup years, and the median no-duplicates
+  check now includes `reporting_level` in its grouping key.
+
 # pipapi 1.5.5
 
 ## New features
