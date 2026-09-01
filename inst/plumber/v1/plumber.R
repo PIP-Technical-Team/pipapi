@@ -21,6 +21,23 @@ library(plumber)
 endpoints_path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
 api_spec_path  <- system.file("plumber/v1/openapi.yaml", package = "pipapi")
 
+api_spec <- yaml::read_yaml(api_spec_path)
+api_spec$info$version <- as.character(utils::packageVersion("pipapi"))
+
+# Plumber serializes its OpenAPI response with auto_unbox = TRUE. Preserve
+# operation tags as JSON arrays so Swagger UI can assign routes to each tag.
+http_methods <- c(
+  "get", "put", "post", "delete", "patch", "options", "head", "trace"
+)
+for (path in names(api_spec$paths)) {
+  for (method in intersect(names(api_spec$paths[[path]]), http_methods)) {
+    tags <- api_spec$paths[[path]][[method]]$tags
+    if (!is.null(tags)) {
+      api_spec$paths[[path]][[method]]$tags <- I(tags)
+    }
+  }
+}
+
 pr <- plumber::pr(endpoints_path) |>
 
   # ---- Post-route: log handler duration (separate from total access time) ----
@@ -77,12 +94,8 @@ plumber::pr_set_error(function(req, res, err) {
   )
 }) |>
 
-  # ---- API Spec (with dynamic version injection) ----
-plumber::pr_set_api_spec(api = function(spec) {
-  spec$info$version <- as.character(utils::packageVersion("pipapi"))
-  spec
-}) |>
-  plumber::pr_set_api_spec(yaml::read_yaml(api_spec_path))
+  # ---- API Spec ----
+  plumber::pr_set_api_spec(api_spec)
 
 if (!inherits(pr, "Plumber")) stop("Router not built correctly. check plumber.R file")
 
