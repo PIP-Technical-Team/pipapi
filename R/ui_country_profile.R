@@ -349,6 +349,9 @@ ui_cp_download <- function(
   }) |>
     rbindlist(use.names = TRUE)
 
+  # Use the precomputed Country Profile Gini as the canonical download value.
+  hc[, gini := NULL]
+
   df <- lkup[["cp_lkups"]]$flat$flat_cp
   df <- df[country_code %chin% country]
   out <-
