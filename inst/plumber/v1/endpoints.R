@@ -530,6 +530,10 @@ function(key) {
 #* @get /api/v1/cache-info
 #* @serializer unboxedJSON
 function() {
+  if (!exists("cd", envir = .GlobalEnv, inherits = FALSE)) {
+    return(list(enabled = FALSE, n_items = 0))
+  }
+
   if (!cd$is_destroyed()) {
     info <- cd$info()
     info$missing <- NULL
