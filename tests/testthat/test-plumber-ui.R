@@ -59,6 +59,20 @@ test_that("Indicators master endpoint is working", {
   )
 })
 
+test_that("Decomposition variables endpoint is working", {
+  r <- httr::GET(
+    root_path,
+    port = 8000,
+    path = "api/v1/decomposition-vars"
+  )
+
+  expect_equal(r$status_code, 200)
+
+  response <- httr::content(r, encoding = "UTF-8")
+  expect_type(response, "list")
+  expect_gt(length(response), 0L)
+})
+
 test_that("Aux endpoint is working", {
   # Send API request
   r <- httr::GET(root_path, port = 8000, path = "api/v1/aux?table=countries")

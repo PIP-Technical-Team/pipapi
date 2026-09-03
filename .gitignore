@@ -33,11 +33,25 @@ tests/testdata/snapshots/snap_pip_chn_2018.rds
 tests/testdata/snapshots/snap_pip_wld_pov.rds
 tests/testdata/snapshots/snapshot_manifest.txt
 
-# Compound GPID managed items (junctions + copied file - do not commit)
-.github/prompts/
-.github/skills/
-.github/agents/
-.github/instructions/
-.github/copilot-instructions.md
 
 inst/TMP/
+
+# Compound GPID managed items (junctions + copied file - do not commit)
+.compound-gpid/*.bak
+.compound-gpid/*.tmp
+.compound-gpid/active/
+.compound-gpid/generations/
+.compound-gpid/managed-files.json
+.compound-gpid/projection-ownership.json
+.compound-gpid/projection-transaction.json
+.compound-gpid/quarantine/
+.compound-gpid/retired/
+.compound-gpid/staging/
+.github/agents
+.github/copilot-instructions.md
+.github/instructions
+.github/prompts
+.github/skills
+.kilo
+.kilo/AGENTS.md
+.kilo/kilo.json

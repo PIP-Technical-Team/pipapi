@@ -1858,7 +1858,7 @@ components:
           example:
             - countries
             - cpi
-            - decomposition_master
+            - decomposition
             - framework
             - gdp
             - indicators

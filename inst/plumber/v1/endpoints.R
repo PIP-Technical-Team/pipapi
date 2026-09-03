@@ -796,7 +796,7 @@ function(req) {
 function(req) {
   pipapi::get_aux_table(
     data_dir = lkups$versions_paths[[req$argsQuery$version]]$data_root,
-    table = "decomposition_master"
+    table = "decomposition"
   )
 }
 

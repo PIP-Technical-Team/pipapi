@@ -1,0 +1,430 @@
+{
+  "catalogRecords": [
+    {
+      "activationCost": null,
+      "available": true,
+      "capability": "kernel",
+      "id": "cg-skill-brain-query",
+      "purpose": "Protocol for searching and consuming the project brain (BRAIN.md). Load when executing a 'Consult Brain' step in any major prompt. Covers: how to navigate the BRAIN.md topic index, drill into sub-files, extract and evaluate relevant takeaways and gotchas, prioritize by relevance, resolve contradictions between entries, detect and discard stale knowledge, and cite sources. Teaches the 'how' -- each prompt's 'Consult Brain' step specifies the 'what' (search scope)."
+    },
+    {
+      "activationCost": null,
+      "available": true,
+      "capability": "suite-cg",
+      "id": "cg-skill-brainstorming",
+      "purpose": "Requirement elicitation and decision capture. Helps clarify fuzzy requirements through guided questions."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-compound-docs",
+      "id": "cg-skill-compound-docs",
+      "purpose": "Knowledge capture system. Categorizes solved problems, tags with metadata, and links related findings for team reuse."
+    },
+    {
+      "activationCost": null,
+      "available": true,
+      "capability": "suite-cg",
+      "id": "cg-skill-fix-triage-migrate",
+      "purpose": "Migration mode for /cg-fix-triage. Adds findings: tracking frontmatter to legacy review files. Does NOT apply fixes. Load only when invoked as /cg-fix-triage --migrate."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-git-workflow",
+      "id": "cg-skill-git-workflow",
+      "purpose": "Git workflow conventions: branching strategy, commit messages, PR templates, and .gitignore patterns for data science projects."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-pester-safety",
+      "id": "cg-skill-pester-safety",
+      "purpose": "Pre-flight safety rules for Pester (PowerShell test runner) in this workspace. ALWAYS load before writing any Invoke-Pester terminal command. Running Pester incorrectly crashes VS Code -- this has happened 16+ times. Covers: forbidden patterns (directory runs, ExpandProperty TestResult pipelines, 2>&1 redirects), safe single-file patterns, safe PassThru patterns, long-session context-overflow protection rules (never run Pester mid-stream in fix-triage; always -Quiet on large test files), and the execution_subagent rule (use execution_subagent instead of run_in_terminal for Pester in long sessions -- even -Quiet -PassThru via run_in_terminal crashes)."
+    },
+    {
+      "activationCost": null,
+      "available": true,
+      "capability": "suite-cg",
+      "id": "cg-skill-project-scanner",
+      "purpose": "Project scanner signal catalog for intelligent /cg-setup. Defines what files to look for, what they mean, and confidence levels. Loaded by @cg-project-scanner agent. Can also be loaded directly by prompts that need signal definitions without a full scan."
+    },
+    {
+      "activationCost": "low",
+      "available": false,
+      "capability": "cap-language-python",
+      "id": "cg-skill-python-best-practices",
+      "purpose": "Best practices for Python development on the GPID technical team. Covers polars for data manipulation (never pandas for new code), FastAPI and pydantic for REST APIs, pytest for testing, loguru for structured logging, type hints, async patterns, performance profiling with memray and cProfile, and uv for environment management. ALWAYS load this skill when: (1) any .py file is open or being created, (2) the code contains print() or import logging -- both must be replaced with loguru, (3) polars .apply() or .map_elements() is used -- replace with native expressions, (4) a FastAPI endpoint, pydantic model, or async function is being written. Includes package selection guidance (when to use polars vs numpy, plotnine vs seaborn, FastAPI vs Flask), anti-patterns catalog, and API development conventions. Consumed by cg-code-quality, cg-performance, and cg-architecture agents on .py files."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-language-r",
+      "id": "cg-skill-r-analytical",
+      "purpose": "R patterns for analytical work: haven for Stata migration, fixest for econometrics, modelsummary for tables, ggplot2+wbplot for World Bank visualizations, and welfare/poverty measurement patterns. Covers domain knowledge for survey analysis, FGT poverty indices, inequality measures, and econometric workflows."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-language-r",
+      "id": "cg-skill-r-collapse",
+      "purpose": "collapse fast statistical computing for R. Load when writing or reviewing grouped/weighted statistics, aggregation, or panel data operations with the collapse package. Covers fmean/fsum/fmedian/fnth and all Fast Statistical Functions, GRP objects, TRA transformation types, fwithin/fbetween/fscale, flag/fdiff/fgrowth, collap(), fsummarise/fmutate, qsu/descr, and collapse anti-patterns. Dialect-neutral: collapse works on data.table, tibble, and data.frame equally."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-language-r",
+      "id": "cg-skill-r-datatable",
+      "purpose": "data.table patterns for R data manipulation. Load when r-syntax is 'data.table-collapse' in compound-gpid.local.md, or when writing/reviewing R code using DT[i,j,by] syntax, :=, fread/fwrite, joins, reshaping, or any data.table manipulation. Covers filtering, column creation by reference, joins (equi, non-equi, rolling), melt/dcast reshaping, fifelse/fcase, .SD/.SDcols, set()/setkey(), performance patterns, and data.table anti-patterns. Use alongside cg-skill-r-collapse for statistical computing."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-language-r",
+      "id": "cg-skill-r-shared",
+      "purpose": "Base R style and error-handling rules universal to all R dialects. Load for assignment style, naming conventions, line length, TRUE/FALSE enforcement, and rlang/cli error handling patterns. Dialect-neutral -- applies regardless of r-syntax setting."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-language-r",
+      "id": "cg-skill-r-technical",
+      "purpose": "R patterns for technical work: roxygen2, package development, plumber APIs (with API testing in references/testing-apis.md), Shiny apps, targets pipelines, httr2 HTTP clients, and renv/pak environment management."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-language-r",
+      "id": "cg-skill-r-testing",
+      "purpose": "Best practices for testing R code with testthat 3+. Use when writing, reviewing, debugging, or improving tests in .R or .Rmd files -- including test_that(), describe()/it(), expect_*() calls, test fixtures, mocking, and snapshot tests. Covers test structure, core expectations, design principles, test data construction (data.table for data.table-collapse projects, tibble for tidyverse projects), collapse for statistical assertions in both dialects, fixtures, mocking with local_mocked_bindings(), snapshots, and BDD-style testing. Load alongside cg-skill-r-technical for plumber/httr2 API testing and cg-skill-r-analytical for welfare/survey testing patterns."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-language-r",
+      "id": "cg-skill-r-tidyverse",
+      "purpose": "Modern tidyverse patterns for R. Load when r-syntax is 'tidyverse' in compound-gpid.local.md, or when writing/reviewing R code using dplyr, tidyr, readr, stringr, or purrr. Covers dplyr 1.2+ patterns (.by grouping, join_by, pick/across/reframe), native pipe |>, pivot_longer/pivot_wider, stringr, readr I/O, and GPID-specific patterns in tidyverse style. Note: even in tidyverse mode, collapse functions (fmean, fsum, etc.) are used for weighted statistics since they work natively on tibbles."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-language-r",
+      "id": "cg-skill-r-visualization",
+      "purpose": "ggplot2 and wbplot visualization patterns for World Bank GPID charts. Load when creating or reviewing R visualizations. Covers theme_wb(), WBCOLORS, scale_color_wb_d/scale_fill_wb_d, chart type conventions (line, bar, facet, scatter), ggsave standards, and World Bank style rules. Dialect-neutral: works with both data.table-collapse and tidyverse workflows."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-render-doc",
+      "id": "cg-skill-render-doc",
+      "purpose": "Publishing workflow for rendering workflow artifacts and generic Markdown documents to curated HTML. Routes typed artifacts to cg-render-artifact and generic documents to cg-publish-markdown. Supports --theme selection (reference or editorial), check, validation, and constrained output modes. Agents may recommend but never silently select themes."
+    },
+    {
+      "activationCost": null,
+      "available": true,
+      "capability": "suite-cg",
+      "id": "cg-skill-setup",
+      "purpose": "Configure Compound GPID for your project. Sets language preferences, project type, and review depth."
+    },
+    {
+      "activationCost": "low",
+      "available": false,
+      "capability": "cap-language-stata",
+      "id": "cg-skill-stata-best-practices",
+      "purpose": "Comprehensive Stata best-practices reference for writing correct .do files. Covers universal coding principles (compound quotes, macro expansion traps, stored results, survey subpopulations, clustering), data management, econometrics, causal inference, graphics, Mata programming, reproducibility tools (repkit: repado, reprun, reproot, lint, repscan), and 21 community packages (reghdfe, estout, did, rdrobust, etc.). Covers syntax, options, gotchas, and idiomatic patterns. ALWAYS load this skill when writing, reviewing, or debugging any Stata code."
+    },
+    {
+      "activationCost": "low",
+      "available": false,
+      "capability": "cap-language-stata",
+      "id": "cg-skill-stata-testing",
+      "purpose": "Testing and reproducibility best practices for Stata. Covers inline assertions (assert, capture, exit codes), data validation patterns (isid, duplicates, misstable), econometric result verification (reldif, _b[], test), reprun/repkit reproducibility workflows, test scaffolding (foreach loops, preserve/restore), and testing anti-patterns with fixes. Load when writing, reviewing, or debugging assertion blocks, data validation, result verification, test scaffolding, or reproducibility checks in .do/.ado files. Use alongside cg-skill-stata-best-practices for coding principles and package reference."
+    },
+    {
+      "activationCost": "low",
+      "available": true,
+      "capability": "cap-wb-report-writing",
+      "id": "cg-skill-wb-report-writing",
+      "purpose": "Progressive-disclosure skill for World Bank institutional report writing. Routes by operation and document type for drafting, expansion, revision, summarization, adaptation, quality review, and end-to-end production across PRWPs, policy briefs, executive summaries, flagship sections, country or regional narratives, technical methodology notes, internal memos, and data blog posts. Enforces source integrity, marker grammar, and should-not-trigger boundaries for non-English or unsupported full Quarto requests."
+    },
+    {
+      "activationCost": null,
+      "available": true,
+      "capability": "suite-cg",
+      "id": "cg-skill-wiki",
+      "purpose": "Project wiki system: _wiki.yml schema, section markers, ownership rules, conflict resolution, project-type templates, and wiki configuration. Load before any @cg-wiki operation."
+    },
+    {
+      "activationCost": "low",
+      "available": false,
+      "capability": "cap-language-powershell",
+      "id": "cg-skill-windows-cmd-python-detection",
+      "purpose": "Windows CMD launcher pattern for safe Python detection across python3/python/py candidates. Load when writing or reviewing any bin/*.cmd file that invokes a Python script. Covers: the mandatory 'where' pre-check guard, the for /f version-verification pattern, the Windows Store stub rejection logic, the parity rule (fix one cmd -> audit all), and required test assertions. Prevents the stderr-leak NativeCommandError that occurs when python3 is absent from PATH."
+    },
+    {
+      "activationCost": null,
+      "available": true,
+      "capability": "suite-cg",
+      "id": "cg-skill-yaml-frontmatter-lint",
+      "purpose": "Validates YAML frontmatter in .kilo/agents/*.md and .kilo/skills/*/SKILL.md files. Checks: quoted descriptions, ASCII-only frontmatter, no BOM, valid YAML parse, required fields. Load when creating or editing agent/skill markdown files, or when Kilo reports 'Failed to parse agent' errors."
+    },
+    {
+      "activationCost": null,
+      "available": false,
+      "capability": "suite-cr",
+      "id": "cr-skill-academic-writing",
+      "purpose": "Academic writing conventions for economics research papers. Covers journal style (AER, JPE, QJE, Econometrica), section structure, abstract writing, equation exposition, notation introduction discipline, citation style, and response-to-referee patterns. Loaded by @cr-academic-writing for Writing tasks."
+    },
+    {
+      "activationCost": null,
+      "available": false,
+      "capability": "suite-cr",
+      "id": "cr-skill-evidence-provenance",
+      "purpose": "Evidence and provenance protocol for CR tasks that ingest documents, justify methods, or produce cited claims. Defines analysis/composition split, claim-evidence and provenance schemas, repo-local corpus defaults, and anti-hallucination enforcement."
+    },
+    {
+      "activationCost": null,
+      "available": false,
+      "capability": "suite-cr",
+      "id": "cr-skill-identification-strategies",
+      "purpose": "Identification strategies for causal inference in economics research. Covers IV/2SLS, RDD, DiD, event studies, synthetic control, matching/IPW, and strategy selection guidance. Each strategy includes when it is applicable, required diagnostics (P0 if missing), code patterns, and anti-patterns. Loaded by @cr-identification-audit for Identification/Estimation tasks."
+    },
+    {
+      "activationCost": "medium",
+      "available": false,
+      "capability": "cap-language-research",
+      "id": "cr-skill-mathematical-derivation",
+      "purpose": "LaTeX and mathematical derivation conventions for economics research. Covers notation discipline, numbered equation conventions, FOC derivation patterns, envelope theorem applications, integration by parts in expectation, change of variables, asymptotic expansions, and cross-referencing code variables to math symbols. Loaded for Theory/Modeling and Implementation tasks."
+    },
+    {
+      "activationCost": null,
+      "available": false,
+      "capability": "suite-cr",
+      "id": "cr-skill-measurement",
+      "purpose": "Measurement and classification methodology for economics research. Load for composite indicators, ranking/classification thresholds, clustering, weighting sensitivity, and comparability checks across units and over time. Grounded in OECD/JRC, Alkire-Foster, and cluster-validity standards."
+    },
+    {
+      "activationCost": null,
+      "available": false,
+      "capability": "suite-cr",
+      "id": "cr-skill-ml-economics",
+      "purpose": "Machine learning methods for economics research. Covers LASSO/ridge/elastic-net for high-dimensional economics, random forests and boosting for prediction, cross-validation done right (panel CV, time-series CV, stratified CV by group), out-of-sample assessment, post-selection inference (debiased LASSO), Chernozhukov-style cross-fitting, variable importance with economic interpretation, dimension reduction and feature selection, survey-weighted ML for complex-design survey data, missing value handling in ML pipelines, class imbalance and rare events, data leakage detection, hyperparameter search transparency, and when ML is appropriate vs when it is not. Loaded by @cr-ml-methodology for ML/Prediction and Implementation tasks."
+    },
+    {
+      "activationCost": "high",
+      "available": false,
+      "capability": "cap-research-output",
+      "id": "cr-skill-publication-output",
+      "purpose": "Publication-quality output for economics research. Covers modelsummary/fixest::etable for regression tables, kableExtra for LaTeX tables, ggplot2+wbplot for paper figures, font/size conventions for journal submission, figure-caption discipline (self-contained), and table-note discipline (variable definitions in notes). Loaded by @cr-publication-output for Tables/Figures tasks and by @cr-academic-writing (Check 6 only) for Writing tasks."
+    },
+    {
+      "activationCost": "high",
+      "available": false,
+      "capability": "cap-research-output",
+      "id": "cr-skill-replication-standards",
+      "purpose": "AEA/AER replication package standards for journal submission. Covers archive structure, README templates, dependency lockfiles, seed registries, data documentation (codebook + data dictionary), path portability rules, sensitive-data handling, and archive packaging checklists. Loaded by @cr-replication-package for Reproducibility tasks."
+    },
+    {
+      "activationCost": "high",
+      "available": false,
+      "capability": "cap-research-output",
+      "id": "cr-skill-research-eda",
+      "purpose": "Research-framed exploratory data analysis for economics research. Covers targeted distributional checks, conditional moment plots, weighted descriptive statistics using collapse (fmean/fsd/fmedian with w argument), missingness patterns, outlier analysis, sample restriction documentation, subgroup analysis, and EDA anti-patterns. Loaded for EDA and Specification Analysis tasks."
+    },
+    {
+      "activationCost": null,
+      "available": false,
+      "capability": "suite-cr",
+      "id": "cr-skill-research-integrity",
+      "purpose": "Catalog of P0 silent research errors with detection patterns and remediation. Covers code-math mismatch, specification searching, identification theater, unseeded randomness, asymptotic-assumption violations, wrong SE clustering, and untested distributional assumptions. Loaded by @cr-research-integrity and /cr-review."
+    },
+    {
+      "activationCost": null,
+      "available": false,
+      "capability": "suite-cr",
+      "id": "cr-skill-research-scoping",
+      "purpose": "Scoping and normative-choice surfacing for policy-relevant research. Load at the start of CR tasks (especially fuzzy or value-laden requests) to produce scoping memos, enumerate bounded decision points, and route consequential normative decisions to a human for explicit approval."
+    },
+    {
+      "activationCost": null,
+      "available": false,
+      "capability": "suite-cr",
+      "id": "cr-skill-research-workflow",
+      "purpose": "Overarching conventions for the compound-research workflow loop. Covers research task taxonomy (10 types), Research Integrity Priority System (P0-P3), active P0 detection mechanisms, verification chain, .cg-docs/research/ layout, reasoning-trail documentation, and PhD student scaffolding conventions. ALWAYS load for any /cr-* command."
+    },
+    {
+      "activationCost": null,
+      "available": false,
+      "capability": "suite-cr",
+      "id": "cr-skill-structural-econometrics",
+      "purpose": "Structural econometric methods for economics research. Covers discrete choice (logit, probit, nested logit, mixed logit, BLP), dynamic programming (Rust, Hotz-Miller CCP), simulation-based estimation (MSM, SMM, indirect inference), MLE for structural models, GMM (moment selection, overidentification, Hansen J-test), standard error variants (sandwich, bootstrap, delta method), identification at infinity, exclusion restrictions, and parametric vs semi-parametric trade-offs. Loaded by @cr-econometric-reasoning for Theory/Modeling tasks."
+    },
+    {
+      "activationCost": "medium",
+      "available": false,
+      "capability": "cap-language-research",
+      "id": "cr-skill-symbolic-verification",
+      "purpose": "Symbolic and numerical verification of mathematical derivations against code implementation. Covers SymPy gradient/Hessian verification, moment condition checks, second-order condition verification, code-derivation mapping audits, and numerical verification harnesses. Loaded by @cr-mathematical-verification for Theory/Modeling and Implementation tasks."
+    },
+    {
+      "activationCost": null,
+      "available": false,
+      "capability": "suite-cr",
+      "id": "cr-skill-theory-data-dialogue",
+      "purpose": "Theory-data dialogue for structural economics research. Covers distributional assumption tests, conditional moment checks, support analysis, reduced-form regressions before structural estimation, exclusion restriction validation, monotonicity tests, balance tests, and the documentation trail in .cg-docs/research/specifications/. Loaded for Specification Analysis and Theory/Modeling tasks."
+    }
+  ],
+  "certifiedKiloLaunchNote": "Set by cg-link/cg-update preflight; True requires the certified `cg-kilo` launcher for combined Kilo+Codex configurations.",
+  "certifiedKiloLaunchRequired": false,
+  "generated": "2026-08-31T15:45:20-04:00@cfd7d8fa6b86",
+  "header": "compound-gpid-active-manifest-v1",
+  "platformEligibility": {
+    "allEligible": true,
+    "capabilities": [
+      {
+        "eligiblePlatforms": [
+          "kilo"
+        ],
+        "id": "compound-docs",
+        "ineligiblePlatforms": [],
+        "module": "cap-compound-docs",
+        "supportedPlatforms": [
+          "claude-code",
+          "codex",
+          "copilot",
+          "kilo",
+          "opencode"
+        ]
+      },
+      {
+        "eligiblePlatforms": [
+          "kilo"
+        ],
+        "id": "git-workflow",
+        "ineligiblePlatforms": [],
+        "module": "cap-git-workflow",
+        "supportedPlatforms": [
+          "claude-code",
+          "codex",
+          "copilot",
+          "kilo",
+          "opencode"
+        ]
+      },
+      {
+        "eligiblePlatforms": [
+          "kilo"
+        ],
+        "id": "pester",
+        "ineligiblePlatforms": [],
+        "module": "cap-pester-safety",
+        "supportedPlatforms": [
+          "claude-code",
+          "codex",
+          "copilot",
+          "kilo",
+          "opencode"
+        ]
+      },
+      {
+        "eligiblePlatforms": [
+          "kilo"
+        ],
+        "id": "r",
+        "ineligiblePlatforms": [],
+        "module": "cap-language-r",
+        "supportedPlatforms": [
+          "claude-code",
+          "codex",
+          "copilot",
+          "kilo",
+          "opencode"
+        ]
+      },
+      {
+        "eligiblePlatforms": [
+          "kilo"
+        ],
+        "id": "render-doc",
+        "ineligiblePlatforms": [],
+        "module": "cap-render-doc",
+        "supportedPlatforms": [
+          "claude-code",
+          "codex",
+          "copilot",
+          "kilo",
+          "opencode"
+        ]
+      },
+      {
+        "eligiblePlatforms": [
+          "kilo"
+        ],
+        "id": "review-agents",
+        "ineligiblePlatforms": [],
+        "module": "cap-review-agents",
+        "supportedPlatforms": [
+          "claude-code",
+          "codex",
+          "copilot",
+          "kilo",
+          "opencode"
+        ]
+      },
+      {
+        "eligiblePlatforms": [
+          "kilo"
+        ],
+        "id": "wb-report-writing",
+        "ineligiblePlatforms": [],
+        "module": "cap-wb-report-writing",
+        "supportedPlatforms": [
+          "claude-code",
+          "codex",
+          "copilot",
+          "kilo",
+          "opencode"
+        ]
+      }
+    ],
+    "platforms": [
+      "kilo"
+    ]
+  },
+  "schemaVersion": 1,
+  "selection": {
+    "capabilities": [],
+    "configDigest": "460f9bcd6c2afd738a14476bdc659d712d12434b3b69b39dc2f6d3af2975eb31",
+    "configSchemaVersion": null,
+    "derivedCapabilities": [
+      "compound-docs",
+      "git-workflow",
+      "pester",
+      "r",
+      "render-doc",
+      "review-agents",
+      "wb-report-writing"
+    ],
+    "desiredPlanDigest": "831ffe3e8b45d36899e193120db0796277bfa4a28cb0f7b5a5175653e62b0abf",
+    "moduleClosure": [
+      "cap-compound-docs",
+      "cap-git-workflow",
+      "cap-language-r",
+      "cap-pester-safety",
+      "cap-render-doc",
+      "cap-review-agents",
+      "cap-wb-report-writing",
+      "kernel",
+      "suite-cg"
+    ],
+    "platforms": [
+      "kilo"
+    ],
+    "registryDigest": "aa26e7222c8089f3540b47153808ed47bc1a630c2e98995197c5589aecdce02a",
+    "registrySchemaVersion": 2,
+    "sourceRevision": "2026-08-31T15:45:20-04:00@cfd7d8fa6b86",
+    "suites": [
+      "cg"
+    ]
+  }
+}
