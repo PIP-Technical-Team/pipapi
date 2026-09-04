@@ -522,6 +522,10 @@ function(key) {
 #* @get /api/v1/cache-keys
 #* @serializer unboxedJSON
 function(key) {
+  if (!exists("cd", envir = .GlobalEnv, inherits = FALSE)) {
+    return(character())
+  }
+
   cd$keys()
 }
 
