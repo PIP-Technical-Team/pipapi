@@ -1,3 +1,52 @@
+#' Inline reusable OpenAPI parameter references
+#'
+#' The public API page currently passes only `paths` to Swagger UI. Inline
+#' reusable parameter definitions so that those consumers still receive the
+#' parameter metadata when they omit `components`.
+#'
+#' @param api_spec list: OpenAPI specification
+#' @return list: OpenAPI specification with parameter references resolved
+#' @noRd
+resolve_openapi_parameter_refs <- function(api_spec) {
+  parameters <- api_spec$components$parameters
+  if (is.null(parameters) || is.null(api_spec$paths)) {
+    return(api_spec)
+  }
+
+  http_methods <- c(
+    "get", "put", "post", "delete", "patch", "options", "head", "trace"
+  )
+
+  for (path in names(api_spec$paths)) {
+    for (method in intersect(names(api_spec$paths[[path]]), http_methods)) {
+      operation_parameters <- api_spec$paths[[path]][[method]]$parameters
+      if (is.null(operation_parameters)) {
+        next
+      }
+
+      api_spec$paths[[path]][[method]]$parameters <- lapply(
+        operation_parameters,
+        function(parameter) {
+          ref <- parameter[["$ref"]]
+          if (!is.character(ref) || length(ref) != 1L ||
+              !startsWith(ref, "#/components/parameters/")) {
+            return(parameter)
+          }
+
+          parameter_name <- sub("^#/components/parameters/", "", ref)
+          if (!is.null(parameters[[parameter_name]])) {
+            parameters[[parameter_name]]
+          } else {
+            parameter
+          }
+        }
+      )
+    }
+  }
+
+  api_spec
+}
+
 #' Check validity of query parameters
 #'
 #' @param req req: plumber request environment

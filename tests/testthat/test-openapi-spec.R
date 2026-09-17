@@ -82,3 +82,59 @@ test_that("openapi.yaml tags are declared and assigned", {
   expect_true(all(lengths(operation_tags) > 0L))
   expect_setequal(unique(unlist(operation_tags)), declared_tags)
 })
+
+test_that("reusable operation parameters are available without components", {
+  skip_if_not_installed("yaml")
+
+  spec_path <- system.file("plumber", "v1", "openapi.yaml", package = "pipapi")
+  if (!nzchar(spec_path)) {
+    pkg_root <- rprojroot::find_package_root_file()
+    spec_path <- file.path(pkg_root, "inst", "plumber", "v1", "openapi.yaml")
+  }
+
+  skip_if(!file.exists(spec_path), "openapi.yaml not found")
+
+  pkg_root <- rprojroot::find_package_root_file()
+  helper_path <- file.path(pkg_root, "R", "utils-plumber.R")
+  skip_if(!file.exists(helper_path), "OpenAPI helper source not found")
+  helper_env <- new.env(parent = asNamespace("pipapi"))
+  sys.source(helper_path, envir = helper_env)
+
+  source_spec <- yaml::read_yaml(spec_path)
+  spec <- helper_env$resolve_openapi_parameter_refs(source_spec)
+  operations <- lapply(names(source_spec$paths), function(path_name) {
+    methods <- intersect(names(source_spec$paths[[path_name]]), c(
+      "get", "put", "post", "delete", "patch", "options", "head", "trace"
+    ))
+    lapply(methods, function(method) {
+      list(
+        source = source_spec$paths[[path_name]][[method]]$parameters,
+        resolved = spec$paths[[path_name]][[method]]$parameters
+      )
+    })
+  })
+  operation_parameters <- Filter(
+    function(operation) !is.null(operation$source),
+    unlist(operations, recursive = FALSE)
+  )
+
+  expect_true(length(operation_parameters) > 0L)
+  for (operation in operation_parameters) {
+    for (i in seq_along(operation$source)) {
+      if (is.null(operation$source[[i]][["$ref"]])) {
+        next
+      }
+
+      parameter <- operation$resolved[[i]]
+      expect_null(parameter[["$ref"]])
+      expect_true(is.character(parameter$name) && length(parameter$name) == 1L)
+      expect_true(
+        is.character(parameter[["in"]]) && length(parameter[["in"]]) == 1L
+      )
+      expect_true(
+        is.character(parameter$description) &&
+          length(parameter$description) == 1L
+      )
+    }
+  }
+})
