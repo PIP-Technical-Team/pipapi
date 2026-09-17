@@ -138,3 +138,14 @@ test_that("reusable operation parameters are available without components", {
     }
   }
 })
+
+test_that("OpenAPI parameter resolver is exported for installed API startup", {
+  expect_true("resolve_openapi_parameter_refs" %in% getNamespaceExports("pipapi"))
+  expect_true(
+    exists(
+      "resolve_openapi_parameter_refs",
+      envir = asNamespace("pipapi"),
+      inherits = FALSE
+    )
+  )
+})

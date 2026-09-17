@@ -23,7 +23,7 @@ api_spec_path  <- system.file("plumber/v1/openapi.yaml", package = "pipapi")
 
 api_spec <- yaml::read_yaml(api_spec_path)
 api_spec$info$version <- as.character(utils::packageVersion("pipapi"))
-api_spec <- resolve_openapi_parameter_refs(api_spec)
+api_spec <- pipapi::resolve_openapi_parameter_refs(api_spec)
 
 # Plumber serializes its OpenAPI response with auto_unbox = TRUE. Preserve
 # operation tags as JSON arrays so Swagger UI can assign routes to each tag.

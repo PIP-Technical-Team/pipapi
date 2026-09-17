@@ -6,7 +6,7 @@
 #'
 #' @param api_spec list: OpenAPI specification
 #' @return list: OpenAPI specification with parameter references resolved
-#' @noRd
+#' @export
 resolve_openapi_parameter_refs <- function(api_spec) {
   parameters <- api_spec$components$parameters
   if (is.null(parameters) || is.null(api_spec$paths)) {
