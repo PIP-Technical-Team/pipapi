@@ -1,3 +1,17 @@
+# pipapi 1.5.14
+
+## Bug fixes
+
+* Fixed API startup by exporting the OpenAPI parameter resolver used by the
+  Plumber router.
+
+# pipapi 1.5.13
+
+## Bug fixes
+
+* Fixed blank parameter rows in the public API documentation by inlining
+  reusable OpenAPI parameter definitions before the specification is served.
+
 # pipapi 1.5.12
 
 # pipapi 1.5.11
