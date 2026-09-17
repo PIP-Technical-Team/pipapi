@@ -5,7 +5,14 @@ pipapi_default_options <- list(
 
 
 .onLoad <- function(libname, pkgname) {
-  if (Sys.getenv("PIPAPI_APPLY_CACHING") == "TRUE") {
+  if (cache_v2_enabled()) {
+    pip <<- .cache_v2_wrap("pip", pip)
+    pip_agg <<- .cache_v2_wrap("pip_agg", pip_agg)
+    ui_cp_charts <<- .cache_v2_wrap("ui_cp_charts", ui_cp_charts)
+    ui_cp_download <<- .cache_v2_wrap("ui_cp_download", ui_cp_download)
+    ui_cp_key_indicators <<- .cache_v2_wrap("ui_cp_key_indicators", ui_cp_key_indicators)
+    packageStartupMessage("Info: Cache v2 wrappers enabled; explicit configuration is required.")
+  } else if (Sys.getenv("PIPAPI_APPLY_CACHING") == "TRUE") {
     d <- rappdirs::user_cache_dir("pipapi")
     cache_default_max_size <- 1024^3
     cache_max_size <- suppressWarnings(

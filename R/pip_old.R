@@ -108,11 +108,7 @@ pip_old <- function(
     )
   # lcv$est_ctrs has all the country_code that we are interested in
 
-  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
-  if (!file.exists(cache_file_path)) {
-    # Create an empty duckdb file
-    create_duckdb_file(cache_file_path)
-  }
+  cache_file_path <- intermediate_cache_path(lkup, ppp = ppp, popshare = popshare)
   # mains estimates ---------------
   if (fill_gaps) {
     ## lineup years-----------------
@@ -147,9 +143,8 @@ pip_old <- function(
     out <- main_data |>
       fmutate(path = as.character(path)) |>
       rowbind(cached_data)
-    # cached_data is NULL when we are querying live data in which case we don't update cache
-    # This will be used only for development purpose and we don't have any intention to use it in production.
-    if (!is.null(cached_data)) {
+    # V2 also stores a cold result; the writer handles live/read-only bypass.
+    if (cache_v2_enabled() || !is.null(cached_data)) {
       safe_update_master_file(main_data, cache_file_path, fill_gaps)
     }
   } else {
@@ -312,7 +307,7 @@ rg_pip_old <- function(
     povline <- NULL
   }
 
-  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  cache_file_path <- intermediate_cache_path(lkup, ppp = ppp, popshare = popshare)
 
   metadata <- subset_lkup(
     country = country,

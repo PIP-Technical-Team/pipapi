@@ -21,13 +21,7 @@ fg_pip_old <- function(country,
 
   if (!is.null(popshare)) povline <- NULL
 
-  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
-  # fg_pip is called from multiple places like pip, pip_grp_logic. We have connection object created
-  # when calling from `pip`. For other functions we create it here.
-  # if (is.null(con)) {
-  #   cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
-  #   con <- duckdb::dbConnect(duckdb::duckdb(), dbdir = cache_file_path, read_only = TRUE)
-  # }
+  cache_file_path <- intermediate_cache_path(lkup, ppp = ppp, popshare = popshare)
   # Handle interpolation
   metadata <- subset_lkup(
     country         = country,

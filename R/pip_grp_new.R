@@ -44,11 +44,7 @@ pip_grp_new <- \(
     lkup = lkup
   )
 
-  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
-  if (!file.exists(cache_file_path)) {
-    # Create an empty duckdb file
-    create_duckdb_file(cache_file_path)
-  }
+  cache_file_path <- intermediate_cache_path(lkup)
   out <- treat_cache_and_main(
     out,
     cache_file_path = cache_file_path,

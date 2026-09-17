@@ -798,6 +798,9 @@ create_lkups <- function(data_dir, versions) {
     lkup$lineup_dist_stats <- lineup_dist_stats
   }
 
+  if (cache_v2_enabled() && !is.null(.cache_v2_state$config)) {
+    lkup <- cache_v2_attach(lkup, versions)
+  }
   return(lkup)
 }
 

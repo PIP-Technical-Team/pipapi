@@ -27,7 +27,7 @@ rg_pip <- function(
     povline <- unlist(povline)
   }
 
-  cache_file_path <- fs::path(lkup$data_root, 'cache', ext = "duckdb")
+  cache_file_path <- intermediate_cache_path(lkup, ppp = ppp, popshare = popshare)
 
   metadata <- subset_lkup(
     country = country,
