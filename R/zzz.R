@@ -8,6 +8,9 @@ pipapi_default_options <- list(
   if (cache_v2_enabled()) {
     pip <<- .cache_v2_wrap("pip", pip)
     pip_agg <<- .cache_v2_wrap("pip_agg", pip_agg)
+    ui_hp_stacked <<- .cache_v2_wrap("ui_hp_stacked", ui_hp_stacked)
+    ui_pc_charts <<- .cache_v2_wrap("ui_pc_charts", ui_pc_charts)
+    ui_pc_regional <<- .cache_v2_wrap("ui_pc_regional", ui_pc_regional)
     ui_cp_charts <<- .cache_v2_wrap("ui_cp_charts", ui_cp_charts)
     ui_cp_download <<- .cache_v2_wrap("ui_cp_download", ui_cp_download)
     ui_cp_key_indicators <<- .cache_v2_wrap("ui_cp_key_indicators", ui_cp_key_indicators)

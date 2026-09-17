@@ -12,13 +12,32 @@ cache_v2_response_spec <- function(endpoint) {
   if (length(endpoint) != 1L || !endpoint %in% names(operations)) {
     stop("Unsupported priority endpoint")
   }
+  endpoint_dependencies <- list(
+    `hp-stacked` = list(c("pipapi", "ui_hp_stacked"), c("pipapi", "pip_agg"),
+                        c("wbpip", "prod_compute_pip_stats")),
+    `pc-charts` = list(c("pipapi", "ui_pc_charts"), c("pipapi", "pip"),
+                       c("pipapi", "pip_agg"), c("wbpip", "prod_compute_pip_stats")),
+    `pc-regional-aggregates` = list(c("pipapi", "ui_pc_regional"),
+                                    c("pipapi", "pip_agg"),
+                                    c("wbpip", "prod_compute_pip_stats")),
+    `cp-charts` = list(c("pipapi", "ui_cp_charts"), c("pipapi", "pip"),
+                       c("wbpip", "prod_compute_pip_stats")),
+    `cp-key-indicators` = list(c("pipapi", "ui_cp_key_indicators"), c("pipapi", "pip"),
+                               c("wbpip", "prod_compute_pip_stats"))
+  )
+  serializer_dependencies <- list(c("plumber", "serializer_json"), c("jsonlite", "toJSON"))
+  dependencies <- c(endpoint_dependencies[[endpoint]], serializer_dependencies)
+  endpoint_fingerprint <- .cache_v2_function_fingerprint(dependencies, schema = 1L)
   list(
     endpoint = endpoint,
     operation = unname(operations[[endpoint]]),
+    dependencies = dependencies,
+    endpoint_fingerprint = endpoint_fingerprint$fingerprint,
     representation = list(
       serializer = "plumber-json", schema = 1L,
       na = if (endpoint %in% c("pc-charts", "cp-key-indicators")) "null" else "default",
-      content_type = "application/json"
+      content_type = "application/json",
+      endpoint_fingerprint = endpoint_fingerprint$fingerprint
     )
   )
 }
@@ -152,7 +171,10 @@ cache_v2_response <- function(req, res, endpoint, lkup) {
   params$lkup <- lkup
   if (spec$endpoint == "pc-charts") params$censor <- TRUE
   compute <- function() {
-    with_req_timeout(do.call(get(spec$operation, envir = asNamespace("pipapi")), params))
+    operation <- spec$operation
+    original <- .cache_v2_state$originals[[operation]]
+    if (!is.function(original)) original <- get(operation, envir = asNamespace("pipapi"))
+    with_req_timeout(do.call(original, params))
   }
   if (!cache_v2_enabled() ||
       isTRUE(getOption("pipapi.query_live_data"))) return(compute())
@@ -197,14 +219,23 @@ cache_v2_response <- function(req, res, endpoint, lkup) {
         start <- proc.time()[["elapsed"]]
         # Plumber assigns the annotated route serializer before this handler.
         # Serialize once, then replace it with a raw-byte identity serializer.
-        serialized <- res$serializer(value, req, res, function(req, res, err) stop(err))
+        serializer <- res$serializer
+        if (!is.function(serializer)) stop("Priority route has no serializer")
+        serialized <- serializer(value, req, res, function(req, res, err) stop(err))
         cache_v2_response_event(req, "serialize", identity, proc.time()[["elapsed"]] - start)
         bytes <- serialized$body
         if (is.character(bytes) && length(bytes) == 1L) bytes <- charToRaw(enc2utf8(bytes))
         if (!is.raw(bytes) || !identical(as.integer(serialized$status), 200L)) {
           stop("Priority serializer did not return a successful byte response")
         }
-        content_type <- serialized$headers[["Content-Type"]]
+        headers <- serialized$headers
+        content_name <- names(headers)[tolower(names(headers)) == "content-type"]
+        content_type <- if (length(content_name)) headers[[content_name[[1L]]]] else NULL
+        if (is.null(content_type)) {
+          response_headers <- res$headers
+          content_name <- names(response_headers)[tolower(names(response_headers)) == "content-type"]
+          if (length(content_name)) content_type <- response_headers[[content_name[[1L]]]]
+        }
         if (is.null(content_type)) stop("Priority serializer did not set Content-Type")
         cache_v2_put(identity, bytes, content_type = content_type)
         send(bytes, content_type, "MISS")

@@ -18,6 +18,7 @@ duckdb_v2_fixture <- function(root) {
     dependency_fingerprint = paste(rep("a", 64), collapse = ""),
     build_fingerprint = paste(rep("b", 64), collapse = ""),
     revision = "published-revision", intermediate_mode = "write",
+    source_root = file.path(root, "legacy"),
     parameters = list(povline = 3, ppp = NULL, popshare = NULL)
   )
   env$cache_v2_context <- function(lkup = NULL) env$context
@@ -35,13 +36,13 @@ test_that("v2 rows are revision-aware, idempotent, and private", {
   withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE)
   f <- duckdb_v2_fixture(withr::local_tempdir())
   path <- f$intermediate_cache_path(f$lkup)
-  expect_match(path, "/v2/20260922_2021_01_02_PROD/intermediate/cache.duckdb$", fixed = FALSE)
+  expect_match(path, "/legacy/cache.duckdb$", fixed = FALSE)
   expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 0L)
   expect_false(file.exists(path))
   expect_equal(f$update_master_file(f$dat, path, FALSE), 1)
   expect_equal(f$update_master_file(f$dat, path, FALSE), 0)
   expect_equal(f$load_inter_cache(cache_file_path = path), f$dat)
-  expect_false(dir.exists(f$lkup$data_root))
+  expect_true(dir.exists(f$lkup$data_root))
 
   original <- f$context
   for (field in c("revision", "dependency_fingerprint", "build_fingerprint", "version")) {
@@ -88,7 +89,8 @@ test_that("v2 never reuses legacy rows and repairs only missing tables", {
     DBI::dbExecute(con, "INSERT INTO rg_master_file VALUES ('legacy', 'national', 3, 1, 1, 1, 1)")
   })
   expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 0L)
-  expect_error(f$load_inter_cache(cache_file_path = file.path(f$lkup$data_root, "cache.duckdb")), "legacy paths")
+  expect_error(f$load_inter_cache(cache_file_path = file.path(f$root, "wrong", "cache.duckdb")),
+               "source version directory")
   f$update_master_file(f$dat, path, FALSE)
   fg <- data.table::copy(f$dat)[, c("cache_id", "reporting_level") := NULL]
   fg[, interpolation_id := "lineup-1"]
@@ -258,7 +260,7 @@ test_that("actual core provenance and taint guard protect lower caches", {
   dat <- duckdb_v2_fixture(root)$dat
   expect_equal(update_master_file(dat, path, FALSE), 1)
   expect_equal(nrow(load_inter_cache(lkup = lkup)), 1L)
-  expect_false(file.exists(file.path(source, "cache.duckdb")))
+  expect_true(file.exists(file.path(source, "cache.duckdb")))
   context <- cache_v2_context(lkup)
   context$parameters <- list(ppp = 2, popshare = NULL)
   options(pipapi.cache_v2_context = context)

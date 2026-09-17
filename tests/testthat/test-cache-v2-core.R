@@ -313,7 +313,9 @@ test_that("configuration verifies actual build and both opt-in switches", {
   expect_match(build$fingerprint, "^[0-9a-f]{64}$")
   expect_identical(build$fingerprint, core_env$cache_v2_build()$fingerprint)
   expect_true(all(c("pipapi", "wbpip", "jsonlite", "qs2", "filelock") %in% names(build$packages)))
-  expect_silent(core_env$cache_v2_configure(f$root, f$manifest, build, intermediate_mode = "read_only"))
+  expect_silent(core_env$cache_v2_configure(f$root, f$manifest, build,
+                                            intermediate_mode = "read_only",
+                                            compute_cache = TRUE))
   build$fingerprint <- "not-the-installed-build"
   expect_error(core_env$cache_v2_configure(f$root, f$manifest, build), "actual installed build")
   Sys.setenv(PIPAPI_APPLY_CACHING = "FALSE")

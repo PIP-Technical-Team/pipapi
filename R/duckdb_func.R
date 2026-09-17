@@ -551,7 +551,7 @@ intermediate_cache_path <- function(lkup, ppp = NULL, popshare = NULL) {
   if (missing(popshare)) popshare <- current$parameters$popshare
   context$custom <- list(ppp = ppp, popshare = popshare)
   context$lookup_variant <- lkup$cache_v2$lookup_variant
-  path <- file.path(context$root, "v2", context$version, "intermediate", "cache.duckdb")
+  path <- file.path(lkup$data_root, "cache.duckdb")
   attr(path, "cache_v2_context") <- context
   intermediate_cache_context(path)
   path
@@ -568,7 +568,15 @@ intermediate_cache_context <- function(path) {
       context$custom <- list(ppp = context$parameters$ppp, popshare = context$parameters$popshare)
     }
   }
-  required <- c("root", "version", "dependency_fingerprint", "build_fingerprint", "revision")
+  if (is.null(context)) stop("Valid provenance is required for intermediate cache v2.")
+  source_root <- if (is.null(context)) NULL else context$source_root
+  if (is.null(source_root) && !is.null(current)) source_root <- current$source_root
+  if (!is.character(source_root) || length(source_root) != 1L ||
+      is.na(source_root) || !nzchar(source_root)) {
+    stop("A source version path is required for the intermediate cache.")
+  }
+  context$source_root <- source_root
+  required <- c("root", "source_root", "version", "dependency_fingerprint", "build_fingerprint", "revision")
   if (is.null(context) || any(!vapply(context[required], function(x) {
     is.character(x) && length(x) == 1L && !is.na(x) && nzchar(x)
   }, logical(1)))) stop("Valid provenance is required for intermediate cache v2.")
@@ -576,7 +584,7 @@ intermediate_cache_context <- function(path) {
       !context$intermediate_mode %in% c("write", "read_only")) {
     stop("Invalid intermediate cache mode.")
   }
-  configured <- cache_v2_context(list(cache_v2 = context[c(
+  configured <- cache_v2_context(list(data_root = source_root, cache_v2 = context[c(
     "version", "dependency_fingerprint", "build_fingerprint", "lookup_variant"
   )]))
   if (is.null(configured)) stop("Valid configured provenance is required for intermediate cache v2.")
@@ -595,10 +603,10 @@ intermediate_cache_context <- function(path) {
   if (!grepl("^[A-Za-z0-9][A-Za-z0-9_.-]*$", context$version)) {
     stop("Invalid full data version for intermediate cache.")
   }
-  expected <- file.path(context$root, "v2", context$version, "intermediate", "cache.duckdb")
+  expected <- file.path(source_root, "cache.duckdb")
   if (!is.character(path) || length(path) != 1L || is.na(path) ||
       !identical(fs::path_norm(as.character(path)), fs::path_norm(expected))) {
-    stop("Intermediate cache v2 requires its private version path; legacy paths are refused.")
+    stop("Intermediate cache v2 requires the cache.duckdb file in its source version directory.")
   }
   context
 }
@@ -627,7 +635,9 @@ intermediate_cache_lock <- function(path) {
 
 with_intermediate_db <- function(path, write, code, missing = invisible(FALSE)) {
   if (isTRUE(getOption("pipapi.query_live_data"))) return(missing)
+  if (!write && (!file.exists(path) || !dir.exists(dirname(path)))) return(missing)
   context <- intermediate_cache_context(path)
+  if (!is.null(context) && !write && !file.exists(path)) return(missing)
   if (!is.null(context) && write && context$intermediate_mode == "read_only") return(missing)
   if (!is.null(context)) .cache_v2_guard(list(descriptor = context), inputs = TRUE)
   if (!write && !dir.exists(dirname(path))) return(missing)
@@ -636,11 +646,14 @@ with_intermediate_db <- function(path, write, code, missing = invisible(FALSE)) 
       stop("Cannot create the intermediate cache directory.")
     }
   }
-  if (!is.null(context)) {
-    # Read-only workers also use this lock so mixed-mode access cannot bypass it.
-    if (!write && context$intermediate_mode == "read_only" && !file.exists(path)) return(missing)
-    lock <- intermediate_cache_lock(path)
-    on.exit(filelock::unlock(lock), add = TRUE)
+  lock <- NULL
+  if (!is.null(context) && write) {
+    lock_name <- paste0(path, ".lock")
+    # Bootstrap owns the bounded write lock for the complete version lifecycle.
+    if (!exists(lock_name, .cache_v2_state$bootstrap_locks, inherits = FALSE)) {
+      lock <- intermediate_cache_lock(path)
+      on.exit(filelock::unlock(lock), add = TRUE)
+    }
   }
   if (!write && !file.exists(path)) return(missing)
   drv <- NULL
@@ -655,7 +668,7 @@ with_intermediate_db <- function(path, write, code, missing = invisible(FALSE)) 
   if (is.null(context)) {
     con <- connect_with_retry(path, read_only = !write)
   } else {
-    drv <- duckdb::duckdb(dbdir = as.character(path), read_only = context$intermediate_mode == "read_only")
+    drv <- duckdb::duckdb(dbdir = as.character(path), read_only = !isTRUE(write))
     con <- DBI::dbConnect(drv)
   }
   code(con)

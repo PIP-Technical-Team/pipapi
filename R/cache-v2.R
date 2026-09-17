@@ -2,6 +2,7 @@
 .cache_v2_state <- new.env(parent = emptyenv())
 .cache_v2_state$config <- NULL
 .cache_v2_state$locks <- new.env(parent = emptyenv())
+.cache_v2_state$bootstrap_locks <- new.env(parent = emptyenv())
 .cache_v2_state$originals <- new.env(parent = emptyenv())
 .cache_v2_state$stats <- list()
 
@@ -68,6 +69,19 @@ cache_v2_enabled <- function() {
   stop("Source directory not found for version: ", version)
 }
 
+.cache_v2_canonical_path <- function(lkup) {
+  if (!is.list(lkup) || !is.character(lkup$data_root) ||
+      length(lkup$data_root) != 1L || is.na(lkup$data_root) ||
+      !nzchar(lkup$data_root)) {
+    stop("A lookup with a non-empty data_root is required.")
+  }
+  file.path(lkup$data_root, "cache.duckdb")
+}
+
+.cache_v2_compute_enabled <- function() {
+  is.null(.cache_v2_state$config$compute_cache) || isTRUE(.cache_v2_state$config$compute_cache)
+}
+
 .cache_v2_inputs <- function(root) {
   dirs <- c("_aux", "estimations", "survey_data", "lineup_data")
   if (!all(dir.exists(file.path(root, dirs)))) {
@@ -78,7 +92,7 @@ cache_v2_enabled <- function() {
       all.files = TRUE, no.. = TRUE))
   }), use.names = FALSE)
   ids <- gsub("\\\\", "/", ids)
-  ids <- ids[!grepl("(^|/)(caches?|logs?|tmp|temp)(/|$)|(^|/)cache\\.duckdb(\\.wal)?$|\\.(tmp|lock|log)$", ids,
+  ids <- ids[!grepl("(^|/)(caches?|logs?|tmp|temp)(/|$)|(^|/)cache\\.duckdb(\\.(wal|meta\\.json|tmp))?$|\\.(tmp|lock|log)$", ids,
     ignore.case = TRUE)]
   revision <- "data_update_timestamp.txt"
   if (file.exists(file.path(root, revision))) ids <- c(ids, revision)
@@ -198,6 +212,34 @@ cache_v2_assert_inputs <- function(manifest, data_dir = manifest$data_root, full
   .cache_v2_sha(.cache_v2_json(Filter(Negate(is.null), out)))
 }
 
+.cache_v2_function_descriptor <- function(package, name) {
+  ns <- asNamespace(package)
+  fun <- get(name, envir = ns, inherits = FALSE)
+  original <- attr(fun, "cache_v2_original", exact = TRUE)
+  if (!is.null(original)) fun <- original
+  if (!is.function(fun)) stop("Cache v2 dependency is not a function: ", package, "::", name)
+  list(
+    package = package,
+    name = name,
+    formals = paste(deparse(formals(fun), width.cutoff = 500L), collapse = "\n"),
+    body = paste(deparse(body(fun), width.cutoff = 500L), collapse = "\n")
+  )
+}
+
+.cache_v2_function_fingerprint <- function(dependencies, schema = 1L) {
+  if (!is.list(dependencies) || !length(dependencies)) {
+    stop("Cache v2 endpoint dependencies must not be empty.")
+  }
+  descriptors <- lapply(dependencies, function(dependency) {
+    if (!is.character(dependency) || length(dependency) != 2L ||
+        anyNA(dependency) || any(!nzchar(dependency))) {
+      stop("Cache v2 endpoint dependencies must contain package and function names.")
+    }
+    .cache_v2_function_descriptor(dependency[[1L]], dependency[[2L]])
+  })
+  list(schema = as.integer(schema), fingerprint = .cache_v2_sha(.cache_v2_json(descriptors)))
+}
+
 cache_v2_build <- function() {
   # Loaded formals/bodies exclude bytecode addresses, environments and wrapper state.
   # This detects edited development code even when DESCRIPTION/RemoteSha are stale.
@@ -237,8 +279,9 @@ cache_v2_build <- function() {
 }
 
 .cache_v2_assert_wrappers <- function() {
-  for (operation in c("pip", "pip_agg", "ui_cp_charts", "ui_cp_download", "ui_cp_key_indicators")) {
-    fun <- get(operation, envir = environment(.cache_v2_assert_wrappers))
+  for (operation in c("pip", "pip_agg", "ui_hp_stacked", "ui_pc_charts", "ui_pc_regional",
+                      "ui_cp_charts", "ui_cp_download", "ui_cp_key_indicators")) {
+    fun <- get(operation, envir = asNamespace("pipapi"))
     if (is.null(attr(fun, "cache_v2_original", exact = TRUE)) ||
         !identical(attr(fun, "cache_v2_mode", exact = TRUE), 2L)) {
       stop("Cache v2 wrappers are not installed; set both cache flags before loading pipapi in a fresh process.")
@@ -247,12 +290,33 @@ cache_v2_build <- function() {
   invisible(TRUE)
 }
 
+#' Configure cache v2
+#'
+#' Normal API and response-cache access is read-only for intermediate DuckDB
+#' files. Use [cache_v2_bootstrap_intermediate()] for the explicit write path.
+#'
+#' @param root Response cache root.
+#' @param manifest Source manifest returned by [cache_v2_manifest()].
+#' @param build Build fingerprint returned by [cache_v2_build()].
+#' @param planned_keys Complete response keys that must not be evicted.
+#' @param intermediate_mode Intermediate DuckDB mode. Defaults to `"read_only"`.
+#' @param compute_cache Whether computation results may be stored. Defaults to
+#'   `FALSE`; response artifacts are independent of this setting.
+#' @param required Whether cache provenance failures are fatal.
+#' @param runtime_max_size Maximum size for non-planned runtime artifacts.
+#' @return The active cache v2 configuration, invisibly.
+#' @export
 cache_v2_configure <- function(root, manifest, build, planned_keys = character(),
-                              intermediate_mode = "write", required = TRUE,
-                              runtime_max_size = 1024^3) {
+                              intermediate_mode = "read_only", compute_cache = FALSE,
+                              required = TRUE, runtime_max_size = 1024^3) {
   if (!cache_v2_enabled()) stop("Cache v2 requires PIPAPI_CACHE_V2=TRUE and PIPAPI_APPLY_CACHING=TRUE.")
   .cache_v2_assert_wrappers()
   intermediate_mode <- match.arg(intermediate_mode, c("write", "read_only", "read", "readonly", "off", "none"))
+  intermediate_mode <- if (intermediate_mode %in% c("read", "readonly")) "read_only" else intermediate_mode
+  if (intermediate_mode %in% c("off", "none")) intermediate_mode <- "read_only"
+  if (length(compute_cache) != 1L || is.na(compute_cache)) {
+    stop("compute_cache must be a single TRUE or FALSE value.")
+  }
   if (!identical(cache_v2_build()$fingerprint, build$fingerprint)) {
     stop("Cache v2 actual installed build does not match the required build.")
   }
@@ -264,9 +328,403 @@ cache_v2_configure <- function(root, manifest, build, planned_keys = character()
   root <- normalizePath(root, winslash = "/", mustWork = TRUE)
   .cache_v2_state$config <- list(root = root, manifest = manifest, build = build,
     planned_keys = unique(planned_keys), intermediate_mode = intermediate_mode,
-    required = required, runtime_max_size = runtime_max_size)
+    compute_cache = isTRUE(compute_cache), required = required,
+    runtime_max_size = runtime_max_size)
+  options(pipapi.cache_v2_config = .cache_v2_state$config)
   .cache_v2_disk_space(root, 0)
   invisible(.cache_v2_state$config)
+}
+
+#' Validate one canonical intermediate database
+#'
+#' @param lkup A lookup attached to cache-v2 provenance.
+#' @param path Optional canonical database path.
+#' @param require_rows Require both v2 result tables to contain rows.
+#' @return A validation report, invisibly.
+#' @export
+cache_v2_validate_intermediate <- function(lkup, path = NULL, require_rows = FALSE) {
+  if (!is.list(lkup) || is.null(lkup$cache_v2)) stop("A cache-v2 lookup is required.")
+  if (is.null(path)) path <- intermediate_cache_path(lkup)
+  expected <- .cache_v2_canonical_path(lkup)
+  if (!identical(fs::path_norm(path), fs::path_norm(expected))) {
+    stop("Canonical intermediate path does not match lkup$data_root.")
+  }
+  context <- attr(path, "cache_v2_context", exact = TRUE)
+  if (is.null(context)) {
+    context <- cache_v2_context(lkup)
+    attr(path, "cache_v2_context") <- context
+  }
+  if (!file.exists(path)) return(invisible(list(valid = FALSE, missing = TRUE, path = path)))
+  context <- attr(path, "cache_v2_context", exact = TRUE)
+  if (is.null(context)) context <- cache_v2_context(lkup)
+  if (is.null(context)) stop("Valid provenance is required for intermediate cache v2.")
+  context$source_root <- lkup$data_root
+  attr(path, "cache_v2_context") <- context
+  context <- intermediate_cache_context(path)
+  report <- with_intermediate_db(path, write = FALSE, function(con) {
+    tables <- c("rg_master_file_v2", "fg_master_file_v2")
+    present <- vapply(tables, DBI::dbExistsTable, logical(1), conn = con)
+    counts <- setNames(vapply(tables, function(table) {
+      if (!present[[table]]) return(0)
+      DBI::dbGetQuery(con, paste("SELECT COUNT(*) AS n FROM", table))$n[[1L]]
+    }, numeric(1)), tables)
+    metadata <- if (DBI::dbExistsTable(con, "cache_v2_metadata")) {
+      DBI::dbGetQuery(con, "SELECT * FROM cache_v2_metadata")
+    } else data.frame()
+    metadata_ok <- if (DBI::dbExistsTable(con, "cache_v2_metadata")) {
+      metadata <- DBI::dbGetQuery(con, "SELECT * FROM cache_v2_metadata")
+      nrow(metadata) == 1L && identical(as.character(metadata$schema_version[[1L]]), "duckdb-2") &&
+        identical(as.character(metadata$data_version[[1L]]), as.character(context$version)) &&
+        identical(as.character(metadata$source_manifest_fingerprint[[1L]]),
+                  as.character(context$dependency_fingerprint)) &&
+        identical(as.character(metadata$build_fingerprint[[1L]]), as.character(context$build_fingerprint))
+    } else FALSE
+    list(valid = all(present) && metadata_ok && (!require_rows || all(counts > 0)),
+         missing = FALSE, path = path, tables = present, rows = counts,
+         metadata = metadata, context = context)
+  }, missing = list(valid = FALSE, missing = TRUE, path = path))
+  if (!isTRUE(report$valid)) {
+    stop("Canonical intermediate database is missing required cache-v2 schema: ", path)
+  }
+  invisible(report)
+}
+
+#' Bootstrap canonical intermediate DuckDB files
+#'
+#' This is the only cache-v2 operation that creates or rebuilds canonical
+#' intermediate databases. Normal API and pre-cache requests never call it.
+#'
+#' @param lkups Versioned lookups returned by [create_versioned_lkups()].
+#' @param povlines Optional poverty-line vector. If omitted, use each version's
+#'   `poverty_lines` auxiliary table.
+#' @param recreate Rebuild existing files when `TRUE`.
+#' @param country Country selection for bootstrap calculations.
+#' @param year Year selection for bootstrap calculations.
+#' @return A per-version status data frame.
+#' @export
+cache_v2_bootstrap_intermediate <- function(lkups, povlines = NULL,
+                                            recreate = FALSE, country = "ALL",
+                                            year = "ALL") {
+  if (!cache_v2_enabled()) stop("Cache v2 requires PIPAPI_CACHE_V2=TRUE and PIPAPI_APPLY_CACHING=TRUE.")
+  if (!is.list(lkups)) stop("lkups must be a versioned lookup list.")
+  versions <- names(lkups$versions_paths)
+  if (is.null(versions) || !length(versions)) versions <- as.character(lkups$versions)
+  if (is.null(versions) || !length(versions)) versions <- names(lkups)
+  if (is.null(versions) || !length(versions) || anyNA(versions) || anyDuplicated(versions)) {
+    stop("lkups must contain uniquely named full versions.")
+  }
+  version_paths <- if (!is.null(lkups$versions_paths)) lkups$versions_paths else {
+    candidates <- lkups[versions]
+    if (all(vapply(candidates, is.list, logical(1)))) candidates else NULL
+  }
+  if (!is.list(version_paths) || is.null(names(version_paths)) ||
+      !all(versions %in% names(version_paths))) {
+    stop("lkups versions and version paths must match.")
+  }
+  if (length(recreate) != 1L || is.na(recreate)) stop("recreate must be TRUE or FALSE.")
+  old_config <- .cache_v2_state$config
+  on.exit(.cache_v2_state$config <- old_config, add = TRUE)
+  if (is.null(old_config)) stop("Configure cache v2 before bootstrapping intermediate files.")
+  manifest <- old_config$manifest
+  build <- old_config$build
+  results <- vector("list", length(versions))
+  names(results) <- versions
+  for (version in versions) {
+    lkup <- version_paths[[version]]
+    if (!is.list(lkup) || !is.character(lkup$data_root) || length(lkup$data_root) != 1L) {
+      stop("Lookup for version ", version, " has no data_root.")
+    }
+    lkup <- cache_v2_attach(lkup, version)
+    bootstrap_context <- cache_v2_context(lkup)
+    if (is.null(bootstrap_context)) stop("Valid provenance is required for bootstrap.")
+    bootstrap_context$source_root <- lkup$data_root
+    bootstrap_context$parameters <- list(ppp = NULL, popshare = NULL)
+    bootstrap_context$custom <- list(ppp = NULL, popshare = NULL)
+    old_context <- getOption("pipapi.cache_v2_context")
+    options(pipapi.cache_v2_context = bootstrap_context)
+    on.exit(options(pipapi.cache_v2_context = old_context), add = TRUE)
+    path <- .cache_v2_canonical_path(lkup)
+    dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+    lock <- intermediate_cache_lock(path)
+    lock_name <- paste0(path, ".lock")
+    assign(lock_name, TRUE, .cache_v2_state$bootstrap_locks)
+    on.exit({
+      if (exists(lock_name, .cache_v2_state$bootstrap_locks, inherits = FALSE)) {
+        rm(list = lock_name, envir = .cache_v2_state$bootstrap_locks)
+        filelock::unlock(lock)
+      }
+    }, add = TRUE)
+    if (file.exists(path) && !isTRUE(recreate)) {
+      validation <- tryCatch(cache_v2_validate_intermediate(lkup, path), error = identity)
+      if (inherits(validation, "error")) {
+        filelock::unlock(lock)
+        rm(list = lock_name, envir = .cache_v2_state$bootstrap_locks)
+        stop(conditionMessage(validation), ". Use recreate = TRUE for an explicit rebuild.")
+      }
+      filelock::unlock(lock)
+      rm(list = lock_name, envir = .cache_v2_state$bootstrap_locks)
+      results[[version]] <- data.frame(version = version, path = path,
+        status = "reused", stringsAsFactors = FALSE)
+      next
+    }
+    pl <- povlines
+    if (is.list(pl)) {
+      if (!is.null(names(pl)) && version %in% names(pl)) {
+        pl <- pl[[version]]
+      } else if (length(pl) == length(versions)) {
+        pl <- pl[[match(version, versions)]]
+      } else {
+        stop("Poverty lines must be named by full version when supplied as a list.")
+      }
+    }
+    if (is.null(pl)) {
+      pl <- tryCatch(get_aux_table(lkup$data_root, "poverty_lines"), error = function(e) NULL)
+      if (is.data.frame(pl)) {
+        column <- intersect(c("poverty_line", "povline", "value"), names(pl))
+        if (!length(column)) stop("poverty_lines has no poverty-line column.")
+        pl <- pl[[column[[1L]]]]
+      }
+    }
+    if (is.null(pl)) pl <- getOption("pipapi.pl_to_store", numeric())
+    pl <- as.numeric(pl)
+    if (!length(pl) || any(!is.finite(pl))) stop("Bootstrap poverty lines must be finite.")
+    backup <- NULL
+    backup_meta <- NULL
+    original_exists <- file.exists(path)
+    restore_backup <- function() {
+      if (!is.null(backup) && file.exists(backup)) {
+        unlink(c(path, paste0(path, ".wal")), force = TRUE)
+        if (!file.rename(backup, path)) stop("Cannot restore the existing canonical database: ", path)
+      }
+      if (!is.null(backup_meta) && file.exists(backup_meta)) {
+        meta_path <- paste0(path, ".meta.json")
+        unlink(meta_path, force = TRUE)
+        if (!file.rename(backup_meta, meta_path)) {
+          stop("Cannot restore the existing database metadata: ", meta_path)
+        }
+      }
+      invisible(TRUE)
+    }
+    if (file.exists(path) && isTRUE(recreate)) {
+      backup <- tempfile("cache-v2-backup-", tmpdir = dirname(path))
+      if (!file.rename(path, backup)) stop("Cannot stage the existing canonical database for rebuild: ", path)
+      meta_path <- paste0(path, ".meta.json")
+      if (file.exists(meta_path)) {
+        backup_meta <- tempfile("cache-v2-backup-meta-", tmpdir = dirname(path))
+        if (!file.rename(meta_path, backup_meta)) {
+          restore_backup()
+          stop("Cannot stage the existing database metadata: ", meta_path)
+        }
+      }
+      unlink(paste0(path, ".wal"), force = TRUE)
+    }
+    bootstrap_config <- old_config
+    bootstrap_config$intermediate_mode <- "write"
+    bootstrap_config$compute_cache <- FALSE
+    bootstrap_config$planned_keys <- character()
+    .cache_v2_state$config <- bootstrap_config
+    lkup <- cache_v2_attach(lkup, version)
+    write_context <- bootstrap_context
+    write_context$intermediate_mode <- "write"
+    options(pipapi.cache_v2_context = write_context)
+    path <- intermediate_cache_path(lkup)
+    committed <- FALSE
+    tryCatch({
+       pip(country = country, year = year, povline = pl, fill_gaps = FALSE, lkup = lkup)
+      pip(country = country, year = year, povline = pl, fill_gaps = TRUE, lkup = lkup)
+      .cache_v2_state$config <- bootstrap_config
+      con <- NULL
+      drv <- NULL
+      tryCatch({
+        drv <- duckdb::duckdb(dbdir = path, read_only = FALSE)
+        con <- DBI::dbConnect(drv)
+        DBI::dbWithTransaction(con, {
+          intermediate_cache_schema(con, write_context)
+          DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS cache_v2_metadata (schema_version VARCHAR, data_version VARCHAR, source_manifest_fingerprint VARCHAR, build_fingerprint VARCHAR)")
+          DBI::dbExecute(con, "DELETE FROM cache_v2_metadata")
+          DBI::dbExecute(con, "INSERT INTO cache_v2_metadata VALUES (?, ?, ?, ?)",
+            params = list("duckdb-2", version, manifest$versions[[version]]$fingerprint,
+                          build$fingerprint))
+        })
+      }, finally = {
+        if (!is.null(con)) try(DBI::dbDisconnect(con, shutdown = TRUE), silent = TRUE)
+        if (!is.null(drv)) try(duckdb::duckdb_shutdown(drv), silent = TRUE)
+      })
+      .cache_v2_state$config <- old_config
+      validation_context <- bootstrap_context
+      validation_context$intermediate_mode <- "read_only"
+      attr(path, "cache_v2_context") <- validation_context
+      options(pipapi.cache_v2_context = validation_context)
+      cache_v2_validate_intermediate(lkup, path, require_rows = TRUE)
+      if (file.exists(paste0(path, ".wal"))) stop("Bootstrap left a DuckDB WAL: ", path)
+      committed <- TRUE
+      if (!is.null(backup)) unlink(backup, force = TRUE)
+      if (!is.null(backup_meta)) unlink(backup_meta, force = TRUE)
+      options(pipapi.cache_v2_context = old_context)
+      filelock::unlock(lock)
+      rm(list = lock_name, envir = .cache_v2_state$bootstrap_locks)
+      results[[version]] <- data.frame(version = version, path = path,
+        status = if (isTRUE(recreate)) "rebuilt" else "created", stringsAsFactors = FALSE)
+    }, error = function(e) {
+      .cache_v2_state$config <- old_config
+      if (!committed && is.null(backup) && !original_exists && file.exists(path)) {
+        unlink(c(path, paste0(path, ".wal"), paste0(path, ".meta.json")), force = TRUE)
+      }
+      if (!committed) restore_backup()
+      options(pipapi.cache_v2_context = old_context)
+      stop("Bootstrap failed for ", version, ": ", conditionMessage(e))
+    })
+  }
+  .cache_v2_state$config <- old_config
+  do.call(rbind, results)
+}
+
+#' Read and validate a cache-v2 builder configuration from disk
+#'
+#' The builder writes `v2/cache-config.qs` together with its manifest. This
+#' helper validates that configuration against the installed build and the
+#' local source tree, then configures normal read-only access. Missing
+#' canonical DuckDB files are warnings, not configuration failures.
+#'
+#' @param cache_root Response cache root.
+#' @param data_root Parent data root containing the selected full versions.
+#' @param config_path Optional path to `cache-config.qs`.
+#' @param intermediate_mode Required intermediate mode. Production mode is
+#'   `"read_only"`.
+#' @param compute_cache Whether computation artifacts may be written.
+#' @param required Whether cache provenance failures are fatal.
+#' @param runtime_max_size Maximum size for non-planned runtime artifacts.
+#' @return The active cache v2 configuration, invisibly.
+#' @export
+cache_v2_configure_from_disk <- function(cache_root, data_root,
+                                         config_path = NULL,
+                                         intermediate_mode = "read_only",
+                                         compute_cache = FALSE,
+                                         required = TRUE,
+                                         runtime_max_size = 1024^3) {
+  if (!cache_v2_enabled()) {
+    stop("Cache v2 requires PIPAPI_CACHE_V2=TRUE and PIPAPI_APPLY_CACHING=TRUE.")
+  }
+  if (is.null(config_path)) config_path <- file.path(cache_root, "v2", "cache-config.qs")
+  if (!file.exists(config_path)) stop("Cache v2 configuration was not found: ", config_path)
+  index <- tryCatch(qs2::qs_read(config_path), error = function(e) {
+    stop("Cannot read cache v2 configuration: ", conditionMessage(e))
+  })
+  meta_path <- paste0(config_path, ".meta.json")
+  if (!file.exists(meta_path)) stop("Cache v2 configuration metadata is missing: ", meta_path)
+  meta <- tryCatch(jsonlite::fromJSON(meta_path, simplifyVector = FALSE), error = function(e) NULL)
+  if (is.null(meta) || !identical(meta$complete, TRUE) ||
+      !identical(as.numeric(meta$size), as.numeric(file.size(config_path))) ||
+      !identical(meta$sha256, .cache_v2_file_sha(config_path))) {
+    stop("Cache v2 configuration metadata is incomplete or corrupt.")
+  }
+  required_fields <- c("cache_root", "data_root", "versions", "build",
+                       "manifest_fingerprint", "planned_keys", "canonical_paths",
+                       "intermediate_mode")
+  if (!is.list(index) || any(!required_fields %in% names(index))) {
+    stop("Cache v2 configuration is missing required fields.")
+  }
+  cache_root <- normalizePath(cache_root, winslash = "/", mustWork = TRUE)
+  data_root <- normalizePath(data_root, winslash = "/", mustWork = TRUE)
+  validate_index_root <- function(value, runtime, label) {
+    if (!is.character(value) || length(value) != 1L || is.na(value) || !nzchar(value)) {
+      stop("Cache v2 configuration has an invalid ", label, ".")
+    }
+    if (fs::is_absolute_path(value) &&
+        !identical(fs::path_norm(normalizePath(value, winslash = "/", mustWork = FALSE)),
+                   fs::path_norm(runtime))) {
+      stop("Cache v2 configuration ", label, " does not match the runtime root.")
+    }
+  }
+  validate_index_root(index$cache_root, cache_root, "cache_root")
+  validate_index_root(index$data_root, data_root, "data_root")
+  versions <- as.character(index$versions)
+  if (!length(versions) || anyNA(versions) || anyDuplicated(versions)) {
+    stop("Cache v2 configuration has invalid full data versions.")
+  }
+  if (!is.list(index$build) || !is.character(index$build$fingerprint) ||
+      length(index$build$fingerprint) != 1L) stop("Cache v2 configuration has an invalid build fingerprint.")
+  installed <- cache_v2_build()
+  if (!identical(installed$fingerprint, index$build$fingerprint)) {
+    stop("Cache v2 installed build does not match the builder configuration.")
+  }
+  has_manifest_file <- "manifest_file" %in% names(index)
+  manifest_file <- if (has_manifest_file) {
+    if (!is.character(index$manifest_file) || length(index$manifest_file) != 1L ||
+        is.na(index$manifest_file) || !nzchar(index$manifest_file)) {
+      stop("Cache v2 configuration has an invalid manifest_file.")
+    }
+    candidate <- index$manifest_file
+    if (!fs::is_absolute_path(candidate)) candidate <- file.path(cache_root, candidate)
+    candidate
+  } else file.path(cache_root, "v2", "manifests", paste0(index$manifest_fingerprint, ".qs"))
+  cache_prefix <- paste0(fs::path_norm(cache_root), "/")
+  manifest_norm <- fs::path_norm(manifest_file)
+  if (!fs::is_absolute_path(manifest_file) ||
+      !startsWith(paste0(manifest_norm, "/"), cache_prefix) ||
+      !grepl("/v2/manifests/[^/]+\\.qs$", manifest_norm)) {
+    stop("Cache v2 manifest path escapes cache_root.")
+  }
+  if (!file.exists(manifest_file)) stop("Cache v2 manifest is missing: ", manifest_file)
+  manifest_meta_path <- paste0(manifest_file, ".meta.json")
+  if (!file.exists(manifest_meta_path)) stop("Cache v2 manifest metadata is missing: ", manifest_meta_path)
+  manifest_meta <- tryCatch(jsonlite::fromJSON(manifest_meta_path, simplifyVector = FALSE), error = function(e) NULL)
+  if (is.null(manifest_meta) || !identical(manifest_meta$complete, TRUE) ||
+      !identical(as.numeric(manifest_meta$size), as.numeric(file.size(manifest_file))) ||
+      !identical(manifest_meta$sha256, .cache_v2_file_sha(manifest_file))) {
+    stop("Cache v2 manifest metadata is incomplete or corrupt.")
+  }
+  manifest <- tryCatch(qs2::qs_read(manifest_file), error = function(e) {
+    stop("Cannot read cache v2 manifest: ", conditionMessage(e))
+  })
+  if (!is.list(manifest) || is.null(manifest$versions) || is.null(manifest$fingerprint)) {
+    stop("Cache v2 manifest is incomplete or corrupt.")
+  }
+  manifest$data_root <- data_root
+  if (!identical(manifest$fingerprint, index$manifest_fingerprint)) {
+    stop("Cache v2 source manifest does not match the builder configuration.")
+  }
+  current_manifest <- cache_v2_manifest(data_root, versions, previous = manifest)
+  if (!identical(current_manifest$fingerprint, manifest$fingerprint)) {
+    stop("Local source data does not match the builder manifest.")
+  }
+  paths <- unname(as.character(index$canonical_paths))
+  path_names <- names(index$canonical_paths)
+  if (is.null(path_names) && length(paths) == length(versions)) {
+    names(paths) <- versions
+  } else if (!is.null(path_names)) {
+    names(paths) <- path_names
+  }
+  paths <- vapply(seq_along(paths), function(i) {
+    path <- paths[[i]]
+    if (!fs::is_absolute_path(path)) path <- file.path(data_root, path)
+    path
+  }, character(1))
+  if (!is.null(names(paths))) paths <- unname(paths[versions])
+  if (length(paths) != length(versions)) stop("Cache v2 canonical_paths do not match versions.")
+  if (!is.null(index$planned_keys) && length(index$planned_keys)) {
+    if (any(!grepl("^[0-9a-f]{64}$", as.character(index$planned_keys)))) {
+      stop("Cache v2 planned_keys contains invalid response keys.")
+    }
+  }
+  expected <- file.path(vapply(versions, function(v) .cache_v2_version_root(data_root, v), character(1)),
+                        "cache.duckdb")
+  if (!identical(unname(fs::path_norm(paths)), unname(fs::path_norm(expected)))) {
+    stop("Cache v2 canonical DuckDB paths do not match the selected versions.")
+  }
+  if (!identical(as.character(index$intermediate_mode), "read_only") ||
+      !identical(intermediate_mode, "read_only")) {
+    stop("Disk cache-v2 configuration must use intermediate_mode = 'read_only'.")
+  }
+  missing <- expected[!file.exists(expected)]
+  if (length(missing)) {
+    warning("Canonical DuckDB is absent for: ", paste(basename(dirname(missing)), collapse = ", "),
+            ". Requests will use the slower source-data path.", call. = FALSE)
+  }
+  cache_v2_configure(cache_root, manifest, index$build,
+    planned_keys = index$planned_keys, intermediate_mode = "read_only",
+    compute_cache = compute_cache, required = required,
+    runtime_max_size = runtime_max_size)
 }
 
 .cache_v2_taint_path <- function(fingerprint) {
@@ -290,7 +748,8 @@ cache_v2_taint <- function(reason = "Source verification failed", versions = NUL
   cfg <- .cache_v2_state$config
   if (!is.null(descriptor$version) &&
       (!identical(descriptor$dependency_fingerprint, cfg$manifest$versions[[descriptor$version]]$fingerprint) ||
-       !identical(descriptor$build_fingerprint, cfg$build$fingerprint))) {
+       (descriptor$kind != "response" &&
+        !identical(descriptor$build_fingerprint, cfg$build$fingerprint)))) {
     stop("Cache v2 identity does not match configured provenance.")
   }
   if (file.exists(.cache_v2_taint_path(identity$descriptor$dependency_fingerprint))) {
@@ -321,11 +780,20 @@ cache_v2_context <- function(lkup = NULL) {
   stamp <- lkup$cache_v2
   if (is.null(cfg) || is.null(stamp)) return(NULL)
   source <- cfg$manifest$versions[[stamp$version]]
+  if (is.null(source)) stop("Lookup version is absent from cache v2 configuration.")
   if (!identical(stamp$build_fingerprint, cfg$build$fingerprint) ||
       !identical(stamp$dependency_fingerprint, source$fingerprint)) {
     stop("Lookup provenance does not match cache v2 configuration.")
   }
+  if (is.character(lkup$data_root) && length(lkup$data_root) == 1L &&
+      nzchar(lkup$data_root)) {
+    expected <- .cache_v2_version_root(cfg$manifest$data_root, stamp$version)
+    if (!identical(fs::path_norm(lkup$data_root), fs::path_norm(expected))) {
+      stop("Lookup data_root does not match its full data version.")
+    }
+  }
   c(list(root = cfg$root, intermediate_mode = cfg$intermediate_mode,
+    source_root = lkup$data_root,
     revision = .cache_v2_sha(.cache_v2_json(stamp[c("version", "dependency_fingerprint", "build_fingerprint")]))), stamp)
 }
 
@@ -353,6 +821,8 @@ cache_v2_effective_args <- function(operation, args, lkup) {
   if (operation %in% c("pip", "pip_agg", "ui_pc_charts", "ui_pc_regional")) {
     args$country <- toupper(args$country)
     if (is.character(args$year)) args$year <- toupper(args$year)
+    formal <- if (compute) formal else list()
+    scope <- if (compute) scope else list2env(list(), parent = emptyenv())
     for (name in intersect(c("welfare_type", "reporting_level", "group_by"), names(formal))) {
       choices <- if (name == "group_by" && operation == "pip_agg") NULL else eval(formal[[name]], scope)
       if (!is.null(choices) && !is.null(args[[name]])) args[[name]] <- match.arg(args[[name]], choices)
@@ -374,8 +844,11 @@ cache_v2_effective_args <- function(operation, args, lkup) {
   root <- cfg$root
   if (!identity$key %in% cfg$planned_keys) root <- file.path(root, "runtime")
   d <- identity$descriptor
+  if (d$kind == "response") {
+    return(file.path(root, "v2", d$version, "response", paste0(identity$key, ".qs")))
+  }
   file.path(root, "v2", d$version, d$kind, d$operation,
-    substr(identity$key, 1L, 2L), paste0(identity$key, if (d$kind == "response") ".json" else ".qs"))
+    substr(identity$key, 1L, 2L), paste0(identity$key, ".qs"))
 }
 
 cache_v2_identity <- function(operation, args, lkup, representation = NULL) {
@@ -403,7 +876,9 @@ cache_v2_identity <- function(operation, args, lkup, representation = NULL) {
     version = context$version, ppp_version = version_parts[2L],
     parameters = typed, lookup_variant = context$lookup_variant,
     dependency_fingerprint = context$dependency_fingerprint,
-    build_fingerprint = context$build_fingerprint, representation = representation)
+    build_fingerprint = if (is.null(representation)) context$build_fingerprint else NULL,
+    endpoint_fingerprint = if (is.null(representation)) NULL else representation$endpoint_fingerprint,
+    representation = representation)
   canonical <- .cache_v2_json(descriptor)
   out <- list(key = .cache_v2_sha(canonical), descriptor = descriptor,
     canonical = canonical, cacheable = cacheable, effective_args = cache_v2_effective_args(operation, args, lkup))
@@ -508,8 +983,7 @@ cache_v2_put <- function(identity, value, content_type = NULL) {
       if (!is.character(content_type) || length(content_type) != 1L ||
           is.na(content_type) || !nzchar(content_type)) stop("Response cache requires a content type.")
       if (is.character(value) && length(value) == 1L && !is.na(value)) value <- charToRaw(enc2utf8(value))
-      if (!is.raw(value)) stop("Response cache requires exact JSON bytes.")
-      if (!jsonlite::validate(rawToChar(value))) stop("Response cache requires valid JSON.")
+      if (!is.raw(value)) stop("Response cache requires exact response bytes.")
       con <- file(temp, "wb")
       tryCatch(writeBin(value, con), finally = close(con))
     } else {
@@ -556,7 +1030,11 @@ cache_v2_put <- function(identity, value, content_type = NULL) {
   body(wrapper) <- quote({
     frame <- environment()
     arg_names <- setdiff(names(formals(original)), c("lkup_hash", "..."))
-    args <- stats::setNames(lapply(arg_names, get, envir = frame, inherits = FALSE), arg_names)
+    supplied <- vapply(arg_names, function(name) {
+      !isTRUE(eval(call("missing", as.name(name)), envir = frame))
+    }, logical(1))
+    args <- stats::setNames(lapply(arg_names[supplied], get, envir = frame, inherits = FALSE),
+                            arg_names[supplied])
     lkup <- args$lkup
     context <- cache_v2_context(lkup)
     if (is.null(context)) stop("Cache v2 computation requires configured lookup provenance.")
@@ -572,6 +1050,11 @@ cache_v2_put <- function(identity, value, content_type = NULL) {
     .cache_v2_guard(identity, inputs = TRUE)
     hit <- cache_v2_get(identity)
     if (hit$hit) return(hit$value)
+    if (!.cache_v2_compute_enabled() && !identical(identity$descriptor$kind, "response")) {
+      # The response layer remains cacheable; only computation artifacts are
+      # bypassed when this flag is disabled.
+      return(do.call(original, args))
+    }
     cache_v2_with_lock(identity, {
       hit <- cache_v2_get(identity)
       if (hit$hit) return(hit$value)

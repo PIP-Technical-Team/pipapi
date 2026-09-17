@@ -2,7 +2,8 @@
 #* @apiDescription This API powers computations of statistics available at
 #* pip.worldbank.org
 
-if (!exists("lkups")) {
+if (!exists("lkups", inherits = TRUE)) lkups <- getOption("pipapi.lkups", NULL)
+if (is.null(lkups)) {
   stop("Fatal: lkups not initialized. Ensure main.R created versioned lkups.")
 }
 
