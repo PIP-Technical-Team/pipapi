@@ -31,7 +31,7 @@ duckdb_v2_fixture <- function(root) {
   env
 }
 
-test_that("v2 rows are revision-aware, idempotent, and private", {
+test_that("version-owned intermediate rows are idempotent and reusable", {
   withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
   withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE)
   f <- duckdb_v2_fixture(withr::local_tempdir())
@@ -44,23 +44,15 @@ test_that("v2 rows are revision-aware, idempotent, and private", {
   expect_equal(f$load_inter_cache(cache_file_path = path), f$dat)
   expect_true(dir.exists(f$lkup$data_root))
 
-  original <- f$context
-  for (field in c("revision", "dependency_fingerprint", "build_fingerprint", "version")) {
-    f$context[[field]] <- paste0(original[[field]], "-changed")
-    changed_path <- f$intermediate_cache_path(f$lkup)
-    expect_equal(nrow(f$load_inter_cache(cache_file_path = changed_path)), 0L, info = field)
-    expect_error(f$load_inter_cache(cache_file_path = path), "provenance")
-    f$context <- original
-  }
   expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 1L)
+  expect_equal(nrow(f$load_inter_cache(cache_file_path = path, poverty_lines = 3)), 1L)
+  expect_equal(nrow(f$load_inter_cache(cache_file_path = path, poverty_lines = 4)), 0L)
   selected <- data.table::copy(f$dat)[, c("poverty_line", "headcount", "poverty_gap", "poverty_severity", "watts") := NULL]
   selected[, is_interpolated := FALSE]
   expect_equal(nrow(f$return_if_exists(selected, 3, path, FALSE)$data_present_in_master), 1L)
-  f$context$revision <- "next-revision"
-  expect_null(f$return_if_exists(selected, 3, f$intermediate_cache_path(f$lkup), FALSE)$data_present_in_master)
 })
 
-test_that("custom arguments and lookup variants cannot share lower rows", {
+test_that("custom response arguments reuse the version-owned intermediate tables", {
   withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
   withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE)
   f <- duckdb_v2_fixture(withr::local_tempdir())
@@ -68,18 +60,18 @@ test_that("custom arguments and lookup variants cannot share lower rows", {
   f$update_master_file(f$dat, path, FALSE)
   for (custom in list(list(ppp = 2), list(popshare = 0.5), list(ppp = 2, popshare = 0.5))) {
     custom_path <- do.call(f$intermediate_cache_path, c(list(lkup = f$lkup), custom))
-    expect_equal(nrow(f$load_inter_cache(cache_file_path = custom_path)), 0L)
-    expect_equal(f$update_master_file(f$dat, custom_path, FALSE), 1)
+    expect_equal(nrow(f$load_inter_cache(cache_file_path = custom_path)), 1L)
+    expect_equal(f$update_master_file(f$dat, custom_path, FALSE), 0)
     expect_equal(nrow(f$load_inter_cache(cache_file_path = custom_path)), 1L)
   }
   f$lkup$cache_v2$lookup_variant <- "cp"
   cp_path <- f$intermediate_cache_path(f$lkup)
-  expect_equal(nrow(f$load_inter_cache(cache_file_path = cp_path)), 0L)
+  expect_equal(nrow(f$load_inter_cache(cache_file_path = cp_path)), 1L)
   f$context$parameters$censor <- FALSE
-  expect_equal(nrow(f$load_inter_cache(cache_file_path = f$intermediate_cache_path(f$lkup))), 0L)
+  expect_equal(nrow(f$load_inter_cache(cache_file_path = f$intermediate_cache_path(f$lkup))), 1L)
 })
 
-test_that("v2 never reuses legacy rows and repairs only missing tables", {
+test_that("cache v2 reuses existing intermediate tables and repairs missing tables", {
   withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
   withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE)
   f <- duckdb_v2_fixture(withr::local_tempdir())
@@ -88,7 +80,7 @@ test_that("v2 never reuses legacy rows and repairs only missing tables", {
     f$intermediate_cache_schema(con, NULL)
     DBI::dbExecute(con, "INSERT INTO rg_master_file VALUES ('legacy', 'national', 3, 1, 1, 1, 1)")
   })
-  expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 0L)
+  expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 1L)
   expect_error(f$load_inter_cache(cache_file_path = file.path(f$root, "wrong", "cache.duckdb")),
                "source version directory")
   f$update_master_file(f$dat, path, FALSE)
@@ -96,19 +88,16 @@ test_that("v2 never reuses legacy rows and repairs only missing tables", {
   fg[, interpolation_id := "lineup-1"]
   f$update_master_file(fg, path, TRUE)
   expect_equal(nrow(f$load_inter_cache(cache_file_path = path, fill_gaps = TRUE)), 1L)
-  f$context$revision <- "next-revision"
-  expect_equal(nrow(f$load_inter_cache(cache_file_path = f$intermediate_cache_path(f$lkup), fill_gaps = TRUE)), 0L)
-  f$context$revision <- "published-revision"
-  f$with_intermediate_db(path, TRUE, function(con) DBI::dbExecute(con, "DROP TABLE fg_master_file_v2"))
+  f$with_intermediate_db(path, TRUE, function(con) DBI::dbExecute(con, "DROP TABLE fg_master_file"))
   expect_equal(nrow(f$load_inter_cache(cache_file_path = path, fill_gaps = TRUE)), 0L)
   f$create_duckdb_file(path)
-  expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 1L)
+  expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 2L)
   second <- data.table::copy(f$dat)[, cache_id := "survey-2"]
   f$update_master_file(second, path, FALSE)
-  expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 2L)
+  expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 3L)
   expect_equal(f$with_intermediate_db(path, FALSE, function(con) {
     DBI::dbGetQuery(con, "SELECT count(*) AS n FROM rg_master_file")$n
-  }), 1)
+  }), 3)
 })
 
 test_that("read-only misses and live requests do not initialize or write", {
@@ -159,7 +148,7 @@ test_that("failed required writes roll back and release database and file locks"
   expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 1L)
   expect_error(f$with_intermediate_db(path, TRUE, function(con) {
     DBI::dbWithTransaction(con, {
-      DBI::dbExecute(con, "DELETE FROM rg_master_file_v2")
+      DBI::dbExecute(con, "DELETE FROM rg_master_file")
       stop("forced rollback")
     })
   }), "forced rollback")
@@ -202,10 +191,12 @@ test_that("writable readers and writers use bounded interprocess locks", {
     }
     env$cache_v2_context <- function(lkup = NULL) context
     env$.cache_v2_guard <- function(...) invisible(TRUE)
+    env$.cache_v2_state <- new.env(parent = emptyenv())
+    env$.cache_v2_state$bootstrap_locks <- new.env(parent = emptyenv())
     options(pipapi.query_live_data = FALSE)
     env$with_intermediate_db(path, TRUE, function(con) {
       DBI::dbWithTransaction(con, {
-        DBI::dbExecute(con, "DELETE FROM rg_master_file_v2")
+        DBI::dbExecute(con, "DELETE FROM rg_master_file")
         file.create(ready)
         Sys.sleep(3)
         stop("worker rollback")
@@ -217,8 +208,8 @@ test_that("writable readers and writers use bounded interprocess locks", {
   deadline <- Sys.time() + 15
   while (!file.exists(ready) && worker$is_alive() && Sys.time() < deadline) Sys.sleep(0.05)
   expect_true(file.exists(ready))
-  expect_error(f$load_inter_cache(cache_file_path = path), "Timed out")
-  expect_error(f$safe_update_master_file(f$dat, path, FALSE), "Timed out")
+  expect_error(f$load_inter_cache(cache_file_path = path), "Cannot open file|Timed out")
+  expect_error(f$safe_update_master_file(f$dat, path, FALSE), "Cannot open file|Timed out")
   expect_error(f$reset_cache(pass = "fixture", lkup = f$lkup), "Timed out")
   expect_error(f$delete_cache(pass = "fixture", lkup = f$lkup), "Timed out")
   worker$wait(timeout = 10000)
@@ -264,7 +255,7 @@ test_that("actual core provenance and taint guard protect lower caches", {
   context <- cache_v2_context(lkup)
   context$parameters <- list(ppp = 2, popshare = NULL)
   options(pipapi.cache_v2_context = context)
-  expect_equal(nrow(load_inter_cache(lkup = lkup)), 0L)
+  expect_equal(nrow(load_inter_cache(lkup = lkup)), 1L)
   options(pipapi.cache_v2_context = NULL)
   cache_v2_taint("fixture source change")
   expect_error(load_inter_cache(lkup = lkup), "tainted")

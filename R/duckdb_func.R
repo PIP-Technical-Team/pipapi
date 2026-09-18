@@ -23,7 +23,8 @@ return_if_exists <- function(
 
   # Legacy reads can fall back to computation; v2 provenance failures are fatal.
   master_file <- tryCatch(
-    load_inter_cache(cache_file_path = cache_file_path, fill_gaps = fill_gaps),
+    load_inter_cache(cache_file_path = cache_file_path, fill_gaps = fill_gaps,
+                     poverty_lines = povline),
     error = function(e) {
       if (identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE")) stop(e)
       cli::cli_warn("Failed to load intermediate cache: {e$message}")
@@ -32,6 +33,10 @@ return_if_exists <- function(
   )
   # if no cached files, return selected lkup
   if (fnrow(master_file) == 0) {
+    if (identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE") &&
+        identical(.cache_v2_state$config$intermediate_mode, "read_only")) {
+      stop("Required intermediate DuckDB data is missing; live source fallback is disabled.")
+    }
     return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
   }
 
@@ -109,6 +114,18 @@ return_if_exists <- function(
     multiple = TRUE
   )
 
+  if (fnrow(lk_not_ms) > 0 &&
+      identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE") &&
+      identical(.cache_v2_state$config$intermediate_mode, "read_only")) {
+    missing_lines <- sort(unique(lk_not_ms$poverty_line))
+    stop(
+      "Intermediate DuckDB coverage is incomplete for ", fnrow(lk_not_ms),
+      " lookup/poverty-line combinations (poverty lines: ",
+      paste(missing_lines, collapse = ", "),
+      "); live source fallback is disabled."
+    )
+  }
+
   # now we have two dfs: lk_not_ms and data_present_in_master
   #    which gives the lkup rows not in cache (master_file),
   #    and the lkup rows in cache (master_file)
@@ -116,6 +133,10 @@ return_if_exists <- function(
   # If no data is present in master
   #  i.e. if no common rows between
   if (fnrow(data_present_in_master) == 0) {
+    if (identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE") &&
+        identical(.cache_v2_state$config$intermediate_mode, "read_only")) {
+      stop("Requested poverty line is missing from the intermediate DuckDB; live source fallback is disabled.")
+    }
     return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
   }
 
@@ -263,24 +284,11 @@ update_master_file <- function(
   nr <- with_intermediate_db(cache_file_path, write = TRUE, function(write_con) {
     DBI::dbWithTransaction(write_con, {
       intermediate_cache_schema(write_con, context)
-      if (!is.null(context)) target_file <- paste0(target_file, "_v2")
       col_names <- DBI::dbListFields(write_con, target_file)
       if (all(c("mean", "median") %in% col_names)) {
         keep_vars <- c(keep_vars, "mean", "median")
       }
       append_data <- data.table::copy(dat[, ..keep_vars])
-      if (!is.null(context)) {
-        identity <- intermediate_cache_identity(context)
-        append_data[, `:=`(
-          revision_key = identity$key,
-          data_version = context$version,
-          dependency_fingerprint = context$dependency_fingerprint,
-          build_fingerprint = context$build_fingerprint,
-          cache_schema = "duckdb-2",
-          identity_json = identity$canonical
-        )]
-        unique_keys <- c("revision_key", unique_keys)
-      }
       append_data <- unique(append_data, by = unique_keys)
       if (anyNA(append_data[, ..unique_keys])) {
         stop("Intermediate cache row keys must not be missing.")
@@ -416,7 +424,7 @@ reset_cache <- function(
   with_intermediate_db(cache_file_path, write = TRUE, function(con) {
     DBI::dbWithTransaction(con, {
       for (kind in type) {
-        table <- paste0(kind, "_master_file", if (!is.null(context)) "_v2" else "")
+        table <- paste0(kind, "_master_file")
         if (DBI::dbExistsTable(con, table)) {
           DBI::dbExecute(con, paste("DELETE FROM", table))
         }
@@ -492,13 +500,15 @@ safe_update_master_file <- function(dat, cache_file_path, fill_gaps) {
 #' Load Intermediate cache data
 #'
 #' @inheritParams return_if_exists
+#' @param poverty_lines Optional poverty lines to read. `NULL` reads all rows.
 #'
 #' @return cached data frame
 #' @export
 load_inter_cache <- function(
   lkup = NULL,
   cache_file_path = NULL,
-  fill_gaps = FALSE
+  fill_gaps = FALSE,
+  poverty_lines = NULL
 ) {
   if (isTRUE(getOption("pipapi.query_live_data"))) return(data.table::data.table())
   target_file <- if (fill_gaps) {
@@ -512,21 +522,20 @@ load_inter_cache <- function(
   }
   context <- intermediate_cache_context(cache_file_path)
   with_intermediate_db(cache_file_path, write = FALSE, function(con) {
-    if (!is.null(context)) target_file <- paste0(target_file, "_v2")
     if (!DBI::dbExistsTable(con, target_file)) return(data.table::data.table())
-    if (is.null(context)) {
+    if (is.null(poverty_lines)) {
       master_file <- DBI::dbGetQuery(con, paste("SELECT * FROM", target_file))
     } else {
-      identity <- intermediate_cache_identity(context)
-      master_file <- DBI::dbGetQuery(con, paste(
-        "SELECT * FROM", target_file, "WHERE revision_key = ? AND data_version = ?",
-        "AND dependency_fingerprint = ? AND build_fingerprint = ? AND cache_schema = ?"
-      ), params = list(identity$key, context$version, context$dependency_fingerprint,
-                       context$build_fingerprint, "duckdb-2"))
-      master_file <- master_file[, setdiff(names(master_file), c(
-        "revision_key", "data_version", "dependency_fingerprint",
-        "build_fingerprint", "cache_schema", "identity_json"
-      )), drop = FALSE]
+      poverty_lines <- unique(round(as.numeric(poverty_lines), 2))
+      if (!length(poverty_lines) || any(!is.finite(poverty_lines))) {
+        stop("poverty_lines must contain finite values.")
+      }
+      placeholders <- paste(rep("?", length(poverty_lines)), collapse = ", ")
+      master_file <- DBI::dbGetQuery(
+        con,
+        paste("SELECT * FROM", target_file, "WHERE poverty_line IN (", placeholders, ")"),
+        params = as.list(poverty_lines)
+      )
     }
     if (!is.null(context)) {
       .cache_v2_guard(list(descriptor = context), inputs = TRUE)
@@ -678,16 +687,8 @@ intermediate_cache_schema <- function(con, context) {
   for (kind in c("rg", "fg")) {
     keys <- if (kind == "rg") c("cache_id", "reporting_level") else "interpolation_id"
     columns <- paste(paste(keys, "VARCHAR"), collapse = ", ")
-    constraints <- ""
-    if (!is.null(context)) {
-      columns <- paste(columns, paste(
-        "revision_key VARCHAR NOT NULL, data_version VARCHAR NOT NULL,",
-        "dependency_fingerprint VARCHAR NOT NULL, build_fingerprint VARCHAR NOT NULL,",
-        "cache_schema VARCHAR NOT NULL, identity_json VARCHAR NOT NULL"
-      ), sep = ", ")
-      constraints <- paste0(", UNIQUE (", paste(c("revision_key", keys, "poverty_line"), collapse = ", "), ")")
-    }
-    table <- paste0(kind, "_master_file", if (!is.null(context)) "_v2" else "")
+    constraints <- paste0(", UNIQUE (", paste(c(keys, "poverty_line"), collapse = ", "), ")")
+    table <- paste0(kind, "_master_file")
     DBI::dbExecute(con, paste0(
       "CREATE TABLE IF NOT EXISTS ", table, " (", columns,
       ", poverty_line DOUBLE, headcount DOUBLE, poverty_gap DOUBLE,",

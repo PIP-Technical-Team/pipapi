@@ -339,10 +339,12 @@ cache_v2_configure <- function(root, manifest, build, planned_keys = character()
 #'
 #' @param lkup A lookup attached to cache-v2 provenance.
 #' @param path Optional canonical database path.
-#' @param require_rows Require both v2 result tables to contain rows.
+#' @param require_rows Require both result tables to contain rows.
+#' @param poverty_lines Optional poverty lines that must exist in both tables.
 #' @return A validation report, invisibly.
 #' @export
-cache_v2_validate_intermediate <- function(lkup, path = NULL, require_rows = FALSE) {
+cache_v2_validate_intermediate <- function(lkup, path = NULL, require_rows = FALSE,
+                                           poverty_lines = NULL) {
   if (!is.list(lkup) || is.null(lkup$cache_v2)) stop("A cache-v2 lookup is required.")
   if (is.null(path)) path <- intermediate_cache_path(lkup)
   expected <- .cache_v2_canonical_path(lkup)
@@ -362,29 +364,28 @@ cache_v2_validate_intermediate <- function(lkup, path = NULL, require_rows = FAL
   attr(path, "cache_v2_context") <- context
   context <- intermediate_cache_context(path)
   report <- with_intermediate_db(path, write = FALSE, function(con) {
-    tables <- c("rg_master_file_v2", "fg_master_file_v2")
+    tables <- c("rg_master_file", "fg_master_file")
     present <- vapply(tables, DBI::dbExistsTable, logical(1), conn = con)
     counts <- setNames(vapply(tables, function(table) {
       if (!present[[table]]) return(0)
       DBI::dbGetQuery(con, paste("SELECT COUNT(*) AS n FROM", table))$n[[1L]]
     }, numeric(1)), tables)
-    metadata <- if (DBI::dbExistsTable(con, "cache_v2_metadata")) {
-      DBI::dbGetQuery(con, "SELECT * FROM cache_v2_metadata")
-    } else data.frame()
-    metadata_ok <- if (DBI::dbExistsTable(con, "cache_v2_metadata")) {
-      metadata <- DBI::dbGetQuery(con, "SELECT * FROM cache_v2_metadata")
-      nrow(metadata) == 1L && identical(as.character(metadata$schema_version[[1L]]), "duckdb-2") &&
-        identical(as.character(metadata$data_version[[1L]]), as.character(context$version)) &&
-        identical(as.character(metadata$source_manifest_fingerprint[[1L]]),
-                  as.character(context$dependency_fingerprint)) &&
-        identical(as.character(metadata$build_fingerprint[[1L]]), as.character(context$build_fingerprint))
-    } else FALSE
-    list(valid = all(present) && metadata_ok && (!require_rows || all(counts > 0)),
-         missing = FALSE, path = path, tables = present, rows = counts,
-         metadata = metadata, context = context)
+    missing_lines <- setNames(lapply(tables, function(table) {
+      if (!present[[table]] || is.null(poverty_lines)) return(numeric())
+      cached <- DBI::dbGetQuery(con, paste("SELECT DISTINCT poverty_line FROM", table))$poverty_line
+      setdiff(unique(round(as.numeric(poverty_lines), 2)), round(as.numeric(cached), 2))
+    }), tables)
+    coverage_ok <- all(vapply(missing_lines, length, integer(1)) == 0L)
+    list(valid = all(present) && (!require_rows || all(counts > 0)) && coverage_ok,
+          missing = FALSE, path = path, tables = present, rows = counts,
+          missing_poverty_lines = missing_lines, context = context)
   }, missing = list(valid = FALSE, missing = TRUE, path = path))
   if (!isTRUE(report$valid)) {
-    stop("Canonical intermediate database is missing required cache-v2 schema: ", path)
+    missing <- unique(unlist(report$missing_poverty_lines, use.names = FALSE))
+    detail <- if (length(missing)) {
+      paste0("; missing poverty lines: ", paste(sort(missing), collapse = ", "))
+    } else ""
+    stop("Intermediate database is missing required tables or coverage: ", path, detail)
   }
   invisible(report)
 }
@@ -533,23 +534,6 @@ cache_v2_bootstrap_intermediate <- function(lkups, povlines = NULL,
        pip(country = country, year = year, povline = pl, fill_gaps = FALSE, lkup = lkup)
       pip(country = country, year = year, povline = pl, fill_gaps = TRUE, lkup = lkup)
       .cache_v2_state$config <- bootstrap_config
-      con <- NULL
-      drv <- NULL
-      tryCatch({
-        drv <- duckdb::duckdb(dbdir = path, read_only = FALSE)
-        con <- DBI::dbConnect(drv)
-        DBI::dbWithTransaction(con, {
-          intermediate_cache_schema(con, write_context)
-          DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS cache_v2_metadata (schema_version VARCHAR, data_version VARCHAR, source_manifest_fingerprint VARCHAR, build_fingerprint VARCHAR)")
-          DBI::dbExecute(con, "DELETE FROM cache_v2_metadata")
-          DBI::dbExecute(con, "INSERT INTO cache_v2_metadata VALUES (?, ?, ?, ?)",
-            params = list("duckdb-2", version, manifest$versions[[version]]$fingerprint,
-                          build$fingerprint))
-        })
-      }, finally = {
-        if (!is.null(con)) try(DBI::dbDisconnect(con, shutdown = TRUE), silent = TRUE)
-        if (!is.null(drv)) try(duckdb::duckdb_shutdown(drv), silent = TRUE)
-      })
       .cache_v2_state$config <- old_config
       validation_context <- bootstrap_context
       validation_context$intermediate_mode <- "read_only"
