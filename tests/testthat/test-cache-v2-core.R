@@ -14,7 +14,13 @@ core_fixture <- function() {
   version <- "20260922_2021_01_02_PROD"
   for (d in c("_aux", "estimations", "survey_data", "lineup_data")) {
     dir.create(file.path(source, d))
-    writeBin(charToRaw(paste("fixture", d)), file.path(source, d, "input.bin"))
+    name <- switch(d,
+      `_aux` = "input.fst",
+      estimations = "dist_stats.fst",
+      survey_data = "input.fst",
+      lineup_data = "input.fst"
+    )
+    writeBin(charToRaw(paste("fixture", d)), file.path(source, d, name))
   }
   writeLines("2026-09-22T00:00:00Z", file.path(source, "data_update_timestamp.txt"))
   manifest <- core_env$cache_v2_manifest(source, version)
@@ -97,7 +103,7 @@ test_that("canonical UTF8 fixture sorts fields but never vector contents", {
 test_that("manifest ignores copy time, covers source content and excludes caches", {
   f <- core_fixture()
   core_env$.cache_v2_state$config <- NULL
-  file <- file.path(f$source, "survey_data", "input.bin")
+  file <- file.path(f$source, "survey_data", "input.fst")
   Sys.setFileTime(file, Sys.time() - 60)
   copied <- core_env$cache_v2_manifest(f$source, f$version, f$manifest)
   expect_identical(copied$fingerprint, f$manifest$fingerprint)
@@ -105,6 +111,11 @@ test_that("manifest ignores copy time, covers source content and excludes caches
   expect_true(core_env$cache_v2_assert_inputs(f$manifest, full = FALSE))
   writeLines("ignored", file.path(f$source, "cache.duckdb"))
   expect_identical(core_env$cache_v2_manifest(f$source, f$version)$fingerprint, f$manifest$fingerprint)
+  dir.create(file.path(f$source, "_aux", "_vintage"))
+  writeLines("archive", file.path(f$source, "_aux", "_vintage", "input.fst"))
+  writeLines("duplicate", file.path(f$source, "_aux", "input.dta"))
+  expect_identical(core_env$cache_v2_manifest(f$source, f$version)$fingerprint,
+                   f$manifest$fingerprint)
   writeBin(charToRaw("changed distribution"), file)
   expect_false(identical(core_env$cache_v2_manifest(f$source, f$version)$fingerprint, f$manifest$fingerprint))
   expect_error(core_env$cache_v2_assert_inputs(f$manifest), "inputs changed")
@@ -221,7 +232,7 @@ test_that("source and cache relocation do not change keys or independent PPP inp
     file.copy(list.files(f$source, full.names = TRUE), file.path(source_parent, v), recursive = TRUE)
   }
   before <- core_env$cache_v2_manifest(source_parent, c(f$version, other))
-  writeLines("new CP auxiliary", file.path(source_parent, f$version, "_aux", "input.bin"))
+  writeLines("new CP auxiliary", file.path(source_parent, f$version, "_aux", "input.fst"))
   after <- core_env$cache_v2_manifest(source_parent, c(f$version, other), before)
   expect_identical(before$versions[[other]]$fingerprint, after$versions[[other]]$fingerprint)
   expect_false(identical(before$versions[[f$version]]$fingerprint, after$versions[[f$version]]$fingerprint))
@@ -233,7 +244,7 @@ test_that("source and cache relocation do not change keys or independent PPP inp
 test_that("source guard taints provenance before publication", {
   f <- core_fixture()
   id <- core_env$cache_v2_identity("pip", list(), f$lkup)
-  file <- file.path(f$source, "survey_data", "input.bin")
+  file <- file.path(f$source, "survey_data", "input.fst")
   writeLines("changed input", file)
   expect_error(core_env$cache_v2_put(id, 1), "stats changed")
   expect_false(file.exists(id$path))

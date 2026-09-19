@@ -87,13 +87,22 @@ cache_v2_enabled <- function() {
   if (!all(dir.exists(file.path(root, dirs)))) {
     stop("Incomplete cache v2 source tree: ", root)
   }
-  ids <- unlist(lapply(dirs, function(d) {
-    file.path(d, list.files(file.path(root, d), recursive = TRUE,
-      all.files = TRUE, no.. = TRUE))
-  }), use.names = FALSE)
+  ids <- unlist(lapply(dirs, function(d) file.path(
+    d, list.files(file.path(root, d), recursive = TRUE,
+                  all.files = TRUE, no.. = TRUE)
+  )), use.names = FALSE)
   ids <- gsub("\\\\", "/", ids)
-  ids <- ids[!grepl("(^|/)(caches?|logs?|tmp|temp)(/|$)|(^|/)cache\\.duckdb(\\.(wal|meta\\.json|tmp))?$|\\.(tmp|lock|log)$", ids,
-    ignore.case = TRUE)]
+  estimation_tables <- paste0(
+    "(prod_svy_estimation|prod_ref_estimation|dist_stats|prod_refy_estimation|",
+    "lineup_years|lineup_dist_stats)\\.fst$"
+  )
+  ids <- ids[
+    grepl("^_aux/[^/]+\\.fst$", ids, ignore.case = TRUE) |
+    grepl("^_aux/(country_profiles|censored|survey_metadata)\\.rds$", ids,
+          ignore.case = TRUE) |
+    grepl(paste0("^estimations/", estimation_tables), ids, ignore.case = TRUE) |
+    grepl("^(survey_data|lineup_data)/[^/]+\\.fst$", ids, ignore.case = TRUE)
+  ]
   revision <- "data_update_timestamp.txt"
   if (file.exists(file.path(root, revision))) ids <- c(ids, revision)
   sort(unique(ids), method = "radix")
