@@ -2,7 +2,8 @@
 #* @apiDescription This API powers computations of statistics available at
 #* pip.worldbank.org
 
-if (!exists("lkups")) {
+if (!exists("lkups", inherits = TRUE)) lkups <- getOption("pipapi.lkups", NULL)
+if (is.null(lkups)) {
   stop("Fatal: lkups not initialized. Ensure main.R created versioned lkups.")
 }
 
@@ -819,11 +820,8 @@ function(req) {
 function(req, res) {
   safe_endpoint(
     function(req, res) {
-      params <- req$argsQuery
-      params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-      params$version <- NULL
-
-      do.call(pipapi::ui_hp_stacked, params) |> with_req_timeout()
+      pipapi:::cache_v2_response(req, res, "hp-stacked",
+                                lkups$versions_paths[[req$argsQuery$version]])
     },
     endpoint = "/api/v1/hp-stacked"
   )(req, res)
@@ -872,12 +870,8 @@ function(req, res) {
 function(req, res) {
   safe_endpoint(
     function(req, res) {
-      params <- req$argsQuery
-      params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-      params$version <- NULL
-      params$censor <- TRUE
-
-      do.call(pipapi::ui_pc_charts, params) |> with_req_timeout()
+      pipapi:::cache_v2_response(req, res, "pc-charts",
+                                lkups$versions_paths[[req$argsQuery$version]])
     },
     endpoint = "/api/v1/pc-charts"
   )(req, res)
@@ -920,12 +914,8 @@ function(req) {
 function(req, res) {
   safe_endpoint(
     function(req, res) {
-      params <- req$argsQuery
-      params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-      params$version <- NULL
-
-      do.call(pipapi::ui_pc_regional, params) |>
-        with_req_timeout()
+      pipapi:::cache_v2_response(req, res, "pc-regional-aggregates",
+                                lkups$versions_paths[[req$argsQuery$version]])
     },
     endpoint = "/api/v1/pc-regional-aggregates"
   )(req, res)
@@ -945,12 +935,8 @@ function(req, res) {
 function(req, res) {
   safe_endpoint(
     function(req, res) {
-      params <- req$argsQuery
-      params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-      params$version <- NULL
-
-      do.call(ui_cp_key_indicators, params) |>
-        with_req_timeout()
+      pipapi:::cache_v2_response(req, res, "cp-key-indicators",
+                                lkups$versions_paths[[req$argsQuery$version]])
     },
     endpoint = "/api/v1/cp-key-indicators"
   )(req, res)
@@ -968,13 +954,8 @@ function(req, res) {
 #* @serializer json
 cp_charts <- safe_endpoint(
   function(req, res) {
-    params <- req$argsQuery
-    params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
-    params$version <- NULL
-
-    # wrap the heavy work in with_req_timeout
-    do.call(ui_cp_charts, params) |>
-      with_req_timeout()
+    pipapi:::cache_v2_response(req, res, "cp-charts",
+                              lkups$versions_paths[[req$argsQuery$version]])
   },
   endpoint = "/api/v1/cp-charts"
 )

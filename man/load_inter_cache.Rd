@@ -4,13 +4,20 @@
 \alias{load_inter_cache}
 \title{Load Intermediate cache data}
 \usage{
-load_inter_cache(lkup = NULL, cache_file_path = NULL, fill_gaps = FALSE)
+load_inter_cache(
+  lkup = NULL,
+  cache_file_path = NULL,
+  fill_gaps = FALSE,
+  poverty_lines = NULL
+)
 }
 \arguments{
 \item{cache_file_path}{file path for cache}
 
 \item{fill_gaps}{logical: If set to TRUE, will interpolate / extrapolate
 values for missing years}
+
+\item{poverty_lines}{Optional poverty lines to read. \code{NULL} reads all rows.}
 }
 \value{
 cached data frame

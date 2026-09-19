@@ -9,6 +9,7 @@ library(httr)
 api1 <- callr::r_session$new(options = callr::r_session_options(user_profile = FALSE))
 Sys.sleep(2)
 api1$run(function() Sys.setenv("PIPAPI_APPLY_CACHING" = "TRUE"))
+api1$run(function() Sys.setenv("PIPAPI_CACHE_V2" = "FALSE"))
 api1$run(function() Sys.setenv("PIPAPI_CACHE_MAX_SIZE" = 1024^2))
 api1$run(function() Sys.setenv("R_USER_CACHE_DIR" = tempdir()))
 
@@ -52,14 +53,14 @@ test_that("Caching setup is correct", {
 
   # Check caching settings
   expect_true(tmp$dir != Sys.getenv("R_USER_CACHE_DIR")) # unit tests should have a separate cache dir
-  expect_true(grepl("cache.log$", tmp$logfile)) # log file should be present
+  expect_null(tmp$logfile) # disk-cache logging is disabled
   expect_false(tmp$destroy_on_finalize) # don't delete on garbage collection
   expect_equal(tmp$n_items, 0)          # initial caching directory should be empty
   expect_equal(tmp$max_size, 1024^2) # defined w/ PIPAPI_CACHE_MAX_SIZE above
   expect_equal(tmp$max_n, "Inf")     # no max number of items
   expect_equal(tmp$max_age, "Inf")   # no max age
   expect_equal(tmp$evict, "lru")     # lru evict policy should be used
-  expect_equal(tmp$prune_rate, 20)   # default prune rate
+  expect_equal(tmp$prune_rate, 50)   # package-configured prune rate
 
 })
 
@@ -83,16 +84,9 @@ test_that("Caching is activated for /pip-grp", {
   expect_equal(httr::content(r2, encoding = "UTF-8")$n_items, 2)
 })
 
-test_that("/cache-log is working correctly", {
-  # Send API requests
-  r1 <- readLines("http://localhost:8000/api/v1/cache-log")
-  r2 <- httr::GET(root_path, port = 8000, path = "api/v1/cache-log")
-  r3 <- httr::GET(root_path, port = 8000, path = "api/v1/cache-info")
-
-  # Check response
-  tmp <- readLines(httr::content(r3, encoding = "UTF-8")$logfile)
-  expect_equal(r2$status_code, 200)  # success
-  expect_equal(nrow(r1), nrow(tmp))  # same number of lines
+test_that("disabled /cache-log is not advertised as an active route", {
+  response <- httr::GET(root_path, port = 8000, path = "api/v1/cache-log")
+  expect_equal(response$status_code, 404)
 })
 
 test_that("/cache-reset is working correctly", {

@@ -12,7 +12,7 @@ ui_cp_key_indicators <- function(
   lkup_hash = lkup$cache_data_id$hash_ui_cp
 ) {
   # Select surveys to use for CP page
-  lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
+  lkup <- cache_v2_cp_lookup(lkup)
 
   hcg <- ui_cp_ki_headcount(country = country, povline = povline, lkup = lkup)
 
@@ -105,7 +105,7 @@ ui_cp_charts <- function(
   country <- country[1]
 
   # Select surveys to use for CP page
-  lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
+  lkup <- cache_v2_cp_lookup(lkup)
 
   # Create list with poverty charts data
   dl <- ui_cp_poverty_charts(
@@ -338,7 +338,7 @@ ui_cp_download <- function(
   lkup_hash = lkup$cache_data_id$hash_ui_cp
 ) {
   # Select surveys to use for CP page
-  lkup$svy_lkup <- lkup$svy_lkup[display_cp == 1]
+  lkup <- cache_v2_cp_lookup(lkup)
 
   if (country == "ALL") {
     country <- unique(lkup$svy_lkup$country_code)

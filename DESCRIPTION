@@ -46,6 +46,9 @@ Suggests:
     rprojroot
 Language: en-US
 Imports: 
+    digest,
+    filelock,
+    ps,
     data.table,
     fst (>= 0.9.8),
     plumber,
