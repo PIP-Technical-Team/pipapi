@@ -9,8 +9,7 @@
 #' @export
 #'
 .load_api_router <- function(api_path, api_env) {
-  sys.source(api_path, envir = api_env)
-  router <- api_env$pr
+  router <- source(api_path, local = api_env)$value
   if (!inherits(router, "Plumber")) {
     stop("The API script did not create a Plumber router.")
   }

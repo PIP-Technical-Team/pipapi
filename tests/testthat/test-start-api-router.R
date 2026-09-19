@@ -1,7 +1,7 @@
 test_that("API loader returns the Plumber router created by the script", {
   path <- tempfile(fileext = ".R")
   writeLines("pr <- structure(list(marker = 'fixture'), class = 'Plumber')", path)
-  env <- new.env(parent = baseenv())
+  env <- new.env(parent = globalenv())
   router <- pipapi:::.load_api_router(path, env)
   expect_s3_class(router, "Plumber")
   expect_identical(router$marker, "fixture")
@@ -12,7 +12,7 @@ test_that("API loader rejects scripts without a Plumber router", {
   path <- tempfile(fileext = ".R")
   writeLines("value <- 'not a router'", path)
   expect_error(
-    pipapi:::.load_api_router(path, new.env(parent = baseenv())),
+    pipapi:::.load_api_router(path, new.env(parent = globalenv())),
     "did not create a Plumber router"
   )
 })
