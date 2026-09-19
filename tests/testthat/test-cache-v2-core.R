@@ -313,6 +313,22 @@ test_that("wrapper shares defaults, restores context and does not hash transient
   expect_identical(core_env$.cache_v2_code(before), core_env$.cache_v2_code(after))
 })
 
+test_that("disabled compute cache bypasses provenance and storage", {
+  f <- core_fixture()
+  core_env$.cache_v2_state$config$compute_cache <- FALSE
+  counter <- 0L
+  fun <- function(povline = 1.9, lkup) {
+    counter <<- counter + 1L
+    data.table::data.table(povline = povline)
+  }
+  wrapped <- core_env$.cache_v2_wrap("pip", fun)
+  withr::defer(rm(list = "pip", envir = core_env$.cache_v2_state$originals))
+  unstamped <- list(svy_lkup = f$lkup$svy_lkup)
+  expect_identical(wrapped(povline = 3, lkup = unstamped)$povline, 3)
+  expect_identical(counter, 1L)
+  expect_length(list.files(f$root, recursive = TRUE), 0L)
+})
+
 test_that("configuration verifies actual build and both opt-in switches", {
   f <- core_fixture()
   withr::local_envvar(c(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE"))

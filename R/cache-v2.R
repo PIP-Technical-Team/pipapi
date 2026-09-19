@@ -1118,6 +1118,7 @@ cache_v2_put <- function(identity, value, content_type = NULL) {
     }, logical(1))
     args <- stats::setNames(lapply(arg_names[supplied], get, envir = frame, inherits = FALSE),
                             arg_names[supplied])
+    if (!.cache_v2_compute_enabled()) return(do.call(original, args))
     lkup <- args$lkup
     context <- cache_v2_context(lkup)
     if (is.null(context)) stop("Cache v2 computation requires configured lookup provenance.")
@@ -1133,11 +1134,6 @@ cache_v2_put <- function(identity, value, content_type = NULL) {
     .cache_v2_guard(identity, inputs = TRUE)
     hit <- cache_v2_get(identity)
     if (hit$hit) return(hit$value)
-    if (!.cache_v2_compute_enabled() && !identical(identity$descriptor$kind, "response")) {
-      # The response layer remains cacheable; only computation artifacts are
-      # bypassed when this flag is disabled.
-      return(do.call(original, args))
-    }
     cache_v2_with_lock(identity, {
       hit <- cache_v2_get(identity)
       if (hit$hit) return(hit$value)

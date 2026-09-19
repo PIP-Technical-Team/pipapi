@@ -29,6 +29,11 @@ start_api <- function(api_version = "v1",
     }
     cache_v2_configure_from_disk(root, data_root, intermediate_mode = "read_only")
   }
+  if (!is.null(lkups) && cache_v2_enabled() && !is.null(.cache_v2_state$config)) {
+    lkups$versions_paths <- Map(cache_v2_attach, lkups$versions_paths,
+                               names(lkups$versions_paths))
+    options(pipapi.lkups = lkups)
+  }
   version_path <- sprintf(
     "plumber/%s/plumber.R",
     api_version

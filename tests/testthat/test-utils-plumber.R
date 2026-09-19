@@ -449,6 +449,22 @@ test_that("assign_serializer() returns a the correct serialization function", {
   expect_equal(content_type, "application/vnd.apache.arrow.file")
 })
 
+test_that("safe endpoint errors replace non-JSON serializers", {
+  for (format in c("csv", "rds", "arrow")) {
+    req <- new.env(parent = emptyenv())
+    req$.id <- "fixture-request"
+    req$argsQuery <- list(format = format)
+    res <- new.env(parent = emptyenv())
+    res$serializer <- assign_serializer(format)
+    handler <- safe_endpoint(function(req, res) stop("fixture failure"), "/fixture")
+    out <- handler(req, res)
+    expect_identical(res$status, 500L)
+    expect_identical(environment(res$serializer)$headers$`Content-Type`, "application/json")
+    expect_identical(out$request_id, "fixture-request")
+    expect_identical(out$endpoint, "/fixture")
+  }
+})
+
 test_that("is_forked() respect the response contract", {
   country <- c("SSA", "COL", "FRA")
   year <- c("2010", "2011", "2012")

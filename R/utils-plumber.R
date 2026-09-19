@@ -686,6 +686,9 @@ safe_endpoint <- function(fun, endpoint, debug = NULL) {
       },
       error = function(e) {
         res$status <- 500L
+        # Endpoint-specific CSV/Arrow serializers cannot encode the structured
+        # error list and would hide the original failure with a second error.
+        res$serializer <- plumber::serializer_json(na = "null")
         out <- list(
           error      = paste("Error in", endpoint),
           message    = if (debug) conditionMessage(e) else "Internal Server Error",
