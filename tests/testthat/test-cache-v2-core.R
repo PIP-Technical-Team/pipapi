@@ -312,6 +312,7 @@ test_that("configuration verifies actual build and both opt-in switches", {
   build <- core_env$cache_v2_build()
   expect_match(build$fingerprint, "^[0-9a-f]{64}$")
   expect_identical(build$fingerprint, core_env$cache_v2_build()$fingerprint)
+  expect_identical(build$schema, 2L)
   expect_true(all(c("pipapi", "wbpip", "jsonlite", "qs2", "filelock") %in% names(build$packages)))
   expect_silent(core_env$cache_v2_configure(f$root, f$manifest, build,
                                             intermediate_mode = "read_only",
@@ -320,6 +321,45 @@ test_that("configuration verifies actual build and both opt-in switches", {
   expect_error(core_env$cache_v2_configure(f$root, f$manifest, build), "actual installed build")
   Sys.setenv(PIPAPI_APPLY_CACHING = "FALSE")
   expect_error(core_env$cache_v2_configure(f$root, f$manifest, build), "requires")
+})
+
+test_that("portable release contract reports all relevant differences", {
+  expected <- list(
+    schema = 1L,
+    r_version = paste(R.version$major,
+                      strsplit(R.version$minor, ".", fixed = TRUE)[[1L]][[1L]],
+                      sep = "."),
+    packages = list(
+      pipapi = list(version = "1.5.14", remote_sha = paste(rep("a", 40), collapse = "")),
+      wbpip = list(version = "0.1.6", remote_sha = paste(rep("b", 40), collapse = "")),
+      plumber = list(version = "1.3.3", remote_sha = NULL),
+      jsonlite = list(version = "2.0.0", remote_sha = NULL)
+    )
+  )
+  expected$fingerprint <- core_env$.cache_v2_sha(core_env$.cache_v2_json(
+    expected[c("schema", "r_version", "packages")]
+  ))
+  actual <- expected
+  actual$r_version <- "9.9"
+  actual$packages$pipapi$remote_sha <- paste(rep("c", 40), collapse = "")
+  actual$packages$jsonlite$version <- "99.0.0"
+  expected$fingerprint <- core_env$.cache_v2_sha(core_env$.cache_v2_json(
+    expected[c("schema", "r_version", "packages")]
+  ))
+  actual$fingerprint <- core_env$.cache_v2_sha(core_env$.cache_v2_json(
+    actual[c("schema", "r_version", "packages")]
+  ))
+  expect_error(
+    core_env$.cache_v2_assert_release(expected, actual),
+    paste0("R version: cache=.*server=9.9.*pipapi commit: cache=",
+           paste(rep("a", 40), collapse = ""), ", server=",
+           paste(rep("c", 40), collapse = ""), ".*jsonlite version"),
+    fixed = FALSE
+  )
+  invalid <- expected
+  invalid$fingerprint <- paste(rep("0", 64), collapse = "")
+  expect_error(core_env$.cache_v2_assert_release(invalid, expected),
+               "fingerprint is invalid")
 })
 
 test_that("interprocess locks prevent duplicate publication and enforce timeout", {

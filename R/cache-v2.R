@@ -241,8 +241,8 @@ cache_v2_assert_inputs <- function(manifest, data_dir = manifest$data_root, full
 }
 
 cache_v2_build <- function() {
-  # Loaded formals/bodies exclude bytecode addresses, environments and wrapper state.
-  # This detects edited development code even when DESCRIPTION/RemoteSha are stale.
+  # This strict identity is used inside one builder/runtime environment. The
+  # portable deployment gate is cache_v2_release_contract().
   deps <- tools::package_dependencies("pipapi", db = utils::installed.packages(), recursive = TRUE)[["pipapi"]]
   packages <- sort(unique(c("pipapi", "wbpip", "digest", "filelock", "ps", deps)),
     method = "radix")
@@ -251,7 +251,6 @@ cache_v2_build <- function() {
     if (is.na(desc[1L])) stop("Cannot establish build for package: ", package)
     root <- system.file(package = package)
     ids <- list.files(root, recursive = TRUE, all.files = TRUE, no.. = TRUE)
-    # Installed runtime assets and native code, not help indexes or install paths.
     ids <- ids[!grepl("^(Meta|help|html|doc|R|include|tests|examples)/|^(DESCRIPTION|INDEX|NAMESPACE|MD5)$", ids)]
     if (!package %in% c("pipapi", "wbpip", "plumber", "jsonlite", "qs2")) {
       ids <- ids[grepl("^(libs|data)/", ids)]
@@ -276,6 +275,91 @@ cache_v2_build <- function() {
   c(list(fingerprint = .cache_v2_sha(.cache_v2_json(identity)),
     method = "loaded-function-formals-and-bodies, static namespace constants and runtime assets; no transient environments"),
     identity)
+}
+
+#' Create the portable cache release contract
+#'
+#' This is the small deployment contract shared by Windows builders and Linux
+#' servers. Branch names are intentionally absent: only their resolved commits
+#' identify a release.
+#' @return A release contract and its fingerprint.
+#' @export
+cache_v2_release_contract <- function() {
+  r_minor <- strsplit(as.character(R.version$minor), ".", fixed = TRUE)[[1L]][[1L]]
+  packages <- lapply(c("pipapi", "wbpip", "plumber", "jsonlite"), function(package) {
+    desc <- utils::packageDescription(package)
+    if (is.na(desc[1L])) stop("Cannot establish release package: ", package)
+    sha <- if (package %in% c("pipapi", "wbpip")) desc$RemoteSha else NULL
+    if (package %in% c("pipapi", "wbpip") &&
+        (is.null(sha) || length(sha) != 1L || is.na(sha) || !grepl("^[0-9a-f]{40}$", sha))) {
+      stop("Cannot establish the Git commit for release package: ", package)
+    }
+    list(version = unname(desc$Version), remote_sha = unname(sha))
+  })
+  names(packages) <- c("pipapi", "wbpip", "plumber", "jsonlite")
+  identity <- list(schema = 1L,
+    r_version = paste(R.version$major, r_minor, sep = "."),
+    packages = packages)
+  c(list(fingerprint = .cache_v2_sha(.cache_v2_json(identity))), identity)
+}
+
+.cache_v2_release_fields <- function(contract) {
+  packages <- contract$packages
+  c(
+    "contract schema" = as.character(contract$schema),
+    "R version" = as.character(contract$r_version),
+    "pipapi version" = as.character(packages$pipapi$version),
+    "pipapi commit" = as.character(packages$pipapi$remote_sha),
+    "wbpip version" = as.character(packages$wbpip$version),
+    "wbpip commit" = as.character(packages$wbpip$remote_sha),
+    "plumber version" = as.character(packages$plumber$version),
+    "jsonlite version" = as.character(packages$jsonlite$version)
+  )
+}
+
+.cache_v2_validate_release <- function(contract) {
+  fields <- .cache_v2_release_fields(contract)
+  required <- c("contract schema", "R version", "pipapi version", "pipapi commit",
+                "wbpip version", "wbpip commit", "plumber version", "jsonlite version")
+  if (!is.list(contract) || !identical(as.integer(contract$schema), 1L) ||
+      !identical(names(fields), required) || anyNA(fields) || any(!nzchar(fields)) ||
+      !grepl("^[0-9]+\\.[0-9]+$", fields[["R version"]]) ||
+      !grepl("^[0-9a-f]{40}$", fields[["pipapi commit"]]) ||
+      !grepl("^[0-9a-f]{40}$", fields[["wbpip commit"]])) {
+    stop("Cache v2 release contract is incomplete or invalid.")
+  }
+  identity <- contract[c("schema", "r_version", "packages")]
+  expected <- .cache_v2_sha(.cache_v2_json(identity))
+  if (!is.character(contract$fingerprint) || length(contract$fingerprint) != 1L ||
+      !identical(contract$fingerprint, expected)) {
+    stop("Cache v2 release contract fingerprint is invalid.")
+  }
+  invisible(TRUE)
+}
+
+.cache_v2_assert_release <- function(expected, actual = cache_v2_release_contract()) {
+  .cache_v2_validate_release(expected)
+  .cache_v2_validate_release(actual)
+  expected_fields <- .cache_v2_release_fields(expected)
+  actual_fields <- .cache_v2_release_fields(actual)
+  fields <- union(names(expected_fields), names(actual_fields))
+  different <- fields[vapply(fields, function(field) {
+    !identical(unname(expected_fields[[field]]), unname(actual_fields[[field]]))
+  }, logical(1))]
+  if (length(different)) {
+    value <- function(values, field) {
+      out <- values[[field]]
+      if (is.null(out) || !length(out) || is.na(out) || !nzchar(out)) "<missing>" else out
+    }
+    detail <- vapply(different, function(field) sprintf(
+      "%s: cache=%s, server=%s", field,
+      value(expected_fields, field), value(actual_fields, field)
+    ), character(1))
+    stop("Cache v2 release does not match this server:\n- ",
+         paste(detail, collapse = "\n- "),
+         "\nRebuild the cache or deploy the package revisions recorded in the cache.")
+  }
+  invisible(TRUE)
 }
 
 .cache_v2_assert_wrappers <- function() {
@@ -602,11 +686,14 @@ cache_v2_configure_from_disk <- function(cache_root, data_root,
       !identical(meta$sha256, .cache_v2_file_sha(config_path))) {
     stop("Cache v2 configuration metadata is incomplete or corrupt.")
   }
-  required_fields <- c("cache_root", "data_root", "versions", "build",
+  required_fields <- c("cache_root", "data_root", "versions", "build", "release_contract",
                        "manifest_fingerprint", "planned_keys", "canonical_paths",
                        "intermediate_mode")
   if (!is.list(index) || any(!required_fields %in% names(index))) {
     stop("Cache v2 configuration is missing required fields.")
+  }
+  if (!identical(as.integer(index$schema), 2L)) {
+    stop("Cache v2 configuration schema is incompatible; rebuild the v2 cache.")
   }
   cache_root <- normalizePath(cache_root, winslash = "/", mustWork = TRUE)
   data_root <- normalizePath(data_root, winslash = "/", mustWork = TRUE)
@@ -628,10 +715,12 @@ cache_v2_configure_from_disk <- function(cache_root, data_root,
   }
   if (!is.list(index$build) || !is.character(index$build$fingerprint) ||
       length(index$build$fingerprint) != 1L) stop("Cache v2 configuration has an invalid build fingerprint.")
-  installed <- cache_v2_build()
-  if (!identical(installed$fingerprint, index$build$fingerprint)) {
-    stop("Cache v2 installed build does not match the builder configuration.")
+  if (!is.list(index$release_contract) ||
+      !is.character(index$release_contract$fingerprint) ||
+      length(index$release_contract$fingerprint) != 1L) {
+    stop("Cache v2 configuration has an invalid release contract.")
   }
+  .cache_v2_assert_release(index$release_contract)
   has_manifest_file <- "manifest_file" %in% names(index)
   manifest_file <- if (has_manifest_file) {
     if (!is.character(index$manifest_file) || length(index$manifest_file) != 1L ||
@@ -705,7 +794,8 @@ cache_v2_configure_from_disk <- function(cache_root, data_root,
     warning("Canonical DuckDB is absent for: ", paste(basename(dirname(missing)), collapse = ", "),
             ". Requests will use the slower source-data path.", call. = FALSE)
   }
-  cache_v2_configure(cache_root, manifest, index$build,
+  runtime_build <- cache_v2_build()
+  cache_v2_configure(cache_root, manifest, runtime_build,
     planned_keys = index$planned_keys, intermediate_mode = "read_only",
     compute_cache = compute_cache, required = required,
     runtime_max_size = runtime_max_size)
