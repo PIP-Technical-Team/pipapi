@@ -8,6 +8,15 @@
 #' @return plumber API
 #' @export
 #'
+.load_api_router <- function(api_path, api_env) {
+  sys.source(api_path, envir = api_env)
+  router <- api_env$pr
+  if (!inherits(router, "Plumber")) {
+    stop("The API script did not create a Plumber router.")
+  }
+  router
+}
+
 start_api <- function(api_version = "v1",
                       port = 80,
                       host = "0.0.0.0",
@@ -28,7 +37,7 @@ start_api <- function(api_version = "v1",
   api_path <- system.file(version_path, package = "pipapi")
   api_env <- new.env(parent = environment())
   if (!is.null(lkups)) api_env$lkups <- lkups
-  api <- sys.source(api_path, envir = api_env)
-  plumber::pr_run(api$value, host = host, port = port)
+  api <- .load_api_router(api_path, api_env)
+  plumber::pr_run(api, host = host, port = port)
 
 }
