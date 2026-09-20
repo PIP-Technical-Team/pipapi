@@ -151,6 +151,15 @@ test_that("use_new_lineup_version: TEST_VINTAGE triggers new path", {
   expect_true(use_new_lineup_version(TEST_VINTAGE))
 })
 
+test_that("legacy missing-data rows retain their historical consumption default", {
+  cmd <- data.table::data.table(country_code = "AGO", year = 2018)
+  cmd <- pipapi:::normalize_cmd_missing_data(cmd)
+
+  expect_identical(cmd$welfare_type, "consumption")
+  expect_named(cmd, c("country_code", "reporting_year", "welfare_type"))
+  expect_identical(toupper(substr(cmd$welfare_type, 1, 3)), "CON")
+})
+
 
 # id_valid_dirs() edge cases -------------------------------------------------
 

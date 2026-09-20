@@ -1,4 +1,6 @@
 response_fixture <- function(.env = parent.frame()) {
+  skip_if(is.null(attr(get("pip", asNamespace("pipapi")), "cache_v2_original")),
+          "Requires package startup with v2 wrappers enabled")
   withr::local_envvar(c(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE",
                        PLUMBER_REQ_TIMEOUT = "0"), .local_envir = .env)
   withr::local_options(list(pipapi.query_live_data = FALSE), .local_envir = .env)
@@ -68,6 +70,22 @@ response_ui_mocks <- function(.env = parent.frame()) {
   })
   names(replacements) <- names(counters$values)
   do.call(local_mocked_bindings, c(replacements, list(.package = "pipapi", .env = .env)))
+  state <- pipapi:::.cache_v2_state
+  originals <- state$originals
+  previous <- mget(names(replacements), envir = originals, inherits = FALSE,
+                   ifnotfound = rep(list(NULL), length(replacements)))
+  withr::defer({
+    for (operation in names(previous)) {
+      if (is.null(previous[[operation]])) {
+        if (exists(operation, envir = originals, inherits = FALSE)) {
+          rm(list = operation, envir = originals)
+        }
+      } else {
+        assign(operation, previous[[operation]], envir = originals)
+      }
+    }
+  }, envir = .env)
+  list2env(replacements, envir = originals)
   withr::local_options(list(pipapi.cache_v2_response_hook = function(event, identity, seconds) {
     if (event == "serialize") counters$serialize <- counters$serialize + 1L
   }), .local_envir = .env)
@@ -163,6 +181,69 @@ test_that("errors, invalid arguments and status-200 timeouts are not cached", {
   expect_error(cache_v2_priority_request("cp-charts", modifyList(params, list(povline = -1)), fixture$lkup))
   expect_identical(counters$ui, ui)
   expect_error(cache_v2_priority_request("pc-charts", c(params, list(group_by = "wb")), fixture$lkup))
+})
+
+test_that("historical versions bypass the v2 response cache", {
+  fixture <- response_fixture()
+  counters <- response_ui_mocks()
+  historical <- "20240627_2017_01_02_PROD"
+  historical_lkup <- fixture$lkup
+  historical_lkup$cache_v2 <- NULL
+  historical_lkup$data_root <- tempfile("historical-source-")
+  historical_lkup$query_controls$version$values <- c(
+    historical_lkup$query_controls$version$values,
+    historical
+  )
+  fixture$lkups$versions <- c(fixture$lkups$versions, historical)
+  fixture$lkups$versions_paths[[historical]] <- historical_lkup
+  app <- response_app(fixture)
+  params <- list(country = "IDN", povline = 3, version = historical)
+
+  first <- response_http(app, "cp-charts", params)
+  second <- response_http(app, "cp-charts", params)
+
+  expect_equal(first$status, 200)
+  expect_identical(second$body, first$body)
+  expect_null(first$headers[["X-Pipapi-Cache"]])
+  expect_null(second$headers[["X-Pipapi-Cache"]])
+  expect_identical(counters$ui, 2L)
+})
+
+test_that("pip route resolves managed and historical version lookups", {
+  fixture <- response_fixture()
+  managed <- fixture$version
+  historical <- "20240627_2017_01_02_PROD"
+  fixture$lkups$versions_paths[[managed]]$test_label <- "managed"
+  historical_lkup <- fixture$lkup
+  historical_lkup$cache_v2 <- NULL
+  historical_lkup$data_root <- "historical-root"
+  historical_lkup$test_label <- "historical"
+  historical_lkup$query_controls$version$values <- c(
+    historical_lkup$query_controls$version$values,
+    historical
+  )
+  fixture$lkups$versions <- c(fixture$lkups$versions, historical)
+  fixture$lkups$versions_paths[[historical]] <- historical_lkup
+  local_mocked_bindings(
+    pip = function(country = "ALL", year = "ALL", povline = 1.9, lkup, ...) {
+      data.frame(country = country, year = year, poverty_line = povline,
+                 test_label = lkup$test_label)
+    },
+    .package = "pipapi"
+  )
+  app <- response_app(fixture)
+
+  current <- response_http(app, "pip", list(
+    country = "AGO", year = 2000, povline = 3, version = managed
+  ))
+  old <- response_http(app, "pip", list(
+    country = "AGO", year = 2000, povline = 3, version = historical
+  ))
+
+  expect_equal(current$status, 200)
+  expect_equal(old$status, 200)
+  expect_match(rawToChar(response_bytes(current$body)), "managed", fixed = TRUE)
+  expect_match(rawToChar(response_bytes(old$body)), "historical", fixed = TRUE)
 })
 
 test_that("effective keys preserve route defaults, version, representation and order", {

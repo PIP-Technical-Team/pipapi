@@ -21,20 +21,21 @@ return_if_exists <- function(
     return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
   }
 
-  # Legacy reads can fall back to computation; v2 provenance failures are fatal.
+  context <- intermediate_cache_context(cache_file_path)
+  strict <- !is.null(context) && identical(context$intermediate_mode, "read_only")
+  # Managed read-only misses are fatal; historical versions retain legacy fallback.
   master_file <- tryCatch(
     load_inter_cache(cache_file_path = cache_file_path, fill_gaps = fill_gaps,
                      poverty_lines = povline),
     error = function(e) {
-      if (identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE")) stop(e)
+      if (strict) stop(e)
       cli::cli_warn("Failed to load intermediate cache: {e$message}")
       slkup[0]
     }
   )
   # if no cached files, return selected lkup
   if (fnrow(master_file) == 0) {
-    if (identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE") &&
-        identical(.cache_v2_state$config$intermediate_mode, "read_only")) {
+    if (strict) {
       stop("Required intermediate DuckDB data is missing; live source fallback is disabled.")
     }
     return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
@@ -114,9 +115,7 @@ return_if_exists <- function(
     multiple = TRUE
   )
 
-  if (fnrow(lk_not_ms) > 0 &&
-      identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE") &&
-      identical(.cache_v2_state$config$intermediate_mode, "read_only")) {
+  if (fnrow(lk_not_ms) > 0 && strict) {
     missing_lines <- sort(unique(lk_not_ms$poverty_line))
     stop(
       "Intermediate DuckDB coverage is incomplete for ", fnrow(lk_not_ms),
@@ -133,8 +132,7 @@ return_if_exists <- function(
   # If no data is present in master
   #  i.e. if no common rows between
   if (fnrow(data_present_in_master) == 0) {
-    if (identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE") &&
-        identical(.cache_v2_state$config$intermediate_mode, "read_only")) {
+    if (strict) {
       stop("Requested poverty line is missing from the intermediate DuckDB; live source fallback is disabled.")
     }
     return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
@@ -324,11 +322,12 @@ connect_with_retry <- function(
   lkup = NULL,
   verbose = getOption("pipapi.verbose")
 ) {
-  if (identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE")) {
-    stop("Raw DuckDB connections are not allowed in cache v2; use scoped access.")
-  }
   if (!is.null(lkup)) {
     db_path <- intermediate_cache_path(lkup)
+  }
+  if (identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE") &&
+      !is.null(intermediate_cache_context(db_path))) {
+    stop("Raw DuckDB connections are not allowed for managed cache v2; use scoped access.")
   }
 
   attempt <- 1
@@ -390,7 +389,8 @@ connect_with_retry <- function(
       ({.envvar PIP_CACHE_LOCAL_KEY} / {.envvar PIP_CACHE_SERVER_KEY})."
     )
   }
-  if (pass != server_key) {
+  if (!is.character(pass) || length(pass) != 1L || is.na(pass) ||
+      !identical(pass, server_key)) {
     cli::cli_abort(
       "Cache key mismatch: supplied key does not match server key."
     )
@@ -487,10 +487,12 @@ create_duckdb_file <- function(cache_file_path) {
 }
 
 safe_update_master_file <- function(dat, cache_file_path, fill_gaps) {
+  if (isTRUE(getOption("pipapi.query_live_data"))) return(invisible(FALSE))
+  context <- intermediate_cache_context(cache_file_path)
   tryCatch(
     update_master_file(dat, cache_file_path, fill_gaps),
     error = function(e) {
-      if (identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE")) stop(e)
+      if (!is.null(context)) stop(e)
       cli::cli_warn("Failed to update intermediate cache: {e$message}")
       invisible(FALSE)
     }
@@ -553,7 +555,9 @@ intermediate_cache_path <- function(lkup, ppp = NULL, popshare = NULL) {
   }
   if (!cache_v2_enabled()) stop("Intermediate cache v2 requires caching to be enabled.")
   context <- cache_v2_context(lkup)
-  if (is.null(context)) stop("Valid provenance is required for intermediate cache v2.")
+  if (is.null(context)) {
+    return(fs::path(lkup$data_root, "cache", ext = "duckdb"))
+  }
   current <- cache_v2_context()
   context$parameters <- current$parameters
   if (missing(ppp)) ppp <- current$parameters$ppp
@@ -577,7 +581,12 @@ intermediate_cache_context <- function(path) {
       context$custom <- list(ppp = context$parameters$ppp, popshare = context$parameters$popshare)
     }
   }
-  if (is.null(context)) stop("Valid provenance is required for intermediate cache v2.")
+  if (is.null(context)) {
+    if (.cache_v2_managed_intermediate_path(path)) {
+      stop("Managed cache-v2 intermediate path requires provenance.")
+    }
+    return(NULL)
+  }
   source_root <- if (is.null(context)) NULL else context$source_root
   if (is.null(source_root) && !is.null(current)) source_root <- current$source_root
   if (!is.character(source_root) || length(source_root) != 1L ||

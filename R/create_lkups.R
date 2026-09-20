@@ -238,8 +238,8 @@ create_lkups <- function(data_dir, versions) {
     ly <- lineup_years$lineup_years
 
     cmd <- fs::path(data_dir, "_aux/missing_data.fst") |>
-      fst::read_fst(as.data.table = TRUE) |>
-      fselect(country_code, reporting_year = year, welfare_type)
+      fst::read_fst(as.data.table = TRUE)
+    cmd <- normalize_cmd_missing_data(cmd)
 
     # build some variables
     cmd[,
@@ -799,9 +799,16 @@ create_lkups <- function(data_dir, versions) {
   }
 
   if (cache_v2_enabled() && !is.null(.cache_v2_state$config)) {
-    lkup <- cache_v2_attach(lkup, versions)
+    lkup <- cache_v2_attach_if_managed(lkup, versions)
   }
   return(lkup)
+}
+
+normalize_cmd_missing_data <- function(cmd) {
+  if (!"welfare_type" %in% names(cmd)) {
+    cmd[, welfare_type := "consumption"]
+  }
+  fselect(cmd, country_code, reporting_year = year, welfare_type)
 }
 
 #' Return regular expression needed for extracting data folders

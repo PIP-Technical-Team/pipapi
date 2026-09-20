@@ -125,7 +125,8 @@ create_query_controls <- function(
   # type
   type <- list(values = c("both", "rg", "fg"), type = "character")
 
-  pass <- list(values = Sys.getenv('PIP_CACHE_SERVER_KEY'), type = "character")
+  pass <- list(values = character(), type = "secret")
+  key <- list(values = character(), type = "opaque")
   # parameters
   parameter <-
     list(
@@ -146,7 +147,8 @@ create_query_controls <- function(
         "long_format",
         "exclude",
         "type",
-        "pass"
+        "pass",
+        "key"
       ),
       type = "character"
     )
@@ -236,7 +238,8 @@ create_query_controls <- function(
     n_bins = n_bins,
     endpoint = endpoint,
     type = type,
-    pass = pass
+    pass = pass,
+    key = key
   )
 
   return(query_controls)

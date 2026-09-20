@@ -245,7 +245,8 @@ test_that("actual core provenance and taint guard protect lower caches", {
   }
   version <- "20260922_2021_01_02_PROD"
   manifest <- cache_v2_manifest(source, version)
-  cache_v2_configure(file.path(root, "cache"), manifest, cache_v2_build())
+  cache_v2_configure(file.path(root, "cache"), manifest, cache_v2_build(),
+                     intermediate_mode = "write")
   lkup <- cache_v2_attach(list(data_root = source), version)
   path <- intermediate_cache_path(lkup)
   dat <- duckdb_v2_fixture(root)$dat
@@ -269,6 +270,44 @@ test_that("v2 opt-in cannot fall back to legacy without configuration", {
   expect_error(intermediate_cache_path(list(data_root = root)), "requires caching")
   expect_error(load_inter_cache(cache_file_path = file.path(root, "cache.duckdb")), "requires caching")
   expect_false(file.exists(file.path(root, "cache.duckdb")))
+})
+
+test_that("historical versions retain legacy DuckDB reads and writes in a v2 process", {
+  skip_if(is.null(attr(get("pip", asNamespace("pipapi")), "cache_v2_original")),
+          "Requires package startup with v2 wrappers enabled")
+  withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
+  withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE,
+                      pipapi.cache_v2_context = NULL)
+  old_config <- .cache_v2_state$config
+  on.exit(.cache_v2_state$config <- old_config, add = TRUE)
+  root <- withr::local_tempdir()
+  managed <- file.path(root, "20260922_2021_01_02_PROD")
+  historical <- file.path(root, "20240627_2017_01_02_PROD")
+  for (source in c(managed, historical)) {
+    for (dir in c("_aux", "estimations", "survey_data", "lineup_data")) {
+      dir.create(file.path(source, dir), recursive = TRUE)
+      writeLines("fixture", file.path(source, dir, "input.txt"))
+    }
+  }
+  version <- basename(managed)
+  manifest <- cache_v2_manifest(managed, version)
+  cache_v2_configure(file.path(root, "cache"), manifest, cache_v2_build())
+  historical_lkup <- list(data_root = historical)
+  path <- intermediate_cache_path(historical_lkup)
+  dat <- duckdb_v2_fixture(root)$dat
+
+  expect_identical(fs::path_norm(as.character(path)),
+                   fs::path_norm(file.path(historical, "cache.duckdb")))
+  expect_null(attr(path, "cache_v2_context", exact = TRUE))
+  expect_equal(update_master_file(dat, path, FALSE), 1)
+  expect_true(file.exists(path))
+  expect_equal(load_inter_cache(lkup = historical_lkup), dat)
+  expect_equal(safe_update_master_file(dat, path, FALSE), 0)
+  expect_equal(nrow(load_inter_cache(cache_file_path = as.character(path))), 1L)
+  expect_error(
+    intermediate_cache_path(list(data_root = managed)),
+    "Managed cache-v2 version requires provenance"
+  )
 })
 
 test_that("legacy table repair is non-destructive with v2 disabled", {

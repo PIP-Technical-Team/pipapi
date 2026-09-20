@@ -79,6 +79,10 @@ check_parameter_values <- function(values, valid_values, type) {
     check_param_num(values, valid_values)
   } else if (type == "logical") {
     check_param_lgl(values)
+  } else if (type == "secret") {
+    TRUE
+  } else if (type == "opaque") {
+    TRUE
   }
 }
 
@@ -113,6 +117,16 @@ check_param_lgl <- function(value) {
   return(out)
 }
 
+cache_auth_response <- function(pass, res) {
+  tryCatch({
+    .check_cache_auth(pass)
+    NULL
+  }, error = function(e) {
+    res$status <- 403L
+    list(error = "Forbidden")
+  })
+}
+
 #' Format error
 #' Format error if check_parameters_values() returns TRUE
 #' @param params character: Vector with parsed parameters
@@ -125,7 +139,11 @@ format_error <- function(params, query_controls) {
   # params <- names(params)
   out <- lapply(params, function(x) {
     list(msg = sprintf(msg1, x),
-         valid = query_controls[[x]]$values)
+         valid = if (identical(query_controls[[x]]$type, "secret")) {
+           character()
+         } else {
+           query_controls[[x]]$values
+         })
   })
   names(out) <- params
   out <- list(error = msg2, details = out)
@@ -164,7 +182,8 @@ validate_query_parameters <-
     "n_bins",
     "pass",
     "type",
-    "exclude"
+    "exclude",
+    "key"
   )) {
     params$argsQuery <-
       params$argsQuery[names(params$argsQuery) %in% valid_params]
@@ -197,6 +216,8 @@ parse_parameter <- function(param,
   param <- urltools::url_decode(param)
   param <- strsplit(param, ",")
   param <- unlist(param)
+
+  if (param_name %in% c("pass", "key")) return(param)
 
   # Make API case insensitive
   if (param_name %in% c("country",

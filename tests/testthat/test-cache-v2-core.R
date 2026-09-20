@@ -27,6 +27,7 @@ core_fixture <- function() {
   core_env$.cache_v2_state$config <- list(root = root, manifest = manifest,
     build = list(fingerprint = "fixture-build"), planned_keys = character(),
     intermediate_mode = "write", required = TRUE, runtime_max_size = 1024^2)
+  core_env$.cache_v2_state$verified_inputs <- list(fingerprint = NULL, time = as.POSIXct(NA))
   lkup <- core_env$cache_v2_attach(list(svy_lkup = data.table::data.table(
     country_code = c("AGO", "IDN"), display_cp = c(1, 0))), version)
   list(source = source, root = root, manifest = manifest, lkup = lkup, version = version)
@@ -243,6 +244,7 @@ test_that("source and cache relocation do not change keys or independent PPP inp
 
 test_that("source guard taints provenance before publication", {
   f <- core_fixture()
+  withr::local_options(pipapi.cache_v2_input_check_interval = 0)
   id <- core_env$cache_v2_identity("pip", list(), f$lkup)
   file <- file.path(f$source, "survey_data", "input.fst")
   writeLines("changed input", file)
@@ -329,10 +331,141 @@ test_that("disabled compute cache bypasses provenance and storage", {
   expect_length(list.files(f$root, recursive = TRUE), 0L)
 })
 
+test_that("mixed-version lookups attach only manifest-managed versions", {
+  f <- core_fixture()
+  historical <- "20240627_2017_01_02_PROD"
+  managed <- core_env$cache_v2_attach_if_managed(
+    list(data_root = f$source),
+    f$version
+  )
+  unmanaged <- core_env$cache_v2_attach_if_managed(
+    list(data_root = tempfile("historical-source-")),
+    historical
+  )
+
+  expect_identical(managed$cache_v2$version, f$version)
+  expect_null(unmanaged[["cache_v2", exact = TRUE]])
+  expect_error(
+    core_env$cache_v2_attach_if_managed(f$lkup, historical),
+    "unmanaged version"
+  )
+})
+
+test_that("managed path checks use canonical filesystem identity", {
+  f <- core_fixture()
+  source_alias <- if (.Platform$OS.type == "windows") toupper(f$source) else f$source
+  db_alias <- file.path(source_alias, "cache.duckdb")
+
+  expect_true(core_env$.cache_v2_managed_source_root(source_alias))
+  expect_true(core_env$.cache_v2_managed_intermediate_path(db_alias))
+})
+
+test_that("request guards verify configured inputs once per process", {
+  f <- core_fixture()
+  core_env$.cache_v2_state$verified_inputs <- list(fingerprint = NULL, time = as.POSIXct(NA))
+  withr::local_options(pipapi.cache_v2_input_check_interval = 60)
+  calls <- 0L
+  assert_inputs <- core_env$cache_v2_assert_inputs
+  core_env$cache_v2_assert_inputs <- function(...) {
+    calls <<- calls + 1L
+    invisible(TRUE)
+  }
+  withr::defer(core_env$cache_v2_assert_inputs <- assert_inputs)
+  identity <- list(descriptor = list(
+    kind = "intermediate",
+    version = f$version,
+    dependency_fingerprint = f$manifest$versions[[f$version]]$fingerprint,
+    build_fingerprint = core_env$.cache_v2_state$config$build$fingerprint
+  ))
+
+  core_env$.cache_v2_guard(identity, inputs = TRUE)
+  core_env$.cache_v2_guard(identity, inputs = TRUE)
+
+  expect_identical(calls, 1L)
+  expect_identical(core_env$.cache_v2_state$verified_inputs$fingerprint,
+                   f$manifest$fingerprint)
+})
+
+test_that("publication guards always reverify configured inputs", {
+  f <- core_fixture()
+  withr::local_options(pipapi.cache_v2_input_check_interval = 60)
+  calls <- 0L
+  assert_inputs <- core_env$cache_v2_assert_inputs
+  core_env$cache_v2_assert_inputs <- function(...) {
+    calls <<- calls + 1L
+    invisible(TRUE)
+  }
+  withr::defer(core_env$cache_v2_assert_inputs <- assert_inputs)
+  identity <- list(descriptor = list(
+    kind = "response",
+    version = f$version,
+    dependency_fingerprint = f$manifest$versions[[f$version]]$fingerprint,
+    build_fingerprint = core_env$.cache_v2_state$config$build$fingerprint
+  ))
+
+  core_env$.cache_v2_guard(identity, inputs = TRUE)
+  core_env$.cache_v2_guard(identity, inputs = TRUE, force_inputs = TRUE)
+
+  expect_identical(calls, 2L)
+})
+
+test_that("request guards reject infinite verification intervals", {
+  f <- core_fixture()
+  withr::local_options(pipapi.cache_v2_input_check_interval = Inf)
+  identity <- list(descriptor = list(
+    kind = "intermediate",
+    version = f$version,
+    dependency_fingerprint = f$manifest$versions[[f$version]]$fingerprint,
+    build_fingerprint = core_env$.cache_v2_state$config$build$fingerprint
+  ))
+
+  expect_error(core_env$.cache_v2_guard(identity, inputs = TRUE), "finite non-negative")
+})
+
+test_that("managed DuckDB hard links retain managed identity", {
+  skip_if_not(file.exists(Sys.which("cmd")) || .Platform$OS.type != "windows")
+  f <- core_fixture()
+  managed <- file.path(f$source, "cache.duckdb")
+  writeLines("managed", managed)
+  alias <- tempfile("managed-hardlink-", fileext = ".duckdb")
+  expect_true(file.link(managed, alias))
+  withr::defer(unlink(alias))
+
+  expect_true(core_env$.cache_v2_managed_intermediate_path(alias))
+})
+
+test_that("compute cache bypasses historical unmanaged lookups", {
+  f <- core_fixture()
+  core_env$.cache_v2_state$config$compute_cache <- TRUE
+  counter <- 0L
+  fun <- function(povline = 1.9, lkup) {
+    counter <<- counter + 1L
+    data.table::data.table(povline = povline)
+  }
+  wrapped <- core_env$.cache_v2_wrap("pip", fun)
+  withr::defer(rm(list = "pip", envir = core_env$.cache_v2_state$originals))
+  historical <- list(
+    data_root = tempfile("historical-source-"),
+    svy_lkup = f$lkup$svy_lkup
+  )
+
+  expect_identical(wrapped(povline = 3, lkup = historical)$povline, 3)
+  expect_identical(wrapped(povline = 3, lkup = historical)$povline, 3)
+  expect_identical(counter, 2L)
+  expect_length(list.files(f$root, recursive = TRUE), 0L)
+})
+
 test_that("configuration verifies actual build and both opt-in switches", {
   f <- core_fixture()
   withr::local_envvar(c(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE"))
-  expect_error(core_env$.cache_v2_assert_wrappers(), "wrappers are not installed")
+  namespace_wrapped <- !is.null(attr(
+    get("pip", asNamespace("pipapi")), "cache_v2_original", exact = TRUE
+  ))
+  if (!namespace_wrapped) {
+    expect_error(core_env$.cache_v2_assert_wrappers(), "wrappers are not installed")
+  } else {
+    expect_silent(core_env$.cache_v2_assert_wrappers())
+  }
   assert_wrappers <- core_env$.cache_v2_assert_wrappers
   core_env$.cache_v2_assert_wrappers <- function() invisible(TRUE)
   withr::defer(core_env$.cache_v2_assert_wrappers <- assert_wrappers)

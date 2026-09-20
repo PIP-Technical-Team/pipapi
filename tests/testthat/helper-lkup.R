@@ -31,7 +31,7 @@
 
 # ── Pinned data vintage ───────────────────────────────────────────────────────
 # Update this single line when a new PROD vintage is released.
-TEST_VINTAGE <- "20250930_2021_01_02_PROD"
+TEST_VINTAGE <- "20260922_2021_01_02_PROD"
 
 # ── Data directory ────────────────────────────────────────────────────────────
 test_data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL", unset = "")

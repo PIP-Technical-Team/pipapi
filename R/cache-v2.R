@@ -5,6 +5,7 @@
 .cache_v2_state$bootstrap_locks <- new.env(parent = emptyenv())
 .cache_v2_state$originals <- new.env(parent = emptyenv())
 .cache_v2_state$stats <- list()
+.cache_v2_state$verified_inputs <- list(fingerprint = NULL, time = as.POSIXct(NA))
 
 .cache_v2_count <- function(event, operation, seconds = NULL) {
   name <- paste(event, operation, sep = ".")
@@ -423,6 +424,7 @@ cache_v2_configure <- function(root, manifest, build, planned_keys = character()
     planned_keys = unique(planned_keys), intermediate_mode = intermediate_mode,
     compute_cache = isTRUE(compute_cache), required = required,
     runtime_max_size = runtime_max_size)
+  .cache_v2_state$verified_inputs <- list(fingerprint = NULL, time = as.POSIXct(NA))
   options(pipapi.cache_v2_config = .cache_v2_state$config)
   .cache_v2_disk_space(root, 0)
   invisible(.cache_v2_state$config)
@@ -501,11 +503,10 @@ cache_v2_bootstrap_intermediate <- function(lkups, povlines = NULL,
                                             year = "ALL") {
   if (!cache_v2_enabled()) stop("Cache v2 requires PIPAPI_CACHE_V2=TRUE and PIPAPI_APPLY_CACHING=TRUE.")
   if (!is.list(lkups)) stop("lkups must be a versioned lookup list.")
-  versions <- names(lkups$versions_paths)
-  if (is.null(versions) || !length(versions)) versions <- as.character(lkups$versions)
-  if (is.null(versions) || !length(versions)) versions <- names(lkups)
+  configured <- names(.cache_v2_state$config$manifest$versions)
+  versions <- configured
   if (is.null(versions) || !length(versions) || anyNA(versions) || anyDuplicated(versions)) {
-    stop("lkups must contain uniquely named full versions.")
+    stop("Cache v2 must contain uniquely named full versions.")
   }
   version_paths <- if (!is.null(lkups$versions_paths)) lkups$versions_paths else {
     candidates <- lkups[versions]
@@ -513,7 +514,7 @@ cache_v2_bootstrap_intermediate <- function(lkups, povlines = NULL,
   }
   if (!is.list(version_paths) || is.null(names(version_paths)) ||
       !all(versions %in% names(version_paths))) {
-    stop("lkups versions and version paths must match.")
+    stop("lkups are missing configured cache-v2 versions.")
   }
   if (length(recreate) != 1L || is.na(recreate)) stop("recreate must be TRUE or FALSE.")
   old_config <- .cache_v2_state$config
@@ -800,8 +801,8 @@ cache_v2_configure_from_disk <- function(cache_root, data_root,
   }
   missing <- expected[!file.exists(expected)]
   if (length(missing)) {
-    warning("Canonical DuckDB is absent for: ", paste(basename(dirname(missing)), collapse = ", "),
-            ". Requests will use the slower source-data path.", call. = FALSE)
+    stop("Canonical DuckDB is absent for: ",
+         paste(basename(dirname(missing)), collapse = ", "))
   }
   runtime_build <- cache_v2_build()
   cache_v2_configure(cache_root, manifest, runtime_build,
@@ -826,7 +827,7 @@ cache_v2_taint <- function(reason = "Source verification failed", versions = NUL
   invisible(reason)
 }
 
-.cache_v2_guard <- function(identity, inputs = FALSE) {
+.cache_v2_guard <- function(identity, inputs = FALSE, force_inputs = FALSE) {
   descriptor <- identity$descriptor
   cfg <- .cache_v2_state$config
   if (!is.null(descriptor$version) &&
@@ -838,7 +839,24 @@ cache_v2_taint <- function(reason = "Source verification failed", versions = NUL
   if (file.exists(.cache_v2_taint_path(identity$descriptor$dependency_fingerprint))) {
     stop("Cache v2 provenance is tainted; use a clean cache root after source verification.")
   }
-  if (inputs) cache_v2_assert_inputs(.cache_v2_state$config$manifest, full = FALSE)
+  if (inputs) {
+    interval <- getOption("pipapi.cache_v2_input_check_interval", 60)
+    if (!is.numeric(interval) || length(interval) != 1L || !is.finite(interval) || interval < 0) {
+      stop("Cache v2 input check interval must be a finite non-negative number of seconds.")
+    }
+    verified <- .cache_v2_state$verified_inputs
+    elapsed <- as.numeric(difftime(Sys.time(), verified$time, units = "secs"))
+    due <- isTRUE(force_inputs) ||
+      !identical(verified$fingerprint, cfg$manifest$fingerprint) ||
+      !is.finite(elapsed) || elapsed >= interval
+    if (due) {
+      cache_v2_assert_inputs(cfg$manifest, full = FALSE)
+      .cache_v2_state$verified_inputs <- list(
+        fingerprint = cfg$manifest$fingerprint,
+        time = Sys.time()
+      )
+    }
+  }
 }
 
 cache_v2_attach <- function(lkup, version) {
@@ -851,17 +869,92 @@ cache_v2_attach <- function(lkup, version) {
   lkup
 }
 
+cache_v2_attach_if_managed <- function(lkup, version) {
+  cfg <- .cache_v2_state$config
+  if (is.null(cfg)) stop("Cache v2 is not configured.")
+  if (version %in% names(cfg$manifest$versions)) {
+    return(cache_v2_attach(lkup, version))
+  }
+  if (!is.null(lkup[["cache_v2", exact = TRUE]])) {
+    stop("Lookup provenance references an unmanaged version: ", version)
+  }
+  lkup
+}
+
+.cache_v2_path_identity <- function(path) {
+  if (!is.character(path) || length(path) != 1L || is.na(path) || !nzchar(path)) {
+    return(NA_character_)
+  }
+  if (file.exists(path) || dir.exists(path)) {
+    identity <- normalizePath(path, winslash = "/", mustWork = TRUE)
+  } else if (dir.exists(dirname(path))) {
+    identity <- file.path(
+      normalizePath(dirname(path), winslash = "/", mustWork = TRUE),
+      basename(path)
+    )
+  } else {
+    identity <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  }
+  identity <- fs::path_norm(identity)
+  if (.Platform$OS.type == "windows") identity <- tolower(identity)
+  identity
+}
+
+.cache_v2_same_file <- function(left, right) {
+  if (file.exists(left) && file.exists(right)) {
+    left_info <- fs::file_info(left)
+    right_info <- fs::file_info(right)
+    same_inode <- !is.na(left_info$inode) && !is.na(right_info$inode) &&
+      identical(left_info$device_id, right_info$device_id) &&
+      identical(left_info$inode, right_info$inode)
+    if (same_inode) return(TRUE)
+  }
+  identical(.cache_v2_path_identity(left), .cache_v2_path_identity(right))
+}
+
+.cache_v2_managed_source_root <- function(path) {
+  cfg <- .cache_v2_state$config
+  if (is.null(cfg) || !is.character(path) || length(path) != 1L ||
+      is.na(path) || !nzchar(path)) return(FALSE)
+  roots <- vapply(names(cfg$manifest$versions), function(version) {
+    .cache_v2_version_root(cfg$manifest$data_root, version)
+  }, character(1))
+  normalized <- .cache_v2_path_identity(path)
+  any(vapply(roots, function(root) {
+    identical(normalized, .cache_v2_path_identity(root))
+  }, logical(1)))
+}
+
+.cache_v2_managed_intermediate_path <- function(path) {
+  cfg <- .cache_v2_state$config
+  if (is.null(cfg) || !is.character(path) || length(path) != 1L ||
+      is.na(path) || !nzchar(path)) return(FALSE)
+  roots <- vapply(names(cfg$manifest$versions), function(version) {
+    .cache_v2_version_root(cfg$manifest$data_root, version)
+  }, character(1))
+  expected <- file.path(roots, "cache.duckdb")
+  any(vapply(expected, function(candidate) {
+    .cache_v2_same_file(path, candidate)
+  }, logical(1)))
+}
+
 cache_v2_cp_lookup <- function(lkup) {
   lkup$svy_lkup <- lkup$svy_lkup[lkup$svy_lkup$display_cp == 1, ]
-  if (!is.null(lkup$cache_v2)) lkup$cache_v2$lookup_variant <- "cp"
+  if (!is.null(lkup[["cache_v2", exact = TRUE]])) lkup$cache_v2$lookup_variant <- "cp"
   lkup
 }
 
 cache_v2_context <- function(lkup = NULL) {
   if (is.null(lkup)) return(getOption("pipapi.cache_v2_context"))
   cfg <- .cache_v2_state$config
-  stamp <- lkup$cache_v2
-  if (is.null(cfg) || is.null(stamp)) return(NULL)
+  stamp <- lkup[["cache_v2", exact = TRUE]]
+  if (is.null(cfg)) return(NULL)
+  if (is.null(stamp)) {
+    if (.cache_v2_managed_source_root(lkup$data_root)) {
+      stop("Managed cache-v2 version requires provenance.")
+    }
+    return(NULL)
+  }
   source <- cfg$manifest$versions[[stamp$version]]
   if (is.null(source)) stop("Lookup version is absent from cache v2 configuration.")
   if (!identical(stamp$build_fingerprint, cfg$build$fingerprint) ||
@@ -871,7 +964,8 @@ cache_v2_context <- function(lkup = NULL) {
   if (is.character(lkup$data_root) && length(lkup$data_root) == 1L &&
       nzchar(lkup$data_root)) {
     expected <- .cache_v2_version_root(cfg$manifest$data_root, stamp$version)
-    if (!identical(fs::path_norm(lkup$data_root), fs::path_norm(expected))) {
+    if (!identical(.cache_v2_path_identity(lkup$data_root),
+                   .cache_v2_path_identity(expected))) {
       stop("Lookup data_root does not match its full data version.")
     }
   }
@@ -1088,7 +1182,7 @@ cache_v2_put <- function(identity, value, content_type = NULL) {
       on.exit(filelock::unlock(runtime_lock), add = TRUE)
       .cache_v2_runtime_room(size + file.size(meta_temp), path)
     }
-    .cache_v2_guard(identity, inputs = TRUE)
+    .cache_v2_guard(identity, inputs = TRUE, force_inputs = TRUE)
     # Only corrupt/incomplete targets reach here. Move them aside before repair;
     # a complete target is never removed or replaced, including on Windows.
     for (target in c(paste0(path, ".meta.json"), path)) {
@@ -1121,7 +1215,7 @@ cache_v2_put <- function(identity, value, content_type = NULL) {
     if (!.cache_v2_compute_enabled()) return(do.call(original, args))
     lkup <- args$lkup
     context <- cache_v2_context(lkup)
-    if (is.null(context)) stop("Cache v2 computation requires configured lookup provenance.")
+    if (is.null(context)) return(do.call(original, args))
     effective <- cache_v2_effective_args(operation, args, lkup)
     context$parameters <- effective
     context$ppp <- effective$ppp

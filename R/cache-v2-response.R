@@ -179,6 +179,8 @@ cache_v2_response <- function(req, res, endpoint, lkup) {
   if (!cache_v2_enabled() ||
       isTRUE(getOption("pipapi.query_live_data"))) return(compute())
 
+  if (is.null(cache_v2_context(lkup))) return(compute())
+
   request <- cache_v2_response_request(endpoint, req$argsQuery, lkup)
   identity <- request$identity
   .cache_v2_guard(identity, inputs = TRUE)

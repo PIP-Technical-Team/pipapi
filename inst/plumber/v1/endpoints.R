@@ -181,6 +181,11 @@ function(req, res) {
   lkups <- lkups$versions_paths[[req$argsQuery$version]]
   query_controls = lkups$query_controls
 
+  context <- pipapi:::cache_v2_context(lkups)
+  if (!is.null(context)) {
+    pipapi:::.cache_v2_guard(list(descriptor = context), inputs = TRUE)
+  }
+
   if (req$QUERY_STRING != "" & !grepl("swagger", req$PATH_INFO)) {
     #### STEP 1
     # Assign required parameters
@@ -488,9 +493,15 @@ function(req, res) {
 
 ### cache-reset ------------
 #* Reset current cache directory
+#* @param pass:[chr] Local password, checked against the server key
 #* @get /api/v1/cache-reset
 #* @serializer unboxedJSON
-function() {
+function(req, res) {
+  auth_error <- pipapi:::cache_auth_response(req$argsQuery$pass, res)
+  if (!is.null(auth_error)) return(auth_error)
+  if (!exists("cd", inherits = TRUE)) {
+    return(list(enabled = FALSE, status = "disabled", msg = "Legacy cache is disabled."))
+  }
   pipapi:::clear_cache(cd)
 }
 
@@ -502,6 +513,8 @@ function() {
 #* @serializer unboxedJSON
 function(req, res) {
   params <- req$argsQuery
+  auth_error <- pipapi:::cache_auth_response(params$pass, res)
+  if (!is.null(auth_error)) return(auth_error)
   params$lkup <- lkups$versions_paths[[params$version]]
   params$version <- NULL
   do.call(pipapi:::delete_cache, params)
@@ -513,7 +526,11 @@ function(req, res) {
 #* @get /api/v1/cache-get
 #* @param key: [chr] key corresponding to a specific cached value
 #* @serializer unboxedJSON
-function(key) {
+function(key = NULL) {
+  if (!exists("cd", inherits = TRUE)) {
+    return(list(enabled = FALSE, value = NULL))
+  }
+  if (is.null(key) || !nzchar(key)) return(list(enabled = TRUE, value = NULL))
   cd$get(key)
 }
 
@@ -522,7 +539,7 @@ function(key) {
 #* Return all keys from the cache
 #* @get /api/v1/cache-keys
 #* @serializer unboxedJSON
-function(key) {
+function() {
   if (!exists("cd", envir = .GlobalEnv, inherits = FALSE)) {
     return(character())
   }
@@ -554,6 +571,8 @@ function() {
 #* @serializer unboxedJSON
 function(req, res) {
   params <- req$argsQuery
+  auth_error <- pipapi:::cache_auth_response(params$pass, res)
+  if (!is.null(auth_error)) return(auth_error)
   params$lkup <- lkups$versions_paths[[params$version]]
   params$version <- NULL
   do.call(pipapi:::reset_cache, params)

@@ -156,8 +156,8 @@ test_that("check_parameters_values() works as expected", {
   tmp <- check_parameters_values(req, lkups$query_controls)
   expect_false(tmp)
 
-  # Invalid group_by parameter
-  req <- list(argsQuery = list(group_by = "pcn"))
+  # Valid group_by parameter
+  req <- list(argsQuery = list(group_by = "wb"))
   tmp <- check_parameters_values(req, lkups$query_controls)
   expect_true(tmp)
 
@@ -201,6 +201,29 @@ test_that("format_error() works as expected", {
   expect_identical(names(tmp$details), c("table"))
   expect_identical(names(tmp$details$table), c("msg", "valid"))
   expect_identical(tmp$details$table$valid, lkups$aux_tables)
+
+  controls <- lkups$query_controls
+  controls$pass <- list(values = "server-secret", type = "secret")
+  tmp <- format_error("pass", controls)
+  expect_identical(tmp$details$pass$valid, character())
+})
+
+test_that("cache passwords and keys preserve opaque values", {
+  expect_identical(parse_parameter("AbC-123", "pass"), "AbC-123")
+  expect_identical(parse_parameter("Cache-Key_A", "key"), "Cache-Key_A")
+  expect_true(check_parameter_values("anything", character(), "secret"))
+  expect_true(check_parameter_values("anything", character(), "opaque"))
+})
+
+test_that("cache authorization returns a non-disclosing forbidden response", {
+  withr::local_envvar(PIP_CACHE_LOCAL_KEY = "local", PIP_CACHE_SERVER_KEY = "Server-Key")
+  res <- new.env(parent = emptyenv())
+
+  expect_null(cache_auth_response("Server-Key", res))
+  denied <- cache_auth_response("wrong", res)
+  expect_identical(res$status, 403L)
+  expect_identical(denied, list(error = "Forbidden"))
+  expect_false(grepl("Server-Key", paste(unlist(denied), collapse = ""), fixed = TRUE))
 })
 
 test_that("assign_required_params works as expected for /pip endpoint", {
