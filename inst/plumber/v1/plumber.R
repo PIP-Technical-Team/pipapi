@@ -39,7 +39,7 @@ for (path in names(api_spec$paths)) {
   }
 }
 
-pr <- plumber::pr(endpoints_path) |>
+pr <- plumber::pr(endpoints_path, envir = environment()) |>
 
   # ---- Post-route: log handler duration (separate from total access time) ----
 plumber::pr_hook("postroute", function(req, res) {

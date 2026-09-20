@@ -112,6 +112,52 @@ response_http <- function(app, endpoint, params = list()) {
   app$call(req)
 }
 
+test_that("production router uses prepared lookups instead of stale globals", {
+  old_threads <- list(
+    data_table = data.table::getDTthreads(),
+    collapse = collapse::get_collapse()$nthreads,
+    fst = fst::threads_fst()
+  )
+  withr::defer({
+    data.table::setDTthreads(old_threads$data_table)
+    collapse::set_collapse(nthreads = old_threads$collapse)
+    fst::threads_fst(old_threads$fst)
+  })
+  withr::local_envvar(c(
+    OPENBLAS_NUM_THREADS = Sys.getenv("OPENBLAS_NUM_THREADS", unset = NA_character_),
+    MKL_NUM_THREADS = Sys.getenv("MKL_NUM_THREADS", unset = NA_character_),
+    OMP_NUM_THREADS = Sys.getenv("OMP_NUM_THREADS", unset = NA_character_)
+  ))
+  fixture <- response_fixture()
+  prepared <- fixture$lkups
+  stale <- prepared
+  for (version in names(stale$versions_paths)) {
+    stale$versions_paths[[version]]$cache_v2 <- NULL
+  }
+  old_global <- get0("lkups", envir = .GlobalEnv, inherits = FALSE)
+  withr::defer({
+    if (is.null(old_global)) {
+      if (exists("lkups", envir = .GlobalEnv, inherits = FALSE)) {
+        rm("lkups", envir = .GlobalEnv)
+      }
+    } else {
+      assign("lkups", old_global, envir = .GlobalEnv)
+    }
+  })
+  assign("lkups", stale, envir = .GlobalEnv)
+  api_env <- new.env(parent = asNamespace("pipapi"))
+  api_env$lkups <- prepared
+  api_path <- system.file("plumber/v1/plumber.R", package = "pipapi")
+
+  router <- pipapi:::.load_api_router(api_path, api_env)
+  response <- response_http(router, "health-check")
+
+  expect_identical(router$environment, api_env)
+  expect_equal(response$status, 200)
+  bytes <- if (is.raw(response$body)) response$body else charToRaw(as.character(response$body))
+  expect_match(rawToChar(bytes), "API is running", fixed = TRUE)
+})
+
 response_bytes <- function(body) {
   if (is.raw(body)) body else charToRaw(enc2utf8(as.character(body)))
 }
