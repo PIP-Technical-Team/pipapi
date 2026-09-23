@@ -1,4 +1,31 @@
 {
   "schemaVersion": "compound-gpid-roadmap-v1",
-  "milestones": []
+  "milestones": [
+    {
+      "id": "code-data-versioning",
+      "title": "Code-Data Versioning",
+      "objective": "Establish formal contracts between pipapi code and data folder schemas, enable reproducibility, and eliminate conditional schema logic (Q3 2026).",
+      "status": "planned",
+      "features": [
+        {
+          "id": "phase-1-schema-contract",
+          "title": "Phase 1: Schema Contract",
+          "status": "idea",
+          "plan": null
+        },
+        {
+          "id": "phase-2-code-pinning-single-schema",
+          "title": "Phase 2: Code Pinning + Single Schema",
+          "status": "idea",
+          "plan": null
+        },
+        {
+          "id": "phase-3-historical-addressability",
+          "title": "Phase 3: Historical Addressability",
+          "status": "idea",
+          "plan": null
+        }
+      ]
+    }
+  ]
 }
