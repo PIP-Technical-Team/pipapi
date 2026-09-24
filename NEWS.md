@@ -1,3 +1,17 @@
+# pipapi 1.5.15
+
+## Bug fixes
+
+* Fixed managed API requests for poverty lines outside the precached list.
+  These requests now calculate from source data after the existing two-decimal
+  rounding, while precached requests keep their cache hits. Missing or damaged
+  canonical cache files still fail closed.
+
+## Tests
+
+* Added endpoint tests for integer, two-decimal, and rounded higher-precision
+  poverty lines, plus cache fallback and planned cache hits.
+
 # pipapi 1.5.14
 
 ## Bug fixes

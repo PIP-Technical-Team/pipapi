@@ -292,6 +292,118 @@ test_that("pip route resolves managed and historical version lookups", {
   expect_match(rawToChar(response_bytes(old$body)), "historical", fixed = TRUE)
 })
 
+test_that("managed pip routes calculate poverty lines outside the precache list", {
+  fixture <- response_fixture()
+  seen <- new.env(parent = emptyenv())
+  seen$requests <- list()
+  seen$force_miss <- FALSE
+  seen$database_intact <- TRUE
+  record <- function(endpoint, povline, lkup) {
+    live <- isTRUE(getOption("pipapi.query_live_data"))
+    seen$requests[[length(seen$requests) + 1L]] <- list(
+      endpoint = endpoint, povline = povline, live = live)
+    if (any(povline == 26.02)) stop("fixture calculation failure")
+    if (seen$force_miss && !live && any(povline == 3)) {
+      stop("Intermediate DuckDB coverage is incomplete for this poverty line")
+    }
+    if (!live && any(!povline %in% lkup$pl_lkup$poverty_line)) {
+      stop("Required intermediate DuckDB data is missing")
+    }
+    data.frame(poverty_line = povline, live = live)
+  }
+  local_mocked_bindings(
+    pip = function(country = "ALL", year = "ALL", povline = 1.9, lkup, ...) {
+      record("pip", povline, lkup)
+    },
+    pip_agg = function(country = "ALL", year = "ALL", povline = 1.9, lkup, ...) {
+      record("pip-grp", povline, lkup)
+    },
+    cache_v2_validate_intermediate = function(...) list(valid = seen$database_intact),
+    .package = "pipapi"
+  )
+  app <- response_app(fixture)
+  base <- list(country = "all", year = "all", ppp_version = 2021,
+               version = fixture$version)
+
+  for (line in c("2.15", "26", "26.01", "26.005")) {
+    result <- response_http(app, "pip", c(base, list(povline = line)))
+    expect_equal(result$status, 200)
+    expect_equal(tail(seen$requests, 1L)[[1L]]$povline, round(as.numeric(line), 2))
+    expect_true(tail(seen$requests, 1L)[[1L]]$live)
+    expect_false(isTRUE(getOption("pipapi.query_live_data")))
+  }
+
+  bare <- response_http(app, "pip")
+  expect_equal(bare$status, 200)
+  expect_equal(tail(seen$requests, 1L)[[1L]]$povline, 1.9)
+  expect_true(tail(seen$requests, 1L)[[1L]]$live)
+
+  result <- response_http(app, "pip-grp", c(base, list(povline = "26.01")))
+  expect_equal(result$status, 200)
+  expect_identical(tail(seen$requests, 1L)[[1L]]$endpoint, "pip-grp")
+  expect_true(tail(seen$requests, 1L)[[1L]]$live)
+
+  mixed <- response_http(app, "pip", c(base, list(povline = "3,26")))
+  expect_equal(mixed$status, 200)
+  expect_equal(tail(seen$requests, 1L)[[1L]]$povline, c(3, 26))
+  expect_true(tail(seen$requests, 1L)[[1L]]$live)
+
+  failure <- response_http(app, "pip", c(base, list(povline = "26.02")))
+  expect_equal(failure$status, 500)
+  expect_false(isTRUE(getOption("pipapi.query_live_data")))
+
+  result <- response_http(app, "pip", c(base, list(povline = "3")))
+  expect_equal(result$status, 200)
+  expect_false(tail(seen$requests, 1L)[[1L]]$live)
+
+  # A custom bootstrap can omit a line even when it is in poverty_lines.
+  seen$force_miss <- TRUE
+  result <- response_http(app, "pip", c(base, list(povline = "3")))
+  expect_equal(result$status, 200)
+  expect_identical(vapply(tail(seen$requests, 2L), `[[`, logical(1), "live"),
+                   c(FALSE, TRUE))
+  expect_true(tail(seen$requests, 1L)[[1L]]$live)
+
+  seen$database_intact <- FALSE
+  before <- length(seen$requests)
+  missing_database <- response_http(app, "pip", c(base, list(povline = "3")))
+  expect_equal(missing_database$status, 500)
+  expect_identical(length(seen$requests), before + 1L)
+  before <- length(seen$requests)
+  uncached_missing_database <- response_http(app, "pip", c(base, list(povline = "26")))
+  expect_equal(uncached_missing_database$status, 500)
+  expect_identical(length(seen$requests), before)
+  expect_false(isTRUE(getOption("pipapi.query_live_data")))
+})
+
+test_that("unplanned UI lines bypass read-only precache without changing planned hits", {
+  fixture <- response_fixture()
+  counters <- response_ui_mocks()
+  local_mocked_bindings(
+    cache_v2_validate_intermediate = function(...) list(valid = TRUE),
+    .package = "pipapi"
+  )
+  app <- response_app(fixture)
+  params <- list(country = "IDN", version = fixture$version)
+  planned <- cache_v2_priority_request("cp-charts", c(params, list(povline = 3)), fixture$lkup)
+
+  first <- response_http(app, "cp-charts", c(params, list(povline = 26)))
+  second <- response_http(app, "cp-charts", c(params, list(povline = 26)))
+  expect_equal(first$status, 200)
+  expect_equal(second$status, 200)
+  expect_null(first$headers[["X-Pipapi-Cache"]])
+  expect_null(second$headers[["X-Pipapi-Cache"]])
+  expect_identical(counters$ui, 2L)
+  expect_false(isTRUE(getOption("pipapi.query_live_data")))
+
+  cached <- response_http(app, "cp-charts", c(params, list(povline = 3)))
+  hit <- response_http(app, "cp-charts", planned$params)
+  expect_equal(cached$status, 200)
+  expect_identical(cached$headers[["X-Pipapi-Cache"]], "MISS")
+  expect_identical(hit$headers[["X-Pipapi-Cache"]], "HIT")
+  expect_identical(counters$ui, 3L)
+})
+
 test_that("effective keys preserve route defaults, version, representation and order", {
   fixture <- response_fixture()
   params <- list(country = "idn", povline = "3.000", version = fixture$version)
