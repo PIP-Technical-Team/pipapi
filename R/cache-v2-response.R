@@ -1,39 +1,17 @@
 # Priority response planning and the exact-byte HTTP cache boundary.
 
-.cache_v2_route_fingerprint <- function(endpoint, path = system.file(
+.cache_v2_serializer_annotation <- function(endpoint, path = system.file(
     "plumber/v1/endpoints.R", package = "pipapi")) {
-  if (!nzchar(path) || !file.exists(path)) stop("Priority route source is missing.")
+  if (!nzchar(path) || !file.exists(path)) stop("Priority route source is missing")
   lines <- readLines(path, warn = FALSE, encoding = "UTF-8")
-  boundary <- grep("^# Endpoints definition", lines)
-  if (length(boundary) != 1L) stop("Priority route filter boundary is missing.")
-  routes <- grep("^#\\* @get /api/v1/", lines)
-  route <- routes[lines[routes] == paste0("#* @get /api/v1/", endpoint)]
+  route <- which(lines == paste0("#* @get /api/v1/", endpoint))
   if (length(route) != 1L) stop("Priority route declaration is missing: ", endpoint)
-  sections <- grep("^### [a-zA-Z]", lines)
-  start <- max(sections[sections < route])
-  next_section <- sections[sections > route]
-  end <- if (length(next_section)) min(next_section) - 1L else length(lines)
-  block <- lines[start:end]
-  annotations <- grep("^#\\* @(get|serializer|formatter)\\b", block,
+  sections <- which(grepl("^### [[:alnum:]]", lines) & seq_along(lines) > route)
+  end <- if (length(sections)) min(sections) else length(lines) + 1L
+  annotations <- grep("^#\\* @serializer[[:space:]]+", lines[(route + 1L):(end - 1L)],
                       value = TRUE)
-  # The parameter name and Plumber type affect parsing; prose after them does
-  # not. Editing the OpenAPI description must not redeploy a response cache.
-  params <- grep("^#\\* @param +[^ ]+", block, value = TRUE)
-  params <- sub("^#\\* @param +([^ ]+).*$", "\\1", params)
-  normalized <- function(source) {
-    paste(deparse(parse(text = paste(source, collapse = "\n"), keep.source = FALSE),
-                  width.cutoff = 500L), collapse = "\n")
-  }
-  handlers <- grep("^## Endpoints: Core endpoints", lines)
-  if (length(handlers) != 1L || handlers <= boundary) {
-    stop("Shared poverty-line route helper is missing.")
-  }
-  .cache_v2_sha(.cache_v2_json(list(schema = 3L,
-    shared_filters = normalized(lines[seq_len(boundary - 1L)]),
-    filter_annotations = grep("^#\\* @(filter|serializer)\\b",
-                              lines[seq_len(boundary - 1L)], value = TRUE),
-    shared_handler = normalized(lines[(boundary + 1L):(handlers - 1L)]),
-    route = normalized(block), annotations = annotations, params = params)))
+  if (length(annotations) != 1L) stop("Priority route must declare one serializer: ", endpoint)
+  trimws(annotations)
 }
 
 cache_v2_response_spec <- function(endpoint) {
@@ -61,26 +39,21 @@ cache_v2_response_spec <- function(endpoint) {
     `cp-key-indicators` = list(c("pipapi", "ui_cp_key_indicators"), c("pipapi", "pip"),
                                c("wbpip", "prod_compute_pip_stats"))
   )
-  serializer_dependencies <- list(c("plumber", "serializer_json"), c("jsonlite", "toJSON"))
-  query_dependencies <- list(c("pipapi", "validate_query_parameters"),
-    c("pipapi", "parse_parameters"), c("pipapi", "assign_required_params"),
-    c("pipapi", "check_parameters_values"), c("pipapi", "cache_v2_effective_args"))
-  dependencies <- c(endpoint_dependencies[[endpoint]], query_dependencies,
-                    serializer_dependencies)
+  # Effective request values are stored in each key; endpoint validation and
+  # routing code must not invalidate responses when those values are unchanged.
+  query_dependencies <- list(c("pipapi", "cache_v2_effective_args"))
+  dependencies <- c(endpoint_dependencies[[endpoint]], query_dependencies)
   fingerprint_cache <- .cache_v2_state$endpoint_fingerprints
   endpoint_fingerprint <- get0(endpoint, envir = fingerprint_cache,
                                inherits = FALSE)
   if (is.null(endpoint_fingerprint)) {
-    closure <- .cache_v2_function_fingerprint(dependencies, schema = 3L)
+    closure <- .cache_v2_function_fingerprint(dependencies, schema = 4L)
     endpoint_fingerprint <- .cache_v2_sha(.cache_v2_json(list(
-      schema = 3L, dependencies = closure$fingerprint,
+      schema = 4L, dependencies = closure$fingerprint,
       operation = unname(operations[[endpoint]]),
-      jsonlite_abi = as.character(utils::packageVersion("jsonlite")),
-      qs2_abi = as.character(utils::packageVersion("qs2")),
-      route = .cache_v2_route_fingerprint(endpoint),
-      request_boundary = .cache_v2_function_descriptor("pipapi", "cache_v2_response_request"),
-      identity_boundary = .cache_v2_function_descriptor("pipapi", "cache_v2_identity"),
-      response_boundary = .cache_v2_function_descriptor("pipapi", "cache_v2_response")
+      serializer = .cache_v2_serializer_annotation(endpoint),
+      value_boundary = .cache_v2_function_descriptor("pipapi", "cache_v2_response_value"),
+      bytes_boundary = .cache_v2_function_descriptor("pipapi", "cache_v2_response_bytes")
     )))
     assign(endpoint, endpoint_fingerprint, envir = fingerprint_cache)
   }
@@ -90,7 +63,7 @@ cache_v2_response_spec <- function(endpoint) {
     dependencies = dependencies,
     endpoint_fingerprint = endpoint_fingerprint,
     representation = list(
-      serializer = "plumber-json", schema = 3L,
+      serializer = "plumber-json", schema = 4L,
       na = if (endpoint %in% c("pc-charts", "cp-key-indicators")) "null" else "default",
       content_type = "application/json",
       endpoint_fingerprint = endpoint_fingerprint
@@ -220,6 +193,34 @@ cache_v2_response_event <- function(req, event, identity, seconds = 0) {
   invisible(NULL)
 }
 
+cache_v2_response_value <- function(operation, params) {
+  original <- .cache_v2_state$originals[[operation]]
+  if (!is.function(original)) original <- get(operation, envir = asNamespace("pipapi"))
+  with_req_timeout(do.call(original, params))
+}
+
+cache_v2_response_bytes <- function(value, req, res) {
+  # Plumber assigns the annotated route serializer before the handler.
+  serializer <- res$serializer
+  if (!is.function(serializer)) stop("Priority route has no serializer")
+  serialized <- serializer(value, req, res, function(req, res, err) stop(err))
+  bytes <- serialized$body
+  if (is.character(bytes) && length(bytes) == 1L) bytes <- charToRaw(enc2utf8(bytes))
+  if (!is.raw(bytes) || !identical(as.integer(serialized$status), 200L)) {
+    stop("Priority serializer did not return a successful byte response")
+  }
+  headers <- serialized$headers
+  content_name <- names(headers)[tolower(names(headers)) == "content-type"]
+  content_type <- if (length(content_name)) headers[[content_name[[1L]]]] else NULL
+  if (is.null(content_type)) {
+    response_headers <- res$headers
+    content_name <- names(response_headers)[tolower(names(response_headers)) == "content-type"]
+    if (length(content_name)) content_type <- response_headers[[content_name[[1L]]]]
+  }
+  if (is.null(content_type)) stop("Priority serializer did not set Content-Type")
+  list(bytes = bytes, content_type = content_type)
+}
+
 cache_v2_response <- function(req, res, endpoint, lkup) {
   spec <- cache_v2_response_spec(endpoint)
   params <- req$argsQuery
@@ -227,10 +228,11 @@ cache_v2_response <- function(req, res, endpoint, lkup) {
   params$lkup <- lkup
   if (spec$endpoint == "pc-charts") params$censor <- TRUE
   compute <- function() {
-    operation <- spec$operation
-    original <- .cache_v2_state$originals[[operation]]
-    if (!is.function(original)) original <- get(operation, envir = asNamespace("pipapi"))
-    with_req_timeout(do.call(original, params))
+    # Response bytes must not depend on whether an intermediate DuckDB exists.
+    # This bypass leaves response-cache lookup and publication enabled.
+    old <- options(pipapi.precache_without_intermediate = TRUE)
+    on.exit(options(old), add = TRUE)
+    cache_v2_response_value(spec$operation, params)
   }
   if (!cache_v2_enabled() ||
       isTRUE(getOption("pipapi.query_live_data"))) return(compute())
@@ -275,28 +277,10 @@ cache_v2_response <- function(req, res, endpoint, lkup) {
         value
       } else {
         start <- proc.time()[["elapsed"]]
-        # Plumber assigns the annotated route serializer before this handler.
-        # Serialize once, then replace it with a raw-byte identity serializer.
-        serializer <- res$serializer
-        if (!is.function(serializer)) stop("Priority route has no serializer")
-        serialized <- serializer(value, req, res, function(req, res, err) stop(err))
+        serialized <- cache_v2_response_bytes(value, req, res)
         cache_v2_response_event(req, "serialize", identity, proc.time()[["elapsed"]] - start)
-        bytes <- serialized$body
-        if (is.character(bytes) && length(bytes) == 1L) bytes <- charToRaw(enc2utf8(bytes))
-        if (!is.raw(bytes) || !identical(as.integer(serialized$status), 200L)) {
-          stop("Priority serializer did not return a successful byte response")
-        }
-        headers <- serialized$headers
-        content_name <- names(headers)[tolower(names(headers)) == "content-type"]
-        content_type <- if (length(content_name)) headers[[content_name[[1L]]]] else NULL
-        if (is.null(content_type)) {
-          response_headers <- res$headers
-          content_name <- names(response_headers)[tolower(names(response_headers)) == "content-type"]
-          if (length(content_name)) content_type <- response_headers[[content_name[[1L]]]]
-        }
-        if (is.null(content_type)) stop("Priority serializer did not set Content-Type")
-        cache_v2_put(identity, bytes, content_type = content_type)
-        send(bytes, content_type, "MISS")
+        cache_v2_put(identity, serialized$bytes, content_type = serialized$content_type)
+        send(serialized$bytes, serialized$content_type, "MISS")
       }
     }
   })

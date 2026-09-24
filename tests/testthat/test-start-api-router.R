@@ -41,21 +41,15 @@ test_that("API lookup preparation preserves historical versions", {
   expect_identical(prepared$versions, c(managed, historical))
   expect_identical(prepared$versions_paths[[managed]]$cache_v2$version, managed)
   expect_null(prepared$versions_paths[[historical]][["cache_v2", exact = TRUE]])
-  checked <- character()
-  local_mocked_bindings(cache_v2_validate_intermediate = function(lkup, require_rows) {
-    expect_true(require_rows)
-    checked <<- c(checked, lkup$cache_v2$version)
-    list(valid = TRUE)
-  }, .package = "pipapi")
-  expect_identical(pipapi:::.cache_v2_verify_api_lkups(prepared), prepared)
-  expect_identical(checked, managed)
   withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
   withr::local_options(pipapi.lkups = NULL)
   local_mocked_bindings(cache_v2_validate_intermediate = function(...) {
-    stop("stale canonical DuckDB")
-  }, .package = "pipapi")
-  expect_error(pipapi::start_api(lkups = lkups, port = 8080),
-               "stale canonical DuckDB")
+    stop("API startup must not inspect DuckDB")
+  }, .load_api_router = function(...) list(router = TRUE), .package = "pipapi")
+  local_mocked_bindings(pr_run = function(...) "started", .package = "plumber")
+  expect_identical(pipapi::start_api(lkups = lkups, port = 8080), "started")
+  expect_false(file.exists(file.path(lkups$versions_paths[[managed]]$data_root,
+                                     "cache.duckdb")))
   expect_error(
     pipapi:::.cache_v2_prepare_lkups(within(lkups, versions_paths[[managed]] <- NULL)),
     "must match exactly"

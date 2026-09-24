@@ -492,12 +492,10 @@ test_that("configuration verifies actual build and both opt-in switches", {
   build <- core_env$cache_v2_build()
   expect_match(build$fingerprint, "^[0-9a-f]{64}$")
   expect_identical(build$fingerprint, core_env$cache_v2_build()$fingerprint)
-  expect_identical(build$schema, 3L)
+  expect_identical(build$schema, 4L)
   expect_match(build$compute, "^[0-9a-f]{64}$")
-  expect_true(all(c("data.table", "duckdb", "fst") %in% names(build$native_abi)))
-  expect_false("qs2" %in% names(build$native_abi))
-  expect_identical(build$r_version, paste(R.version$major,
-    strsplit(R.version$minor, ".", fixed = TRUE)[[1L]][[1L]], sep = "."))
+  expect_identical(build$wbpip_version, as.character(utils::packageVersion("wbpip")))
+  expect_null(build$native_abi)
   expect_silent(core_env$cache_v2_configure(f$root, f$manifest, build,
                                             intermediate_mode = "read_only",
                                             compute_cache = TRUE))
@@ -510,7 +508,7 @@ test_that("configuration verifies actual build and both opt-in switches", {
 test_that("portable release contract compares behavior rather than Git commits", {
   endpoints <- c("hp-stacked", "pc-charts", "pc-regional-aggregates",
                  "cp-charts", "cp-key-indicators")
-  expected <- list(schema = 3L, build = strrep("a", 64L),
+  expected <- list(schema = 4L, build = strrep("a", 64L),
                    response = setNames(as.list(rep(strrep("b", 64L), 5L)), endpoints))
   expected$fingerprint <- core_env$.cache_v2_sha(core_env$.cache_v2_json(
     expected[c("schema", "build", "response")]))
@@ -522,7 +520,7 @@ test_that("portable release contract compares behavior rather than Git commits",
   ))
   expect_error(
     core_env$.cache_v2_assert_release(expected, actual),
-    "compute and ABI.*response cp-charts"
+    "pipapi functions and wbpip version.*response cp-charts"
   )
   invalid <- expected
   invalid$fingerprint <- paste(rep("0", 64), collapse = "")
@@ -564,6 +562,33 @@ test_that("legacy cache configuration requires one behavior-keyed migration", {
                "build the behavior-keyed cache once")
 })
 
+test_that("response configuration loads without any DuckDB file", {
+  skip_if(is.null(attr(get("pip", asNamespace("pipapi")), "cache_v2_original")))
+  withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
+  withr::local_options(pipapi.cache_v2_config = NULL)
+  f <- core_fixture()
+  previous <- core_env$.cache_v2_state$config
+  on.exit(core_env$.cache_v2_state$config <- previous, add = TRUE)
+  cache_root <- f$root
+  publish <- function(path, value) {
+    dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+    qs2::qs_save(value, path)
+    jsonlite::write_json(list(complete = TRUE, size = unname(file.size(path)),
+      sha256 = digest::digest(file = path, algo = "sha256")),
+      paste0(path, ".meta.json"), auto_unbox = TRUE)
+  }
+  manifest_ref <- file.path("v2", "manifests", paste0(f$manifest$fingerprint, ".qs"))
+  publish(file.path(cache_root, manifest_ref), f$manifest)
+  index <- list(schema = 4L, cache_root = ".", data_root = ".", versions = f$version,
+    build = core_env$cache_v2_build(), release_contract = core_env$cache_v2_release_contract(),
+    manifest_fingerprint = f$manifest$fingerprint, manifest_file = manifest_ref,
+    planned_keys = character())
+  publish(file.path(cache_root, "v2", "cache-config.qs"), index)
+  expect_false(file.exists(file.path(f$source, "cache.duckdb")))
+  expect_silent(core_env$cache_v2_configure_from_disk(cache_root, f$source))
+  expect_false(file.exists(file.path(f$source, "cache.duckdb")))
+})
+
 test_that("code fingerprint follows transitive helpers, not unrelated functions", {
   roots <- list(c("pipapi", "pip"))
   baseline <- core_env$.cache_v2_function_fingerprint(roots)$fingerprint
@@ -578,6 +603,63 @@ test_that("code fingerprint follows transitive helpers, not unrelated functions"
                          baseline))
 })
 
+test_that("intermediate cache implementation does not invalidate responses", {
+  roots <- list(c("pipapi", "pip"))
+  baseline <- core_env$.cache_v2_function_fingerprint(roots)$fingerprint
+  local_mocked_bindings(return_if_exists = function(...) "changed DuckDB adapter",
+                        .package = "pipapi")
+  expect_identical(core_env$.cache_v2_function_fingerprint(roots)$fingerprint,
+                   baseline)
+})
+
+test_that("endpoint validation changes do not invalidate unchanged response calculations", {
+  dependencies <- pipapi:::cache_v2_response_spec("pc-charts")$dependencies
+  baseline <- core_env$.cache_v2_function_fingerprint(dependencies)$fingerprint
+  local_mocked_bindings(validate_query_parameters = function(...) "changed validation",
+                        .package = "pipapi")
+  expect_identical(core_env$.cache_v2_function_fingerprint(dependencies)$fingerprint,
+                   baseline)
+})
+
+test_that("response byte construction changes invalidate its endpoint", {
+  state <- pipapi:::.cache_v2_state$endpoint_fingerprints
+  previous <- get0("pc-charts", envir = state, inherits = FALSE)
+  on.exit({
+    if (is.null(previous)) {
+      if (exists("pc-charts", envir = state, inherits = FALSE)) rm("pc-charts", envir = state)
+    } else assign("pc-charts", previous, envir = state)
+  }, add = TRUE)
+  if (exists("pc-charts", envir = state, inherits = FALSE)) rm("pc-charts", envir = state)
+  baseline <- pipapi:::cache_v2_response_spec("pc-charts")$endpoint_fingerprint
+  local_mocked_bindings(cache_v2_response_bytes = function(...) {
+    list(bytes = charToRaw("changed"), content_type = "application/json")
+  }, .package = "pipapi")
+  rm("pc-charts", envir = state)
+  changed <- pipapi:::cache_v2_response_spec("pc-charts")$endpoint_fingerprint
+  expect_false(identical(changed, baseline))
+})
+
+test_that("route serializer settings matter but endpoint prose does not", {
+  source <- system.file("plumber/v1/endpoints.R", package = "pipapi")
+  fixture <- withr::local_tempfile(fileext = ".R")
+  lines <- readLines(source, warn = FALSE)
+  writeLines(lines, fixture)
+  before <- pipapi:::.cache_v2_serializer_annotation("pc-charts", fixture)
+  unrelated <- pipapi:::.cache_v2_serializer_annotation("cp-charts", fixture)
+  docs <- grep("^#\\* Return data for Poverty Calculator main chart$", lines)
+  expect_length(docs, 1L)
+  lines[docs] <- "#* Updated description, no output change"
+  writeLines(lines, fixture)
+  expect_identical(pipapi:::.cache_v2_serializer_annotation("pc-charts", fixture), before)
+  serializer <- grep("^#\\* @serializer json list\\(na = \"null\"\\)$", lines)
+  expect_length(serializer, 1L)
+  target <- serializer[[1L]]
+  lines[target] <- "#* @serializer json list(na = \"string\")"
+  writeLines(lines, fixture)
+  expect_false(identical(pipapi:::.cache_v2_serializer_annotation("pc-charts", fixture), before))
+  expect_identical(pipapi:::.cache_v2_serializer_annotation("cp-charts", fixture), unrelated)
+})
+
 test_that("reachable namespace constants invalidate compute fingerprints", {
   roots <- list(c("pipapi", "pip"))
   baseline <- core_env$.cache_v2_function_fingerprint(roots)$fingerprint
@@ -588,7 +670,7 @@ test_that("reachable namespace constants invalidate compute fingerprints", {
                          baseline))
 })
 
-test_that("dynamic wbpip selector tracks its targets but not unrelated helpers", {
+test_that("wbpip function bodies do not change the code-change fingerprint", {
   roots <- list(c("pipapi", "pip"))
   baseline <- core_env$.cache_v2_function_fingerprint(roots)$fingerprint
   local_mocked_bindings(adjust_decimal = function(...) "unrelated",
@@ -597,27 +679,22 @@ test_that("dynamic wbpip selector tracks its targets but not unrelated helpers",
                    baseline)
   local_mocked_bindings(prod_md_compute_pip_stats = function(...) "changed selector target",
                         .package = "wbpip")
-  expect_false(identical(core_env$.cache_v2_function_fingerprint(roots)$fingerprint,
-                         baseline))
+  expect_identical(core_env$.cache_v2_function_fingerprint(roots)$fingerprint,
+                   baseline)
 })
 
-test_that("a route annotation changes only its endpoint fingerprint", {
-  path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
-  fixture <- withr::local_tempfile(fileext = ".R")
-  lines <- readLines(path, warn = FALSE)
-  writeLines(lines, fixture)
-  pc <- pipapi:::.cache_v2_route_fingerprint("pc-charts", fixture)
-  cp <- pipapi:::.cache_v2_route_fingerprint("cp-charts", fixture)
-  route <- which(lines == "#* @get /api/v1/pc-charts")
-  expect_length(route, 1L)
-  lines <- append(lines, "#* @param fixture:[bool] Character fixture", after = route)
-  writeLines(lines, fixture)
-  expect_false(identical(pipapi:::.cache_v2_route_fingerprint("pc-charts", fixture), pc))
-  expect_identical(pipapi:::.cache_v2_route_fingerprint("cp-charts", fixture), cp)
-  typed <- pipapi:::.cache_v2_route_fingerprint("pc-charts", fixture)
-  lines[route + 1L] <- "#* @param fixture:[bool] Updated API description only"
-  writeLines(lines, fixture)
-  expect_identical(pipapi:::.cache_v2_route_fingerprint("pc-charts", fixture), typed)
+test_that("wbpip release version, not pipapi metadata, selects code compatibility", {
+  baseline <- core_env$cache_v2_build(refresh = TRUE)$fingerprint
+  original <- utils::packageVersion
+  testthat::with_mocked_bindings(
+    expect_false(identical(core_env$cache_v2_build(refresh = TRUE)$fingerprint,
+                           baseline)),
+    packageVersion = function(pkg, ...) {
+      if (identical(pkg, "wbpip")) return(package_version("99.0.0"))
+      original(pkg, ...)
+    }, .package = "utils"
+  )
+  expect_identical(core_env$cache_v2_build(refresh = TRUE)$fingerprint, baseline)
 })
 
 test_that("interprocess locks prevent duplicate publication and enforce timeout", {

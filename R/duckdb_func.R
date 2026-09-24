@@ -17,11 +17,18 @@ return_if_exists <- function(
   }
 
   # don't use cache
-  if (isTRUE(getOption("pipapi.query_live_data"))) {
+  if (isTRUE(getOption("pipapi.query_live_data")) ||
+      isTRUE(getOption("pipapi.precache_without_intermediate"))) {
     return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
   }
 
   context <- intermediate_cache_context(cache_file_path)
+  # Managed response releases cannot attest legacy DuckDB rows. Direct pip
+  # requests therefore calculate from source rather than reuse stale rows.
+  if (!is.null(context) && identical(context$intermediate_mode, "read_only") &&
+      identical(.cache_v2_state$config$build$schema, 4L)) {
+    return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
+  }
   strict <- !is.null(context) && identical(context$intermediate_mode, "read_only")
   # Managed read-only misses are fatal; historical versions retain legacy fallback.
   master_file <- tryCatch(
@@ -220,7 +227,8 @@ update_master_file <- function(
   verbose = getOption("pipapi.verbose"),
   decimal = 2
 ) {
-  if (isTRUE(getOption("pipapi.query_live_data"))) return(invisible(FALSE))
+  if (isTRUE(getOption("pipapi.query_live_data")) ||
+      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(invisible(FALSE))
   context <- intermediate_cache_context(cache_file_path)
   if (!is.null(context) && context$intermediate_mode == "read_only") {
     return(invisible(FALSE))
@@ -451,7 +459,8 @@ delete_cache <- function(
     cli::cli_abort("{.arg lkup$data_root} must be a non-empty string.")
   }
 
-  if (isTRUE(getOption("pipapi.query_live_data"))) return(invisible(character()))
+  if (isTRUE(getOption("pipapi.query_live_data")) ||
+      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(invisible(character()))
   cache_file_path <- intermediate_cache_path(lkup)
   context <- intermediate_cache_context(cache_file_path)
   if (!is.null(context) && context$intermediate_mode == "read_only") {
@@ -479,7 +488,8 @@ delete_cache <- function(
 }
 
 create_duckdb_file <- function(cache_file_path) {
-  if (isTRUE(getOption("pipapi.query_live_data"))) return(invisible(FALSE))
+  if (isTRUE(getOption("pipapi.query_live_data")) ||
+      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(invisible(FALSE))
   context <- intermediate_cache_context(cache_file_path)
   with_intermediate_db(cache_file_path, write = TRUE, function(con) {
     DBI::dbWithTransaction(con, intermediate_cache_schema(con, context))
@@ -487,7 +497,8 @@ create_duckdb_file <- function(cache_file_path) {
 }
 
 safe_update_master_file <- function(dat, cache_file_path, fill_gaps) {
-  if (isTRUE(getOption("pipapi.query_live_data"))) return(invisible(FALSE))
+  if (isTRUE(getOption("pipapi.query_live_data")) ||
+      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(invisible(FALSE))
   context <- intermediate_cache_context(cache_file_path)
   tryCatch(
     update_master_file(dat, cache_file_path, fill_gaps),
@@ -512,7 +523,8 @@ load_inter_cache <- function(
   fill_gaps = FALSE,
   poverty_lines = NULL
 ) {
-  if (isTRUE(getOption("pipapi.query_live_data"))) return(data.table::data.table())
+  if (isTRUE(getOption("pipapi.query_live_data")) ||
+      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(data.table::data.table())
   target_file <- if (fill_gaps) {
     "fg_master_file"
   } else {
@@ -549,7 +561,8 @@ load_inter_cache <- function(
 
 # Paths carry the request identity to lower helpers, including direct R calls.
 intermediate_cache_path <- function(lkup, ppp = NULL, popshare = NULL) {
-  if (isTRUE(getOption("pipapi.query_live_data"))) return(NULL)
+  if (isTRUE(getOption("pipapi.query_live_data")) ||
+      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(NULL)
   if (!identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE")) {
     return(fs::path(lkup$data_root, "cache", ext = "duckdb"))
   }
@@ -652,7 +665,8 @@ intermediate_cache_lock <- function(path) {
 }
 
 with_intermediate_db <- function(path, write, code, missing = invisible(FALSE)) {
-  if (isTRUE(getOption("pipapi.query_live_data"))) return(missing)
+  if (isTRUE(getOption("pipapi.query_live_data")) ||
+      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(missing)
   if (!write && (!file.exists(path) || !dir.exists(dirname(path)))) return(missing)
   context <- intermediate_cache_context(path)
   if (!is.null(context) && !write && !file.exists(path)) return(missing)
@@ -689,50 +703,10 @@ with_intermediate_db <- function(path, write, code, missing = invisible(FALSE)) 
     drv <- duckdb::duckdb(dbdir = as.character(path), read_only = !isTRUE(write))
     con <- DBI::dbConnect(drv)
   }
-  if (!is.null(context)) {
-    existing_tables <- if (write) {
-      any(vapply(c("rg_master_file", "fg_master_file", "cache_v2_provenance"),
-                 DBI::dbExistsTable, logical(1), conn = con))
-    } else TRUE
-    if (existing_tables && !intermediate_cache_provenance_valid(con, context)) {
-      stop("Intermediate DuckDB behavior provenance is missing or stale; recreate it.")
-    }
-  }
   code(con)
 }
 
-intermediate_cache_provenance_valid <- function(con, context) {
-  if (!DBI::dbExistsTable(con, "cache_v2_provenance")) return(FALSE)
-  provenance <- DBI::dbGetQuery(con, "SELECT * FROM cache_v2_provenance")
-  nrow(provenance) == 1L &&
-    identical(as.integer(provenance$schema[[1L]]), 3L) &&
-    identical(provenance$version[[1L]], context$version) &&
-    identical(provenance$source_fingerprint[[1L]], context$dependency_fingerprint) &&
-    identical(provenance$compute_fingerprint[[1L]], context$build_fingerprint)
-}
-
 intermediate_cache_schema <- function(con, context) {
-  if (!is.null(context) && !DBI::dbExistsTable(con, "cache_v2_provenance")) {
-    existing <- c("rg_master_file", "fg_master_file")
-    populated <- vapply(existing, function(table) {
-      DBI::dbExistsTable(con, table) &&
-        DBI::dbGetQuery(con, paste("SELECT COUNT(*) AS n FROM", table))$n[[1L]] > 0
-    }, logical(1))
-    if (any(populated)) stop("Intermediate DuckDB has no behavior provenance; recreate it.")
-    DBI::dbExecute(con, paste(
-      "CREATE TABLE cache_v2_provenance (schema INTEGER, version VARCHAR,",
-      "source_fingerprint VARCHAR, compute_fingerprint VARCHAR)"
-    ))
-    DBI::dbExecute(con, paste0("INSERT INTO cache_v2_provenance VALUES (3, ",
-      DBI::dbQuoteString(con, context$version), ", ",
-      DBI::dbQuoteString(con, context$dependency_fingerprint), ", ",
-      DBI::dbQuoteString(con, context$build_fingerprint), ")"))
-  }
-  if (!is.null(context)) {
-    if (!intermediate_cache_provenance_valid(con, context)) {
-      stop("Intermediate DuckDB behavior provenance is stale; recreate it.")
-    }
-  }
   for (kind in c("rg", "fg")) {
     keys <- if (kind == "rg") c("cache_id", "reporting_level") else "interpolation_id"
     columns <- paste(paste(keys, "VARCHAR"), collapse = ", ")

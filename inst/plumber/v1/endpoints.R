@@ -338,7 +338,10 @@ function(req, res) {
 # Managed intermediate data contains only the lines selected for precaching.
 # Other lines are valid API inputs, but must not enter the read-only DuckDB path.
 # Scope the bypass to this request so subsequent requests still use their cache.
-with_povline_cache_fallback <- function(req, lkup, expr) {
+with_povline_cache_fallback <- function(req, lkup, expr, response_cache = FALSE) {
+  if (response_cache || isTRUE(getOption("pipapi.precache_without_intermediate"))) {
+    return(force(expr))
+  }
   code <- substitute(expr)
   caller <- parent.frame()
   context <- pipapi:::cache_v2_context(lkup)
@@ -351,6 +354,10 @@ with_povline_cache_fallback <- function(req, lkup, expr) {
       on.exit(options(old), add = TRUE)
     }
     eval(code, envir = caller)
+  }
+  if (!is.null(context) && identical(context$intermediate_mode, "read_only") &&
+      identical(pipapi::cache_v2_build()$schema, 4L)) {
+    return(compute())
   }
   if (!is.null(context) &&
       any(!round(povline * 100) %in% round(lkup$pl_lkup$poverty_line * 100))) {
@@ -885,7 +892,7 @@ function(req, res) {
     function(req, res) {
       lkup <- lkups$versions_paths[[req$argsQuery$version]]
       with_povline_cache_fallback(req, lkup,
-        pipapi:::cache_v2_response(req, res, "hp-stacked", lkup))
+        pipapi:::cache_v2_response(req, res, "hp-stacked", lkup), response_cache = TRUE)
     },
     endpoint = "/api/v1/hp-stacked"
   )(req, res)
@@ -936,7 +943,7 @@ function(req, res) {
     function(req, res) {
       lkup <- lkups$versions_paths[[req$argsQuery$version]]
       with_povline_cache_fallback(req, lkup,
-        pipapi:::cache_v2_response(req, res, "pc-charts", lkup))
+        pipapi:::cache_v2_response(req, res, "pc-charts", lkup), response_cache = TRUE)
     },
     endpoint = "/api/v1/pc-charts"
   )(req, res)
@@ -982,7 +989,7 @@ function(req, res) {
     function(req, res) {
       lkup <- lkups$versions_paths[[req$argsQuery$version]]
       with_povline_cache_fallback(req, lkup,
-        pipapi:::cache_v2_response(req, res, "pc-regional-aggregates", lkup))
+        pipapi:::cache_v2_response(req, res, "pc-regional-aggregates", lkup), response_cache = TRUE)
     },
     endpoint = "/api/v1/pc-regional-aggregates"
   )(req, res)
@@ -1004,7 +1011,7 @@ function(req, res) {
     function(req, res) {
       lkup <- lkups$versions_paths[[req$argsQuery$version]]
       with_povline_cache_fallback(req, lkup,
-        pipapi:::cache_v2_response(req, res, "cp-key-indicators", lkup))
+        pipapi:::cache_v2_response(req, res, "cp-key-indicators", lkup), response_cache = TRUE)
     },
     endpoint = "/api/v1/cp-key-indicators"
   )(req, res)
@@ -1024,7 +1031,7 @@ cp_charts <- safe_endpoint(
   function(req, res) {
     lkup <- lkups$versions_paths[[req$argsQuery$version]]
     with_povline_cache_fallback(req, lkup,
-      pipapi:::cache_v2_response(req, res, "cp-charts", lkup))
+      pipapi:::cache_v2_response(req, res, "cp-charts", lkup), response_cache = TRUE)
   },
   endpoint = "/api/v1/cp-charts"
 )
