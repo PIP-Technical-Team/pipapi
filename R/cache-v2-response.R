@@ -1,5 +1,41 @@
 # Priority response planning and the exact-byte HTTP cache boundary.
 
+.cache_v2_route_fingerprint <- function(endpoint, path = system.file(
+    "plumber/v1/endpoints.R", package = "pipapi")) {
+  if (!nzchar(path) || !file.exists(path)) stop("Priority route source is missing.")
+  lines <- readLines(path, warn = FALSE, encoding = "UTF-8")
+  boundary <- grep("^# Endpoints definition", lines)
+  if (length(boundary) != 1L) stop("Priority route filter boundary is missing.")
+  routes <- grep("^#\\* @get /api/v1/", lines)
+  route <- routes[lines[routes] == paste0("#* @get /api/v1/", endpoint)]
+  if (length(route) != 1L) stop("Priority route declaration is missing: ", endpoint)
+  sections <- grep("^### [a-zA-Z]", lines)
+  start <- max(sections[sections < route])
+  next_section <- sections[sections > route]
+  end <- if (length(next_section)) min(next_section) - 1L else length(lines)
+  block <- lines[start:end]
+  annotations <- grep("^#\\* @(get|serializer|formatter)\\b", block,
+                      value = TRUE)
+  # The parameter name and Plumber type affect parsing; prose after them does
+  # not. Editing the OpenAPI description must not redeploy a response cache.
+  params <- grep("^#\\* @param +[^ ]+", block, value = TRUE)
+  params <- sub("^#\\* @param +([^ ]+).*$", "\\1", params)
+  normalized <- function(source) {
+    paste(deparse(parse(text = paste(source, collapse = "\n"), keep.source = FALSE),
+                  width.cutoff = 500L), collapse = "\n")
+  }
+  handlers <- grep("^## Endpoints: Core endpoints", lines)
+  if (length(handlers) != 1L || handlers <= boundary) {
+    stop("Shared poverty-line route helper is missing.")
+  }
+  .cache_v2_sha(.cache_v2_json(list(schema = 3L,
+    shared_filters = normalized(lines[seq_len(boundary - 1L)]),
+    filter_annotations = grep("^#\\* @(filter|serializer)\\b",
+                              lines[seq_len(boundary - 1L)], value = TRUE),
+    shared_handler = normalized(lines[(boundary + 1L):(handlers - 1L)]),
+    route = normalized(block), annotations = annotations, params = params)))
+}
+
 cache_v2_response_spec <- function(endpoint) {
   endpoint <- extract_endpoint(endpoint)
   operations <- c(
@@ -26,18 +62,38 @@ cache_v2_response_spec <- function(endpoint) {
                                c("wbpip", "prod_compute_pip_stats"))
   )
   serializer_dependencies <- list(c("plumber", "serializer_json"), c("jsonlite", "toJSON"))
-  dependencies <- c(endpoint_dependencies[[endpoint]], serializer_dependencies)
-  endpoint_fingerprint <- .cache_v2_function_fingerprint(dependencies, schema = 1L)
+  query_dependencies <- list(c("pipapi", "validate_query_parameters"),
+    c("pipapi", "parse_parameters"), c("pipapi", "assign_required_params"),
+    c("pipapi", "check_parameters_values"), c("pipapi", "cache_v2_effective_args"))
+  dependencies <- c(endpoint_dependencies[[endpoint]], query_dependencies,
+                    serializer_dependencies)
+  fingerprint_cache <- .cache_v2_state$endpoint_fingerprints
+  endpoint_fingerprint <- get0(endpoint, envir = fingerprint_cache,
+                               inherits = FALSE)
+  if (is.null(endpoint_fingerprint)) {
+    closure <- .cache_v2_function_fingerprint(dependencies, schema = 3L)
+    endpoint_fingerprint <- .cache_v2_sha(.cache_v2_json(list(
+      schema = 3L, dependencies = closure$fingerprint,
+      operation = unname(operations[[endpoint]]),
+      jsonlite_abi = as.character(utils::packageVersion("jsonlite")),
+      qs2_abi = as.character(utils::packageVersion("qs2")),
+      route = .cache_v2_route_fingerprint(endpoint),
+      request_boundary = .cache_v2_function_descriptor("pipapi", "cache_v2_response_request"),
+      identity_boundary = .cache_v2_function_descriptor("pipapi", "cache_v2_identity"),
+      response_boundary = .cache_v2_function_descriptor("pipapi", "cache_v2_response")
+    )))
+    assign(endpoint, endpoint_fingerprint, envir = fingerprint_cache)
+  }
   list(
     endpoint = endpoint,
     operation = unname(operations[[endpoint]]),
     dependencies = dependencies,
-    endpoint_fingerprint = endpoint_fingerprint$fingerprint,
+    endpoint_fingerprint = endpoint_fingerprint,
     representation = list(
-      serializer = "plumber-json", schema = 1L,
+      serializer = "plumber-json", schema = 3L,
       na = if (endpoint %in% c("pc-charts", "cp-key-indicators")) "null" else "default",
       content_type = "application/json",
-      endpoint_fingerprint = endpoint_fingerprint$fingerprint
+      endpoint_fingerprint = endpoint_fingerprint
     )
   )
 }

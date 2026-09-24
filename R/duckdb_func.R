@@ -689,10 +689,50 @@ with_intermediate_db <- function(path, write, code, missing = invisible(FALSE)) 
     drv <- duckdb::duckdb(dbdir = as.character(path), read_only = !isTRUE(write))
     con <- DBI::dbConnect(drv)
   }
+  if (!is.null(context)) {
+    existing_tables <- if (write) {
+      any(vapply(c("rg_master_file", "fg_master_file", "cache_v2_provenance"),
+                 DBI::dbExistsTable, logical(1), conn = con))
+    } else TRUE
+    if (existing_tables && !intermediate_cache_provenance_valid(con, context)) {
+      stop("Intermediate DuckDB behavior provenance is missing or stale; recreate it.")
+    }
+  }
   code(con)
 }
 
+intermediate_cache_provenance_valid <- function(con, context) {
+  if (!DBI::dbExistsTable(con, "cache_v2_provenance")) return(FALSE)
+  provenance <- DBI::dbGetQuery(con, "SELECT * FROM cache_v2_provenance")
+  nrow(provenance) == 1L &&
+    identical(as.integer(provenance$schema[[1L]]), 3L) &&
+    identical(provenance$version[[1L]], context$version) &&
+    identical(provenance$source_fingerprint[[1L]], context$dependency_fingerprint) &&
+    identical(provenance$compute_fingerprint[[1L]], context$build_fingerprint)
+}
+
 intermediate_cache_schema <- function(con, context) {
+  if (!is.null(context) && !DBI::dbExistsTable(con, "cache_v2_provenance")) {
+    existing <- c("rg_master_file", "fg_master_file")
+    populated <- vapply(existing, function(table) {
+      DBI::dbExistsTable(con, table) &&
+        DBI::dbGetQuery(con, paste("SELECT COUNT(*) AS n FROM", table))$n[[1L]] > 0
+    }, logical(1))
+    if (any(populated)) stop("Intermediate DuckDB has no behavior provenance; recreate it.")
+    DBI::dbExecute(con, paste(
+      "CREATE TABLE cache_v2_provenance (schema INTEGER, version VARCHAR,",
+      "source_fingerprint VARCHAR, compute_fingerprint VARCHAR)"
+    ))
+    DBI::dbExecute(con, paste0("INSERT INTO cache_v2_provenance VALUES (3, ",
+      DBI::dbQuoteString(con, context$version), ", ",
+      DBI::dbQuoteString(con, context$dependency_fingerprint), ", ",
+      DBI::dbQuoteString(con, context$build_fingerprint), ")"))
+  }
+  if (!is.null(context)) {
+    if (!intermediate_cache_provenance_valid(con, context)) {
+      stop("Intermediate DuckDB behavior provenance is stale; recreate it.")
+    }
+  }
   for (kind in c("rg", "fg")) {
     keys <- if (kind == "rg") c("cache_id", "reporting_level") else "interpolation_id"
     columns <- paste(paste(keys, "VARCHAR"), collapse = ", ")

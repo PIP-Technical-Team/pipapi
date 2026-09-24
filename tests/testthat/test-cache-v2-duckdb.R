@@ -4,7 +4,8 @@ duckdb_v2_fixture <- function(root) {
   env <- new.env(parent = environment(intermediate_cache_path))
   helpers <- c(
     "intermediate_cache_path", "intermediate_cache_context", "intermediate_cache_identity",
-    "intermediate_cache_lock", "with_intermediate_db", "intermediate_cache_schema",
+    "intermediate_cache_lock", "with_intermediate_db", "intermediate_cache_provenance_valid",
+    "intermediate_cache_schema",
     "create_duckdb_file", "load_inter_cache", "update_master_file",
     "safe_update_master_file", "return_if_exists", "connect_with_retry", "reset_cache", "delete_cache"
   )
@@ -77,7 +78,7 @@ test_that("cache v2 reuses existing intermediate tables and repairs missing tabl
   f <- duckdb_v2_fixture(withr::local_tempdir())
   path <- f$intermediate_cache_path(f$lkup)
   f$with_intermediate_db(path, TRUE, function(con) {
-    f$intermediate_cache_schema(con, NULL)
+    f$intermediate_cache_schema(con, f$context)
     DBI::dbExecute(con, "INSERT INTO rg_master_file VALUES ('legacy', 'national', 3, 1, 1, 1, 1)")
   })
   expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 1L)
@@ -98,6 +99,67 @@ test_that("cache v2 reuses existing intermediate tables and repairs missing tabl
   expect_equal(f$with_intermediate_db(path, FALSE, function(con) {
     DBI::dbGetQuery(con, "SELECT count(*) AS n FROM rg_master_file")$n
   }), 3)
+})
+
+test_that("legacy intermediate rows without behavior provenance cannot be reused", {
+  withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
+  f <- duckdb_v2_fixture(withr::local_tempdir())
+  path <- f$intermediate_cache_path(f$lkup)
+  f$with_intermediate_db(path, TRUE, function(con) {
+    f$intermediate_cache_schema(con, NULL)
+    DBI::dbExecute(con, "INSERT INTO rg_master_file VALUES ('legacy', 'national', 3, 1, 1, 1, 1)")
+  })
+  expect_error(f$load_inter_cache(cache_file_path = path), "provenance")
+  expect_error(f$update_master_file(f$dat, path, FALSE), "behavior provenance")
+})
+
+test_that("bootstrap creates a behavior-bound database and rejects stale reuse", {
+  withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
+  withr::local_options(pipapi.query_live_data = FALSE, pipapi.cache_v2_context = NULL)
+  old_config <- .cache_v2_state$config
+  on.exit(.cache_v2_state$config <- old_config, add = TRUE)
+  root <- withr::local_tempdir()
+  version <- "20260922_2021_01_02_PROD"
+  source <- file.path(root, "data", version)
+  for (dir in c("_aux", "estimations", "survey_data", "lineup_data")) {
+    dir.create(file.path(source, dir), recursive = TRUE)
+    writeLines("fixture", file.path(source, dir, "input.txt"))
+  }
+  manifest <- cache_v2_manifest(file.path(root, "data"), version)
+  cache_v2_configure(file.path(root, "cache"), manifest, cache_v2_build(),
+                     intermediate_mode = "read_only")
+  lkups <- list(versions_paths = setNames(list(list(data_root = source)), version))
+  local_mocked_bindings(pip = function(country, year, povline, fill_gaps, lkup, ...) {
+    path <- pipapi:::intermediate_cache_path(lkup)
+    if (fill_gaps) {
+      dat <- data.table::data.table(interpolation_id = "fixture", poverty_line = povline,
+        headcount = 0.5, poverty_gap = 0.2, poverty_severity = 0.1, watts = 0.05)
+    } else {
+      dat <- data.table::data.table(cache_id = "fixture", reporting_level = "national",
+        poverty_line = povline, headcount = 0.5, poverty_gap = 0.2,
+        poverty_severity = 0.1, watts = 0.05)
+    }
+    pipapi:::update_master_file(dat, path, fill_gaps)
+  }, .package = "pipapi")
+  built <- cache_v2_bootstrap_intermediate(lkups, povlines = 3)
+  expect_identical(built$status, "created")
+  lkup <- cache_v2_attach(lkups$versions_paths[[version]], version)
+  expect_true(cache_v2_validate_intermediate(lkup, require_rows = TRUE,
+                                              poverty_lines = 3)$valid)
+  expect_identical(cache_v2_bootstrap_intermediate(lkups, povlines = 3)$status,
+                   "reused")
+
+  path <- pipapi:::intermediate_cache_path(lkup)
+  drv <- duckdb::duckdb(dbdir = as.character(path), read_only = FALSE)
+  con <- DBI::dbConnect(drv)
+  DBI::dbExecute(con, "DELETE FROM cache_v2_provenance")
+  DBI::dbDisconnect(con, shutdown = TRUE)
+  duckdb::duckdb_shutdown(drv)
+  expect_error(cache_v2_bootstrap_intermediate(lkups, povlines = 3), "recreate = TRUE")
+  rebuilt <- cache_v2_bootstrap_intermediate(lkups, povlines = 3, recreate = TRUE)
+  expect_identical(rebuilt$status, "rebuilt")
+  expect_true(cache_v2_validate_intermediate(lkup, require_rows = TRUE,
+                                              poverty_lines = 3)$valid)
 })
 
 test_that("read-only misses and live requests do not initialize or write", {
@@ -135,7 +197,7 @@ test_that("failed required writes roll back and release database and file locks"
   path <- f$intermediate_cache_path(f$lkup)
   invalid <- data.table::copy(f$dat)[, watts := NULL]
   expect_error(f$safe_update_master_file(invalid, path, FALSE), "watts")
-  expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 0L)
+  expect_error(f$load_inter_cache(cache_file_path = path), "provenance")
   expect_equal(f$update_master_file(f$dat, path, FALSE), 1)
   guard_calls <- 0L
   f$.cache_v2_guard <- function(identity, inputs = FALSE) {
@@ -174,7 +236,8 @@ test_that("writable readers and writers use bounded interprocess locks", {
   path <- f$intermediate_cache_path(f$lkup)
   f$update_master_file(f$dat, path, FALSE)
   ready <- file.path(root, "lock-ready")
-  helpers <- c("with_intermediate_db", "intermediate_cache_context", "intermediate_cache_lock",
+  helpers <- c("with_intermediate_db", "intermediate_cache_context",
+                "intermediate_cache_provenance_valid", "intermediate_cache_lock",
                "cache_v2_enabled")
   functions <- setNames(lapply(helpers, function(name) {
     fun <- get(name, envir = f)
@@ -232,6 +295,7 @@ test_that("actual core provenance and taint guard protect lower caches", {
   skip_if(is.null(attr(get("pip", asNamespace("pipapi")), "cache_v2_original")),
           "Requires package startup with v2 wrappers enabled")
   withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
+  withr::local_envvar(PIP_CACHE_LOCAL_KEY = "fixture", PIP_CACHE_SERVER_KEY = "fixture")
   withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE,
                       pipapi.cache_v2_context = NULL)
   old_config <- .cache_v2_state$config
@@ -252,6 +316,22 @@ test_that("actual core provenance and taint guard protect lower caches", {
   dat <- duckdb_v2_fixture(root)$dat
   expect_equal(update_master_file(dat, path, FALSE), 1)
   expect_equal(nrow(load_inter_cache(lkup = lkup)), 1L)
+  expect_true(cache_v2_validate_intermediate(lkup)$valid)
+  with_intermediate_db(path, TRUE, function(con) {
+    DBI::dbExecute(con, "UPDATE cache_v2_provenance SET compute_fingerprint = 'stale'")
+  })
+  expect_error(load_inter_cache(lkup = lkup), "provenance")
+  expect_error(cache_v2_validate_intermediate(lkup), "provenance")
+  expect_error(with_intermediate_db(path, TRUE, function(con) {
+    DBI::dbExecute(con, "DELETE FROM rg_master_file")
+  }), "provenance")
+  expect_error(reset_cache(pass = "fixture", lkup = lkup), "provenance")
+  drv <- duckdb::duckdb(dbdir = as.character(path), read_only = FALSE)
+  con <- DBI::dbConnect(drv)
+  DBI::dbExecute(con, paste0("UPDATE cache_v2_provenance SET compute_fingerprint = ",
+    DBI::dbQuoteString(con, lkup$cache_v2$build_fingerprint)))
+  DBI::dbDisconnect(con, shutdown = TRUE)
+  duckdb::duckdb_shutdown(drv)
   expect_true(file.exists(file.path(source, "cache.duckdb")))
   context <- cache_v2_context(lkup)
   context$parameters <- list(ppp = 2, popshare = NULL)

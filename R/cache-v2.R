@@ -4,6 +4,8 @@
 .cache_v2_state$locks <- new.env(parent = emptyenv())
 .cache_v2_state$bootstrap_locks <- new.env(parent = emptyenv())
 .cache_v2_state$originals <- new.env(parent = emptyenv())
+.cache_v2_state$endpoint_fingerprints <- new.env(parent = emptyenv())
+.cache_v2_state$build_identity <- NULL
 .cache_v2_state$stats <- list()
 .cache_v2_state$verified_inputs <- list(fingerprint = NULL, time = as.POSIXct(NA))
 
@@ -104,8 +106,6 @@ cache_v2_enabled <- function() {
     grepl(paste0("^estimations/", estimation_tables), ids, ignore.case = TRUE) |
     grepl("^(survey_data|lineup_data)/[^/]+\\.fst$", ids, ignore.case = TRUE)
   ]
-  revision <- "data_update_timestamp.txt"
-  if (file.exists(file.path(root, revision))) ids <- c(ids, revision)
   sort(unique(ids), method = "radix")
 }
 
@@ -139,9 +139,15 @@ cache_v2_manifest <- function(data_dir, versions, previous = NULL) {
         source_timestamp = timestamp, scan_mtime = as.numeric(after$mtime))
     })
     names(files) <- ids
-    identity <- lapply(files, function(f) { f$scan_mtime <- NULL; f })
+    # A release timestamp is provenance, not an input to precached statistics.
+    # Neither a copied file's mtime nor a timestamp edit changes the data key.
+    identity <- lapply(files, function(f) {
+      f$scan_mtime <- NULL
+      f$source_timestamp <- NULL
+      f
+    })
     list(fingerprint = .cache_v2_sha(.cache_v2_json(list(version = version,
-      files = identity, release_revision = release))), files = files,
+      files = identity))), files = files,
       release_revision = release)
   })
   names(entries) <- versions
@@ -236,109 +242,246 @@ cache_v2_assert_inputs <- function(manifest, data_dir = manifest$data_root, full
   )
 }
 
-.cache_v2_function_fingerprint <- function(dependencies, schema = 1L) {
+.cache_v2_binding_fingerprint <- function(value, id) {
+  normalize <- function(x) {
+    if (is.function(x)) {
+      return(list(formals = paste(deparse(formals(x), width.cutoff = 500L), collapse = "\n"),
+                  body = paste(deparse(body(x), width.cutoff = 500L), collapse = "\n")))
+    }
+    if (inherits(x, "data.table")) x <- as.data.frame(x)
+    if (is.list(x)) {
+      out <- lapply(x, normalize)
+      attributes(out) <- lapply(attributes(x), normalize)
+      return(out)
+    }
+    .cache_v2_constant(x)
+  }
+  static <- tryCatch(normalize(value), error = function(e) {
+    stop("Unsupported cache dependency binding: ", id, " (", conditionMessage(e), ")")
+  })
+  digest::digest(static, algo = "sha256", serializeVersion = 3L)
+}
+
+.cache_v2_namespace_calls <- function(expr) {
+  out <- list()
+  visit <- function(node) {
+    if (!is.call(node) && !is.expression(node) && !is.pairlist(node)) return()
+    if (is.call(node) && length(node) == 3L &&
+        (identical(node[[1L]], as.name("::")) ||
+         identical(node[[1L]], as.name(":::")))) {
+      if (is.symbol(node[[2L]]) && is.symbol(node[[3L]])) {
+        out[[length(out) + 1L]] <<- c(as.character(node[[2L]]), as.character(node[[3L]]))
+      }
+    }
+    for (i in seq_along(node)) {
+      if (!rlang::is_missing(node[[i]])) visit(node[[i]])
+    }
+  }
+  visit(expr)
+  out
+}
+
+.cache_v2_dynamic_audit <- list(
+  # get() selects source-data columns/tables, not R functions; those inputs are
+  # covered by the source manifest and the effective request arguments.
+  "pipapi::get_aux_table" = "get",
+  "pipapi::subset_ctry_years" = "get",
+  # These expressions select columns and values from the versioned lookups.
+  "pipapi::get_ctr_alt_agg" = c("eval", "parse"),
+  "pipapi::get_impl_ctrs" = c("eval", "parse"),
+  "pipapi::pip_grp_logic" = c("eval", "parse"),
+  # The target function itself is also a statically reachable namespace call.
+  "pipapi::create_vintage_pattern_call" = "do.call",
+  "pipapi::get_caller_names" = "sys.calls",
+  # Operation targets are the endpoint's explicit UI root; formals are hashed.
+  "pipapi::cache_v2_effective_args" = c("get", "eval"),
+  # The selected functions live in a package list and are walked separately.
+  "wbpip::prod_fg_compute_pip_stats" = "do.call"
+)
+
+.cache_v2_function_fingerprint <- function(dependencies, schema = 3L) {
   if (!is.list(dependencies) || !length(dependencies)) {
     stop("Cache v2 endpoint dependencies must not be empty.")
   }
-  descriptors <- lapply(dependencies, function(dependency) {
+  pending <- lapply(dependencies, function(dependency) {
     if (!is.character(dependency) || length(dependency) != 2L ||
         anyNA(dependency) || any(!nzchar(dependency))) {
       stop("Cache v2 endpoint dependencies must contain package and function names.")
     }
-    .cache_v2_function_descriptor(dependency[[1L]], dependency[[2L]])
+    dependency
   })
-  list(schema = as.integer(schema), fingerprint = .cache_v2_sha(.cache_v2_json(descriptors)))
+  functions <- list()
+  constants <- list()
+  queue_embedded <- function(value, package) {
+    if (is.function(value)) {
+      if (!identical(environment(value), asNamespace(package))) {
+        stop("Dynamic cache dependency has a captured non-package environment: ", package)
+      }
+      refs <- codetools::findGlobals(value, merge = FALSE)$functions
+      for (symbol in refs) {
+        if (exists(symbol, envir = asNamespace(package), inherits = FALSE) &&
+            is.function(get(symbol, envir = asNamespace(package), inherits = FALSE))) {
+          pending[[length(pending) + 1L]] <<- c(package, symbol)
+        }
+      }
+      for (target in .cache_v2_namespace_calls(body(value))) {
+        if (target[[1L]] %in% c("pipapi", "wbpip")) {
+          pending[[length(pending) + 1L]] <<- target
+        }
+      }
+    } else if (is.list(value)) {
+      for (item in value) queue_embedded(item, package)
+    }
+  }
+  while (length(pending)) {
+    dependency <- pending[[1L]]
+    pending <- pending[-1L]
+    package <- dependency[[1L]]
+    name <- dependency[[2L]]
+    id <- paste(package, name, sep = "::")
+    if (!is.null(functions[[id]])) next
+    ns <- asNamespace(package)
+    fun <- if (exists(name, envir = ns, inherits = FALSE)) {
+      get(name, envir = ns, inherits = FALSE)
+    } else {
+      # Packaged data exports are available through :: but not as namespace
+      # bindings (for example, pipapi::empty_response).
+      tryCatch(getExportedValue(package, name), error = function(e) {
+        stop("Missing cache dependency: ", id)
+      })
+    }
+    if (!is.function(fun)) {
+      constants[[id]] <- .cache_v2_binding_fingerprint(fun, id)
+      queue_embedded(fun, package)
+      next
+    }
+    original <- attr(fun, "cache_v2_original", exact = TRUE)
+    if (is.function(original)) fun <- original
+    if (!is.function(fun)) stop("Cache dependency is not a function: ", id)
+    functions[[id]] <- .cache_v2_function_descriptor(package, name)
+    if (!package %in% c("pipapi", "wbpip")) next
+    # Discover direct calls and global constants from the installed namespace.
+    # Only traverse package-owned bindings; imported native implementations are
+    # covered separately by the runtime compatibility contract.
+    globals <- codetools::findGlobals(fun, merge = FALSE)
+    dynamic <- intersect(c("get", "get0", "do.call", "eval", "parse", "UseMethod",
+                           "getExportedValue", "sys.calls"), globals$functions)
+    expected_dynamic <- .cache_v2_dynamic_audit[[id]]
+    if (!setequal(dynamic, if (is.null(expected_dynamic)) character() else expected_dynamic)) {
+      stop("Dynamic cache dependency audit is incomplete for: ", id)
+    }
+    for (symbol in unique(c(globals$functions, globals$variables))) {
+      # Request-local cache state is verified by the runtime cache guard; it
+      # must not be serialized into a portable computation fingerprint.
+      if (package == "pipapi" && symbol == ".cache_v2_state") next
+      if (!exists(symbol, envir = ns, inherits = FALSE)) next
+      binding <- get(symbol, envir = ns, inherits = FALSE)
+      if (package == "pipapi" && symbol == ".pipapienv") {
+        constants[["pipapi::pl_to_store"]] <- .cache_v2_binding_fingerprint(
+          get0("pl_to_store", envir = binding, inherits = FALSE), "pipapi::pl_to_store")
+        next
+      }
+      if (is.function(binding)) {
+        pending[[length(pending) + 1L]] <- c(package, symbol)
+      } else {
+        binding_id <- paste(package, symbol, sep = "::")
+        constants[[binding_id]] <- .cache_v2_binding_fingerprint(binding, binding_id)
+        queue_embedded(binding, package)
+      }
+    }
+    # Explicit namespace calls are not reported as ordinary global symbols.
+    for (target in c(.cache_v2_namespace_calls(formals(fun)),
+                     .cache_v2_namespace_calls(body(fun)))) {
+      if (!target[[1L]] %in% c("pipapi", "wbpip")) next
+      pending[[length(pending) + 1L]] <- target
+    }
+  }
+  descriptors <- list(
+    functions = functions[sort(names(functions), method = "radix")],
+    constants = constants[sort(names(constants), method = "radix")]
+  )
+  # Some third-party functions dispatch through lists and native code that
+  # codetools cannot walk. Keep those external namespaces as conservative
+  # behavior boundaries until their dynamic edges have an audited registry.
+  external <- intersect(c("plumber", "jsonlite"),
+                        unique(sub("::.*$", "", names(functions))))
+  descriptors$external <- setNames(lapply(external, function(package) {
+    .cache_v2_code(asNamespace(package))
+  }), external)
+  list(schema = as.integer(schema),
+       fingerprint = .cache_v2_sha(.cache_v2_json(descriptors)),
+       members = names(descriptors$functions),
+       constants = names(descriptors$constants), external = external)
 }
 
-cache_v2_build <- function() {
-  # This strict identity is used inside one builder/runtime environment. The
-  # portable deployment gate is cache_v2_release_contract().
-  deps <- tools::package_dependencies("pipapi", db = utils::installed.packages(), recursive = TRUE)[["pipapi"]]
-  packages <- sort(unique(c("pipapi", "wbpip", "digest", "filelock", "ps", deps)),
-    method = "radix")
-  entries <- lapply(packages, function(package) {
-    desc <- utils::packageDescription(package)
-    if (is.na(desc[1L])) stop("Cannot establish build for package: ", package)
-    root <- system.file(package = package)
-    ids <- list.files(root, recursive = TRUE, all.files = TRUE, no.. = TRUE)
-    ids <- ids[!grepl("^(Meta|help|html|doc|R|include|tests|examples)/|^(DESCRIPTION|INDEX|NAMESPACE|MD5)$", ids)]
-    if (!package %in% c("pipapi", "wbpip", "plumber", "jsonlite", "qs2")) {
-      ids <- ids[grepl("^(libs|data)/", ids)]
-    }
-    assets <- lapply(ids, function(id) list(id = id,
-      sha256 = .cache_v2_file_sha(file.path(root, id))))
-    data_root <- system.file("data", package = package)
-    if (nzchar(data_root) && !dir.exists(file.path(root, "data"))) {
-      data_ids <- list.files(data_root, recursive = TRUE, all.files = TRUE, no.. = TRUE)
-      assets <- c(assets, lapply(data_ids, function(id) list(id = paste0("data/", id),
-        sha256 = .cache_v2_file_sha(file.path(data_root, id)))))
-    }
-    code <- if (package %in% c("pipapi", "wbpip", "plumber", "jsonlite", "qs2")) {
-      .cache_v2_code(asNamespace(package))
-    } else NULL
-    list(version = desc$Version, remote_sha = desc$RemoteSha,
-      code_digest = code, assets = assets)
-  })
-  names(entries) <- packages
-  identity <- list(schema = 2L, r_version = paste(R.version$major, R.version$minor, sep = "."),
-    packages = entries, serializer = "qs2/default;json/exact-utf8-bytes")
-  c(list(fingerprint = .cache_v2_sha(.cache_v2_json(identity)),
-    method = "loaded-function-formals-and-bodies, static namespace constants and runtime assets; no transient environments"),
+#' Fingerprint the installed computation used by the canonical cache
+#'
+#' Only reachable calculation code and required runtime ABI dependencies
+#' enter this identity. Package versions and Git commits remain audit data.
+#' @param refresh Recompute the identity in this process when `TRUE`.
+#' @return A portable behavior fingerprint and its dependency contract.
+#' @export
+cache_v2_build <- function(refresh = FALSE) {
+  if (!refresh && !is.null(.cache_v2_state$build_identity)) {
+    return(.cache_v2_state$build_identity)
+  }
+  # Only the installed functions that create canonical intermediate estimates
+  # (and the lookups supplied to them) belong in this build identity. A
+  # pipapi release number or an unrelated UI function is not an input.
+  compute <- .cache_v2_function_fingerprint(list(
+    c("pipapi", "pip"), c("pipapi", "create_versioned_lkups")
+  ))
+  native_packages <- c("data.table", "fst", "collapse", "joyn", "duckdb", "DBI")
+  abi <- setNames(lapply(native_packages, function(package) {
+    as.character(utils::packageVersion(package))
+  }), native_packages)
+  r_minor <- strsplit(as.character(R.version$minor), ".", fixed = TRUE)[[1L]][[1L]]
+  identity <- list(schema = 3L, r_version = paste(R.version$major, r_minor, sep = "."),
+                   compute = compute$fingerprint, native_abi = abi)
+  result <- c(list(fingerprint = .cache_v2_sha(.cache_v2_json(identity)),
+    method = "reachable installed function formals/bodies and constants; native ABI guard"),
     identity)
+  .cache_v2_state$build_identity <- result
+  result
 }
 
 #' Create the portable cache release contract
 #'
-#' This is the small deployment contract shared by Windows builders and Linux
-#' servers. Branch names are intentionally absent: only their resolved commits
-#' identify a release.
+#' This is the portable behavior contract shared by Windows builders and Linux
+#' servers. A package version or Git commit is audit metadata, not a cache key.
 #' @return A release contract and its fingerprint.
 #' @export
 cache_v2_release_contract <- function() {
-  r_minor <- strsplit(as.character(R.version$minor), ".", fixed = TRUE)[[1L]][[1L]]
-  packages <- lapply(c("pipapi", "wbpip", "plumber", "jsonlite"), function(package) {
-    desc <- utils::packageDescription(package)
-    if (is.na(desc[1L])) stop("Cannot establish release package: ", package)
-    sha <- if (package %in% c("pipapi", "wbpip")) desc$RemoteSha else NULL
-    if (package %in% c("pipapi", "wbpip") &&
-        (is.null(sha) || length(sha) != 1L || is.na(sha) || !grepl("^[0-9a-f]{40}$", sha))) {
-      stop("Cannot establish the Git commit for release package: ", package)
-    }
-    list(version = unname(desc$Version), remote_sha = unname(sha))
-  })
-  names(packages) <- c("pipapi", "wbpip", "plumber", "jsonlite")
-  identity <- list(schema = 1L,
-    r_version = paste(R.version$major, r_minor, sep = "."),
-    packages = packages)
+  build <- cache_v2_build()
+  endpoints <- c("hp-stacked", "pc-charts", "pc-regional-aggregates",
+                 "cp-charts", "cp-key-indicators")
+  response <- setNames(lapply(endpoints, function(endpoint) {
+    cache_v2_response_spec(endpoint)$endpoint_fingerprint
+  }), endpoints)
+  identity <- list(schema = 3L, build = build$fingerprint, response = response)
   c(list(fingerprint = .cache_v2_sha(.cache_v2_json(identity))), identity)
 }
 
 .cache_v2_release_fields <- function(contract) {
-  packages <- contract$packages
-  c(
-    "contract schema" = as.character(contract$schema),
-    "R version" = as.character(contract$r_version),
-    "pipapi version" = as.character(packages$pipapi$version),
-    "pipapi commit" = as.character(packages$pipapi$remote_sha),
-    "wbpip version" = as.character(packages$wbpip$version),
-    "wbpip commit" = as.character(packages$wbpip$remote_sha),
-    "plumber version" = as.character(packages$plumber$version),
-    "jsonlite version" = as.character(packages$jsonlite$version)
-  )
+  c("contract schema" = as.character(contract$schema),
+    "compute and ABI" = as.character(contract$build),
+    setNames(vapply(contract$response, as.character, character(1)),
+             paste0("response ", names(contract$response))))
 }
 
 .cache_v2_validate_release <- function(contract) {
-  fields <- .cache_v2_release_fields(contract)
-  required <- c("contract schema", "R version", "pipapi version", "pipapi commit",
-                "wbpip version", "wbpip commit", "plumber version", "jsonlite version")
-  if (!is.list(contract) || !identical(as.integer(contract$schema), 1L) ||
-      !identical(names(fields), required) || anyNA(fields) || any(!nzchar(fields)) ||
-      !grepl("^[0-9]+\\.[0-9]+$", fields[["R version"]]) ||
-      !grepl("^[0-9a-f]{40}$", fields[["pipapi commit"]]) ||
-      !grepl("^[0-9a-f]{40}$", fields[["wbpip commit"]])) {
+  if (!is.list(contract) || !identical(as.integer(contract$schema), 3L) ||
+      !is.list(contract$response) ||
+      !identical(names(contract$response), c("hp-stacked", "pc-charts",
+        "pc-regional-aggregates", "cp-charts", "cp-key-indicators"))) {
     stop("Cache v2 release contract is incomplete or invalid.")
   }
-  identity <- contract[c("schema", "r_version", "packages")]
+  fields <- .cache_v2_release_fields(contract)
+  if (anyNA(fields) || any(!nzchar(fields[-1L])) ||
+      any(!grepl("^[0-9a-f]{64}$", fields[-1L]))) {
+    stop("Cache v2 release contract is incomplete or invalid.")
+  }
+  identity <- contract[c("schema", "build", "response")]
   expected <- .cache_v2_sha(.cache_v2_json(identity))
   if (!is.character(contract$fingerprint) || length(contract$fingerprint) != 1L ||
       !identical(contract$fingerprint, expected)) {
@@ -461,6 +604,14 @@ cache_v2_validate_intermediate <- function(lkup, path = NULL, require_rows = FAL
   report <- with_intermediate_db(path, write = FALSE, function(con) {
     tables <- c("rg_master_file", "fg_master_file")
     present <- vapply(tables, DBI::dbExistsTable, logical(1), conn = con)
+    provenance <- if (DBI::dbExistsTable(con, "cache_v2_provenance")) {
+      DBI::dbGetQuery(con, "SELECT * FROM cache_v2_provenance")
+    } else NULL
+    provenance_ok <- !is.null(provenance) && nrow(provenance) == 1L &&
+      identical(as.integer(provenance$schema[[1L]]), 3L) &&
+      identical(provenance$version[[1L]], context$version) &&
+      identical(provenance$source_fingerprint[[1L]], context$dependency_fingerprint) &&
+      identical(provenance$compute_fingerprint[[1L]], context$build_fingerprint)
     counts <- setNames(vapply(tables, function(table) {
       if (!present[[table]]) return(0)
       DBI::dbGetQuery(con, paste("SELECT COUNT(*) AS n FROM", table))$n[[1L]]
@@ -471,15 +622,20 @@ cache_v2_validate_intermediate <- function(lkup, path = NULL, require_rows = FAL
       setdiff(unique(round(as.numeric(poverty_lines), 2)), round(as.numeric(cached), 2))
     }), tables)
     coverage_ok <- all(vapply(missing_lines, length, integer(1)) == 0L)
-    list(valid = all(present) && (!require_rows || all(counts > 0)) && coverage_ok,
-          missing = FALSE, path = path, tables = present, rows = counts,
-          missing_poverty_lines = missing_lines, context = context)
+    list(valid = provenance_ok && all(present) &&
+           (!require_rows || all(counts > 0)) && coverage_ok,
+           missing = FALSE, path = path, tables = present, rows = counts,
+           missing_poverty_lines = missing_lines, provenance_ok = provenance_ok,
+           context = context)
   }, missing = list(valid = FALSE, missing = TRUE, path = path))
   if (!isTRUE(report$valid)) {
     missing <- unique(unlist(report$missing_poverty_lines, use.names = FALSE))
     detail <- if (length(missing)) {
       paste0("; missing poverty lines: ", paste(sort(missing), collapse = ", "))
     } else ""
+    if (identical(report$provenance_ok, FALSE)) {
+      stop("Intermediate database behavior provenance is missing or stale; recreate it: ", path)
+    }
     stop("Intermediate database is missing required tables or coverage: ", path, detail)
   }
   invisible(report)
@@ -702,8 +858,8 @@ cache_v2_configure_from_disk <- function(cache_root, data_root,
   if (!is.list(index) || any(!required_fields %in% names(index))) {
     stop("Cache v2 configuration is missing required fields.")
   }
-  if (!identical(as.integer(index$schema), 2L)) {
-    stop("Cache v2 configuration schema is incompatible; rebuild the v2 cache.")
+  if (!identical(as.integer(index$schema), 3L)) {
+    stop("Cache configuration schema is incompatible; build the behavior-keyed cache once.")
   }
   cache_root <- normalizePath(cache_root, winslash = "/", mustWork = TRUE)
   data_root <- normalizePath(data_root, winslash = "/", mustWork = TRUE)
@@ -805,10 +961,26 @@ cache_v2_configure_from_disk <- function(cache_root, data_root,
          paste(basename(dirname(missing)), collapse = ", "))
   }
   runtime_build <- cache_v2_build()
+  old_config <- .cache_v2_state$config
+  old_option <- getOption("pipapi.cache_v2_config")
+  verified <- FALSE
+  on.exit({
+    if (!verified) {
+      .cache_v2_state$config <- old_config
+      options(pipapi.cache_v2_config = old_option)
+    }
+  }, add = TRUE)
   cache_v2_configure(cache_root, manifest, runtime_build,
     planned_keys = index$planned_keys, intermediate_mode = "read_only",
     compute_cache = compute_cache, required = required,
     runtime_max_size = runtime_max_size)
+  for (version in versions) {
+    root <- .cache_v2_version_root(data_root, version)
+    lkup <- cache_v2_attach(list(data_root = root), version)
+    cache_v2_validate_intermediate(lkup, require_rows = TRUE)
+  }
+  verified <- TRUE
+  invisible(.cache_v2_state$config)
 }
 
 .cache_v2_taint_path <- function(fingerprint) {
@@ -832,8 +1004,7 @@ cache_v2_taint <- function(reason = "Source verification failed", versions = NUL
   cfg <- .cache_v2_state$config
   if (!is.null(descriptor$version) &&
       (!identical(descriptor$dependency_fingerprint, cfg$manifest$versions[[descriptor$version]]$fingerprint) ||
-       (descriptor$kind != "response" &&
-        !identical(descriptor$build_fingerprint, cfg$build$fingerprint)))) {
+       !identical(descriptor$build_fingerprint, cfg$build$fingerprint))) {
     stop("Cache v2 identity does not match configured provenance.")
   }
   if (file.exists(.cache_v2_taint_path(identity$descriptor$dependency_fingerprint))) {
@@ -1048,12 +1219,15 @@ cache_v2_identity <- function(operation, args, lkup, representation = NULL) {
       value = unname(as.list(x)), names = names(x))
   })
   version_parts <- strsplit(context$version, "_", fixed = TRUE)[[1L]]
-  descriptor <- list(schema = 2L, operation = operation,
+  descriptor <- list(schema = 3L, operation = operation,
     kind = if (is.null(representation)) "compute" else "response",
     version = context$version, ppp_version = version_parts[2L],
     parameters = typed, lookup_variant = context$lookup_variant,
+    # A runtime blocklist change must never serve an older cached response.
+    blocked_aux_tables = sort(unique(blocked_aux_tables()), method = "radix"),
     dependency_fingerprint = context$dependency_fingerprint,
-    build_fingerprint = if (is.null(representation)) context$build_fingerprint else NULL,
+    # Responses also depend on lookup construction and canonical computation.
+    build_fingerprint = context$build_fingerprint,
     endpoint_fingerprint = if (is.null(representation)) NULL else representation$endpoint_fingerprint,
     representation = representation)
   canonical <- .cache_v2_json(descriptor)

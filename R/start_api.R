@@ -39,6 +39,13 @@
   lkups
 }
 
+.cache_v2_verify_api_lkups <- function(lkups) {
+  for (version in names(.cache_v2_state$config$manifest$versions)) {
+    cache_v2_validate_intermediate(lkups$versions_paths[[version]], require_rows = TRUE)
+  }
+  invisible(lkups)
+}
+
 .resolve_api_lkups <- function(lkups = NULL) {
   if (!is.null(lkups)) return(lkups)
   configured <- getOption("pipapi.lkups")
@@ -62,6 +69,7 @@ start_api <- function(api_version = "v1",
   }
   if (!is.null(lkups) && cache_v2_enabled() && !is.null(.cache_v2_state$config)) {
     lkups <- .cache_v2_prepare_lkups(lkups)
+    .cache_v2_verify_api_lkups(lkups)
     options(pipapi.lkups = lkups)
   }
   version_path <- sprintf(

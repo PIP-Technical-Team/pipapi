@@ -80,15 +80,32 @@ test_that("all provenance, operation and representation inputs separate keys", {
   expect_error(core_env$cache_v2_identity("pip", list(), f$lkup), "provenance")
   cfg$build$fingerprint <- "new-build"
   source_key <- core_env$cache_v2_identity("pip", list(), changed)$key
+  response_key <- core_env$cache_v2_identity("cp-charts", list(povline = 3), changed,
+                                              list(serializer = "plumber-json"))
   core_env$.cache_v2_state$config <- cfg
   changed2 <- core_env$cache_v2_attach(f$lkup, f$version)
   expect_false(identical(core_env$cache_v2_identity("pip", list(), changed2)$key, source_key))
+  expect_false(identical(core_env$cache_v2_identity("cp-charts", list(povline = 3), changed2,
+                             list(serializer = "plumber-json"))$key, response_key$key))
+  expect_error(core_env$.cache_v2_guard(response_key), "configured provenance")
   other <- "20260922_2017_01_02_PROD"
   cfg$manifest$versions[[other]] <- cfg$manifest$versions[[f$version]]
   core_env$.cache_v2_state$config <- cfg
   other_lkup <- core_env$cache_v2_attach(f$lkup, other)
   expect_false(identical(core_env$cache_v2_identity("pip", list(), changed2)$key,
     core_env$cache_v2_identity("pip", list(), other_lkup)$key))
+})
+
+test_that("runtime auxiliary blocklist changes cannot reuse older responses", {
+  f <- core_fixture()
+  old <- pipapi::blocked_aux_tables()
+  on.exit(pipapi::blocked_aux_tables(old), add = TRUE)
+  before <- core_env$cache_v2_identity("cp-charts", list(povline = 3), f$lkup,
+                                        list(serializer = "plumber-json"))$key
+  pipapi::blocked_aux_tables(c(old, "pg_svy"))
+  after <- core_env$cache_v2_identity("cp-charts", list(povline = 3), f$lkup,
+                                       list(serializer = "plumber-json"))$key
+  expect_false(identical(before, after))
 })
 
 test_that("canonical UTF8 fixture sorts fields but never vector contents", {
@@ -108,6 +125,9 @@ test_that("manifest ignores copy time, covers source content and excludes caches
   Sys.setFileTime(file, Sys.time() - 60)
   copied <- core_env$cache_v2_manifest(f$source, f$version, f$manifest)
   expect_identical(copied$fingerprint, f$manifest$fingerprint)
+  writeLines("2026-09-23T00:00:00Z", file.path(f$source, "data_update_timestamp.txt"))
+  expect_identical(core_env$cache_v2_manifest(f$source, f$version)$fingerprint,
+                   f$manifest$fingerprint)
   expect_true(core_env$cache_v2_assert_inputs(f$manifest, full = TRUE))
   expect_true(core_env$cache_v2_assert_inputs(f$manifest, full = FALSE))
   writeLines("ignored", file.path(f$source, "cache.duckdb"))
@@ -472,8 +492,12 @@ test_that("configuration verifies actual build and both opt-in switches", {
   build <- core_env$cache_v2_build()
   expect_match(build$fingerprint, "^[0-9a-f]{64}$")
   expect_identical(build$fingerprint, core_env$cache_v2_build()$fingerprint)
-  expect_identical(build$schema, 2L)
-  expect_true(all(c("pipapi", "wbpip", "jsonlite", "qs2", "filelock") %in% names(build$packages)))
+  expect_identical(build$schema, 3L)
+  expect_match(build$compute, "^[0-9a-f]{64}$")
+  expect_true(all(c("data.table", "duckdb", "fst") %in% names(build$native_abi)))
+  expect_false("qs2" %in% names(build$native_abi))
+  expect_identical(build$r_version, paste(R.version$major,
+    strsplit(R.version$minor, ".", fixed = TRUE)[[1L]][[1L]], sep = "."))
   expect_silent(core_env$cache_v2_configure(f$root, f$manifest, build,
                                             intermediate_mode = "read_only",
                                             compute_cache = TRUE))
@@ -483,43 +507,117 @@ test_that("configuration verifies actual build and both opt-in switches", {
   expect_error(core_env$cache_v2_configure(f$root, f$manifest, build), "requires")
 })
 
-test_that("portable release contract reports all relevant differences", {
-  expected <- list(
-    schema = 1L,
-    r_version = paste(R.version$major,
-                      strsplit(R.version$minor, ".", fixed = TRUE)[[1L]][[1L]],
-                      sep = "."),
-    packages = list(
-      pipapi = list(version = "1.5.14", remote_sha = paste(rep("a", 40), collapse = "")),
-      wbpip = list(version = "0.1.6", remote_sha = paste(rep("b", 40), collapse = "")),
-      plumber = list(version = "1.3.3", remote_sha = NULL),
-      jsonlite = list(version = "2.0.0", remote_sha = NULL)
-    )
-  )
+test_that("portable release contract compares behavior rather than Git commits", {
+  endpoints <- c("hp-stacked", "pc-charts", "pc-regional-aggregates",
+                 "cp-charts", "cp-key-indicators")
+  expected <- list(schema = 3L, build = strrep("a", 64L),
+                   response = setNames(as.list(rep(strrep("b", 64L), 5L)), endpoints))
   expected$fingerprint <- core_env$.cache_v2_sha(core_env$.cache_v2_json(
-    expected[c("schema", "r_version", "packages")]
-  ))
+    expected[c("schema", "build", "response")]))
   actual <- expected
-  actual$r_version <- "9.9"
-  actual$packages$pipapi$remote_sha <- paste(rep("c", 40), collapse = "")
-  actual$packages$jsonlite$version <- "99.0.0"
-  expected$fingerprint <- core_env$.cache_v2_sha(core_env$.cache_v2_json(
-    expected[c("schema", "r_version", "packages")]
-  ))
+  actual$build <- strrep("c", 64L)
+  actual$response[["cp-charts"]] <- strrep("d", 64L)
   actual$fingerprint <- core_env$.cache_v2_sha(core_env$.cache_v2_json(
-    actual[c("schema", "r_version", "packages")]
+    actual[c("schema", "build", "response")]
   ))
   expect_error(
     core_env$.cache_v2_assert_release(expected, actual),
-    paste0("R version: cache=.*server=9.9.*pipapi commit: cache=",
-           paste(rep("a", 40), collapse = ""), ", server=",
-           paste(rep("c", 40), collapse = ""), ".*jsonlite version"),
-    fixed = FALSE
+    "compute and ABI.*response cp-charts"
   )
   invalid <- expected
   invalid$fingerprint <- paste(rep("0", 64), collapse = "")
   expect_error(core_env$.cache_v2_assert_release(invalid, expected),
                "fingerprint is invalid")
+  expect_null(core_env$cache_v2_release_contract()$packages)
+})
+
+test_that("pipapi DESCRIPTION version is not read for behavior identity", {
+  baseline <- core_env$cache_v2_build(refresh = TRUE)$fingerprint
+  original <- utils::packageDescription
+  testthat::with_mocked_bindings(
+    expect_identical(core_env$cache_v2_build(refresh = TRUE)$fingerprint, baseline),
+    packageDescription = function(pkg, ...) {
+      if (identical(pkg, "pipapi")) stop("package release metadata is not a cache input")
+      original(pkg, ...)
+    }, .package = "utils"
+  )
+})
+
+test_that("legacy cache configuration requires one behavior-keyed migration", {
+  withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
+  root <- withr::local_tempdir()
+  cache_root <- file.path(root, "cache")
+  data_root <- file.path(root, "data")
+  path <- file.path(cache_root, "v2", "cache-config.qs")
+  dir.create(dirname(path), recursive = TRUE)
+  dir.create(data_root)
+  legacy <- list(schema = 2L, cache_root = ".", data_root = ".", versions = "fixture",
+    build = list(fingerprint = strrep("a", 64L)),
+    release_contract = list(fingerprint = strrep("b", 64L)),
+    manifest_fingerprint = strrep("c", 64L), planned_keys = character(),
+    canonical_paths = "fixture/cache.duckdb", intermediate_mode = "read_only")
+  qs2::qs_save(legacy, path)
+  jsonlite::write_json(list(complete = TRUE, size = unname(file.size(path)),
+    sha256 = digest::digest(file = path, algo = "sha256")),
+    paste0(path, ".meta.json"), auto_unbox = TRUE)
+  expect_error(core_env$cache_v2_configure_from_disk(cache_root, data_root),
+               "build the behavior-keyed cache once")
+})
+
+test_that("code fingerprint follows transitive helpers, not unrelated functions", {
+  roots <- list(c("pipapi", "pip"))
+  baseline <- core_env$.cache_v2_function_fingerprint(roots)$fingerprint
+  # This exported UI metadata handler is not part of a pip computation.
+  local_mocked_bindings(ui_version_id = function(...) "unrelated",
+                        .package = "pipapi")
+  expect_identical(core_env$.cache_v2_function_fingerprint(roots)$fingerprint,
+                   baseline)
+  local_mocked_bindings(assert_lkup_field = function(...) "changed nested helper",
+                        .package = "pipapi")
+  expect_false(identical(core_env$.cache_v2_function_fingerprint(roots)$fingerprint,
+                         baseline))
+})
+
+test_that("reachable namespace constants invalidate compute fingerprints", {
+  roots <- list(c("pipapi", "pip"))
+  baseline <- core_env$.cache_v2_function_fingerprint(roots)$fingerprint
+  fields <- get(".LKUP_REQUIRED_FIELDS", asNamespace("pipapi"))
+  fields$fixture_field <- "fixture"
+  local_mocked_bindings(.LKUP_REQUIRED_FIELDS = fields, .package = "pipapi")
+  expect_false(identical(core_env$.cache_v2_function_fingerprint(roots)$fingerprint,
+                         baseline))
+})
+
+test_that("dynamic wbpip selector tracks its targets but not unrelated helpers", {
+  roots <- list(c("pipapi", "pip"))
+  baseline <- core_env$.cache_v2_function_fingerprint(roots)$fingerprint
+  local_mocked_bindings(adjust_decimal = function(...) "unrelated",
+                        .package = "wbpip")
+  expect_identical(core_env$.cache_v2_function_fingerprint(roots)$fingerprint,
+                   baseline)
+  local_mocked_bindings(prod_md_compute_pip_stats = function(...) "changed selector target",
+                        .package = "wbpip")
+  expect_false(identical(core_env$.cache_v2_function_fingerprint(roots)$fingerprint,
+                         baseline))
+})
+
+test_that("a route annotation changes only its endpoint fingerprint", {
+  path <- system.file("plumber/v1/endpoints.R", package = "pipapi")
+  fixture <- withr::local_tempfile(fileext = ".R")
+  lines <- readLines(path, warn = FALSE)
+  writeLines(lines, fixture)
+  pc <- pipapi:::.cache_v2_route_fingerprint("pc-charts", fixture)
+  cp <- pipapi:::.cache_v2_route_fingerprint("cp-charts", fixture)
+  route <- which(lines == "#* @get /api/v1/pc-charts")
+  expect_length(route, 1L)
+  lines <- append(lines, "#* @param fixture:[bool] Character fixture", after = route)
+  writeLines(lines, fixture)
+  expect_false(identical(pipapi:::.cache_v2_route_fingerprint("pc-charts", fixture), pc))
+  expect_identical(pipapi:::.cache_v2_route_fingerprint("cp-charts", fixture), cp)
+  typed <- pipapi:::.cache_v2_route_fingerprint("pc-charts", fixture)
+  lines[route + 1L] <- "#* @param fixture:[bool] Updated API description only"
+  writeLines(lines, fixture)
+  expect_identical(pipapi:::.cache_v2_route_fingerprint("pc-charts", fixture), typed)
 })
 
 test_that("interprocess locks prevent duplicate publication and enforce timeout", {

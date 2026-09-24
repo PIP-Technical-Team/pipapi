@@ -46,6 +46,7 @@ Suggests:
     rprojroot
 Language: en-US
 Imports: 
+    codetools,
     digest,
     filelock,
     ps,
