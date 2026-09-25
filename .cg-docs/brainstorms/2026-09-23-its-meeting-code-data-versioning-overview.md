@@ -344,24 +344,146 @@ The trade-off in one line: **user simplicity (pick a release via URL) in exchang
 
 ---
 
-## 4. Open Questions Summary
+## 4. Simplified Diagrams for the Meeting
+
+Stripped-down versions of the two architectures, showing only: data storage → container(s) → API → user. Intended as a whiteboard-style visual reference; all internal detail is deliberately omitted.
+
+### 4.a Current architecture (simplified)
+
+```mermaid
+flowchart LR
+    subgraph PIPES["Azure DevOps pipelines (ITS)"]
+        direction TB
+        DP["<b>ITSES-POVERTYSCORE-DATA</b><br/>produces new vintage folders"]
+        AP["<b>ITSES-POVERTYSCOREAPI</b><br/>builds &amp; deploys the container<br/><i>(installs pipapi @DEV)</i>"]
+    end
+
+    subgraph STORAGE["Azure Blob storage"]
+        DATA[("All vintages mixed<br/><b>20240315_2024_02_01_PROD</b> (lineup-v1)<br/><b>20250601_2025_01_02_PROD</b> (lineup-v2)<br/>...")]
+    end
+
+    subgraph COMPUTE["Compute"]
+        C["<b>Single API container</b><br/>one pipapi version<br/>loads everything"]
+    end
+
+    subgraph EXPOSE["Public endpoint"]
+        API["<b>/api/v1/...</b>"]
+    end
+
+    USER(["👤 User"])
+
+    DP ==>|writes vintages| DATA
+    AP ==>|deploys| C
+    DATA ==>|mounted| C
+    C ==> API
+    USER ==>|request| API
+    API -.->|response| USER
+
+    classDef store fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#0b1f4d
+    classDef compute fill:#ede9fe,stroke:#6d28d9,stroke-width:2px,color:#2e1065
+    classDef expose fill:#fef3c7,stroke:#b45309,stroke-width:2px,color:#451a03
+    classDef user fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#052e16
+    classDef pipeline fill:#ffe4e6,stroke:#be123c,stroke-width:2px,color:#4c0519
+    classDef group fill:#f8fafc,stroke:#94a3b8,stroke-width:1px,color:#334155
+
+    class DATA store
+    class C compute
+    class API expose
+    class USER user
+    class DP,AP pipeline
+    class PIPES,STORAGE,COMPUTE,EXPOSE group
+
+    linkStyle 0,1,2,3,4 stroke:#334155,stroke-width:2px
+    linkStyle 5 stroke:#64748b,stroke-width:1.5px,stroke-dasharray: 4 3
+```
+
+**One container. One URL. All data. No way to ask for a specific code version.**
+
+### 4.b Proposed architecture (simplified)
+
+```mermaid
+flowchart LR
+    subgraph PIPES["Azure DevOps pipelines (ITS)"]
+        direction TB
+        DP["<b>ITSES-POVERTYSCORE-DATA</b><br/>tags each vintage with its schema<br/><i>(or routes it to a schema folder)</i>"]
+        AP["<b>ITSES-POVERTYSCOREAPI</b><br/>builds one image per pinned release<br/><i>Dockerfile: install pipapi@&lt;tag&gt;</i><br/><i>(pipapi:v1.4.2, pipapi:v1.6.0, ...)</i>"]
+    end
+
+    subgraph STORAGE["Azure Blob storage"]
+        direction TB
+        D1[("<b>lineup-v1</b><br/>20240315_2024_02_01_PROD<br/>20240820_2024_01_02_PROD<br/>...")]
+        D2[("<b>lineup-v2</b><br/>20250601_2025_01_02_PROD<br/>20250915_2025_02_01_PROD<br/>...")]
+    end
+
+    subgraph COMPUTE["Compute — one container per release"]
+        direction TB
+        C1["<b>pipapi v1.4.2</b><br/>lineup-v1 code<br/><i>main.R: PIPAPI_SCHEMA=lineup-v1</i>"]
+        C2["<b>pipapi v1.6.0</b><br/>lineup-v2 code<br/><i>main.R: PIPAPI_SCHEMA=lineup-v2</i><br/><i>(= latest)</i>"]
+    end
+
+    subgraph EXPOSE["Public endpoint"]
+        ROUTER{{"<b>Router</b><br/>picks container by URL"}}
+    end
+
+    USER(["👤 User"])
+
+    DP ==>|writes vintages| D1
+    DP ==>|writes vintages| D2
+    AP ==>|deploys| C1
+    AP ==>|deploys| C2
+
+    D1 ==> C1
+    D2 ==> C2
+    C1 ==> ROUTER
+    C2 ==> ROUTER
+
+    USER ==>|/releases/v1.4.2/api/v1/...| ROUTER
+    USER ==>|/releases/v1.6.0/api/v1/...| ROUTER
+    USER ==>|/api/v1/... — default| ROUTER
+    ROUTER -.->|response| USER
+
+    classDef store fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#0b1f4d
+    classDef compute fill:#ede9fe,stroke:#6d28d9,stroke-width:2px,color:#2e1065
+    classDef router fill:#fef3c7,stroke:#b45309,stroke-width:2px,color:#451a03
+    classDef user fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#052e16
+    classDef pipeline fill:#ffe4e6,stroke:#be123c,stroke-width:2px,color:#4c0519
+    classDef group fill:#f8fafc,stroke:#94a3b8,stroke-width:1px,color:#334155
+
+    class D1,D2 store
+    class C1,C2 compute
+    class ROUTER router
+    class USER user
+    class DP,AP pipeline
+    class PIPES,STORAGE,COMPUTE,EXPOSE group
+
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10 stroke:#334155,stroke-width:2px
+    linkStyle 11 stroke:#64748b,stroke-width:1.5px,stroke-dasharray: 4 3
+```
+
+**One container per release. The URL chooses the release; the router sends the request to the matching container; each container only sees its own compatible data.**
+
+**Legend (both diagrams):** 🟥 rose = Azure DevOps pipelines · 🟦 blue = data storage · 🟪 purple = compute (containers) · 🟨 amber = public entry point · 🟩 green = user · solid arrows = requests / data flow · dashed arrows = responses.
+
+---
+
+## 5. Open Questions Summary
 
 Grouped by area. All of these are lifted directly from the two brainstorms as unresolved or pending an ITS/team decision.
 
-### 4.1 Storage and data layout (mostly for ITS)
+### 5.1 Storage and data layout (mostly for ITS)
 
 - **Option A vs Option B storage.** Start with shared flat storage (no migration, fast to ship) or go straight to schema-partitioned storage (faster startup, physical isolation, but requires migrating ~200 vintages and changing ITSES-POVERTYSCORE-DATA)? If starting with A, what is the timeline commitment to migrate to B?
 - **Manifest backfill.** For existing vintages that have no `_manifest.yaml`: add manifests retroactively (coordination with data pipeline), keep the date heuristic as a fallback (technical debt), or refuse to load pre-manifest vintages (breaks existing behaviour)?
 - **In-place data corrections.** If the numbers inside a historical vintage are corrected, is release date alone still a sufficient identifier? Options: content-hash addressing, immutable vintages (correction = new dated folder), or a revision suffix like `_rev2`.
 
-### 4.2 Schema versioning policy (pipapi team, with ITS awareness)
+### 5.2 Schema versioning policy (pipapi team, with ITS awareness)
 
 - **Schema-ID granularity.** Coarse (`lineup-v1`, `lineup-v2`, matching major computational changes) or fine (`lineup-v2.1`, `lineup-v2.2`, tracking every column/file tweak)? Recommendation in the brainstorm: start coarse.
 - **What triggers a new schema version.** New required file? Renamed file? New/removed column? Type change? A written policy is a Phase 1 deliverable but not yet drafted.
 - **Transition-release strategy.** When introducing schema v3, is there one release that supports both v2 and v3, or a clean cutover? Avoiding a "no pipapi version can read this vintage" gap requires planning.
 - **Cache interaction.** `cache_data_id` (hashed over lookup tables) — does it stay consistent across schema versions? Could lineup-v1 cached results leak into lineup-v2 queries if vintage dates overlap? Needs auditing.
 
-### 4.3 Deployment, routing, and lifecycle (primarily for ITS)
+### 5.3 Deployment, routing, and lifecycle (primarily for ITS)
 
 - **Build trigger.** Automatic on git tag (webhook from pipapi GitHub), manual pipeline trigger, or hybrid (auto for DEV/QA, manual gate for PROD)?
 - **Concurrent release limit.** Keep every tagged release live forever, current + previous N majors, or elastic based on usage?
@@ -370,14 +492,14 @@ Grouped by area. All of these are lifted directly from the two brainstorms as un
 - **Phase 3 authorisation.** Who authorises spinning up a historical container, who approves the resource cost, who decides when to tear it down?
 - **Monitoring/observability.** What per-release metrics and logs will ITS provide (request counts, startup times, error rates, storage I/O) to inform lifecycle decisions?
 
-### 4.4 Phase-3 addressability sub-option (if pursued beyond Phase 2)
+### 5.4 Phase-3 addressability sub-option (if pursued beyond Phase 2)
 
 The first brainstorm listed three ways to serve historical pairings; the second brainstorm chose **3b (on-demand containers) as the path** using path-based routing. Not fully closed:
 
 - Is 3b needed for external consumers, or is 3c (ephemeral Docker for internal debugging only) enough?
 - 3a (multiple pipapi package versions in a single R process) is explicitly rejected as architecturally fragile.
 
-### 4.5 Risks flagged in the brainstorms
+### 5.5 Risks flagged in the brainstorms
 
 - Startup performance degrades with Option A as vintage count grows (300–400 by 2027–2028) → argues for eventually migrating to Option B.
 - Multi-mount handling for transition releases under Option B is untested.
