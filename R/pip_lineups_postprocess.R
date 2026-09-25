@@ -34,7 +34,8 @@ pip_lineups_format_output <- function(
   reporting_level,
   censor,
   additional_ind,
-  use_old_dist_stats = FALSE
+  use_old_dist_stats = FALSE,
+  povline_order = NULL
 ) {
   # pre-computed distributional stats ---------------
   crr_names <- names(out) # current variables
@@ -100,14 +101,15 @@ pip_lineups_format_output <- function(
 
   out[, (doub_vars) := lapply(.SD, round, digits = 12), .SDcols = doub_vars]
 
-  # Order rows by country code and reporting year
-  data.table::setorder(
-    out,
-    country_code,
-    reporting_year,
-    reporting_level,
-    welfare_type
-  )
+  # Keep each country's poverty lines in the order requested, even when some
+  # values came from DuckDB and others were calculated from source data.
+  order_vars <- c("country_code", "reporting_year", "reporting_level", "welfare_type")
+  if (!is.null(povline_order) && length(povline_order) > 1L) {
+    out[, .pipapi_line_order := match(poverty_line, povline_order)]
+    order_vars <- c(order_vars, ".pipapi_line_order")
+  }
+  data.table::setorderv(out, order_vars)
+  if (".pipapi_line_order" %in% names(out)) out[, .pipapi_line_order := NULL]
 
   # Make sure no duplicate remains
   out <- out |> collapse::funique()

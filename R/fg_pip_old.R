@@ -37,6 +37,7 @@ fg_pip_old <- function(country,
   )
 
   data_present_in_master <- metadata$data_present_in_master
+  missing_pairs <- metadata$missing_pairs
   povline  <- metadata$povline
   metadata <- metadata$lkup
   # Remove aggregate distribution if popshare is specified
@@ -175,6 +176,7 @@ fg_pip_old <- function(country,
   if ("max_year" %in% names(out)) {
     out[, max_year := NULL]
   }
+  out <- filter_new_intermediate_rows(out, missing_pairs, fill_gaps = TRUE)
 
   return(list(main_data = out, data_in_cache = data_present_in_master))
 }

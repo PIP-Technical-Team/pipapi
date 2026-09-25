@@ -46,6 +46,7 @@ fg_pip <- function(
   )
 
   data_present_in_master <- metadata$data_present_in_master
+  missing_pairs <- metadata$missing_pairs
   povline <- metadata$povline
   metadata <- metadata$lkup |>
     setDT()
@@ -181,6 +182,7 @@ fg_pip <- function(
   if ("max_year" %in% names(out)) {
     out[, max_year := NULL]
   }
+  out <- filter_new_intermediate_rows(out, missing_pairs, fill_gaps = TRUE)
 
   return(list(main_data = out, data_in_cache = data_present_in_master))
 }

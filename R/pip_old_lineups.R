@@ -212,7 +212,8 @@ pip_old_lineups <- function(
     reporting_level = reporting_level,
     censor = censor,
     additional_ind = additional_ind,
-    use_old_dist_stats = TRUE
+    use_old_dist_stats = TRUE,
+    povline_order = povline
   )
   # return -------------
   return(out)

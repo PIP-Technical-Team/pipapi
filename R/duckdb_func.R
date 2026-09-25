@@ -17,7 +17,7 @@ return_if_exists <- function(
   }
 
   # Explicit live-data requests bypass pipapi's intermediate cache.
-  if (isTRUE(getOption("pipapi.query_live_data"))) {
+  if (isTRUE(getOption("pipapi.query_live_data")) || is.null(cache_file_path)) {
     return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
   }
 
@@ -36,7 +36,6 @@ return_if_exists <- function(
     return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
   }
 
-  source_lkup <- data.table::copy(slkup)
   if (fill_gaps) {
     key_vars <- c("interpolation_id")
     # convert survey_comparability to NA
@@ -100,20 +99,40 @@ return_if_exists <- function(
     multiple = TRUE
   )
 
-  # Mixing incomplete cached pairs with freshly calculated rows can omit or
-  # duplicate results. An incomplete request is calculated wholly from source.
-  if (fnrow(lk_not_ms) > 0) {
-    return(list(data_present_in_master = NULL, lkup = source_lkup, povline = povline))
-  }
   data_present_in_master <- join(
     x = lkup_kvars_pov, y = master_file, on = key_vars_pl,
     how = "inner", overid = 2, verbose = 0, multiple = TRUE
   )
   if (fnrow(data_present_in_master) == 0) {
-    return(list(data_present_in_master = NULL, lkup = source_lkup, povline = povline))
+    return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
+  }
+  if (fnrow(lk_not_ms) > 0) {
+    missing_pairs <- unique(lk_not_ms[, ..key_vars_pl])
+    missing_keys <- unique(missing_pairs[, ..key_vars])
+    source_lkup <- join(
+      slkup, missing_keys, on = key_vars, how = "semi", overid = 2, verbose = 0
+    )
+    return(list(
+      data_present_in_master = data_present_in_master,
+      lkup = source_lkup,
+      povline = unique(povline[povline %in% missing_pairs$poverty_line]),
+      missing_pairs = missing_pairs
+    ))
   }
   if (verbose) message("Returning data from cache.")
   list(data_present_in_master = data_present_in_master, lkup = slkup[0], povline = povline)
+}
+
+filter_new_intermediate_rows <- function(dat, missing_pairs, fill_gaps) {
+  if (is.null(missing_pairs) || nrow(dat) == 0L) return(dat)
+  keys <- c(if (fill_gaps) "interpolation_id" else c("cache_id", "reporting_level"),
+            "poverty_line")
+  if (!all(keys %in% names(dat))) {
+    stop("Calculated intermediate rows are missing pair keys: ",
+         paste(setdiff(keys, names(dat)), collapse = ", "))
+  }
+  join(data.table::as.data.table(dat), missing_pairs[, ..keys],
+       on = keys, how = "semi", overid = 2, verbose = 0)
 }
 
 #' Update master file with the contents of the dataframe
@@ -131,7 +150,9 @@ update_master_file <- function(
   verbose = getOption("pipapi.verbose"),
   decimal = 2
 ) {
-  if (isTRUE(getOption("pipapi.query_live_data"))) return(invisible(FALSE))
+  if (isTRUE(getOption("pipapi.query_live_data")) || is.null(cache_file_path)) {
+    return(invisible(FALSE))
+  }
   context <- intermediate_cache_context(cache_file_path)
   if (!is.null(context) && context$intermediate_mode == "read_only") {
     return(invisible(FALSE))
@@ -398,7 +419,9 @@ create_duckdb_file <- function(cache_file_path) {
 }
 
 safe_update_master_file <- function(dat, cache_file_path, fill_gaps) {
-  if (isTRUE(getOption("pipapi.query_live_data"))) return(invisible(FALSE))
+  if (isTRUE(getOption("pipapi.query_live_data")) || is.null(cache_file_path)) {
+    return(invisible(FALSE))
+  }
   context <- intermediate_cache_context(cache_file_path)
   tryCatch(
     update_master_file(dat, cache_file_path, fill_gaps),
@@ -433,6 +456,7 @@ load_inter_cache <- function(
   if (!is.null(lkup)) {
     cache_file_path <- intermediate_cache_path(lkup)
   }
+  if (is.null(cache_file_path)) return(data.table::data.table())
   context <- intermediate_cache_context(cache_file_path)
   with_intermediate_db(cache_file_path, write = FALSE, function(con) {
     if (!DBI::dbExistsTable(con, target_file)) {
@@ -467,6 +491,7 @@ load_inter_cache <- function(
 intermediate_cache_path <- function(lkup, ppp = NULL, popshare = NULL) {
   if (isTRUE(getOption("pipapi.query_live_data"))) return(NULL)
   if (!identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE")) {
+    if (!is.null(ppp) || !is.null(popshare)) return(NULL)
     return(fs::path(lkup$data_root, "cache", ext = "duckdb"))
   }
   if (!cache_v2_enabled()) stop("Intermediate cache v2 requires caching to be enabled.")
@@ -478,6 +503,7 @@ intermediate_cache_path <- function(lkup, ppp = NULL, popshare = NULL) {
   context$parameters <- current$parameters
   if (missing(ppp)) ppp <- current$parameters$ppp
   if (missing(popshare)) popshare <- current$parameters$popshare
+  if (!is.null(ppp) || !is.null(popshare)) return(NULL)
   context$custom <- list(ppp = ppp, popshare = popshare)
   context$lookup_variant <- lkup$cache_v2$lookup_variant
   path <- file.path(lkup$data_root, "cache.duckdb")

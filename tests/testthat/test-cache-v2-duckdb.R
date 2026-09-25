@@ -77,7 +77,7 @@ test_that("pipapi reuses available managed rows and calculates missing ones", {
   expect_false(file.exists(missing))
 })
 
-test_that("partial intermediate coverage recalculates every requested pair", {
+test_that("partial intermediate coverage keeps hits and selects missing pairs", {
   withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
   withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE)
   f <- duckdb_v2_fixture(withr::local_tempdir())
@@ -93,10 +93,17 @@ test_that("partial intermediate coverage recalculates every requested pair", {
   })
   f$context$intermediate_mode <- "read_only"
   path <- f$intermediate_cache_path(f$lkup)
+  one_line <- f$return_if_exists(requested, 3, path, FALSE)
+  expect_equal(nrow(one_line$data_present_in_master), 1L)
+  expect_equal(one_line$lkup$cache_id, "B")
+  expect_equal(one_line$povline, 3)
+  expect_equal(one_line$missing_pairs$cache_id, "B")
   partial <- f$return_if_exists(requested, c(3, 26), path, FALSE)
-  expect_null(partial$data_present_in_master)
+  expect_equal(nrow(partial$data_present_in_master), 1L)
   expect_equal(partial$lkup, requested)
   expect_equal(partial$povline, c(3, 26))
+  expect_setequal(paste(partial$missing_pairs$cache_id, partial$missing_pairs$poverty_line),
+                  c("A 26", "B 3", "B 26"))
 
   f$context$intermediate_mode <- "write"
   path <- f$intermediate_cache_path(f$lkup)
@@ -107,8 +114,10 @@ test_that("partial intermediate coverage recalculates every requested pair", {
   f$context$intermediate_mode <- "read_only"
   path <- f$intermediate_cache_path(f$lkup)
   partial <- f$return_if_exists(requested, c(3, 26), path, FALSE)
-  expect_null(partial$data_present_in_master)
-  expect_equal(partial$lkup, requested)
+  expect_equal(nrow(partial$data_present_in_master), 3L)
+  expect_equal(partial$lkup$cache_id, "B")
+  expect_equal(partial$povline, 26)
+  expect_equal(partial$missing_pairs$cache_id, "B")
 
   f$context$intermediate_mode <- "write"
   path <- f$intermediate_cache_path(f$lkup)
@@ -120,6 +129,52 @@ test_that("partial intermediate coverage recalculates every requested pair", {
   complete <- f$return_if_exists(requested, c(3, 26), path, FALSE)
   expect_equal(nrow(complete$data_present_in_master), 4L)
   expect_equal(nrow(complete$lkup), 0L)
+  expect_null(complete$missing_pairs)
+})
+
+test_that("rectangular source calculations keep only missing regular and gap pairs", {
+  regular <- data.table::CJ(cache_id = c("A", "B"), poverty_line = c(3, 26))
+  regular[, `:=`(reporting_level = "national", headcount = 99)]
+  needed <- data.table::data.table(cache_id = c("A", "B", "B"),
+    reporting_level = "national", poverty_line = c(26, 3, 26))
+  fresh <- pipapi:::filter_new_intermediate_rows(regular, needed, fill_gaps = FALSE)
+  expect_equal(nrow(fresh), 3L)
+  expect_false(any(fresh$cache_id == "A" & fresh$poverty_line == 3))
+  cached <- data.table::data.table(cache_id = "A", reporting_level = "national",
+                                   poverty_line = 3, headcount = 1)
+  combined <- data.table::rbindlist(list(fresh, cached), use.names = TRUE)
+  expect_equal(nrow(unique(combined, by = c("cache_id", "reporting_level", "poverty_line"))), 4L)
+  expect_equal(combined[cache_id == "A" & poverty_line == 3, headcount], 1)
+
+  gaps <- data.table::CJ(interpolation_id = c("A", "B"), poverty_line = c(3, 26))
+  gaps[, headcount := 99]
+  gap_needed <- data.table::data.table(interpolation_id = "B", poverty_line = 26)
+  gap_fresh <- pipapi:::filter_new_intermediate_rows(gaps, gap_needed, fill_gaps = TRUE)
+  expect_equal(nrow(gap_fresh), 1L)
+  expect_identical(gap_fresh$interpolation_id, "B")
+  expect_equal(gap_fresh$poverty_line, 26)
+})
+
+test_that("interpolated coverage tracks exact ID and poverty-line pairs", {
+  withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
+  withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE)
+  f <- duckdb_v2_fixture(withr::local_tempdir())
+  requested <- data.table::data.table(interpolation_id = c("A", "B"),
+                                      survey_comparability = c(1, 2),
+                                      is_interpolated = c(TRUE, TRUE))
+  path <- f$intermediate_cache_path(f$lkup)
+  f$with_intermediate_db(path, TRUE, function(con) {
+    f$intermediate_cache_schema(con, f$context)
+    DBI::dbExecute(con, "INSERT INTO fg_master_file VALUES ('A', 3, 1, 1, 1, 1)")
+  })
+  f$context$intermediate_mode <- "read_only"
+  path <- f$intermediate_cache_path(f$lkup)
+  partial <- f$return_if_exists(requested, c(3, 26), path, TRUE)
+  expect_equal(nrow(partial$data_present_in_master), 1L)
+  expect_setequal(partial$lkup$interpolation_id, c("A", "B"))
+  expect_setequal(paste(partial$missing_pairs$interpolation_id,
+                        partial$missing_pairs$poverty_line), c("A 26", "B 3", "B 26"))
+  expect_true(all(is.na(partial$lkup$survey_comparability)))
 })
 
 test_that("managed database read failures are not treated as missing rows", {
@@ -146,18 +201,20 @@ test_that("an existing managed database with a missing table fails closed", {
                "missing required table: fg_master_file")
 })
 
-test_that("custom response arguments reuse the version-owned intermediate tables", {
+test_that("custom PPP and popshare never reuse or write canonical intermediate rows", {
   withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
   withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE)
   f <- duckdb_v2_fixture(withr::local_tempdir())
   path <- f$intermediate_cache_path(f$lkup)
   f$update_master_file(f$dat, path, FALSE)
+  checksum <- digest::digest(file = path, algo = "sha256")
   for (custom in list(list(ppp = 2), list(popshare = 0.5), list(ppp = 2, popshare = 0.5))) {
     custom_path <- do.call(f$intermediate_cache_path, c(list(lkup = f$lkup), custom))
-    expect_equal(nrow(f$load_inter_cache(cache_file_path = custom_path)), 1L)
-    expect_equal(f$update_master_file(f$dat, custom_path, FALSE), 0)
-    expect_equal(nrow(f$load_inter_cache(cache_file_path = custom_path)), 1L)
+    expect_null(custom_path)
+    expect_equal(nrow(f$load_inter_cache(cache_file_path = custom_path)), 0L)
+    expect_false(f$update_master_file(f$dat, custom_path, FALSE))
   }
+  expect_identical(digest::digest(file = path, algo = "sha256"), checksum)
   f$lkup$cache_v2$lookup_variant <- "cp"
   cp_path <- f$intermediate_cache_path(f$lkup)
   expect_equal(nrow(f$load_inter_cache(cache_file_path = cp_path)), 1L)
@@ -432,8 +489,10 @@ test_that("actual core source guard protects optional intermediate reads", {
   context <- cache_v2_context(lkup)
   context$parameters <- list(ppp = 2, popshare = NULL)
   options(pipapi.cache_v2_context = context)
-  expect_equal(nrow(load_inter_cache(lkup = lkup)), 1L)
+  expect_null(intermediate_cache_path(lkup))
+  expect_equal(nrow(load_inter_cache(lkup = lkup)), 0L)
   options(pipapi.cache_v2_context = NULL)
+  expect_equal(nrow(load_inter_cache(lkup = lkup)), 1L)
   cache_v2_taint("fixture source change")
   expect_error(load_inter_cache(lkup = lkup), "tainted")
   expect_error(safe_update_master_file(dat, path, FALSE), "tainted")

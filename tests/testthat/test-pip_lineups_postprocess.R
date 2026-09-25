@@ -128,6 +128,18 @@ test_that("output columns are exactly the names2keep set", {
   expect_equal(sort(names(res)), sort(.cols))
 })
 
+test_that("mixed cached and calculated poverty lines follow request order", {
+  out <- data.table::rbindlist(list(.make_out_dt(), .make_out_dt()))
+  out[, `:=`(poverty_line = c(26, 2.15), headcount = c(0.9, 0.4))]
+  format_lines <- function(lines) pip_lineups_format_output(
+    out = data.table::copy(out), lkup = .make_stub_lkup(), fill_gaps = FALSE,
+    reporting_level = "all", censor = FALSE, additional_ind = FALSE,
+    use_old_dist_stats = TRUE, povline_order = lines
+  )
+  expect_equal(format_lines(c(2.15, 26))$poverty_line, c(2.15, 26))
+  expect_equal(format_lines(c(26, 2.15))$poverty_line, c(26, 2.15))
+})
+
 
 # reporting_level filtering ---------------------------------------------------
 

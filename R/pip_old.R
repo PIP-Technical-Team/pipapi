@@ -73,6 +73,7 @@ pip_old <- function(
   welfare_type <- match.arg(welfare_type)
   reporting_level <- match.arg(reporting_level)
   group_by <- match.arg(group_by)
+  if (is.null(popshare)) povline <- round(povline, digits = 3)
 
   # TEMPORARY UNTIL SELECTION MECHANISM IS BEING IMPROVED
   country <- toupper(country)
@@ -323,8 +324,9 @@ rg_pip_old <- function(
   )
 
   data_present_in_master <- metadata$data_present_in_master
-  metadata <- metadata$lkup
+  missing_pairs <- metadata$missing_pairs
   povline <- metadata$povline
+  metadata <- metadata$lkup
 
   # Remove aggregate distribution if popshare is specified
   # TEMPORARY FIX UNTIL popshare is supported for aggregate distributions
@@ -374,5 +376,6 @@ rg_pip_old <- function(
   #browser()
   out <- data.table::rbindlist(out)
 
+  out <- filter_new_intermediate_rows(out, missing_pairs, fill_gaps = FALSE)
   return(list(main_data = out, data_in_cache = data_present_in_master))
 }

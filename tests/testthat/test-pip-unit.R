@@ -23,3 +23,19 @@ test_that("pip works for multiple povline values", {
 
   expect_identical(rbind(out2, out1), out3)
 })
+
+test_that("direct pip_old matches the old-lineup poverty-line precision", {
+  observed <- NULL
+  local_mocked_bindings(
+    create_countries_vctr = function(...) list(est_ctrs = "AGO"),
+    intermediate_cache_path = function(...) NULL,
+    rg_pip_old = function(..., povline) {
+      observed <<- povline
+      list(main_data = pipapi::empty_response, data_in_cache = NULL)
+    },
+    .package = "pipapi"
+  )
+  pip_old(country = "AGO", year = 2000, povline = c(3, 2.1551),
+          lkup = list(svy_lkup = data.table::data.table(), data_root = "fixture"))
+  expect_equal(observed, c(3, 2.155))
+})
