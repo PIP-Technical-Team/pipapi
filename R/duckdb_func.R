@@ -16,38 +16,27 @@ return_if_exists <- function(
     return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
   }
 
-  # don't use cache
-  if (isTRUE(getOption("pipapi.query_live_data")) ||
-      isTRUE(getOption("pipapi.precache_without_intermediate"))) {
+  # Explicit live-data requests bypass pipapi's intermediate cache.
+  if (isTRUE(getOption("pipapi.query_live_data"))) {
     return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
   }
 
   context <- intermediate_cache_context(cache_file_path)
-  # Managed response releases cannot attest legacy DuckDB rows. Direct pip
-  # requests therefore calculate from source rather than reuse stale rows.
-  if (!is.null(context) && identical(context$intermediate_mode, "read_only") &&
-      identical(.cache_v2_state$config$build$schema, 4L)) {
-    return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
-  }
-  strict <- !is.null(context) && identical(context$intermediate_mode, "read_only")
-  # Managed read-only misses are fatal; historical versions retain legacy fallback.
   master_file <- tryCatch(
     load_inter_cache(cache_file_path = cache_file_path, fill_gaps = fill_gaps,
                      poverty_lines = povline),
     error = function(e) {
-      if (strict) stop(e)
+      if (!is.null(context) && identical(context$intermediate_mode, "read_only")) stop(e)
       cli::cli_warn("Failed to load intermediate cache: {e$message}")
       slkup[0]
     }
   )
   # if no cached files, return selected lkup
   if (fnrow(master_file) == 0) {
-    if (strict) {
-      stop("Required intermediate DuckDB data is missing; live source fallback is disabled.")
-    }
     return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
   }
 
+  source_lkup <- data.table::copy(slkup)
   if (fill_gaps) {
     key_vars <- c("interpolation_id")
     # convert survey_comparability to NA
@@ -111,105 +100,20 @@ return_if_exists <- function(
     multiple = TRUE
   )
 
+  # Mixing incomplete cached pairs with freshly calculated rows can omit or
+  # duplicate results. An incomplete request is calculated wholly from source.
+  if (fnrow(lk_not_ms) > 0) {
+    return(list(data_present_in_master = NULL, lkup = source_lkup, povline = povline))
+  }
   data_present_in_master <- join(
-    x = lkup_kvars_pov,
-    y = master_file,
-    on = key_vars_pl,
-    how = "inner",
-    # validate = "1:1",
-    overid = 2,
-    verbose = 0,
-    multiple = TRUE
+    x = lkup_kvars_pov, y = master_file, on = key_vars_pl,
+    how = "inner", overid = 2, verbose = 0, multiple = TRUE
   )
-
-  if (fnrow(lk_not_ms) > 0 && strict) {
-    missing_lines <- sort(unique(lk_not_ms$poverty_line))
-    stop(
-      "Intermediate DuckDB coverage is incomplete for ", fnrow(lk_not_ms),
-      " lookup/poverty-line combinations (poverty lines: ",
-      paste(missing_lines, collapse = ", "),
-      "); live source fallback is disabled."
-    )
-  }
-
-  # now we have two dfs: lk_not_ms and data_present_in_master
-  #    which gives the lkup rows not in cache (master_file),
-  #    and the lkup rows in cache (master_file)
-
-  # If no data is present in master
-  #  i.e. if no common rows between
   if (fnrow(data_present_in_master) == 0) {
-    if (strict) {
-      stop("Requested poverty line is missing from the intermediate DuckDB; live source fallback is disabled.")
-    }
-    return(list(data_present_in_master = NULL, lkup = slkup, povline = povline))
+    return(list(data_present_in_master = NULL, lkup = source_lkup, povline = povline))
   }
-
-  # There is nothing in lkup that is not present in master (i.e., all lkup in
-  # master)
-  if (fnrow(lk_not_ms) == 0) {
-    if (verbose) {
-      message("Returning data from cache.")
-    }
-    return(list(
-      data_present_in_master = data_present_in_master,
-      lkup = slkup[0],
-      povline = povline
-    ))
-  }
-
-  # find out if all the key-vars in slkup are in data_present_in master, so if
-  # that is the case, then we subset the poverty line
-  present_master_kvars <-
-    data_present_in_master[, ..key_vars] |>
-    funique()
-
-  # Find which key_vars in slkup are NOT present in master
-  lkup_not_in_master <-
-    join(
-      lkup_kvars,
-      present_master_kvars,
-      how = "anti",
-      overid = 2,
-      verbose = 0
-    )
-
-  all_in_master <- fnrow(lkup_not_in_master) == 0
-
-  # Update povline if all key_vars in slkup are present in master_file
-  if (all_in_master) {
-    # For each key_vars, keep only povlines not present in master_file
-    # NOTE: here the povline changes
-
-    povline <- funique(lk_not_ms[, poverty_line])
-    # povline_in_master <- funique(data_present_in_master[, poverty_line])
-    # povline <- setdiff(povline, povline_in_master)
-
-    if (length(povline) == 0) {
-      stop("at this stage, povline must be 1 or greater")
-    }
-  } else {
-    # lkup: keep only key_vars not present in master_file
-    # NOTE: here the slkup changes
-    slkup <- join(
-      slkup,
-      lkup_not_in_master,
-      on = key_vars,
-      how = "semi",
-      overid = 2,
-      verbose = 0
-    )
-  }
-
-  if (verbose) {
-    message("Returning data from cache.")
-  }
-
-  return(list(
-    data_present_in_master = data_present_in_master,
-    lkup = slkup,
-    povline = povline
-  ))
+  if (verbose) message("Returning data from cache.")
+  list(data_present_in_master = data_present_in_master, lkup = slkup[0], povline = povline)
 }
 
 #' Update master file with the contents of the dataframe
@@ -227,8 +131,7 @@ update_master_file <- function(
   verbose = getOption("pipapi.verbose"),
   decimal = 2
 ) {
-  if (isTRUE(getOption("pipapi.query_live_data")) ||
-      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(invisible(FALSE))
+  if (isTRUE(getOption("pipapi.query_live_data"))) return(invisible(FALSE))
   context <- intermediate_cache_context(cache_file_path)
   if (!is.null(context) && context$intermediate_mode == "read_only") {
     return(invisible(FALSE))
@@ -459,8 +362,7 @@ delete_cache <- function(
     cli::cli_abort("{.arg lkup$data_root} must be a non-empty string.")
   }
 
-  if (isTRUE(getOption("pipapi.query_live_data")) ||
-      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(invisible(character()))
+  if (isTRUE(getOption("pipapi.query_live_data"))) return(invisible(character()))
   cache_file_path <- intermediate_cache_path(lkup)
   context <- intermediate_cache_context(cache_file_path)
   if (!is.null(context) && context$intermediate_mode == "read_only") {
@@ -488,8 +390,7 @@ delete_cache <- function(
 }
 
 create_duckdb_file <- function(cache_file_path) {
-  if (isTRUE(getOption("pipapi.query_live_data")) ||
-      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(invisible(FALSE))
+  if (isTRUE(getOption("pipapi.query_live_data"))) return(invisible(FALSE))
   context <- intermediate_cache_context(cache_file_path)
   with_intermediate_db(cache_file_path, write = TRUE, function(con) {
     DBI::dbWithTransaction(con, intermediate_cache_schema(con, context))
@@ -497,8 +398,7 @@ create_duckdb_file <- function(cache_file_path) {
 }
 
 safe_update_master_file <- function(dat, cache_file_path, fill_gaps) {
-  if (isTRUE(getOption("pipapi.query_live_data")) ||
-      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(invisible(FALSE))
+  if (isTRUE(getOption("pipapi.query_live_data"))) return(invisible(FALSE))
   context <- intermediate_cache_context(cache_file_path)
   tryCatch(
     update_master_file(dat, cache_file_path, fill_gaps),
@@ -523,8 +423,7 @@ load_inter_cache <- function(
   fill_gaps = FALSE,
   poverty_lines = NULL
 ) {
-  if (isTRUE(getOption("pipapi.query_live_data")) ||
-      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(data.table::data.table())
+  if (isTRUE(getOption("pipapi.query_live_data"))) return(data.table::data.table())
   target_file <- if (fill_gaps) {
     "fg_master_file"
   } else {
@@ -536,7 +435,12 @@ load_inter_cache <- function(
   }
   context <- intermediate_cache_context(cache_file_path)
   with_intermediate_db(cache_file_path, write = FALSE, function(con) {
-    if (!DBI::dbExistsTable(con, target_file)) return(data.table::data.table())
+    if (!DBI::dbExistsTable(con, target_file)) {
+      if (!is.null(context) && identical(context$intermediate_mode, "read_only")) {
+        stop("Managed intermediate DuckDB is missing required table: ", target_file)
+      }
+      return(data.table::data.table())
+    }
     if (is.null(poverty_lines)) {
       master_file <- DBI::dbGetQuery(con, paste("SELECT * FROM", target_file))
     } else {
@@ -561,8 +465,7 @@ load_inter_cache <- function(
 
 # Paths carry the request identity to lower helpers, including direct R calls.
 intermediate_cache_path <- function(lkup, ppp = NULL, popshare = NULL) {
-  if (isTRUE(getOption("pipapi.query_live_data")) ||
-      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(NULL)
+  if (isTRUE(getOption("pipapi.query_live_data"))) return(NULL)
   if (!identical(Sys.getenv("PIPAPI_CACHE_V2"), "TRUE")) {
     return(fs::path(lkup$data_root, "cache", ext = "duckdb"))
   }
@@ -665,8 +568,7 @@ intermediate_cache_lock <- function(path) {
 }
 
 with_intermediate_db <- function(path, write, code, missing = invisible(FALSE)) {
-  if (isTRUE(getOption("pipapi.query_live_data")) ||
-      isTRUE(getOption("pipapi.precache_without_intermediate"))) return(missing)
+  if (isTRUE(getOption("pipapi.query_live_data"))) return(missing)
   if (!write && (!file.exists(path) || !dir.exists(dirname(path)))) return(missing)
   context <- intermediate_cache_context(path)
   if (!is.null(context) && !write && !file.exists(path)) return(missing)

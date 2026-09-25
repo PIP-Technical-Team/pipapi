@@ -52,7 +52,7 @@ test_that("version-owned intermediate rows are idempotent and reusable", {
   expect_equal(nrow(f$return_if_exists(selected, 3, path, FALSE)$data_present_in_master), 1L)
 })
 
-test_that("schema-4 direct requests never reuse unverified managed DuckDB rows", {
+test_that("pipapi reuses available managed rows and calculates missing ones", {
   withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
   f <- duckdb_v2_fixture(withr::local_tempdir())
   path <- f$intermediate_cache_path(f$lkup)
@@ -60,21 +60,90 @@ test_that("schema-4 direct requests never reuse unverified managed DuckDB rows",
   checksum <- digest::digest(file = path, algo = "sha256")
   f$context$intermediate_mode <- "read_only"
   path <- f$intermediate_cache_path(f$lkup)
-  f$.cache_v2_state <- new.env(parent = emptyenv())
-  f$.cache_v2_state$config <- list(build = list(schema = 4L))
   selected <- data.table::copy(f$dat)[, c("poverty_line", "headcount", "poverty_gap",
                                          "poverty_severity", "watts") := NULL]
   selected[, is_interpolated := FALSE]
   result <- f$return_if_exists(selected, 3, path, FALSE)
-  expect_null(result$data_present_in_master)
-  expect_equal(result$lkup, selected)
+  expect_equal(nrow(result$data_present_in_master), 1L)
+  expect_equal(nrow(result$lkup), 0L)
+  missing_line <- f$return_if_exists(selected, 26, path, FALSE)
+  expect_null(missing_line$data_present_in_master)
+  expect_equal(missing_line$lkup, selected)
   expect_identical(digest::digest(file = path, algo = "sha256"), checksum)
   absent <- duckdb_v2_fixture(withr::local_tempdir())
   absent$context$intermediate_mode <- "read_only"
-  absent$.cache_v2_state <- f$.cache_v2_state
   missing <- absent$intermediate_cache_path(absent$lkup)
   expect_null(absent$return_if_exists(selected, 3, missing, FALSE)$data_present_in_master)
   expect_false(file.exists(missing))
+})
+
+test_that("partial intermediate coverage recalculates every requested pair", {
+  withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
+  withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE)
+  f <- duckdb_v2_fixture(withr::local_tempdir())
+  requested <- data.table::copy(f$dat)[, c("poverty_line", "headcount", "poverty_gap",
+                                           "poverty_severity", "watts") := NULL]
+  requested[, `:=`(cache_id = "A", is_interpolated = FALSE)]
+  other <- data.table::copy(requested)[, cache_id := "B"]
+  requested <- data.table::rbindlist(list(requested, other))
+  path <- f$intermediate_cache_path(f$lkup)
+  f$with_intermediate_db(path, TRUE, function(con) {
+    f$intermediate_cache_schema(con, f$context)
+    DBI::dbExecute(con, "INSERT INTO rg_master_file VALUES ('A', 'national', 3, 1, 1, 1, 1)")
+  })
+  f$context$intermediate_mode <- "read_only"
+  path <- f$intermediate_cache_path(f$lkup)
+  partial <- f$return_if_exists(requested, c(3, 26), path, FALSE)
+  expect_null(partial$data_present_in_master)
+  expect_equal(partial$lkup, requested)
+  expect_equal(partial$povline, c(3, 26))
+
+  f$context$intermediate_mode <- "write"
+  path <- f$intermediate_cache_path(f$lkup)
+  f$with_intermediate_db(path, TRUE, function(con) {
+    DBI::dbExecute(con, "INSERT INTO rg_master_file VALUES ('B', 'national', 3, 1, 1, 1, 1)")
+    DBI::dbExecute(con, "INSERT INTO rg_master_file VALUES ('A', 'national', 26, 1, 1, 1, 1)")
+  })
+  f$context$intermediate_mode <- "read_only"
+  path <- f$intermediate_cache_path(f$lkup)
+  partial <- f$return_if_exists(requested, c(3, 26), path, FALSE)
+  expect_null(partial$data_present_in_master)
+  expect_equal(partial$lkup, requested)
+
+  f$context$intermediate_mode <- "write"
+  path <- f$intermediate_cache_path(f$lkup)
+  f$with_intermediate_db(path, TRUE, function(con) {
+    DBI::dbExecute(con, "INSERT INTO rg_master_file VALUES ('B', 'national', 26, 1, 1, 1, 1)")
+  })
+  f$context$intermediate_mode <- "read_only"
+  path <- f$intermediate_cache_path(f$lkup)
+  complete <- f$return_if_exists(requested, c(3, 26), path, FALSE)
+  expect_equal(nrow(complete$data_present_in_master), 4L)
+  expect_equal(nrow(complete$lkup), 0L)
+})
+
+test_that("managed database read failures are not treated as missing rows", {
+  withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
+  f <- duckdb_v2_fixture(withr::local_tempdir())
+  f$context$intermediate_mode <- "read_only"
+  path <- f$intermediate_cache_path(f$lkup)
+  f$load_inter_cache <- function(...) stop("damaged managed database")
+  expect_error(f$return_if_exists(f$dat, 3, path, FALSE), "damaged managed database")
+})
+
+test_that("an existing managed database with a missing table fails closed", {
+  withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
+  f <- duckdb_v2_fixture(withr::local_tempdir())
+  path <- f$intermediate_cache_path(f$lkup)
+  f$with_intermediate_db(path, TRUE, function(con) {
+    DBI::dbExecute(con, "CREATE TABLE rg_master_file (cache_id VARCHAR)")
+  })
+  f$context$intermediate_mode <- "read_only"
+  path <- f$intermediate_cache_path(f$lkup)
+  expect_error(f$load_inter_cache(cache_file_path = path, fill_gaps = TRUE),
+               "missing required table: fg_master_file")
+  expect_error(f$return_if_exists(f$dat, 3, path, TRUE),
+               "missing required table: fg_master_file")
 })
 
 test_that("custom response arguments reuse the version-owned intermediate tables", {
@@ -216,22 +285,17 @@ test_that("read-only misses and live requests do not initialize or write", {
   expect_identical(digest::digest(file = path, algo = "sha256"), checksum)
 })
 
-test_that("response precaching skips DuckDB without disabling response caching", {
+test_that("query_live_data alone controls explicit intermediate bypass", {
   withr::local_envvar(PIPAPI_CACHE_V2 = "TRUE", PIPAPI_APPLY_CACHING = "TRUE")
-  withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE,
-                       pipapi.precache_without_intermediate = TRUE)
+  withr::local_options(pipapi.query_live_data = FALSE, pipapi.verbose = FALSE)
   f <- duckdb_v2_fixture(withr::local_tempdir())
-  path <- file.path(f$lkup$data_root, "cache.duckdb")
-  expect_null(f$intermediate_cache_path(f$lkup))
-  expect_equal(f$return_if_exists(f$dat, 3, path, FALSE)$lkup, f$dat)
+  path <- f$intermediate_cache_path(f$lkup)
   expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 0L)
-  expect_false(f$update_master_file(f$dat, path, FALSE))
-  expect_false(f$create_duckdb_file(path))
   expect_false(file.exists(path))
-  options(pipapi.precache_without_intermediate = FALSE)
-  f$update_master_file(f$dat, f$intermediate_cache_path(f$lkup), FALSE)
+  expect_equal(f$update_master_file(f$dat, path, FALSE), 1L)
   checksum <- digest::digest(file = path, algo = "sha256")
-  options(pipapi.precache_without_intermediate = TRUE)
+  expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 1L)
+  options(pipapi.query_live_data = TRUE)
   expect_null(f$intermediate_cache_path(f$lkup))
   expect_equal(nrow(f$load_inter_cache(cache_file_path = path)), 0L)
   expect_false(f$update_master_file(f$dat, path, FALSE))

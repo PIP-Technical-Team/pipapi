@@ -378,11 +378,10 @@ test_that("unplanned UI lines use response cache without DuckDB", {
   expect_identical(counters$ui, 2L)
 })
 
-test_that("response precaching ignores absent and present DuckDB files", {
+test_that("response cache keys do not depend on DuckDB file presence", {
   fixture <- response_fixture()
   counters <- response_ui_mocks()
-  withr::local_options(pipapi.precache_without_intermediate = TRUE,
-                       pipapi.query_live_data = FALSE)
+  withr::local_options(pipapi.query_live_data = FALSE)
   app <- response_app(fixture)
   params <- list(country = "IDN", version = fixture$version, povline = 3)
   path <- file.path(fixture$root, "sources", fixture$version, "cache.duckdb")
@@ -403,18 +402,17 @@ test_that("response precaching ignores absent and present DuckDB files", {
   expect_identical(digest::digest(file = path, algo = "sha256"), checksum)
 })
 
-test_that("production response misses also calculate without DuckDB", {
+test_that("response misses leave intermediate decisions to pipapi", {
   fixture <- response_fixture()
-  withr::local_options(pipapi.precache_without_intermediate = FALSE,
-                       pipapi.query_live_data = FALSE)
+  withr::local_options(pipapi.query_live_data = FALSE)
   originals <- pipapi:::.cache_v2_state$originals
   old <- originals[["ui_pc_charts"]]
   on.exit(assign("ui_pc_charts", old, envir = originals), add = TRUE)
   seen <- new.env(parent = emptyenv())
-  seen$without_db <- FALSE
+  seen$query_live_data <- NULL
   replacement <- old
   body(replacement) <- quote({
-    seen$without_db <- isTRUE(getOption("pipapi.precache_without_intermediate"))
+    seen$query_live_data <- getOption("pipapi.query_live_data")
     data.frame(country_code = "IDN", reporting_pop = 1.25)
   })
   scope <- new.env(parent = environment(old))
@@ -425,8 +423,7 @@ test_that("production response misses also calculate without DuckDB", {
                           list(country = "IDN", version = fixture$version, povline = 3))
   expect_equal(result$status, 200)
   expect_identical(result$headers[["X-Pipapi-Cache"]], "MISS")
-  expect_true(seen$without_db)
-  expect_false(isTRUE(getOption("pipapi.precache_without_intermediate")))
+  expect_identical(seen$query_live_data, FALSE)
   expect_false(file.exists(file.path(fixture$root, "sources", fixture$version, "cache.duckdb")))
 })
 

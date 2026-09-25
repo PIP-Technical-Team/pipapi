@@ -335,56 +335,6 @@ function(req, res) {
 }
 
 # Endpoints definition ----------------------------------------------------
-# Managed intermediate data contains only the lines selected for precaching.
-# Other lines are valid API inputs, but must not enter the read-only DuckDB path.
-# Scope the bypass to this request so subsequent requests still use their cache.
-with_povline_cache_fallback <- function(req, lkup, expr, response_cache = FALSE) {
-  if (response_cache || isTRUE(getOption("pipapi.precache_without_intermediate"))) {
-    return(force(expr))
-  }
-  code <- substitute(expr)
-  caller <- parent.frame()
-  context <- pipapi:::cache_v2_context(lkup)
-  povline <- req$argsQuery$povline
-  # Bare requests use the handler's 1.9 default, not the query filter default.
-  if (is.null(povline)) povline <- 1.9
-  compute <- function(live = FALSE) {
-    if (live) {
-      old <- options(pipapi.query_live_data = TRUE)
-      on.exit(options(old), add = TRUE)
-    }
-    eval(code, envir = caller)
-  }
-  if (!is.null(context) && identical(context$intermediate_mode, "read_only") &&
-      identical(pipapi::cache_v2_build()$schema, 4L)) {
-    return(compute())
-  }
-  if (!is.null(context) &&
-      any(!round(povline * 100) %in% round(lkup$pl_lkup$poverty_line * 100))) {
-    if (identical(context$intermediate_mode, "read_only")) {
-      report <- pipapi::cache_v2_validate_intermediate(lkup, require_rows = TRUE)
-      if (!isTRUE(report$valid)) stop("Managed intermediate DuckDB is missing.")
-    }
-    return(compute(live = TRUE))
-  }
-  # A bootstrap can intentionally select fewer lines than the auxiliary table.
-  # Retain cache hits, but retry a read-only coverage miss from the live source.
-  if (is.null(context) || !identical(context$intermediate_mode, "read_only") ||
-      isTRUE(getOption("pipapi.query_live_data"))) return(compute())
-  tryCatch(compute(), error = function(e) {
-    if (!grepl("^(Required intermediate DuckDB data is missing|Intermediate DuckDB coverage is incomplete|Requested poverty line is missing from the intermediate DuckDB)",
-               conditionMessage(e))) stop(e)
-    # A missing or damaged canonical database is not an uncached poverty line.
-    # Keep the managed cache's fail-closed behavior in that case.
-    intact <- tryCatch({
-      report <- pipapi::cache_v2_validate_intermediate(lkup, require_rows = TRUE)
-      isTRUE(report$valid)
-    }, error = function(.) FALSE)
-    if (!intact) stop(e)
-    compute(live = TRUE)
-  })
-}
-
 ## Endpoints: Core endpoints ----
 
 ### pip-info -----------
@@ -449,8 +399,7 @@ function(req, res) {
       # group_by was removed from pip(); route aggregation calls to /api/v1/pip-grp
       params$group_by <- NULL
 
-      with_povline_cache_fallback(req, params$lkup,
-        do.call(pip, params) |> with_req_timeout())
+      do.call(pip, params) |> with_req_timeout()
     },
     endpoint = "/api/v1/pip"
   )(req, res)
@@ -481,8 +430,7 @@ function(req, res) {
       params$format <- NULL
       params$version <- NULL
 
-      with_povline_cache_fallback(req, params$lkup,
-        do.call(pip_agg, params) |> with_req_timeout())
+      do.call(pip_agg, params) |> with_req_timeout()
     },
     endpoint = "/api/v1/pip-grp"
   )(req, res)
@@ -891,8 +839,7 @@ function(req, res) {
   safe_endpoint(
     function(req, res) {
       lkup <- lkups$versions_paths[[req$argsQuery$version]]
-      with_povline_cache_fallback(req, lkup,
-        pipapi:::cache_v2_response(req, res, "hp-stacked", lkup), response_cache = TRUE)
+      pipapi:::cache_v2_response(req, res, "hp-stacked", lkup)
     },
     endpoint = "/api/v1/hp-stacked"
   )(req, res)
@@ -914,8 +861,7 @@ function(req, res) {
       params$lkup <- lkups$versions_paths[[req$argsQuery$version]]
       params$version <- NULL
 
-      with_povline_cache_fallback(req, params$lkup,
-        do.call(pipapi::ui_hp_countries, params) |> with_req_timeout())
+      do.call(pipapi::ui_hp_countries, params) |> with_req_timeout()
     },
     endpoint = "/api/v1/hp-countries"
   )(req, res)
@@ -942,8 +888,7 @@ function(req, res) {
   safe_endpoint(
     function(req, res) {
       lkup <- lkups$versions_paths[[req$argsQuery$version]]
-      with_povline_cache_fallback(req, lkup,
-        pipapi:::cache_v2_response(req, res, "pc-charts", lkup), response_cache = TRUE)
+      pipapi:::cache_v2_response(req, res, "pc-charts", lkup)
     },
     endpoint = "/api/v1/pc-charts"
   )(req, res)
@@ -970,8 +915,7 @@ function(req) {
   params$version <- NULL
   params$censor <- TRUE
 
-  with_povline_cache_fallback(req, params$lkup,
-    do.call(pipapi::ui_pc_charts, params))
+  do.call(pipapi::ui_pc_charts, params)
 }
 
 ### pc-regional-aggregates -----------
@@ -988,8 +932,7 @@ function(req, res) {
   safe_endpoint(
     function(req, res) {
       lkup <- lkups$versions_paths[[req$argsQuery$version]]
-      with_povline_cache_fallback(req, lkup,
-        pipapi:::cache_v2_response(req, res, "pc-regional-aggregates", lkup), response_cache = TRUE)
+      pipapi:::cache_v2_response(req, res, "pc-regional-aggregates", lkup)
     },
     endpoint = "/api/v1/pc-regional-aggregates"
   )(req, res)
@@ -1010,8 +953,7 @@ function(req, res) {
   safe_endpoint(
     function(req, res) {
       lkup <- lkups$versions_paths[[req$argsQuery$version]]
-      with_povline_cache_fallback(req, lkup,
-        pipapi:::cache_v2_response(req, res, "cp-key-indicators", lkup), response_cache = TRUE)
+      pipapi:::cache_v2_response(req, res, "cp-key-indicators", lkup)
     },
     endpoint = "/api/v1/cp-key-indicators"
   )(req, res)
@@ -1030,8 +972,7 @@ function(req, res) {
 cp_charts <- safe_endpoint(
   function(req, res) {
     lkup <- lkups$versions_paths[[req$argsQuery$version]]
-    with_povline_cache_fallback(req, lkup,
-      pipapi:::cache_v2_response(req, res, "cp-charts", lkup), response_cache = TRUE)
+    pipapi:::cache_v2_response(req, res, "cp-charts", lkup)
   },
   endpoint = "/api/v1/cp-charts"
 )
@@ -1051,8 +992,7 @@ function(req, res) {
   params$version <- NULL
   params$format <- NULL
 
-  out <- with_povline_cache_fallback(req, params$lkup,
-    do.call(ui_cp_download, params))
+  out <- do.call(ui_cp_download, params)
   out
 }
 

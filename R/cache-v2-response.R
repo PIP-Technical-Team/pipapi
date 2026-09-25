@@ -228,10 +228,6 @@ cache_v2_response <- function(req, res, endpoint, lkup) {
   params$lkup <- lkup
   if (spec$endpoint == "pc-charts") params$censor <- TRUE
   compute <- function() {
-    # Response bytes must not depend on whether an intermediate DuckDB exists.
-    # This bypass leaves response-cache lookup and publication enabled.
-    old <- options(pipapi.precache_without_intermediate = TRUE)
-    on.exit(options(old), add = TRUE)
     cache_v2_response_value(spec$operation, params)
   }
   if (!cache_v2_enabled() ||
