@@ -14,8 +14,8 @@ findings:
   P2.4: fixed
   P2.5: fixed
   P2.6: fixed
-  P2.7: open
-  P2.8: open
+  P2.7: fixed
+  P2.8: fixed
   P3.1: fixed
   P3.2: fixed
   P3.3: fixed
