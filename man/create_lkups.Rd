@@ -4,12 +4,15 @@
 \alias{create_lkups}
 \title{Create look-up tables}
 \usage{
-create_lkups(data_dir, versions)
+create_lkups(data_dir, versions, schema = NULL)
 }
 \arguments{
 \item{data_dir}{character: Path to PIP data root folder.}
 
 \item{versions}{character: Available data versions}
+
+\item{schema}{character: Optional schema identifier (e.g. "new-lineup" or "pre-lineup").
+When supplied, overrides the date heuristic check and sets lineup behavior explicitly.}
 }
 \value{
 list

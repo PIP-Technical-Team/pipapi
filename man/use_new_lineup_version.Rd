@@ -15,9 +15,14 @@ A logical vector: \code{TRUE} if the extracted date is
 after May 1st, 2025, otherwise \code{FALSE}.
 }
 \description{
-Check if the date in a string is more recent than May 2025
+Check if the date in a string is more recent than May 2025.
 }
 \details{
+Note: In the code-data pairing architecture, container startup loading in
+\code{\link[=create_versioned_lkups]{create_versioned_lkups()}} passes explicit \code{schema} configuration rather
+than relying on this date heuristic. This function is maintained for
+backward compatibility and internal fallback.
+
 This function extracts the first 8 characters from an input string,
 interprets them as a date in the format \code{YYYYMMDD}, and checks
 whether this date is more recent than May 1st, 2025.

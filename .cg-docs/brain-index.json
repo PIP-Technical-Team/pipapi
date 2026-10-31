@@ -1,0 +1,692 @@
+{
+  "edge_count": 4,
+  "edges": [
+    {
+      "edge_type": "decided_from",
+      "source": ".cg-docs/plans/2026-10-31-pairing-filtered-startup-isolation.md",
+      "target": ".cg-docs/brainstorms/2026-10-05-pipapi-versioning-post-its-revision.md",
+      "target_missing": false
+    },
+    {
+      "edge_type": "reviews",
+      "source": ".cg-docs/reviews/2026-10-31-pairing-filtered-startup-isolation-review.md",
+      "target": ".cg-docs/plans/2026-10-31-pairing-filtered-startup-isolation.md",
+      "target_missing": false
+    },
+    {
+      "edge_type": "verifies",
+      "source": ".cg-docs/reviews/2026-10-31-pairing-filtered-startup-isolation-verify-review.md",
+      "target": ".cg-docs/reviews/2026-10-31-pairing-filtered-startup-isolation-review.md",
+      "target_missing": false
+    },
+    {
+      "edge_type": "references",
+      "source": ".cg-docs/plans/2026-10-31-pairing-filtered-startup-isolation.md",
+      "target": ".cg-docs/solutions/data-quality/2026-10-31-pairing-filtered-startup-isolation.md",
+      "target_missing": false
+    }
+  ],
+  "entities": [
+    {
+      "date": "2026-04-17",
+      "entity_type": "brainstorm",
+      "path": ".cg-docs/brainstorms/2026-04-17-openapi-documentation-overhaul.md",
+      "slug": "2026-04-17-openapi-documentation-overhaul",
+      "status": "decided",
+      "summary": "The existing `openapi.yaml` documented only 12 endpoints with minimal descriptions, no response schemas, no tags, and placeholder examples. The API actually has 31+ endpoints covering core poverty statistics, grouped-data computations, metadata, system diagnostics, homepage feeds, poverty calculator, and country profiles.",
+      "tags": [
+        "documentation",
+        "openapi",
+        "api",
+        "swagger"
+      ],
+      "title": "OpenAPI Documentation Overhaul",
+      "top_keywords": [
+        "openapi.yaml",
+        "approach",
+        "openapi",
+        "documentation",
+        "documentation overhaul",
+        "overhaul",
+        "response",
+        "schemas",
+        "descriptions",
+        "examples"
+      ]
+    },
+    {
+      "date": "2026-08-28",
+      "entity_type": "brainstorm",
+      "path": ".cg-docs/brainstorms/2026-08-28-pipapi-code-data-versioning-model.md",
+      "slug": "2026-08-28-pipapi-code-data-versioning-model",
+      "status": "decided",
+      "summary": "The pipapi codebase and data folder structure are tightly coupled, but no formal contract tracks or enforces this coupling. This creates three distinct problems:",
+      "tags": [
+        "versioning",
+        "deployment",
+        "reproducibility",
+        "data",
+        "schema",
+        "api"
+      ],
+      "title": "PIP API Code-Data Versioning Model",
+      "top_keywords": [
+        "_manifest.yaml",
+        "pairings.yaml",
+        "phase",
+        "use_new_lineup_version()",
+        "schema",
+        "lineup-v2",
+        "create_versioned_lkups()",
+        "/data",
+        "main.r",
+        "versioning"
+      ]
+    },
+    {
+      "date": "2026-09-03",
+      "entity_type": "brainstorm",
+      "path": ".cg-docs/brainstorms/2026-09-03-pipapi-multi-version-api-routing.md",
+      "slug": "2026-09-03-pipapi-multi-version-api-routing",
+      "status": "decided",
+      "summary": "This brainstorm extends the [2026-08-28 code-data versioning model](2026-08-28-pipapi-code-data-versioning-model.md) to support **concurrent multi-version API routing**. The original brainstorm established a phased approach (schema contracts → code pinning → historical addressability) but assumed only a single active API instance runs at any time.",
+      "tags": [
+        "versioning",
+        "deployment",
+        "routing",
+        "infrastructure",
+        "azure",
+        "multi-release",
+        "concurrent-serving"
+      ],
+      "title": "PIP API Multi-Version Routing Architecture",
+      "top_keywords": [
+        "pairings.yaml",
+        "main.r",
+        "/data",
+        "storage",
+        "create_versioned_lkups()",
+        "routing",
+        "_manifest.yaml",
+        "pipapi_schema",
+        "v1",
+        "/api/v1/pip"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "brainstorm",
+      "path": ".cg-docs/brainstorms/2026-09-23-its-meeting-code-data-versioning-overview.md",
+      "slug": "2026-09-23-its-meeting-code-data-versioning-overview",
+      "status": "",
+      "summary": "**Purpose.** Prepare a shared reference for tomorrow's meeting with ITS on the design of a code–data versioning feature for the PIP API. This document summarises **where things stand today** and **what is being proposed**, in two parallel sections: current architecture and proposed new architecture, each with a written description and a Mermaid diagram. Open questions are collected at the end.",
+      "tags": [],
+      "title": "2026-09-23-its-meeting-code-data-versioning-overview",
+      "top_keywords": [
+        "main.r",
+        "_manifest.yaml",
+        "side",
+        "/data",
+        "lkups",
+        "azure blob",
+        "architecture",
+        "pipapi_schema",
+        "itses-povertyscoreapi",
+        "pipapi_data_root"
+      ]
+    },
+    {
+      "date": "2026-10-05",
+      "entity_type": "brainstorm",
+      "path": ".cg-docs/brainstorms/2026-10-05-pipapi-versioning-post-its-revision.md",
+      "slug": "2026-10-05-pipapi-versioning-post-its-revision",
+      "status": "decided",
+      "summary": "<!-- Valid status values: decided, in-progress, abandoned -->",
+      "tags": [
+        "versioning",
+        "deployment",
+        "routing",
+        "schema",
+        "pipschema",
+        "pairing",
+        "reproducibility",
+        "its"
+      ],
+      "title": "PIP API Code-Data Versioning: Post-ITS Revision (pairing-keyed containers, central schema file, pipschema)",
+      "top_keywords": [
+        "{pipapi}",
+        "pairing",
+        "main.r",
+        "{pipschema}",
+        "/data",
+        "vintage_pattern",
+        "itses-povertyscoreapi",
+        "side",
+        "revised",
+        "architecture"
+      ]
+    },
+    {
+      "date": "2026-10-31",
+      "entity_type": "plan",
+      "path": ".cg-docs/plans/2026-10-31-pairing-filtered-startup-isolation.md",
+      "slug": "2026-10-31-pairing-filtered-startup-isolation",
+      "status": "completed",
+      "summary": "Configure `{pipapi}` startup so an API container loads strictly the vintage folders assigned to its `(schema, pipapi_version)` pairing from `pairing.yml`, replaces the May 2025 date heuristic (`use_new_lineup_version()`) for folder/schema loading decisions with explicit pairing-driven configuration, isolates per-vintage lookup construction (`tryCatch`) so a single corrupt or incompatible folder warns without aborting container startup, and defines the exact git release-tagging strategy for frozen `{pipapi}` SHAs.",
+      "tags": [
+        "versioning",
+        "pairing",
+        "startup",
+        "create_versioned_lkups",
+        "tryCatch",
+        "git-tags",
+        "pipschema"
+      ],
+      "title": "Enable {pipapi} to Consume Pairing-Filtered Vintage Lists and Isolate Startup (Workstream B)",
+      "top_keywords": [
+        "create_versioned_lkups()",
+        "pairing.yml",
+        "r/create_lkups.r",
+        "schema",
+        "test-create_lkups.r",
+        "create_lkups.r",
+        "089c3fc877e003259694fb9b6aef8626a317bb53",
+        "versions",
+        "tests/testthat/test-create_lkups.r",
+        "trycatch"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "review",
+      "path": ".cg-docs/reviews/2026-04-17-review.md",
+      "slug": "2026-04-17-review",
+      "status": "",
+      "summary": "**Review depth**: standard **Files reviewed**: 4 (`R/duckdb_func.R`, `inst/TMP/TMP_duckdb_cache.R`, `inst/plumber/v1/openapi.yaml`, `tests/testthat/test-reset_cache.R`) **Findings**: 2 × P0, 8 × P1, 15 × P2, 7 × P3",
+      "tags": [],
+      "title": "2026-04-17-review",
+      "top_keywords": [
+        "openapi.yaml",
+        "inst/plumber/v1/openapi.yaml",
+        "delete_cache()",
+        "duckdb_func.r",
+        "tests/testthat/test-reset_cache.r",
+        "test-reset_cache.r",
+        "endpoints.r",
+        "cache-delete",
+        "duckdb-reset",
+        "r/duckdb_func.r"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "review",
+      "path": ".cg-docs/reviews/2026-04-20-review.md",
+      "slug": "2026-04-20-review",
+      "status": "",
+      "summary": "**Review depth**: light + `@cg-version-control` (auto-escalated: auth/credential files changed) **Files reviewed**: 6 (`.Rbuildignore`, `R/duckdb_func.R`, `inst/TMP/TMP_duckdb_cache.R`, `inst/plumber/v1/endpoints.R`, `inst/plumber/v1/openapi.yaml`, `tests/testthat/test-reset_cache.R`) **Findings**: 1 × P0, 2 × P1, 1 × P2, 1 × P3",
+      "tags": [],
+      "title": "2026-04-20-review",
+      "top_keywords": [
+        "tmp_duckdb_cache.r",
+        "description",
+        ".rbuildignore",
+        ".gitignore",
+        "fix",
+        "pip_cache_local_key",
+        "inst/tmp/tmp_duckdb_cache.r",
+        ".check_cache_auth()",
+        "inst/tmp/.gitignore",
+        "here::here(...)"
+      ]
+    },
+    {
+      "date": "2026-10-31",
+      "entity_type": "review",
+      "path": ".cg-docs/reviews/2026-10-31-pairing-filtered-startup-isolation-review.md",
+      "slug": "2026-10-31-pairing-filtered-startup-isolation-review",
+      "status": "",
+      "summary": "**Review mode**: architecture **Files reviewed**: 4 (`R/create_lkups.R`, `tests/testthat/test-create_lkups.R`, `NAMESPACE`, `DESCRIPTION`) **Findings**: 16 (P0: 0, P1: 4, P2: 8, P3: 4)",
+      "tags": [],
+      "title": "2026-10-31-pairing-filtered-startup-isolation-review",
+      "top_keywords": [
+        "create_lkups.r",
+        "null",
+        "pipapi_sha",
+        "read_pairing_vintages()",
+        "create_versioned_lkups()",
+        "schema",
+        "vintage_folders",
+        "na",
+        "test-create_lkups.r",
+        "pipapi_version"
+      ]
+    },
+    {
+      "date": "2026-10-31",
+      "entity_type": "review",
+      "path": ".cg-docs/reviews/2026-10-31-pairing-filtered-startup-isolation-verify-review.md",
+      "slug": "2026-10-31-pairing-filtered-startup-isolation-verify-review",
+      "status": "",
+      "summary": "**Review mode**: light (`mode:verify`) **Files reviewed**: 2 (`R/create_lkups.R`, `tests/testthat/test-create_lkups.R`) **Findings**: 0 (P0: 0, P1: 0, P2: 0, P3: 0)",
+      "tags": [],
+      "title": "2026-10-31-pairing-filtered-startup-isolation-verify-review",
+      "top_keywords": [
+        "review",
+        "report",
+        "passed",
+        "mode:verify",
+        "r/create_lkups.r",
+        "tests/testthat/test-create_lkups.r",
+        "@cg-code-quality",
+        "@cg-testing",
+        "review report",
+        "2026-10-31-pairing-filtered-startup-isolation-review.md"
+      ]
+    },
+    {
+      "date": "2026-04-16",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/bugs/2026-04-16-duckdb-file-lock-shutdown.md",
+      "slug": "2026-04-16-duckdb-file-lock-shutdown",
+      "status": "",
+      "summary": "`update_master_file` (called via `pip()`) fails with:",
+      "tags": [
+        "duckdb",
+        "DBI",
+        "dbDisconnect",
+        "shutdown",
+        "file-lock",
+        "connection",
+        "cache"
+      ],
+      "title": "DuckDB file locked after dbDisconnect — write connection fails with 'file in use'",
+      "top_keywords": [
+        "update_master_file",
+        "load_inter_cache",
+        "duckdb::dbdisconnect(con)",
+        "duckdb",
+        "connection",
+        "dbdisconnect",
+        "reset_cache",
+        "dbi::dbdisconnect(con, shutdown = true)",
+        "dbi::dbdisconnect(con)",
+        "locked"
+      ]
+    },
+    {
+      "date": "2026-04-16",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/bugs/2026-04-16-load-inter-cache-missing-tables.md",
+      "slug": "2026-04-16-load-inter-cache-missing-tables",
+      "status": "",
+      "summary": "When running `pip()` against a data vintage whose DuckDB cache file exists but has never been initialized, the following warning is emitted (but execution continues):",
+      "tags": [
+        "duckdb",
+        "cache",
+        "load_inter_cache",
+        "missing-table",
+        "catalog-error",
+        "warning"
+      ],
+      "title": "load_inter_cache emits catalog warning when DuckDB tables do not exist",
+      "top_keywords": [
+        "load_inter_cache",
+        "catalog error",
+        "duckdb",
+        "warning",
+        "load_inter_cache()",
+        "dbi::dbexiststable()",
+        "catalog",
+        "exist",
+        "tables",
+        "emits"
+      ]
+    },
+    {
+      "date": "2026-04-16",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/bugs/2026-04-16-reset-cache-missing-tables.md",
+      "slug": "2026-04-16-reset-cache-missing-tables",
+      "status": "",
+      "summary": "Running `reset_cache(lkup = lkup)` throws:",
+      "tags": [
+        "duckdb",
+        "cache",
+        "reset_cache",
+        "missing-table",
+        "catalog-error"
+      ],
+      "title": "reset_cache fails when DuckDB cache tables do not exist yet",
+      "top_keywords": [
+        "duckdb",
+        "cache",
+        "reset_cache",
+        "tables",
+        "exist",
+        "yet",
+        "2026-04-16-testing-duckdb-functions.md",
+        "2026-04-16-duckdb-dbexiststable-guard.md",
+        "delete",
+        "symptom"
+      ]
+    },
+    {
+      "date": "2026-04-20",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/bugs/2026-04-20-getenv-empty-string-auth-bypass.md",
+      "slug": "2026-04-20-getenv-empty-string-auth-bypass",
+      "status": "",
+      "summary": "`reset_cache()` and `delete_cache()` had a key-validation guard: When **both** `PIP_CACHE_LOCAL_KEY` and `PIP_CACHE_SERVER_KEY` are unset, `pass` defaults to `Sys.getenv('PIP_CACHE_LOCAL_KEY')` → `\"\"`, and `Sys.getenv('PIP_CACHE_SERVER_KEY')` → `\"\"`. The condition `\"\" != \"\"` is `FALSE`, so the guard is silently skipped and the destructive operation proceeds without any authentication.",
+      "tags": [
+        "auth",
+        "security",
+        "Sys.getenv",
+        "env-vars",
+        "duckdb",
+        "cache"
+      ],
+      "title": "Sys.getenv() empty-string auth bypass: \"\" != \"\" is FALSE",
+      "top_keywords": [
+        "\"\"",
+        "unset",
+        "sys.getenv()",
+        "nzchar()",
+        "auth",
+        "sys",
+        "getenv",
+        "empty-string",
+        "bypass",
+        "2026-04-20-withr-local-envvar-both-keys-required.md"
+      ]
+    },
+    {
+      "date": "2026-04-20",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/build-errors/2026-04-20-here-package-not-in-description-suggests.md",
+      "slug": "2026-04-20-here-package-not-in-description-suggests",
+      "status": "",
+      "summary": "`test-openapi-spec.R` used `here::here()` to locate source files when the package was not yet installed: `here` was not listed in `DESCRIPTION Suggests`. On a developer machine where `here` happens to be installed library-wide, this is invisible. On a clean CI runner that only installs packages declared in `DESCRIPTION`, `library(here)` errors with *\"there is no package called 'here'\"* and the entire test file fails to load.",
+      "tags": [
+        "here",
+        "rprojroot",
+        "DESCRIPTION",
+        "Suggests",
+        "testthat",
+        "CI",
+        "package-check"
+      ],
+      "title": "Using 'here' package in tests without declaring it in DESCRIPTION Suggests",
+      "top_keywords": [
+        "rprojroot",
+        "description",
+        "openapi.yaml",
+        "description suggests",
+        "suggests",
+        "test-openapi-spec.r",
+        "here::here()",
+        "package",
+        "tests",
+        "declared"
+      ]
+    },
+    {
+      "date": "2026-04-16",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/data-quality/2026-04-16-duckdb-dbexiststable-guard.md",
+      "slug": "2026-04-16-duckdb-dbexiststable-guard",
+      "status": "",
+      "summary": "Three separate functions in `R/duckdb_func.R` independently threw the same Catalog Error on a fresh `.duckdb` file (one that exists on disk but has never had `CREATE TABLE` run against it): The functions affected were: 1. `reset_cache()` — `DELETE FROM rg_master_file` (error, commit `d67c005`) 2. `update_master_file()` — `PRAGMA table_info(rg_master_file)` (error, commit `95795d3`) 3. `load_inter_cache()` — `SELECT * FROM rg_master_file` (warning via upstream `tryCatch`, commit `4df2714`) All three hit the same condition: the `.duckdb` file existed (created by `duckdb::dbConnect`) but neither `rg_master_file` nor `fg_master_file` had been created yet because `create_duckdb_file()` had never been called for that data vintage.",
+      "tags": [
+        "duckdb",
+        "DBI",
+        "dbExistsTable",
+        "catalog-error",
+        "missing-table",
+        "defensive-coding",
+        "cache"
+      ],
+      "title": "Always guard DuckDB table operations with dbExistsTable()",
+      "top_keywords": [
+        "table",
+        "create_duckdb_file()",
+        ".duckdb",
+        "catalog error",
+        "duckdb",
+        "dbexiststable",
+        "delete",
+        "reset_cache",
+        "load_inter_cache",
+        "absent"
+      ]
+    },
+    {
+      "date": "2026-10-31",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/data-quality/2026-10-31-pairing-filtered-startup-isolation.md",
+      "slug": "2026-10-31-pairing-filtered-startup-isolation",
+      "status": "",
+      "summary": "In the multi-container code-data versioning architecture for `{pipapi}`, each container serves a frozen `(schema, pipapi_version)` pairing from `pairing.yml` while mounting a shared flat `/Data` directory. Four startup failure modes existed: 1. **Unscoped directory scanning**: `create_versioned_lkups(data_dir)` scanned all folders under `/Data` matching the general vintage regex, attempting to load incompatible schemas into the same container. 2. **Hard-coded date cutoff**: `create_lkups()` relied on `use_new_lineup_version()` (`> 2025-05-01`) to decide whether to load new-lineup tables (`prod_refy_estimation.fst`, `lineup_years.fst`, `lineup_dist_stats.fst`), rather than using the explicit `schema` declared by the pairing. 3. **All-or-nothing startup**: `create_versioned_lkups()` called `mapply(create_lkups, ...)` with no error boundary, so a single unreadable or...",
+      "tags": [
+        "pipapi",
+        "pipschema",
+        "pairing",
+        "startup",
+        "create_versioned_lkups",
+        "yaml",
+        "tryCatch",
+        "regex",
+        "cache-v2"
+      ],
+      "title": "Pairing-filtered vintage startup isolation and strict YAML version validation in {pipapi}",
+      "top_keywords": [
+        "create_versioned_lkups()",
+        "pairing.yml",
+        "schema",
+        "latest_release",
+        "{pipapi}",
+        "/data",
+        "as.integer()",
+        "perl = true",
+        "yaml",
+        "startup"
+      ]
+    },
+    {
+      "date": "2026-04-16",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/testing-patterns/2026-04-16-testing-duckdb-functions.md",
+      "slug": "2026-04-16-testing-duckdb-functions",
+      "status": "",
+      "summary": "Functions that read from or write to a DuckDB file (e.g. cache helpers like `reset_cache`, `create_duckdb_file`) are hard to unit-test because they need a real file-backed database. Tests that rely on production data directories are slow, fragile, and environment-dependent.",
+      "tags": [
+        "duckdb",
+        "DBI",
+        "testthat",
+        "withr",
+        "cache",
+        "ephemeral",
+        "unit-test"
+      ],
+      "title": "Testing DuckDB functions with ephemeral in-process databases",
+      "top_keywords": [
+        "duckdb",
+        "ephemeral",
+        "lkup",
+        "withr::local_tempdir()",
+        "withr::local_envvar()",
+        "functions",
+        "testing",
+        "in-process",
+        "databases",
+        "2026-04-16-reset-cache-missing-tables.md"
+      ]
+    },
+    {
+      "date": "2026-04-20",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/testing-patterns/2026-04-20-withr-local-envvar-both-keys-required.md",
+      "slug": "2026-04-20-withr-local-envvar-both-keys-required",
+      "status": "",
+      "summary": "After extracting `.check_cache_auth()` as an internal helper, the `delete_cache` \"no-file\" test was simplified to only set: The reasoning was: *the test supplies `pass` directly, so `PIP_CACHE_LOCAL_KEY` is unused.* But `.check_cache_auth()` reads **both** env vars independently: On a developer machine where `PIP_CACHE_LOCAL_KEY` happens to be set in `.Renviron`, the test passes. On a clean CI runner (no `.Renviron`), the auth helper aborts before reaching the test assertion, throwing an unexpected error.",
+      "tags": [
+        "withr",
+        "local_envvar",
+        "env-vars",
+        "auth",
+        "testthat",
+        "CI"
+      ],
+      "title": "withr::local_envvar must set ALL env vars the implementation reads independently",
+      "top_keywords": [
+        "local_envvar",
+        "pip_cache_local_key",
+        "vars",
+        "withr",
+        "helper",
+        ".check_cache_auth()",
+        ".renviron",
+        "env",
+        "auth",
+        "implementation"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#phase-1-schema-contract",
+      "slug": "phase-1-schema-contract",
+      "status": "idea",
+      "summary": "Phase 1: Schema Contract",
+      "tags": [],
+      "title": "Phase 1: Schema Contract",
+      "top_keywords": [
+        "schema contract\nmilestone",
+        "data versioning\nobjective",
+        "schema",
+        "phase",
+        "contract",
+        "feature",
+        "milestone",
+        "code-data",
+        "versioning",
+        "objective"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#phase-2-code-pinning-single-schema",
+      "slug": "phase-2-code-pinning-single-schema",
+      "status": "idea",
+      "summary": "Phase 2: Code Pinning + Single Schema",
+      "tags": [],
+      "title": "Phase 2: Code Pinning + Single Schema",
+      "top_keywords": [
+        "code pinning",
+        "single schema\nmilestone",
+        "data versioning\nobjective",
+        "schema",
+        "phase",
+        "pinning",
+        "single",
+        "feature",
+        "milestone",
+        "code-data"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#phase-3-historical-addressability",
+      "slug": "phase-3-historical-addressability",
+      "status": "idea",
+      "summary": "Phase 3: Historical Addressability",
+      "tags": [],
+      "title": "Phase 3: Historical Addressability",
+      "top_keywords": [
+        "historical addressability\nmilestone",
+        "data versioning\nobjective",
+        "phase",
+        "historical",
+        "addressability",
+        "feature",
+        "milestone",
+        "code-data",
+        "versioning",
+        "objective"
+      ]
+    }
+  ],
+  "entity_count": 22,
+  "generated": "2026-10-31",
+  "schema_version": "0.2.0",
+  "topic_count": 4,
+  "topics": [
+    {
+      "entity_count": 7,
+      "entity_paths": [
+        ".cg-docs/solutions/bugs/2026-04-16-duckdb-file-lock-shutdown.md",
+        ".cg-docs/solutions/bugs/2026-04-16-load-inter-cache-missing-tables.md",
+        ".cg-docs/solutions/bugs/2026-04-16-reset-cache-missing-tables.md",
+        ".cg-docs/solutions/bugs/2026-04-20-getenv-empty-string-auth-bypass.md",
+        ".cg-docs/solutions/data-quality/2026-04-16-duckdb-dbexiststable-guard.md",
+        ".cg-docs/solutions/testing-patterns/2026-04-16-testing-duckdb-functions.md",
+        ".cg-docs/solutions/testing-patterns/2026-04-20-withr-local-envvar-both-keys-required.md"
+      ],
+      "keywords": [
+        "duckdb",
+        "reset_cache",
+        "load_inter_cache"
+      ],
+      "label": "Duckdb / Reset_Cache / Load_Inter_Cache",
+      "slug": "duckdb-reset-cache-load-inter-cache"
+    },
+    {
+      "entity_count": 4,
+      "entity_paths": [
+        ".cg-docs/brainstorms/2026-08-28-pipapi-code-data-versioning-model.md",
+        ".cg-docs/brainstorms/2026-09-03-pipapi-multi-version-api-routing.md",
+        ".cg-docs/brainstorms/2026-09-23-its-meeting-code-data-versioning-overview.md",
+        ".cg-docs/brainstorms/2026-10-05-pipapi-versioning-post-its-revision.md"
+      ],
+      "keywords": [
+        "main.r",
+        "{pipapi}",
+        "/data"
+      ],
+      "label": "Main.R / {Pipapi} / /Data",
+      "slug": "main-r-pipapi-data"
+    },
+    {
+      "entity_count": 3,
+      "entity_paths": [
+        ".cg-docs/plans/2026-10-31-pairing-filtered-startup-isolation.md",
+        ".cg-docs/reviews/2026-10-31-pairing-filtered-startup-isolation-review.md",
+        ".cg-docs/solutions/data-quality/2026-10-31-pairing-filtered-startup-isolation.md"
+      ],
+      "keywords": [
+        "create_versioned_lkups()",
+        "create_lkups.r",
+        "pairing.yml"
+      ],
+      "label": "Create_Versioned_Lkups() / Create_Lkups.R / Pairing.Yml",
+      "slug": "create-versioned-lkups-create-lkups-r-pairing-yml"
+    },
+    {
+      "entity_count": 3,
+      "entity_paths": [
+        "roadmap.json#phase-1-schema-contract",
+        "roadmap.json#phase-2-code-pinning-single-schema",
+        "roadmap.json#phase-3-historical-addressability"
+      ],
+      "keywords": [
+        "data versioning\nobjective",
+        "phase",
+        "schema"
+      ],
+      "label": "Data Versioning\nObjective / Phase / Schema",
+      "slug": "data-versioning-objective-phase-schema"
+    }
+  ]
+}

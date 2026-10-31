@@ -2,28 +2,84 @@
 #'
 #' @param data_dir character: Path to the main data directory
 #' @param vintage_pattern character: regex that identifies the name pattern of
-#'   vintage folders
-#' @return list
+#'   vintage folders, or output of [build_vintage_pattern()]
+#' @param vintage_folders character: Optional character vector of explicit vintage
+#'   folder names to load. When supplied, discovery is restricted strictly to these folders.
+#' @param schema character: Optional schema identifier (e.g. "new-lineup" or "pre-lineup").
+#'   When supplied, overrides the date heuristic check and sets lineup behavior explicitly.
+#' @return A named `list` containing `versions` (character vector of loaded
+#'   vintage names), `versions_paths` (named list of lookup objects per vintage),
+#'   and `latest_release` (character scalar of the primary release).
+#' @examples
+#' \dontrun{
+#' vintages <- read_pairing_vintages(
+#'   pairing_path = "/Data/pairing.yml",
+#'   schema = "new-lineup",
+#'   pipapi_version = "1.5.15"
+#' )
+#' lkups <- create_versioned_lkups(
+#'   data_dir = "/Data",
+#'   vintage_pattern = build_vintage_pattern(vintages),
+#'   schema = "new-lineup"
+#' )
+#' }
 #' @export
 create_versioned_lkups <-
-  function(data_dir, vintage_pattern = NULL) {
+  function(data_dir,
+           vintage_pattern = NULL,
+           vintage_folders = NULL,
+           schema = NULL) {
     vintage_pattern <- create_vintage_pattern_call(vintage_pattern)
 
     data_dirs <- extract_data_dirs(
       data_dir = data_dir,
-      vintage_pattern = vintage_pattern
+      vintage_pattern = vintage_pattern,
+      vintage_folders = vintage_folders
     )
 
     versions <- names(data_dirs)
-    # versions[1] <- "latest_release"
-    versions_paths <- mapply(
-      create_lkups,
+    if (length(versions) == 0L) {
+      cli::cli_abort(
+        "No valid vintage directories found in {.path {data_dir}} matching the filter."
+      )
+    }
+
+    versions_paths <- Map(
+      function(d, v) {
+        tryCatch(
+          create_lkups(data_dir = d, versions = v, schema = schema),
+          error = function(err) {
+            cli::cli_warn(c(
+              "Failed to load vintage folder {.val {v}} at {.path {d}}.",
+              x = conditionMessage(err),
+              i = "Skipping this vintage; it will not be served by this container."
+            ))
+            NULL
+          }
+        )
+      },
       data_dirs,
-      versions,
-      SIMPLIFY = FALSE,
-      USE.NAMES = FALSE
+      versions
     )
+
+    expected_latest <- versions[1]
+    keep <- !vapply(versions_paths, is.null, logical(1))
+    versions <- versions[keep]
+    versions_paths <- versions_paths[keep]
     names(versions_paths) <- versions
+
+    if (length(versions) == 0L) {
+      cli::cli_abort(
+        "All candidate vintage folders failed to load in {.path {data_dir}}."
+      )
+    }
+
+    if (!identical(versions[1], expected_latest)) {
+      cli::cli_warn(c(
+        "Primary vintage {.val {expected_latest}} failed to load.",
+        i = "Falling back to {.val {versions[1]}} as {.field latest_release}."
+      ))
+    }
 
     return(list(
       versions = versions,
@@ -38,7 +94,7 @@ create_versioned_lkups <-
 #' @return character
 #' @noRd
 extract_data_dirs <-
-  function(data_dir, vintage_pattern) {
+  function(data_dir, vintage_pattern, vintage_folders = NULL) {
     # List data directories under data_dir
 
     data_dirs <- fs::dir_ls(data_dir, type = "directory")
@@ -48,6 +104,10 @@ extract_data_dirs <-
       dirs_names = dirs_names,
       vintage_pattern = vintage_pattern$vintage_pattern
     )
+
+    if (!is.null(vintage_folders)) {
+      valid_dir <- valid_dir & (dirs_names %in% vintage_folders)
+    }
 
     data_dirs <- data_dirs[valid_dir]
     versions <- dirs_names[valid_dir]
@@ -74,11 +134,13 @@ extract_data_dirs <-
 #'
 #' @param data_dir character: Path to PIP data root folder.
 #' @param versions character: Available data versions
+#' @param schema character: Optional schema identifier (e.g. "new-lineup" or "pre-lineup").
+#'   When supplied, overrides the date heuristic check and sets lineup behavior explicitly.
 #' @keywords internal
 #' @return list
-create_lkups <- function(data_dir, versions) {
+create_lkups <- function(data_dir, versions, schema = NULL) {
   # Use new lineup approach? -----
-  use_new_lineup_version <- use_new_lineup_version(versions)
+  use_new_lineup_version <- resolve_use_new_lineup(versions, schema = schema)
 
   # Get survey paths ----
   paths <- list.files(fs::path(data_dir, "survey_data"))
@@ -979,7 +1041,12 @@ available_versions <- function(data_dir) {
 
 #' Should the new lineup approach be used?
 #'
-#' Check if the date in a string is more recent than May 2025
+#' Check if the date in a string is more recent than May 2025.
+#'
+#' Note: In the code-data pairing architecture, container startup loading in
+#' [create_versioned_lkups()] passes explicit `schema` configuration rather
+#' than relying on this date heuristic. This function is maintained for
+#' backward compatibility and internal fallback.
 #'
 #' This function extracts the first 8 characters from an input string,
 #' interprets them as a date in the format \code{YYYYMMDD}, and checks
