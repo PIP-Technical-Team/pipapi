@@ -30,13 +30,15 @@ Each item below is tagged with its origin: **[ITS]** for an ITS meeting decision
 |---|---|---|
 | **Vintage folder** | One data snapshot folder in `/Data`. | `20260922_2021_01_02_PROD` |
 | **PIP release** | A date that users choose to get a specific, reproducible code + data result. Working hypothesis: equal to the date prefix of vintage folder names **[OPEN]**. | `20260922` |
-| **Schema** | The structural and computational shape of a vintage folder. Defined by rules kept in `{pipschema}`. | `lineup-v1`, `lineup-v2` |
+| **Schema** | A named description of the structure and format of a vintage folder, identified by explicit rules kept in `{pipschema}`. `{pipapi}` is the main consumer, so what it relies on weighs heavily, but **the rules are not limited to what `{pipapi}` reads today**, so definitions stay valid if it later reads more of the folder. A schema describes *shape* (files, formats, tables, columns), not *content* (which countries, years, estimates). **One container serves exactly one schema.** The set of schemas is **not fixed in advance and not tied to the lineup change**: it comes out of applying the rules to the real data. First version: starts coarse, and meaning-only changes (same names and types, different definition) are out of scope. | names TBD; `lineup-v1` / `lineup-v2` are **placeholders** used as examples in this document |
 | **`{pipapi}` version** | A git tag of the pipapi R package. | `v1.6.0` |
 | **Pairing** | A (schema, `{pipapi}` version) combination. **The unit of deployment: one pairing = one Docker image + one container.** | `lineup-v2__v1.6.0` |
 | **Schema file** | A single file at the top of `/Data`, produced by `{pipschema}`, listing every schema, the rules that identify it, and the vintage folders that belong to it. | `/Data/schemas/...` (exact name/location TBD) |
 | **`pairing` file** | A single file, produced by `{pipschema}` in the deployment workflow, recording vintage → schema, schema → `{pipapi}` version, and release → pairing. | TBD |
 
 ## Cardinality rules (settled)
+
+> **Note on examples.** Throughout this document, `lineup-v1` and `lineup-v2` (and values such as `lineup-v2__v1.6.0`) are **placeholder schema names** taken from the one structural change already known in `{pipapi}` (the "new lineup" code path). They illustrate the design. They are not the definitive list of schemas, which will be derived from the data inside `{pipschema}`. The number of schemas, and so the number of containers, is therefore **not yet known** (see Open Question 14).
 
 ```
 PIP release ──many:1──▶ pairing (schema, pipapi version) ──1:1──▶ Docker image ──1:1──▶ container
@@ -87,10 +89,12 @@ pipapi version ◀──many:many──▶ schema  (abstract capability; the dep
 ## Components (revised architecture)
 
 ### Data side
-- **Azure Blob storage** stays the source of truth. The ITSES-POVERTYSCORE-DATA pipeline writes vintage folders there in the **existing flat layout**.
+- **Y: drive** is where vintage folders land first (flat layout). This is the point where `{pipschema}` runs its first pass (see below), so the schema file already exists by the time the folder leaves this stage.
+- **Git copy to Azure repo:** the Y: drive content, including the schema file, is copied **via git** to the `ITSES-POVERTYSCORE-DATA` Azure DevOps repo.
+- **Copy-data pipeline:** a pipeline copies the repo content from `ITSES-POVERTYSCORE-DATA` to **Azure Blob storage**, which stays the source of truth for the deployment side, in the **existing flat layout**.
 - **VMs:** ITS copies the data from Blob to each VM. The **VM-local copy** is what gets mounted into the containers as `/Data` **[ITS]**. (The exact copy mechanism, its frequency and whether every VM gets the full `/Data` are ITS details, still to be documented.)
-- **Schema file:** a single file (or a single file in a new `schemas/` folder, **[OPEN]**) at the top of `/Data`. It lists every schema, the rules that identify it and its vintage folders.
-- **`pairing` file:** location **[OPEN]**: next to the schema file in `/Data` (copied to VMs with the data) or in the deployment repo `ITSES-POVERTYSCOREAPI`. The router must be able to read it, or read rules generated from it.
+- **Schema file:** a single file (or a single file in a new `schemas/` folder, **[OPEN]**) written by `{pipschema}` at the Y: drive stage, at the top of the vintage folder tree. It lists every schema, the rules that identify it and its vintage folders, and travels unchanged through the git copy, the copy-data pipeline, and the Blob → VM copy.
+- **`pairing` file:** produced by `{pipschema}`'s second pass, run as part of the `ITSES-POVERTYSCOREAPI` deployment workflow (not at the Y: drive stage). Exact consumption path **[OPEN]**, see below.
 
 ### `{pipschema}` (new package, outside the current `{pipapi}` scope)
 - **Role:** the single authority on "which vintage belongs to which schema" and "which release is served by which pairing".
@@ -99,7 +103,9 @@ pipapi version ◀──many:many──▶ schema  (abstract capability; the dep
   2. Scan `/Data` and generate the **schema file**: schemas, rules, vintage folders.
   3. **Validate:** each vintage matches exactly one schema; each release (date prefix) falls within one schema.
   4. Generate or append the **`pairing` file**: release → (schema, `{pipapi}` version). **Append-only**; existing bindings are never rewritten.
-- **When it runs:** working hypothesis: at **data publication**, so a new release is bound to the `{pipapi}` version currently deployed for its schema **[OPEN: to be investigated and discussed]**.
+- **When it runs:** `{pipschema}` acts at **two moments**:
+  1. **At the Y: drive stage**, scanning the vintage folders present there and writing the schema file into that same location, before anything is copied onward. This is the pass that produces the schema file described above.
+  2. **In the `ITSES-POVERTYSCOREAPI` deployment workflow**, generating or appending the `pairing` file. Working hypothesis on timing carried over unchanged: at data publication, so a new release is bound to the `{pipapi}` version currently deployed for its schema **[OPEN: to be investigated and discussed]**. **How the `pairing` file is then consumed — by `main.R` directly, by a build/deploy step that bakes its content into the container, or by the router only — is still open** (see Open Questions).
 - **Relationship to `{pipapi}`:** `{pipapi}` *consumes* the outputs (through `main.R`). It doesn't produce schema metadata and ideally doesn't depend on `{pipschema}` at runtime. `main.R` only reads the `pairing` file.
 - **Relationship to deployment:** its outputs drive (a) which vintages each container loads and (b) the router rules.
 
@@ -176,16 +182,20 @@ A small service (or the "latest" container) reads `pairing` at runtime and forwa
 3. **Container placement:** how many VMs, how many containers per VM, and do all VMs carry the full `/Data`?
 4. **Lifecycle:** retirement policy for pairings no longer referenced by any live release, and the HTTP response for retired releases (410 recommended).
 5. **Build trigger:** with one Dockerfile per container, how are new images built and tagged (on git tag, manually, hybrid)?
+6. **Router / gateway relationship:** is the "router" referred to throughout this document the same component as the Azure Application Gateway / reverse proxy mentioned in the earlier brainstorms, or are there two separate layers (a gateway in front of a router)? If two, where does each decision (TLS/host routing vs. release→pairing mapping) live?
+7. **Number of Dockerfiles:** with "one Dockerfile + one `main.R` per container" **[ITS]**, does `ITSES-POVERTYSCOREAPI` hold one Dockerfile per pairing (growing with the pairing count), or a templated/parameterized build that still produces one pinned image per pairing? How many Dockerfiles exist in the repo today versus at steady state?
+8. **Release → container resolution:** concretely, how does the router/gateway determine which container a given `/releases/<date>/...` request should go to — does it hold a static rule table regenerated from `pairing` (Approach 1), query `pairing` at request time, or something else? This is the same open point as item 1, phrased at the mechanism level.
 
 ### For the team / `{pipschema}`
-6. **Release definition:** is a PIP release exactly the date prefix of vintage folder names (working hypothesis), or a separately curated label?
-7. **Release-schema consistency:** confirm that all folders sharing a date prefix (PPP years, PROD/INT/TEST) always belong to one schema.
-8. **Binding time and owner:** is release → pairing appended by `{pipschema}` at data publication (working hypothesis), or at API deployment? How does `{pipschema}` know the "current" `{pipapi}` version per schema?
-9. **`pairing` file location:** in `/Data` next to the schema file, or in `ITSES-POVERTYSCOREAPI`?
-10. **Schema file format and location:** a single file at the top of `/Data`, or a single file inside a new `/Data/schemas/` folder? Which format (YAML/JSON)?
-11. **Schema rules:** how are rules expressed (date cutoffs, required files, column checks)? What triggers a new schema? (Carried over from 08-28.)
-12. **When does a `{pipapi}` upgrade create a new pairing?** Only when results change for an existing schema, or on every release-relevant tag? Needs a written policy.
-13. **In-place data corrections, cache behaviour, retention:** carried over unchanged from the 08-28 brainstorm.
+9. **Release definition:** is a PIP release exactly the date prefix of vintage folder names (working hypothesis), or a separately curated label?
+10. **Release-schema consistency:** confirm that all folders sharing a date prefix (PPP years, PROD/INT/TEST) always belong to one schema.
+11. **Binding time and owner:** is release → pairing appended by `{pipschema}` at data publication (working hypothesis), or at API deployment? How does `{pipschema}` know the "current" `{pipapi}` version per schema?
+12. **`pairing` file location and consumption:** generated during the `ITSES-POVERTYSCOREAPI` deployment workflow (second `{pipschema}` run) — is it then read directly by `main.R`, baked into the image at build time, or read only by the router? (See the mechanism open point in the "For ITS" list.)
+13. **Schema file format and location:** a single file at the top of the Y: drive / `/Data` tree, or a single file inside a new `schemas/` folder? Which format (YAML/JSON)?
+14. **Schema rules:** how are rules expressed (date cutoffs, required files, column checks)? What triggers a new schema? (Carried over from 08-28.)
+15. **When does a `{pipapi}` upgrade create a new pairing?** Only when results change for an existing schema, or on every release-relevant tag? Needs a written policy.
+16. **In-place data corrections, cache behaviour, retention:** carried over unchanged from the 08-28 brainstorm.
+17. **Which schemas exist, and how many?** To be derived by `{pipschema}` from the real vintage folders, using rules about the structure of the data that are not limited to what `{pipapi}` reads today. The first version starts coarse and leaves out meaning-only changes. Each container serves exactly one schema, so the result sets how many containers ITS must plan for (together with the `{pipapi}` versions deployed per schema). It replaces the earlier assumption of two schemas.
 
 ## Architecture Diagrams (revised)
 
@@ -232,18 +242,21 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    subgraph PIPES["Azure DevOps pipelines (ITS)"]
-        direction TB
-        DP["<b>ITSES-POVERTYSCORE-DATA</b><br/>writes vintages, flat layout"]
-        AP["<b>ITSES-POVERTYSCOREAPI</b><br/>one Dockerfile + main.R per pairing<br/><i>pinned pipapi tag</i>"]
+    subgraph LOCAL["Y: drive (local)"]
+        YDRIVE[("Y: drive<br/>vintage folders, flat layout")]
     end
     subgraph SCHEMA["pipschema - new package, outside pipapi scope"]
-        PS["<b>pipschema</b><br/>schema rules + validation"]
-        SF[("Schema file<br/>schemas, rules, vintages")]
-        PF[("pairing file<br/>release to schema + pipapi version<br/><i>append-only</i>")]
+        PS1["<b>pipschema</b><br/>run 1, at Y: drive stage<br/>scans vintages, writes schema file"]
+        PS2["<b>pipschema</b><br/>run 2, in deployment workflow<br/>generates/appends pairing file"]
+    end
+    subgraph PIPES["Azure DevOps pipelines (ITS)"]
+        direction TB
+        DP["<b>ITSES-POVERTYSCORE-DATA</b><br/>azure repo: vintages + schema file"]
+        CPY["<b>Copy-data pipeline</b><br/>copies repo content to Blob"]
+        AP["<b>ITSES-POVERTYSCOREAPI</b><br/>one Dockerfile + main.R per pairing<br/><i>pinned pipapi tag</i>"]
     end
     subgraph STORAGE["Azure Blob storage"]
-        DATA[("Flat /Data<br/>20240315_2024_02_01_PROD<br/>20250601_2025_01_02_PROD<br/>20260922_2021_01_02_PROD<br/>...")]
+        DATA[("Flat /Data<br/>vintages + schema file<br/>20240315_2024_02_01_PROD<br/>20250601_2025_01_02_PROD<br/>20260922_2021_01_02_PROD<br/>...")]
     end
     subgraph VM["VM(s)"]
         VMDATA[("Local copy of /Data")]
@@ -251,20 +264,24 @@ flowchart LR
         C2["<b>lineup-v2 + pipapi v1.6.0</b><br/>main.R: schema lineup-v2"]
         C3["<b>lineup-v2 + pipapi v1.7.0</b><br/>main.R: schema lineup-v2"]
     end
+    PF[("pairing file<br/>release to schema + pipapi version<br/><i>append-only</i>")]
     ROUTER{{"<b>Router</b><br/>release to pairing to container"}}
     USER(["User"])
-    Q1["OPEN: router mechanism - pending ITS"]
-    Q2["OPEN: when and who appends pairing; file location"]
-    Q3["OPEN: is a release = folder date prefix"]
+    Q1["OPEN: router / gateway relationship"]
+    Q2["OPEN: how many Dockerfiles - one per container?"]
+    Q3["OPEN: how does the router resolve a release to its container?"]
 
-    DP ==>|writes vintages| DATA
-    PS -->|scans /Data| DATA
-    PS --> SF
-    PS --> PF
+    YDRIVE -->|scans| PS1
+    PS1 -->|writes schema file into| YDRIVE
+    YDRIVE ==>|git copy| DP
+    DP ==>|triggers| CPY
+    CPY ==>|writes| DATA
     DATA ==>|copied to VM| VMDATA
     VMDATA ==>|mounted as /Data| C1
     VMDATA ==>|mounted as /Data| C2
     VMDATA ==>|mounted as /Data| C3
+    AP -->|runs| PS2
+    PS2 -->|generates| PF
     PF -.->|vintage list per pairing| C2
     PF -.->|rules generated| ROUTER
     AP ==>|deploys| C1
@@ -278,8 +295,8 @@ flowchart LR
     ROUTER ==> C3
     ROUTER -.->|response| USER
     ROUTER -.- Q1
-    PF -.- Q2
-    PF -.- Q3
+    AP -.- Q2
+    ROUTER -.- Q3
 
     classDef store fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#0b1f4d
     classDef compute fill:#ede9fe,stroke:#6d28d9,stroke-width:2px,color:#2e1065
@@ -288,12 +305,12 @@ flowchart LR
     classDef pipeline fill:#ffe4e6,stroke:#be123c,stroke-width:2px,color:#4c0519
     classDef newpkg fill:#ccfbf1,stroke:#0f766e,stroke-width:2px,color:#042f2e
     classDef question fill:#fff3b0,stroke:#b58900,color:#000
-    class DATA,VMDATA,SF,PF store
+    class DATA,VMDATA,PF,YDRIVE store
     class C1,C2,C3 compute
     class ROUTER router
     class USER user
-    class DP,AP pipeline
-    class PS newpkg
+    class DP,AP,CPY pipeline
+    class PS1,PS2 newpkg
     class Q1,Q2,Q3 question
 ```
 
