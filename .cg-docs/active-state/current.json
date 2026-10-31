@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "compound-gpid-active-state-v1",
+  "updatedAt": "2026-10-31T15:05:00Z",
+  "workflow": "/cg-work",
+  "status": "completed",
+  "branch": "api-versions",
+  "plan": ".cg-docs/plans/2026-10-31-pairing-filtered-startup-isolation.md",
+  "executionReport": ".cg-docs/work-reports/2026-10-31-pairing-filtered-startup-isolation.md",
+  "currentPhase": null,
+  "evidenceStatus": [
+    {"id": "V1", "status": "passed", "artifact": "pkgload::load_all()"},
+    {"id": "V2", "status": "passed", "artifact": "tests/testthat/test-create_lkups.R"},
+    {"id": "V3", "status": "passed", "artifact": "tests/testthat/test-validate_lkup.R"}
+  ],
+  "unresolvedDecisions": [],
+  "artifactRefs": [
+    {"kind": "plan", "path": ".cg-docs/plans/2026-10-31-pairing-filtered-startup-isolation.md", "status": "completed"},
+    {"kind": "work-report", "path": ".cg-docs/work-reports/2026-10-31-pairing-filtered-startup-isolation.md", "status": "completed"}
+  ],
+  "nextCommand": "/cg-review manual"
+}

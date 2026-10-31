@@ -1,7 +1,8 @@
 ---
 date: 2026-10-31
 title: "Enable {pipapi} to Consume Pairing-Filtered Vintage Lists and Isolate Startup (Workstream B)"
-status: active
+status: completed
+completed-date: 2026-10-31
 scope: "Standard"
 brainstorm: ".cg-docs/brainstorms/2026-10-05-pipapi-versioning-post-its-revision.md"
 language: "R"
@@ -9,6 +10,8 @@ estimated-effort: "medium"
 deviation-policy: "ask"
 artifact-schema-version: 1
 phases: 2
+completed-phases: [1, 2]
+execution-report: ".cg-docs/work-reports/2026-10-31-pairing-filtered-startup-isolation.md"
 tags: [versioning, pairing, startup, create_versioned_lkups, tryCatch, git-tags, pipschema]
 ---
 

@@ -4,17 +4,44 @@
 \alias{create_versioned_lkups}
 \title{Create one list of lookups per data version}
 \usage{
-create_versioned_lkups(data_dir, vintage_pattern = NULL)
+create_versioned_lkups(
+  data_dir,
+  vintage_pattern = NULL,
+  vintage_folders = NULL,
+  schema = NULL
+)
 }
 \arguments{
 \item{data_dir}{character: Path to the main data directory}
 
 \item{vintage_pattern}{character: regex that identifies the name pattern of
-vintage folders}
+vintage folders, or output of \code{\link[=build_vintage_pattern]{build_vintage_pattern()}}}
+
+\item{vintage_folders}{character: Optional character vector of explicit vintage
+folder names to load. When supplied, discovery is restricted strictly to these folders.}
+
+\item{schema}{character: Optional schema identifier (e.g. "new-lineup" or "pre-lineup").
+When supplied, overrides the date heuristic check and sets lineup behavior explicitly.}
 }
 \value{
-list
+A named \code{list} containing \code{versions} (character vector of loaded
+vintage names), \code{versions_paths} (named list of lookup objects per vintage),
+and \code{latest_release} (character scalar of the primary release).
 }
 \description{
 Create one list of lookups per data version
+}
+\examples{
+\dontrun{
+vintages <- read_pairing_vintages(
+  pairing_path = "/Data/pairing.yml",
+  schema = "new-lineup",
+  pipapi_version = "1.5.15"
+)
+lkups <- create_versioned_lkups(
+  data_dir = "/Data",
+  vintage_pattern = build_vintage_pattern(vintages),
+  schema = "new-lineup"
+)
+}
 }
