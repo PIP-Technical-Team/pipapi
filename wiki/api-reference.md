@@ -14,6 +14,11 @@ Functions for analyzing and transforming household welfare distributions.
 ### Global Aggregates
 Functions for accessing global and regional poverty aggregates.
 
+### Startup & Pairing Lookup Configuration
+- `create_versioned_lkups(data_dir, vintage_pattern = NULL, vintage_folders = NULL, schema = NULL)`: Builds per-vintage lookup lists for a container's assigned vintages with per-vintage `tryCatch()` fault isolation and explicit `schema` (`"new-lineup"` or `"pre-lineup"`) configuration.
+- `read_pairing_vintages(pairing_path, schema = NULL, pipapi_version = NULL, pipapi_sha = NULL)`: Reads `pairing.yml` (version 1) and returns the sorted unique vintage folder names matching the container's pairing selectors.
+- `build_vintage_pattern(folders)`: Escapes regex metacharacters and builds an anchored alternation regex (`^(folder1|folder2)$`) for `create_versioned_lkups()`.
+
 *API documentation will be populated as functions are implemented and stabilized.*
 <!-- cg:auto:end -->
 
