@@ -86,7 +86,7 @@ Because both PIP data structures and `{pipapi}` calculation code evolve over tim
 
 | Component | Role | Output / Responsibility |
 |---|---|---|
-| **`find_pipapi_version`** | **Evidence harness** | Verifies which `{pipapi}` commit SHA and `renv.lock` environment reproduce a vintage folder's estimates, producing the `coverage.csv` evidence table. Used retrospectively once to recover bindings for historical 2022–2026 releases, and used prospectively to record/verify the target `{pipapi}` environment for new releases. |
+| **[`find_pipapi_version`](https://github.com/PIP-Technical-Team/find_pipapi_version)** | **Evidence harness** | Verifies which `{pipapi}` commit SHA and `renv.lock` environment reproduce a vintage folder's estimates, producing the `coverage.csv` evidence table. Used retrospectively once to recover bindings for historical 2022–2026 releases, and used prospectively to record/verify the target `{pipapi}` environment for new releases. |
 | **[`{pipschema}`](https://github.com/PIP-Technical-Team/pipschema)** | **Offline governance** | 1. **`schema.yml`**: Classifies every vintage folder in `/Data` by its structural contents (`pre-lineup` vs. `new-lineup`), never by folder-name dates.<br>2. **`pairing.yml`**: Joins `schema.yml` with `coverage.csv` to freeze an append-only mapping of each release (`YYYYMMDD`) and its folders to `(schema, pipapi_version, pipapi_sha)`. |
 | **`{pipapi}` + `ITSES-POVERTYSCOREAPI`** | **Runtime execution** | Runs **one container per pairing**. Each container installs its pinned `{pipapi}` git tag, mounts `/Data` read-only, reads `/Data/pairing.yml` at startup, and loads **strictly** the vintage folders assigned to its pairing. |
 
