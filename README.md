@@ -88,3 +88,71 @@ pip(country = "AGO",
 #>    is_used_for_aggregation distribution_type estimation_type
 #> 1:                   FALSE             micro          survey
 ```
+
+## Code-Data Versioning & Container Startup Architecture
+
+Because both PIP data structures and `{pipapi}` calculation code evolve over time, a single `{pipapi}` version cannot safely serve every historical vintage in `/Data`. Instead, the system separates responsibilities across three components to enforce **frozen code-data pairings**:
+
+| Component | Role | Output / Responsibility |
+|---|---|---|
+| **`find_pipapi_version`** | **Evidence harness** | Verifies which `{pipapi}` commit SHA and `renv.lock` environment reproduce a vintage folder's estimates, producing the `coverage.csv` evidence table. Used retrospectively once to recover bindings for historical 2022–2026 releases, and used prospectively to record/verify the target `{pipapi}` environment for new releases. |
+| **[`{pipschema}`](https://github.com/PIP-Technical-Team/pipschema)** | **Offline governance** | 1. **`schema.yml`**: Classifies every vintage folder in `/Data` by its structural contents (`pre-lineup` vs. `new-lineup`), never by folder-name dates.<br>2. **`pairing.yml`**: Joins `schema.yml` with `coverage.csv` to freeze an append-only mapping of each release (`YYYYMMDD`) and its folders to `(schema, pipapi_version, pipapi_sha)`. |
+| **`{pipapi}` + `ITSES-POVERTYSCOREAPI`** | **Runtime execution** | Runs **one container per pairing**. Each container installs its pinned `{pipapi}` git tag, mounts `/Data` read-only, reads `/Data/pairing.yml` at startup, and loads **strictly** the vintage folders assigned to its pairing. |
+
+### Container Startup (`main.R`)
+
+Modern `{pipapi}` containers (`>= 1.5.15`) read `/Data/pairing.yml` at startup so the folder list is driven by the data mount rather than hardcoded inside the Docker image:
+
+``` r
+vintages <- pipapi::read_pairing_vintages(
+  pairing_path   = "/Data/pairing.yml",
+  schema         = "new-lineup",
+  pipapi_version = "1.5.15"
+)
+
+lkups <- pipapi::create_versioned_lkups(
+  data_dir        = "/Data",
+  vintage_folders = vintages,
+  schema          = "new-lineup"
+)
+
+pipapi::start_api(api_version = "v1", port = 8080, host = "0.0.0.0", lkups = lkups)
+```
+
+This startup flow provides three guarantees:
+
+- **Strict folder filtering (`vintage_folders` / `build_vintage_pattern()`)**: Scans and loads only the vintage folders bound to the container's pairing, ignoring all other folders in `/Data`.
+- **Explicit schema behavior (`schema = "new-lineup"` or `"pre-lineup"`)**: Replaces the legacy `> 2025-05-01` folder-date heuristic (`use_new_lineup_version()`).
+- **Per-vintage fault isolation (`tryCatch`)**: If an individual vintage folder is unreadable or corrupted, `create_versioned_lkups()` logs a `cli::cli_warn()` and skips that folder instead of aborting container startup (and warns explicitly if `latest_release` falls back to an older vintage).
+
+### Deployed Pairings Reference
+
+| Pairing | Schema | `{pipapi}` Tag (SHA) | Releases Served | Startup Mechanism |
+|---|---|---|---|---|
+| `pre-lineup` + `1.0.0` | `pre-lineup` | `v1.0.0` (`f081d28f`) | `20220609` (1 folder) | Frozen 2022 code; `main.R` passes exact `vintage_pattern` regex |
+| `pre-lineup` + `1.3.22` | `pre-lineup` | `v1.3.22` (`089c3fc8`) | `20220909`–`20240627` (5 releases, 10 folders) | Frozen 2024 code; `main.R` passes exact `vintage_pattern` regex |
+| `new-lineup` + `1.5.15` | `new-lineup` | `v1.5.15` (`48101230`) | `20250930`–`20260922` (3 releases, 6 folders) | Dynamic `read_pairing_vintages()` + `schema = "new-lineup"` |
+
+### Runbook: Publishing a New PIP Release
+
+When a new PIP data release (`YYYYMMDD_*_PROD`) is ready, follow **Scenario A** (standard data release) or **Scenario B** (new `{pipapi}` version or new data schema):
+
+#### Scenario A: Standard Data Release (Same Schema & Same `{pipapi}` Version)
+*Use this when the table/column structure is unchanged (`new-lineup`) and the current `{pipapi}` version (`1.5.15`) requires no code changes.*
+
+1. **Update `{pipschema}` contracts**:
+   - Run `pipschema::assign_schemas()` on the data directory to classify the new folders into `inst/schemas/schema.yml`.
+   - Run `pipschema::build_pairing()` and `pipschema::write_pairing()` to append the new release to `inst/pairing/pairing.yml` (existing bindings remain frozen).
+2. **Publish to `/Data`**:
+   - Commit the new vintage folders alongside the updated `schema.yml` and `pairing.yml` at the root of the Data repository (`ITSES-POVERTYSCORE-DATA`) and refresh the `cache-v2` files if enabled.
+3. **Restart the active container**:
+   - Once synced to `/Data` on the VM, restart the `api-1-5` container. On startup, `main.R` reads `/Data/pairing.yml`, discovers the new release, and promotes it to `latest_release`. **No `{pipapi}` code change or Docker image rebuild is required.**
+
+#### Scenario B: Release Requiring a New `{pipapi}` Version (e.g., `v1.6.0`) or New Schema
+*Use this when calculation logic in `{pipapi}` or the vintage folder structure changes, so prior releases stay frozen on their original code.*
+
+1. **Tag `{pipapi}`**: Commit the code changes in `{pipapi}` and push an annotated release tag (e.g., `v1.6.0`) to GitHub.
+2. **Update `{pipschema}` & publish to `/Data`**: If the folder structure changed, add the new schema in `pipschema` (`definitions.yml`). Run `assign_schemas()`, `build_pairing()`, and `write_pairing()` to bind the new release to `1.6.0`, then copy `schema.yml` and `pairing.yml` to the root of `/Data`.
+3. **Tag the Azure deploy repo (`ITSES-POVERTYSCOREAPI`)**: On branch `release/1`, update `PIPAPI_COMMIT` in `PIP_CustomImage/Dockerfile` and `PAIRING_PIPAPI_VERSION` (and `PAIRING_SCHEMA` if changed) in `PIP_CustomImage/R/main.R`, commit, and push tag `v1.6.0`.
+4. **Deploy side-by-side**: Start the new `api-1-6` container and route the new release to its port in `nginx`, leaving `api-1-5`, `api-1-3`, and `api-1-0` untouched.
+
